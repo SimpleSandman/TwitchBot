@@ -18,6 +18,9 @@ using System.IO;
 using RestSharp;
 using System.Text.RegularExpressions;
 using System.Collections.Specialized;
+using Tweetinvi;
+using Tweetinvi.Core;
+using Tweetinvi.Core.Credentials;
 
 namespace TwitchBot
 {
@@ -32,10 +35,19 @@ namespace TwitchBot
             string pass = "";         // password
             string connStr = "";      // connection string
             ConsoleKeyInfo key;       // keystroke
-            string oauth = "";        // oauth
-            string clientID = "";     // clientID
-            string accessToken = "";  // used for channel editing
-            bool isConnected = false;
+
+            // Twitch variables
+            string twitchOAuth = "";
+            string twitchClientID = "";
+            string twitchAccessToken = "";  // used for channel editing
+
+            // Twitter variables
+            string twitterConsumerKey = "";
+            string twitterConsumerSecret = "";
+            string twitterAccessToken = "";
+            string twitterAccessSecret = "";
+
+            bool isConnected = false; // azure connection
 
             // retry password until success
             do
@@ -89,7 +101,7 @@ namespace TwitchBot
 
             Console.WriteLine("Azure server connection successful");
 
-            /* Get oauth and client id from tblSettings */
+            /* Get sensitive info from tblSettings */
             SqlConnection sqlConn = new SqlConnection(connStr);
             SqlCommand cmd = new SqlCommand();
             SqlDataReader reader;
@@ -106,15 +118,20 @@ namespace TwitchBot
             {
                 while (reader.Read())
                 {
-                    oauth = reader["oauth"].ToString();
-                    clientID = reader["clientID"].ToString();
-                    accessToken = reader["accessToken"].ToString();
+                    twitchOAuth = reader["twitchOAuth"].ToString();
+                    twitchClientID = reader["twitchClientID"].ToString();
+                    twitchAccessToken = reader["twitchAccessToken"].ToString();
+
+                    twitterConsumerKey = reader["twitterConsumerKey"].ToString();
+                    twitterConsumerSecret = reader["twitterConsumerSecret"].ToString();
+                    twitterAccessToken = reader["twitterAccessToken"].ToString();
+                    twitterAccessSecret = reader["twitterAccessSecret"].ToString();
                 }                
             }
             else
             {
                 sqlConn.Close();
-                Console.WriteLine("Check database for oauth and client ID");
+                Console.WriteLine("Check database for twitch or twitter variables");
                 Thread.Sleep(1000);
                 return;
             }
@@ -129,9 +146,10 @@ namespace TwitchBot
 
             // Password from www.twitchapps.com/tmi/
             // include the "oauth:" portion
+            // Use chat bot's oauth
             /* main server: irc.twitch.tv, 6667 */
             irc = new IrcClient("irc.twitch.tv", 6667,
-                "Spearofonyxbot", oauth);
+                "MrSandmanBot", twitchOAuth);
             irc.joinRoom("simple_sandman");
 
             spotifyCtrl.Connect(); // initial connect to spotify local client
@@ -139,6 +157,12 @@ namespace TwitchBot
             /* Ping to twitch server to prevent auto-disconnect */
             PingSender ping = new PingSender();
             ping.Start();
+
+            /* Authenticate to Twitter */
+            Auth.ApplicationCredentials = new TwitterCredentials(
+                twitterConsumerKey, twitterConsumerSecret, 
+                twitterAccessToken, twitterAccessSecret
+            );
 
             /* Master loop */
             while (true)
@@ -314,7 +338,7 @@ namespace TwitchBot
                         var request = new RestRequest(Method.PUT);
                         request.AddHeader("cache-control", "no-cache");
                         request.AddHeader("content-type", "application/json");
-                        request.AddHeader("authorization", "OAuth " + accessToken);
+                        request.AddHeader("authorization", "OAuth " + twitchAccessToken);
                         request.AddHeader("accept", "application/vnd.twitchtv.v3+json");
                         request.AddParameter("application/json", "{\"channel\":{\"status\":\"" + title + "\"}}", ParameterType.RequestBody);
 
@@ -350,7 +374,7 @@ namespace TwitchBot
                         var request = new RestRequest(Method.PUT);
                         request.AddHeader("cache-control", "no-cache");
                         request.AddHeader("content-type", "application/json");
-                        request.AddHeader("authorization", "OAuth " + accessToken);
+                        request.AddHeader("authorization", "OAuth " + twitchAccessToken);
                         request.AddHeader("accept", "application/vnd.twitchtv.v3+json");
                         request.AddParameter("application/json", "{\"channel\":{\"game\":\"" + game + "\"}}", ParameterType.RequestBody);
 
@@ -373,6 +397,16 @@ namespace TwitchBot
                             response = (IRestResponse)ex.Response;
                             Console.WriteLine("Error: " + response);
                         }
+                    }
+                    if (message.Contains("!tweet"))
+                    {
+                        // Get message from command parameter
+                        string tweetMessage = string.Empty;
+                        int lengthParam1 = (GetNthIndex(message, '"', 2) - message.IndexOf('"')) - 1;
+                        int startIndexParam1 = message.IndexOf('"') + 1;
+                        tweetMessage = message.Substring(startIndexParam1, lengthParam1);
+
+                        var basicTweet = Tweet.PublishTweet(tweetMessage);
                     }
                 }
             }
