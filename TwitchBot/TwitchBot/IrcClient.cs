@@ -12,7 +12,6 @@ namespace TwitchBot
     class IrcClient
     {
         public string userName;
-        private const string botName = "Spearofonyxbot";
         private string channel;
 
         private TcpClient tcpClient;
@@ -50,18 +49,6 @@ namespace TwitchBot
         {
             sendIrcMessage(":" + userName + "!" + userName + "@" + userName + 
                 ".tmi.twitch.tv PRIVMSG #" + channel + " :" + message);
-        }
-
-        // work in progress
-        public void sendWhisper(string message)
-        {
-            outputStream.WriteLine("CAP REQ :twitch.tv/commands");
-            sendIrcMessage("PRIVMSG #jtv :/w " + userName + " " + message);
-        }
-
-        public void onJoin(string channel)
-        {
-            // work in progress
         }
 
         public string readMessage()

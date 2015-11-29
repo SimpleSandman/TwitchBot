@@ -18,12 +18,14 @@ namespace TwitchBot
         public PingSender() 
         {
             pingSender = new Thread (new ThreadStart (this.Run) ); 
-        } 
+        }
+
         // Starts the thread
         public void Start() 
         { 
             pingSender.Start(); 
-        } 
+        }
+
         // Send PING to irc server every 5 minutes
         public void Run()
         {
