@@ -318,7 +318,7 @@ namespace TwitchBot
                         if (message.Contains("!commands"))
                         {
                             // work in progress
-                            irc.sendPublicChatMessage("Check out all you can tell me to do here: "
+                            irc.sendPublicChatMessage("Link to list of commands: "
                                 + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
                         }
 
