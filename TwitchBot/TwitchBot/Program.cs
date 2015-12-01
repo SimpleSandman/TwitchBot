@@ -36,6 +36,7 @@ namespace TwitchBot
             string pass = "";         // password
             string connStr = "";      // connection string
             ConsoleKeyInfo key;       // keystroke
+            
 
             // Twitch variables
             string twitchOAuth = "";
@@ -49,8 +50,9 @@ namespace TwitchBot
             string twitterAccessSecret = "";
 
             bool isSongRequest = false; // check song request status
-
             bool isConnected = false; // check azure connection
+
+            TimeZone localZone = TimeZone.CurrentTimeZone;
 
             /* Retry password until success */
             do
@@ -304,17 +306,18 @@ namespace TwitchBot
                         if (message.Contains("!commands"))
                         {
                             // work in progress
-                            irc.sendPublicChatMessage("!hello = Hello Message || add more...");
+                            irc.sendPublicChatMessage("Check out all you can tell me to do here: " 
+                                + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
                         }
 
                         if (message.Contains("!hello"))
                             irc.sendPublicChatMessage("Hey there! Thanks for talking to me.");
 
-                        if (message.Contains("!utctime "))
+                        if (message.Contains("!utctime"))
                             irc.sendPublicChatMessage("UTC Time: " + DateTime.UtcNow.ToString());
 
                         if (message.Contains("!localtime"))
-                            irc.sendPublicChatMessage("Local Time: " + DateTime.Now.ToString());
+                            irc.sendPublicChatMessage("Local Time: " + DateTime.Now.ToString() + " (" + localZone.StandardName + ")");
 
                         if (message.Contains("!uptime")) // need to check if channel is currently streaming
                         {
@@ -411,6 +414,16 @@ namespace TwitchBot
                             }
                             else
                                 irc.sendPublicChatMessage("Song requests are disabled at the moment");
+                        }
+
+                        if (message.Contains("!currentsong")) 
+                        {
+                            StatusResponse status = spotify.GetStatus();
+                            if (status == null) return;
+
+                            irc.sendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
+                                + " || Artist: " + status.Track.ArtistResource.Name
+                                + " || Album: " + status.Track.AlbumResource.Name);
                         }
 
                         /* add more general commands here */
