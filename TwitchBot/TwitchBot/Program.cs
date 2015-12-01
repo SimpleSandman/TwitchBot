@@ -30,13 +30,13 @@ namespace TwitchBot
         public static IrcClient irc;
         public static string strBroadcasterName = "simple_sandman";
         public static string strBotName = "MrSandmanBot";
+        public static TimeZone localZone = TimeZone.CurrentTimeZone;
 
         static void Main(string[] args)
         {            
             string pass = "";         // password
             string connStr = "";      // connection string
-            ConsoleKeyInfo key;       // keystroke
-            
+            ConsoleKeyInfo key;       // keystroke            
 
             // Twitch variables
             string twitchOAuth = "";
@@ -51,8 +51,6 @@ namespace TwitchBot
 
             bool isSongRequest = false; // check song request status
             bool isConnected = false; // check azure connection
-
-            TimeZone localZone = TimeZone.CurrentTimeZone;
 
             /* Retry password until success */
             do
@@ -150,7 +148,11 @@ namespace TwitchBot
                 strBotName, twitchOAuth);
             irc.joinRoom(strBroadcasterName);
 
-            spotifyCtrl.Connect(); // initial connect to spotify local client
+            /* Make new thread to get messages */
+            Thread thdIrcClient = new Thread(() => GetMessage(spotifyCtrl, isSongRequest, twitchAccessToken, connStr));
+            thdIrcClient.Start();
+
+            spotifyCtrl.Connect(); // attempt connection to spotify local client
 
             /* Ping to twitch server to prevent auto-disconnect */
             PingSender ping = new PingSender();
@@ -161,7 +163,17 @@ namespace TwitchBot
                 twitterConsumerKey, twitterConsumerSecret, 
                 twitterAccessToken, twitterAccessSecret
             );
+        }
 
+        /// <summary>
+        /// Monitor chat box for commands
+        /// </summary>
+        /// <param name="spotifyCtrl"></param>
+        /// <param name="isSongRequest"></param>
+        /// <param name="twitchAccessToken"></param>
+        /// <param name="connStr"></param>
+        private static void GetMessage(SpotifyControl spotifyCtrl, bool isSongRequest, string twitchAccessToken, string connStr)
+        {
             /* Master loop */
             while (true)
             {
@@ -306,7 +318,7 @@ namespace TwitchBot
                         if (message.Contains("!commands"))
                         {
                             // work in progress
-                            irc.sendPublicChatMessage("Check out all you can tell me to do here: " 
+                            irc.sendPublicChatMessage("Check out all you can tell me to do here: "
                                 + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
                         }
 
@@ -416,7 +428,7 @@ namespace TwitchBot
                                 irc.sendPublicChatMessage("Song requests are disabled at the moment");
                         }
 
-                        if (message.Contains("!currentsong")) 
+                        if (message.Contains("!currentsong"))
                         {
                             StatusResponse status = spotify.GetStatus();
                             if (status == null) return;
@@ -430,7 +442,7 @@ namespace TwitchBot
                     }
                 }
             }
-        }       
+        }
 
         /// <summary>
         /// Test that the server is connected
