@@ -22,7 +22,8 @@ namespace TwitchBot
 
         // Starts the thread
         public void Start() 
-        { 
+        {
+            pingSender.IsBackground = true;
             pingSender.Start(); 
         }
 

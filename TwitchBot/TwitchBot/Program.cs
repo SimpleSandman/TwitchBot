@@ -31,6 +31,7 @@ namespace TwitchBot
         public static string strBroadcasterName = "simple_sandman";
         public static string strBotName = "MrSandmanBot";
         public static TimeZone localZone = TimeZone.CurrentTimeZone;
+        public static bool isAutoTweet = false; // set to auto publish tweets (disabled by default)
 
         static void Main(string[] args)
         {            
@@ -47,10 +48,10 @@ namespace TwitchBot
             string twitterConsumerKey = "";
             string twitterConsumerSecret = "";
             string twitterAccessToken = "";
-            string twitterAccessSecret = "";
+            string twitterAccessSecret = "";            
 
-            bool isSongRequest = false; // check song request status
-            bool isConnected = false; // check azure connection
+            bool isSongRequest = false;  // check song request status
+            bool isConnected = false;    // check azure connection
 
             /* Retry password until success */
             do
@@ -80,11 +81,11 @@ namespace TwitchBot
 
                 Console.WriteLine();
 
-                // append password to connection string
+                // Append password to connection string
                 connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.conn"].ConnectionString;
                 connStr = connStr + ";Password=" + pass;
 
-                // check if server is connected
+                // Check if server is connected
                 if (!IsServerConnected(connStr))
                 {
                     // clear sensitive data
@@ -98,7 +99,7 @@ namespace TwitchBot
             }
             while (!isConnected);
 
-            // clear sensitive data
+            // Clear sensitive data
             pass = null;
 
             Console.WriteLine("Azure server connection successful");
@@ -122,12 +123,14 @@ namespace TwitchBot
                             twitterConsumerSecret = reader["twitterConsumerSecret"].ToString();
                             twitterAccessToken = reader["twitterAccessToken"].ToString();
                             twitterAccessSecret = reader["twitterAccessSecret"].ToString();
+
+                            isAutoTweet = (bool)reader["enableTweet"];
                         }
                     }
                     else
                     {
                         conn.Close();
-                        Console.WriteLine("Check database for twitch or twitter variables");
+                        Console.WriteLine("Check tblSettings for twitch or twitter variables");
                         Thread.Sleep(1000);
                         return;
                     }
@@ -148,11 +151,15 @@ namespace TwitchBot
                 strBotName, twitchOAuth);
             irc.joinRoom(strBroadcasterName);
 
+            /* Whisper broadcaster bot settings */
+            Console.WriteLine("Bot settings: Automatic tweets is set to [" + isAutoTweet + "]");
+            irc.sendPublicChatMessage(strBroadcasterName + ": Automatic tweets is set to \"" + isAutoTweet + "\"");
+
             /* Make new thread to get messages */
-            Thread thdIrcClient = new Thread(() => GetMessage(spotifyCtrl, isSongRequest, twitchAccessToken, connStr));
+            Thread thdIrcClient = new Thread(() => GetChatBox(spotifyCtrl, isSongRequest, twitchAccessToken, connStr));
             thdIrcClient.Start();
 
-            spotifyCtrl.Connect(); // attempt connection to spotify local client
+            spotifyCtrl.Connect(); // attempt to connect to local Spotify client
 
             /* Ping to twitch server to prevent auto-disconnect */
             PingSender ping = new PingSender();
@@ -172,11 +179,12 @@ namespace TwitchBot
         /// <param name="isSongRequest"></param>
         /// <param name="twitchAccessToken"></param>
         /// <param name="connStr"></param>
-        private static void GetMessage(SpotifyControl spotifyCtrl, bool isSongRequest, string twitchAccessToken, string connStr)
+        private static void GetChatBox(SpotifyControl spotifyCtrl, bool isSongRequest, string twitchAccessToken, string connStr)
         {
             /* Master loop */
             while (true)
             {
+                // Read any message inside the chat room
                 string message = irc.readMessage();
                 Console.WriteLine(message);
 
@@ -191,7 +199,7 @@ namespace TwitchBot
                         // Modify message to only show user and message
                         int indexFirstPoundSign = message.IndexOf('#');
                         StringBuilder strBdrMessage = new StringBuilder(message);
-                        strBdrMessage.Remove(0, indexFirstPoundSign - 1); // remove unnecessary info before pound sign
+                        strBdrMessage.Remove(0, indexFirstPoundSign + 1); // remove unnecessary info before and including the pound sign
                         message = strBdrMessage.ToString(); // replace old message string with new
 
                         // Get username from PRIVMSG
@@ -199,7 +207,7 @@ namespace TwitchBot
                         string strUserName = message.Substring(0, indexFirstSpace);
 
                         /* Broadcaster privileges */
-                        if (strUserName.Contains(strBroadcasterName))
+                        if (strUserName.Equals(strBroadcasterName))
                         {
                             if (message.Contains("!spotifyconnect"))
                                 spotifyCtrl.Connect(); // manually connect to spotify
@@ -215,6 +223,22 @@ namespace TwitchBot
 
                             if (message.Contains("!spotifynext"))
                                 spotifyCtrl.skipBtn_Click();
+
+                            if (message.Contains("!enabletweet on"))
+                            {
+                                isAutoTweet = true;
+
+                                // Update database for future use
+                                // do something here
+                            }
+
+                            if (message.Contains("!enabletweet off"))
+                            {
+                                isAutoTweet = false;
+
+                                // Update database for future use
+                                // do something here
+                            }
 
                             if (message.Contains("!songs on"))
                             {
@@ -236,6 +260,7 @@ namespace TwitchBot
                                 int startIndexParam1 = message.IndexOf('"') + 1;
                                 title = message.Substring(startIndexParam1, lengthParam1);
 
+                                // Send HTTP method PUT to base URI in order to change the title
                                 var client = new RestClient("https://api.twitch.tv/kraken/channels/" + strBroadcasterName);
                                 var request = new RestRequest(Method.PUT);
                                 request.AddHeader("cache-control", "no-cache");
@@ -250,7 +275,10 @@ namespace TwitchBot
                                     response = client.Execute(request);
                                     string statResponse = response.StatusCode.ToString();
                                     if (statResponse.Contains("OK"))
-                                        irc.sendPublicChatMessage("Twitch channel title updated to " + title + "! Refresh your browser to see the change");
+                                    {
+                                        irc.sendPublicChatMessage("Twitch channel title updated to \"" + title + 
+                                            "\" Refresh your browser ([CTRL] + [F5]) or twitch app in order to see the change");
+                                    }
                                     else
                                         Console.WriteLine(response.ErrorMessage);
                                 }
@@ -273,6 +301,7 @@ namespace TwitchBot
                                 int startIndexParam1 = message.IndexOf('"') + 1;
                                 game = message.Substring(startIndexParam1, lengthParam1);
 
+                                // Send HTTP method PUT to base URI in order to change the game
                                 var client = new RestClient("https://api.twitch.tv/kraken/channels/" + strBroadcasterName);
                                 var request = new RestRequest(Method.PUT);
                                 request.AddHeader("cache-control", "no-cache");
@@ -287,7 +316,10 @@ namespace TwitchBot
                                     response = client.Execute(request);
                                     string statResponse = response.StatusCode.ToString();
                                     if (statResponse.Contains("OK"))
-                                        irc.sendPublicChatMessage("Twitch channel game status updated to " + game + "! Refresh your browser to see the change");
+                                    {
+                                        irc.sendPublicChatMessage("Twitch channel game status updated to \"" + game + 
+                                            "\" Refresh your browser ([CTRL] + [F5]) or twitch app in order to see the change");
+                                    }
                                     else
                                         Console.WriteLine(response.ErrorMessage);
                                 }
@@ -304,26 +336,19 @@ namespace TwitchBot
 
                             if (message.Contains("!tweet"))
                             {
-                                // Get message from command parameter
-                                string tweetMessage = string.Empty;
-                                int lengthParam1 = (GetNthIndex(message, '"', 2) - message.IndexOf('"')) - 1;
-                                int startIndexParam1 = message.IndexOf('"') + 1;
-                                tweetMessage = message.Substring(startIndexParam1, lengthParam1);
-
-                                var basicTweet = Tweet.PublishTweet(tweetMessage);
+                                SendTweet(message);
                             }
                         }
 
                         /* General commands */
                         if (message.Contains("!commands"))
                         {
-                            // work in progress
                             irc.sendPublicChatMessage("Link to list of commands: "
                                 + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
                         }
 
                         if (message.Contains("!hello"))
-                            irc.sendPublicChatMessage("Hey there! Thanks for talking to me.");
+                            irc.sendPublicChatMessage("Hey " + strUserName + "! Thanks for talking to me.");
 
                         if (message.Contains("!utctime"))
                             irc.sendPublicChatMessage("UTC Time: " + DateTime.UtcNow.ToString());
@@ -339,7 +364,7 @@ namespace TwitchBot
                             irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + upTime);
                         }
 
-                        // add song request to database
+                        /* Add song request to database */
                         if (message.Contains("!requestlist"))
                         {
                             string songList = "";
@@ -388,18 +413,18 @@ namespace TwitchBot
                             }
                         }
 
-                        // insert requested song into database
+                        /* Insert requested song into database */
                         if (message.Contains("!requestsong"))
                         {
                             if (isSongRequest)
                             {
-                                // grab the song name from the request
+                                // Grab the song name from the request
                                 int index = message.IndexOf("!requestsong");
                                 string songRequest = message.Substring(index, message.Length - index);
                                 songRequest = songRequest.Replace("!requestsong ", "");
                                 Console.WriteLine("New song request: " + songRequest);
 
-                                // check if song request has more than letters, numbers, and hyphens
+                                // Check if song request has more than letters, numbers, and hyphens
                                 if (!Regex.IsMatch(songRequest, @"^[a-zA-Z0-9 \-]+$"))
                                 {
                                     irc.sendPublicChatMessage("Only letters, numbers, and hyphens (-) are allowed. Please try again. "
@@ -407,10 +432,10 @@ namespace TwitchBot
                                 }
                                 else
                                 {
-                                    // add song request to database
+                                    /* Add song request to database */
                                     string query = "INSERT INTO tblSongRequests (songRequests) VALUES (@song)";
 
-                                    // create connection and command
+                                    // Create connection and command
                                     using (SqlConnection conn = new SqlConnection(connStr))
                                     using (SqlCommand cmd = new SqlCommand(query, conn))
                                     {
@@ -431,11 +456,14 @@ namespace TwitchBot
                         if (message.Contains("!currentsong"))
                         {
                             StatusResponse status = spotify.GetStatus();
-                            if (status == null) return;
-
-                            irc.sendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
-                                + " || Artist: " + status.Track.ArtistResource.Name
-                                + " || Album: " + status.Track.AlbumResource.Name);
+                            if (status != null)
+                            {
+                                irc.sendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
+                                    + " || Artist: " + status.Track.ArtistResource.Name
+                                    + " || Album: " + status.Track.AlbumResource.Name);
+                            }
+                            else
+                                irc.sendPublicChatMessage("The broadcaster is not playing a song at the moment");
                         }
 
                         /* add more general commands here */
@@ -498,6 +526,37 @@ namespace TwitchBot
                 }
             }
             return -1;
+        }
+
+        private static void SendTweet(string message)
+        {
+            // Check if there are at least two quotation marks before sending message using LINQ
+            if (message.Count(c => c == '"') < 2)
+            {
+                irc.sendPublicChatMessage("Please use at least two quotation marks (\") before sending a tweet. " +
+                    "Quotations are used to find the start and end of a message wanting to be sent");
+                return;
+            }
+
+            // Get message from quotation parameter
+            string tweetMessage = string.Empty;
+            int length = (message.LastIndexOf('"') - message.IndexOf('"')) - 1;
+            int startIndex = message.IndexOf('"') + 1;
+            tweetMessage = message.Substring(startIndex, length);
+
+            // Check if message length is at or under 140 characters
+            var basicTweet = new object();
+            if (tweetMessage.Length <= 140)
+            {
+                basicTweet = Tweet.PublishTweet(tweetMessage);
+                irc.sendPublicChatMessage("Tweet successfully published!");
+            }
+            else
+            {
+                int overCharLimit = tweetMessage.Length - 140;
+                irc.sendPublicChatMessage("The message you attempted to tweet had " + overCharLimit + 
+                    " characters more than the 140 character limit. Please shorten your message and try again");
+            }
         }
         
     }
