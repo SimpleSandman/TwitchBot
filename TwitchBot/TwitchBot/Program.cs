@@ -147,13 +147,11 @@ namespace TwitchBot
             // include the "oauth:" portion
             // Use chat bot's oauth
             /* main server: irc.twitch.tv, 6667 */
-            irc = new IrcClient("irc.twitch.tv", 6667,
-                strBotName, twitchOAuth);
+            irc = new IrcClient("irc.twitch.tv", 6667, strBotName, twitchOAuth);
             irc.joinRoom(strBroadcasterName);
 
             /* Whisper broadcaster bot settings */
             Console.WriteLine("Bot settings: Automatic tweets is set to [" + isAutoTweet + "]");
-            irc.sendPublicChatMessage(strBroadcasterName + ": Automatic tweets is set to \"" + isAutoTweet + "\"");
 
             /* Make new thread to get messages */
             Thread thdIrcClient = new Thread(() => GetChatBox(spotifyCtrl, isSongRequest, twitchAccessToken, connStr));
@@ -191,7 +189,7 @@ namespace TwitchBot
                 if (!string.IsNullOrEmpty(message))
                 {
                     /* 
-                    * Get username and message from chat 
+                    * Get user name and message from chat 
                     * and check if user has access to functions
                     */
                     if (message.Contains("PRIVMSG"))
@@ -202,57 +200,94 @@ namespace TwitchBot
                         strBdrMessage.Remove(0, indexFirstPoundSign + 1); // remove unnecessary info before and including the pound sign
                         message = strBdrMessage.ToString(); // replace old message string with new
 
-                        // Get username from PRIVMSG
+                        // Get user name from PRIVMSG
                         int indexFirstSpace = message.IndexOf(" :");
                         string strUserName = message.Substring(0, indexFirstSpace);
+
+                        strBdrMessage.Remove(0, indexFirstSpace + 2); // remove user name info before message
+                        message = strBdrMessage.ToString(); // replace old message with new
 
                         /* Broadcaster privileges */
                         if (strUserName.Equals(strBroadcasterName))
                         {
-                            if (message.Contains("!spotifyconnect"))
+                            if (message.Equals("!exitbot"))
+                            {
+                                irc.sendPublicChatMessage("Bye! Have a beautiful time!");                                
+                                Environment.Exit(0);
+                            }
+
+                            if (message.Equals("!spotifyconnect"))
                                 spotifyCtrl.Connect(); // manually connect to spotify
 
-                            if (message.Contains("!spotifyplay"))
+                            if (message.Equals("!spotifyplay"))
                                 spotifyCtrl.playBtn_Click();
 
-                            if (message.Contains("!spotifypause"))
+                            if (message.Equals("!spotifypause"))
                                 spotifyCtrl.pauseBtn_Click();
 
-                            if (message.Contains("!spotifyprev"))
+                            if (message.Equals("!spotifyprev"))
                                 spotifyCtrl.prevBtn_Click();
 
-                            if (message.Contains("!spotifynext"))
+                            if (message.Equals("!spotifynext"))
                                 spotifyCtrl.skipBtn_Click();
 
-                            if (message.Contains("!enabletweet on"))
+                            if (message.Equals("!enabletweet"))
                             {
                                 isAutoTweet = true;
 
-                                // Update database for future use
-                                // do something here
+                                /* Update auto tweet to database */
+                                string query = "UPDATE tblSettings SET enableTweet = @enableTweet";
+
+                                // Create connection and command
+                                using (SqlConnection conn = new SqlConnection(connStr))
+                                using (SqlCommand cmd = new SqlCommand(query, conn))
+                                {
+                                    cmd.Parameters.Add("@enableTweet", SqlDbType.Bit).Value = isAutoTweet;
+
+                                    conn.Open();
+                                    cmd.ExecuteNonQuery();
+                                    conn.Close();
+                                }
+
+                                Console.WriteLine("Auto publish tweets is set to [" + isAutoTweet + "]");
+                                irc.sendPublicChatMessage(strBroadcasterName + ": Automatic tweets is set to \"" + isAutoTweet + "\"");
                             }
 
-                            if (message.Contains("!enabletweet off"))
+                            if (message.Equals("!disabletweet"))
                             {
                                 isAutoTweet = false;
 
-                                // Update database for future use
-                                // do something here
+                                /* Update auto tweet to database */
+                                string query = "UPDATE tblSettings SET enableTweet = @enableTweet";
+
+                                // Create connection and command
+                                using (SqlConnection conn = new SqlConnection(connStr))
+                                using (SqlCommand cmd = new SqlCommand(query, conn))
+                                {
+                                    cmd.Parameters.Add("@enableTweet", SqlDbType.Bit).Value = isAutoTweet;
+
+                                    conn.Open();
+                                    cmd.ExecuteNonQuery();
+                                    conn.Close();
+                                }
+
+                                Console.WriteLine("Auto publish tweets is set to [" + isAutoTweet + "]");
+                                irc.sendPublicChatMessage(strBroadcasterName + ": Automatic tweets is set to \"" + isAutoTweet + "\"");
                             }
 
-                            if (message.Contains("!songs on"))
+                            if (message.Equals("!songs on"))
                             {
                                 isSongRequest = true;
                                 irc.sendPublicChatMessage("Song requests enabled");
                             }
 
-                            if (message.Contains("!songs off"))
+                            if (message.Equals("!songs off"))
                             {
                                 isSongRequest = false;
                                 irc.sendPublicChatMessage("Song requests disabled");
                             }
 
-                            if (message.Contains("!updatetitle"))
+                            if (message.StartsWith("!updatetitle"))
                             {
                                 // Get title from command parameter
                                 string title = string.Empty;
@@ -267,7 +302,8 @@ namespace TwitchBot
                                 request.AddHeader("content-type", "application/json");
                                 request.AddHeader("authorization", "OAuth " + twitchAccessToken);
                                 request.AddHeader("accept", "application/vnd.twitchtv.v3+json");
-                                request.AddParameter("application/json", "{\"channel\":{\"status\":\"" + title + "\"}}", ParameterType.RequestBody);
+                                request.AddParameter("application/json", "{\"channel\":{\"status\":\"" + title + "\"}}", 
+                                    ParameterType.RequestBody);
 
                                 IRestResponse response = null;
                                 try
@@ -277,7 +313,7 @@ namespace TwitchBot
                                     if (statResponse.Contains("OK"))
                                     {
                                         irc.sendPublicChatMessage("Twitch channel title updated to \"" + title + 
-                                            "\" Refresh your browser ([CTRL] + [F5]) or twitch app in order to see the change");
+                                            "\" || Refresh your browser ([CTRL] + [F5]) or twitch app in order to see the change");
                                     }
                                     else
                                         Console.WriteLine(response.ErrorMessage);
@@ -293,11 +329,11 @@ namespace TwitchBot
                                 }
                             }
 
-                            if (message.Contains("!updategame"))
+                            if (message.StartsWith("!updategame"))
                             {
                                 // Get title from command parameter
                                 string game = string.Empty;
-                                int lengthParam1 = (GetNthIndex(message, '"', 2) - message.IndexOf('"')) - 1;
+                                int lengthParam1 = (message.LastIndexOf('"') - message.IndexOf('"')) - 1;
                                 int startIndexParam1 = message.IndexOf('"') + 1;
                                 game = message.Substring(startIndexParam1, lengthParam1);
 
@@ -308,7 +344,8 @@ namespace TwitchBot
                                 request.AddHeader("content-type", "application/json");
                                 request.AddHeader("authorization", "OAuth " + twitchAccessToken);
                                 request.AddHeader("accept", "application/vnd.twitchtv.v3+json");
-                                request.AddParameter("application/json", "{\"channel\":{\"game\":\"" + game + "\"}}", ParameterType.RequestBody);
+                                request.AddParameter("application/json", "{\"channel\":{\"game\":\"" + game + "\"}}", 
+                                    ParameterType.RequestBody);
 
                                 IRestResponse response = null;
                                 try
@@ -318,7 +355,14 @@ namespace TwitchBot
                                     if (statResponse.Contains("OK"))
                                     {
                                         irc.sendPublicChatMessage("Twitch channel game status updated to \"" + game + 
-                                            "\" Refresh your browser ([CTRL] + [F5]) or twitch app in order to see the change");
+                                            "\" || Refresh your browser ([CTRL] + [F5]) or twitch app in order to see the change");
+                                        if (isAutoTweet)
+                                        {
+                                            SendTweet("I am now playing " + game + Environment.NewLine
+                                                + "Click the link to watch!" + Environment.NewLine
+                                                + "http://goo.gl/SNyDFD" + Environment.NewLine
+                                                + "#twitch #gaming", message);
+                                        }                                        
                                     }
                                     else
                                         Console.WriteLine(response.ErrorMessage);
@@ -334,29 +378,30 @@ namespace TwitchBot
                                 }
                             }
 
-                            if (message.Contains("!tweet"))
+                            if (message.StartsWith("!tweet"))
                             {
-                                SendTweet(message);
+                                string command = message;
+                                SendTweet(message, command);
                             }
                         }
 
                         /* General commands */
-                        if (message.Contains("!commands"))
+                        if (message.Equals("!commands"))
                         {
                             irc.sendPublicChatMessage("Link to list of commands: "
                                 + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
                         }
 
-                        if (message.Contains("!hello"))
+                        if (message.Equals("!hello"))
                             irc.sendPublicChatMessage("Hey " + strUserName + "! Thanks for talking to me.");
 
-                        if (message.Contains("!utctime"))
+                        if (message.Equals("!utctime"))
                             irc.sendPublicChatMessage("UTC Time: " + DateTime.UtcNow.ToString());
 
-                        if (message.Contains("!localtime"))
+                        if (message.Equals("!localtime"))
                             irc.sendPublicChatMessage("Local Time: " + DateTime.Now.ToString() + " (" + localZone.StandardName + ")");
 
-                        if (message.Contains("!uptime")) // need to check if channel is currently streaming
+                        if (message.Equals("!uptime")) // need to check if channel is currently streaming
                         {
                             var upTimeRes = GetChannel();
                             TimeSpan ts = DateTime.UtcNow - DateTime.Parse(upTimeRes.Result.updated_at);
@@ -365,7 +410,7 @@ namespace TwitchBot
                         }
 
                         /* Add song request to database */
-                        if (message.Contains("!requestlist"))
+                        if (message.Equals("!requestlist"))
                         {
                             string songList = "";
 
@@ -401,7 +446,7 @@ namespace TwitchBot
                                         }
                                         StringBuilder strBdrSongList = new StringBuilder(songList);
                                         strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " || "
-                                        songList = strBdrSongList.ToString(); // replace old songlist string with new
+                                        songList = strBdrSongList.ToString(); // replace old song list string with new
                                         irc.sendPublicChatMessage("Current List of Requested Songs: " + songList);
                                     }
                                     else
@@ -414,7 +459,7 @@ namespace TwitchBot
                         }
 
                         /* Insert requested song into database */
-                        if (message.Contains("!requestsong"))
+                        if (message.StartsWith("!requestsong"))
                         {
                             if (isSongRequest)
                             {
@@ -453,7 +498,7 @@ namespace TwitchBot
                                 irc.sendPublicChatMessage("Song requests are disabled at the moment");
                         }
 
-                        if (message.Contains("!currentsong"))
+                        if (message.Equals("!currentsong"))
                         {
                             StatusResponse status = spotify.GetStatus();
                             if (status != null)
@@ -528,34 +573,44 @@ namespace TwitchBot
             return -1;
         }
 
-        private static void SendTweet(string message)
+        private static void SendTweet(string pendingMessage, string command)
         {
             // Check if there are at least two quotation marks before sending message using LINQ
-            if (message.Count(c => c == '"') < 2)
+            string resultMessage = "";
+            if (command.Count(c => c == '"') < 2)
             {
-                irc.sendPublicChatMessage("Please use at least two quotation marks (\") before sending a tweet. " +
-                    "Quotations are used to find the start and end of a message wanting to be sent");
+                resultMessage = "Please use at least two quotation marks (\") before sending a tweet. " +
+                    "Quotations are used to find the start and end of a message wanting to be sent";
+                Console.WriteLine(resultMessage);
+                irc.sendPublicChatMessage(resultMessage);
                 return;
             }
 
             // Get message from quotation parameter
             string tweetMessage = string.Empty;
-            int length = (message.LastIndexOf('"') - message.IndexOf('"')) - 1;
-            int startIndex = message.IndexOf('"') + 1;
-            tweetMessage = message.Substring(startIndex, length);
+            int length = (pendingMessage.LastIndexOf('"') - pendingMessage.IndexOf('"')) - 1;
+            if (length == -1) // if no quotations were found
+                length = pendingMessage.Length;
+            int startIndex = pendingMessage.IndexOf('"') + 1;
+            tweetMessage = pendingMessage.Substring(startIndex, length);
 
             // Check if message length is at or under 140 characters
             var basicTweet = new object();
+            
             if (tweetMessage.Length <= 140)
             {
                 basicTweet = Tweet.PublishTweet(tweetMessage);
-                irc.sendPublicChatMessage("Tweet successfully published!");
+                resultMessage = "Tweet successfully published!";
+                Console.WriteLine(resultMessage);
+                irc.sendPublicChatMessage(resultMessage);
             }
             else
             {
                 int overCharLimit = tweetMessage.Length - 140;
-                irc.sendPublicChatMessage("The message you attempted to tweet had " + overCharLimit + 
-                    " characters more than the 140 character limit. Please shorten your message and try again");
+                resultMessage = "The message you attempted to tweet had " + overCharLimit +
+                    " characters more than the 140 character limit. Please shorten your message and try again";
+                Console.WriteLine(resultMessage);
+                irc.sendPublicChatMessage(resultMessage);
             }
         }
         

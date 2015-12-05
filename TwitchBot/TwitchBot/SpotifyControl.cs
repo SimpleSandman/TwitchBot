@@ -47,6 +47,7 @@ namespace TwitchBot
         public void UpdatePlayingStatus(bool playing)
         {
             Console.WriteLine("Playing Status: " + playing.ToString());
+
         }
 
         public void spotify_OnTrackChange(TrackChangeEventArgs e)
@@ -57,6 +58,10 @@ namespace TwitchBot
         public void spotify_OnPlayStateChange(PlayStateEventArgs e)
         {
             UpdatePlayingStatus(e.Playing);
+
+            StatusResponse status = Program.spotify.GetStatus();
+            if (status.Track != null && status.Playing) // Update track infos
+                ShowUpdatedTrack(status.Track, false);
         }
 
         public void playBtn_Click()
@@ -90,12 +95,14 @@ namespace TwitchBot
             Console.WriteLine("Client Version: " + status.ClientVersion);
             Console.WriteLine("Version: " + status.Version.ToString() + "\n");
 
-            if (status.Track != null) // Update track infos
+            if (status.Track != null && status.Playing) // Update track infos
                 ShowUpdatedTrack(status.Track, false);
         }
 
-        public void ShowUpdatedTrack(Track track, bool songChange)
+        public void ShowUpdatedTrack(Track track, bool songChanged)
         {
+            string pendingMessage = "";
+
             if (track.IsAd())
                 return; // Don't process further, maybe null values
 
@@ -105,18 +112,20 @@ namespace TwitchBot
             Console.WriteLine("Album: " + track.AlbumResource.Name + "\n");
 
             // send message of current song info to chat
-            if (songChange)
+            if (songChanged)
             {
-                Program.irc.sendPublicChatMessage("Upcoming Song: " + track.TrackResource.Name
+                pendingMessage = "Upcoming Song: " + track.TrackResource.Name
                     + " || Artist: " + track.ArtistResource.Name
-                    + " || Album: " + track.AlbumResource.Name);
+                    + " || Album: " + track.AlbumResource.Name;
             }
             else
             {
-                Program.irc.sendPublicChatMessage("Current Song: " + track.TrackResource.Name
+                pendingMessage = "Current Song: " + track.TrackResource.Name
                     + " || Artist: " + track.ArtistResource.Name
-                    + " || Album: " + track.AlbumResource.Name);
+                    + " || Album: " + track.AlbumResource.Name;
             }
+
+            Program.irc.sendPublicChatMessage(pendingMessage);
         }
     }
 }
