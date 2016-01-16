@@ -168,6 +168,9 @@ namespace TwitchBot
                 PingSender ping = new PingSender();
                 ping.Start();
 
+                PresenceReminder preRmd = new PresenceReminder();
+                preRmd.Start();
+
                 /* Authenticate to Twitter */
                 Auth.ApplicationCredentials = new TwitterCredentials(
                     twitterConsumerKey, twitterConsumerSecret,
@@ -227,7 +230,7 @@ namespace TwitchBot
                                 if (message.Equals("!exitbot"))
                                 {
                                     irc.sendPublicChatMessage("Bye! Have a beautiful time!");
-                                    Environment.Exit(0);
+                                    Environment.Exit(0); // exit program
                                 }
 
                                 if (message.Equals("!spotifyconnect"))
@@ -527,7 +530,7 @@ namespace TwitchBot
                             /* add more general commands here */
                         }
                     }
-                }
+                } // end master while loop
             }
             catch (Exception ex)
             {

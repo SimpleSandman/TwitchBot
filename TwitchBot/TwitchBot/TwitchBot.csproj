@@ -121,6 +121,7 @@
     <Compile Include="ChannelJSON.cs" />
     <Compile Include="IrcClient.cs" />
     <Compile Include="PingSender.cs" />
+    <Compile Include="PresenceReminder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
