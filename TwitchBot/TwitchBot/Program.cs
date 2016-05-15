@@ -32,9 +32,11 @@ namespace TwitchBot
         public static string strBotName = "MrSandmanBot";
         public static TimeZone localZone = TimeZone.CurrentTimeZone;
         public static bool isAutoPublishTweet = false; // set to auto publish tweets (disabled by default)
+        public static bool isAutoDisplaySong = false; // set to auto song status (disabled by default)
 
         static void Main(string[] args)
-        {            
+        {
+            string userID = "";       // username
             string pass = "";         // password
             string connStr = "";      // connection string
             ConsoleKeyInfo key;       // keystroke            
@@ -50,14 +52,17 @@ namespace TwitchBot
             string twitterAccessToken = "";
             string twitterAccessSecret = "";            
 
-            bool isSongRequest = false;  // check song request status
+            bool isSongRequest = false;  // check song request status (disabled by default)
             bool isConnected = false;    // check azure connection
+
+            /* Insert user ID for database */
+            Console.Write("Azure database username required: ");
+            userID = Console.ReadLine();
 
             try
             {
                 /* 
-                 * Connect to database
-                 * Retry password until success 
+                 * Connect to database and retry password until success 
                  */
                 do
                 {
@@ -86,9 +91,9 @@ namespace TwitchBot
 
                     Console.WriteLine();
 
-                    // Append password to connection string
+                    // Append username and password to connection string
                     connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.conn"].ConnectionString;
-                    connStr = connStr + ";Password=" + pass;
+                    connStr = connStr + ";User ID=" + userID + ";Password=" + pass;
 
                     // Check if server is connected
                     if (!IsServerConnected(connStr))
@@ -97,7 +102,7 @@ namespace TwitchBot
                         pass = null;
                         connStr = null;
 
-                        Console.WriteLine("Azure connection failed. Check connection string or password");
+                        Console.WriteLine("Azure connection failed. Username or password are incorrect. Please try again");
                     }
                     else
                         isConnected = true;
@@ -106,8 +111,9 @@ namespace TwitchBot
 
                 // Clear sensitive data
                 pass = null;
+                userID = null;
 
-                Console.WriteLine("Azure server connection successful");
+                Console.WriteLine("Azure server connection successful!");
 
                 /* Get sensitive info from tblSettings */
                 using (SqlConnection conn = new SqlConnection(connStr))
@@ -130,13 +136,14 @@ namespace TwitchBot
                                 twitterAccessSecret = reader["twitterAccessSecret"].ToString();
 
                                 isAutoPublishTweet = (bool)reader["enableTweet"];
+                                isAutoDisplaySong = (bool)reader["enableDisplaySong"];
                             }
                         }
                         else
                         {
                             conn.Close();
                             Console.WriteLine("Check tblSettings for twitch or twitter variables");
-                            Thread.Sleep(1000);
+                            Thread.Sleep(3000);
                             return;
                         }
                     }
@@ -155,14 +162,16 @@ namespace TwitchBot
                 irc = new IrcClient("irc.twitch.tv", 6667, strBotName, twitchOAuth);
                 irc.joinRoom(strBroadcasterName);
 
-                /* Whisper broadcaster bot settings */
-                Console.WriteLine("Bot settings: Automatic tweets is set to [" + isAutoPublishTweet + "]");
-
                 /* Make new thread to get messages */
                 Thread thdIrcClient = new Thread(() => GetChatBox(spotifyCtrl, isSongRequest, twitchAccessToken, connStr));
                 thdIrcClient.Start();
 
                 spotifyCtrl.Connect(); // attempt to connect to local Spotify client
+
+                /* Whisper broadcaster bot settings */
+                Console.WriteLine("Bot settings: Automatic tweets is set to [" + isAutoPublishTweet + "]");
+                Console.WriteLine("Automatic display songs is set to [" + isAutoDisplaySong + "]");
+                Console.WriteLine();
 
                 /* Ping to twitch server to prevent auto-disconnect */
                 PingSender ping = new PingSender();
@@ -180,7 +189,7 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                Thread.Sleep(2000);
+                Thread.Sleep(3000);
                 return;
             }
         }
@@ -227,6 +236,12 @@ namespace TwitchBot
                             /* Broadcaster privileges */
                             if (strUserName.Equals(strBroadcasterName))
                             {
+                                if (message.Equals("!botsettings"))
+                                {
+                                    irc.sendPublicChatMessage("Auto tweets set to \"" + isAutoPublishTweet + "\" " 
+                                        + "|| Auto display song set to \"" + isAutoDisplaySong + "\"");
+                                }
+
                                 if (message.Equals("!exitbot"))
                                 {
                                     irc.sendPublicChatMessage("Bye! Have a beautiful time!");
@@ -292,13 +307,13 @@ namespace TwitchBot
                                     irc.sendPublicChatMessage(strBroadcasterName + ": Automatic tweets is set to \"" + isAutoPublishTweet + "\"");
                                 }
 
-                                if (message.Equals("!songs on"))
+                                if (message.Equals("!songrequests on"))
                                 {
                                     isSongRequest = true;
                                     irc.sendPublicChatMessage("Song requests enabled");
                                 }
 
-                                if (message.Equals("!songs off"))
+                                if (message.Equals("!songrequests off"))
                                 {
                                     isSongRequest = false;
                                     irc.sendPublicChatMessage("Song requests disabled");
@@ -398,6 +413,50 @@ namespace TwitchBot
                                 {
                                     string command = message;
                                     SendTweet(message, command);
+                                }
+
+                                if (message.StartsWith("!displaysongs on"))
+                                {
+                                    isAutoDisplaySong = true;
+
+                                    /* Update auto tweet to database */
+                                    string query = "UPDATE tblSettings SET enableDisplaySong = @enableDisplaySong";
+
+                                    // Create connection and command
+                                    using (SqlConnection conn = new SqlConnection(connStr))
+                                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                                    {
+                                        cmd.Parameters.Add("@enableDisplaySong", SqlDbType.Bit).Value = isAutoDisplaySong;
+
+                                        conn.Open();
+                                        cmd.ExecuteNonQuery();
+                                        conn.Close();
+                                    }
+
+                                    Console.WriteLine("Auto display songs is set to [" + isAutoDisplaySong + "]");
+                                    irc.sendPublicChatMessage(strBroadcasterName + ": Automatic display songs is set to \"" + isAutoDisplaySong + "\"");
+                                }
+
+                                if (message.StartsWith("!displaysongs off"))
+                                {
+                                    isAutoDisplaySong = false;
+
+                                    /* Update auto song display to database */
+                                    string query = "UPDATE tblSettings SET enableDisplaySong = @enableDisplaySong";
+
+                                    // Create connection and command
+                                    using (SqlConnection conn = new SqlConnection(connStr))
+                                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                                    {
+                                        cmd.Parameters.Add("@enableDisplaySong", SqlDbType.Bit).Value = isAutoDisplaySong;
+
+                                        conn.Open();
+                                        cmd.ExecuteNonQuery();
+                                        conn.Close();
+                                    }
+
+                                    Console.WriteLine("Auto display songs is set to [" + isAutoDisplaySong + "]");
+                                    irc.sendPublicChatMessage(strBroadcasterName + ": Automatic display songs is set to \"" + isAutoDisplaySong + "\"");
                                 }
                             }
 
@@ -535,7 +594,9 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                Thread.Sleep(2000);
+                irc.sendPublicChatMessage("I ran into an internal error! I am leaving the chat now. " 
+                    + "Please notify the broadcaster of this issue");
+                Thread.Sleep(3000);
                 Environment.Exit(0);
             }
         }
