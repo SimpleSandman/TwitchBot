@@ -102,7 +102,13 @@ namespace TwitchBot
                         pass = null;
                         connStr = null;
 
-                        Console.WriteLine("Azure connection failed. Username or password are incorrect. Please try again");
+                        Console.WriteLine("Azure connection failed. Username or password are incorrect. Please try again.");
+                        Console.WriteLine();
+                        Console.WriteLine("-- Common technical issues: --");
+                        Console.WriteLine("1: Check if Azure firewall settings has your client IP address.");
+                        Console.WriteLine("2: Double check the connection string under 'Properties' and 'Settings'");
+                        Console.WriteLine("<<<< To exit this program, press 'CTRL' + 'C' >>>>");
+                        Console.WriteLine();
                     }
                     else
                         isConnected = true;
