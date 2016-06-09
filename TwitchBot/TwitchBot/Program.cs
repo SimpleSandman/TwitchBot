@@ -21,6 +21,8 @@ using System.Collections.Specialized;
 using Tweetinvi;
 using Tweetinvi.Core;
 using Tweetinvi.Core.Credentials;
+using System.ComponentModel;
+using System.Diagnostics;
 
 namespace TwitchBot
 {
@@ -107,14 +109,23 @@ namespace TwitchBot
                         Console.WriteLine("-- Common technical issues: --");
                         Console.WriteLine("1: Check if Azure firewall settings has your client IP address.");
                         Console.WriteLine("2: Double check the connection string under 'Properties' and 'Settings'");
-                        Console.WriteLine("<<<< To exit this program, press 'CTRL' + 'C' >>>>");
+                        Console.WriteLine("<<<< To exit this program at any time, press 'CTRL' + 'C' >>>>");
                         Console.WriteLine();
                     }
                     else
                         isConnected = true;
                 }
                 while (!isConnected);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Thread.Sleep(3000);
+                Environment.Exit(0);
+            }
 
+            /* Try to grab the info needed for the bot to connect to the channel */
+            try {
                 // Clear sensitive data
                 pass = null;
                 userID = null;
@@ -195,8 +206,48 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+
+                /* Get line number from error message */
+                int lineNumber = 0;
+                const string lineSearch = ":line ";
+                int index = ex.StackTrace.LastIndexOf(lineSearch);
+
+                if (index != -1)
+                {
+                    string lineNumberText = ex.StackTrace.Substring(index + lineSearch.Length);
+                    if (!int.TryParse(lineNumberText, out lineNumber))
+                    {
+                        lineNumber = -1; // couldn't parse line number
+                    }
+                }
+
+                /* Add song request to database */
+                string query = "INSERT INTO tblErrorLog (errorTime, errorLine, errorClass, errorMethod, errorMsg, broadcasterName) "
+                    + "VALUES (@time, @lineNum, @class, @method, @msg, @broadcasterName)";
+
+                // Create connection and command
+                using (SqlConnection conn = new SqlConnection(connStr))
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.Add("@time", SqlDbType.DateTime).Value = DateTime.Now;
+                    cmd.Parameters.Add("@lineNum", SqlDbType.Int).Value = lineNumber;
+                    cmd.Parameters.Add("@class", SqlDbType.VarChar, 100).Value = "Program";
+                    cmd.Parameters.Add("@method", SqlDbType.VarChar, 100).Value = "Main(string[])";
+                    cmd.Parameters.Add("@msg", SqlDbType.VarChar, 4000).Value = ex.Message;
+                    cmd.Parameters.Add("@broadcasterName", SqlDbType.VarChar, 50).Value = strBroadcasterName;
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                    conn.Close();
+                }
+
                 Thread.Sleep(3000);
-                return;
+
+                if (irc != null)
+                    irc.sendPublicChatMessage("I ran into an unexpected internal error! I have to leave the chat now. "
+                        + "Please notify the broadcaster of my abrupt departure.");
+
+                Environment.Exit(0);
             }
         }
 
@@ -600,9 +651,46 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                irc.sendPublicChatMessage("I ran into an internal error! I am leaving the chat now. " 
-                    + "Please notify the broadcaster of this issue");
+
+                /* Get line number from error message */
+                int lineNumber = 0;
+                const string lineSearch = ":line ";
+                int index = ex.StackTrace.LastIndexOf(lineSearch);
+
+                if (index != -1)
+                {
+                    string lineNumberText = ex.StackTrace.Substring(index + lineSearch.Length);
+                    if (!int.TryParse(lineNumberText, out lineNumber))
+                    {
+                        lineNumber = -1; // couldn't parse line number
+                    }
+                }                
+
+                /* Add song request to database */
+                string query = "INSERT INTO tblErrorLog (errorTime, errorLine, errorClass, errorMethod, errorMsg, broadcasterName) "
+                    + "VALUES (@time, @lineNum, @class, @method, @msg, @broadcasterName)";
+
+                // Create connection and command
+                using (SqlConnection conn = new SqlConnection(connStr))
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.Add("@time", SqlDbType.DateTime).Value = DateTime.Now;
+                    cmd.Parameters.Add("@lineNum", SqlDbType.Int).Value = lineNumber;
+                    cmd.Parameters.Add("@class", SqlDbType.VarChar, 100).Value = "Program";
+                    cmd.Parameters.Add("@method", SqlDbType.VarChar, 100).Value = "GetChatBox(SpotifyControl, bool, string, string)";
+                    cmd.Parameters.Add("@msg", SqlDbType.VarChar, 4000).Value = ex.Message;
+                    cmd.Parameters.Add("@broadcasterName", SqlDbType.VarChar, 50).Value = strBroadcasterName;
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                    conn.Close();
+                }
+
                 Thread.Sleep(3000);
+
+                irc.sendPublicChatMessage("I ran into an unexpected internal error! I have to leave the chat now. "
+                    + "Please notify the broadcaster of my abrupt departure.");
+
                 Environment.Exit(0);
             }
         }
