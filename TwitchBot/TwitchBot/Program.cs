@@ -206,7 +206,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                LogError(ex);
+                LogError(ex, "Program", "Main(string[])");
             }
         }
 
@@ -609,7 +609,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                LogError(ex);
+                LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, string)");
             }
         }
 
@@ -710,7 +710,7 @@ namespace TwitchBot
             }
         }
 
-        private static void LogError(Exception ex)
+        private static void LogError(Exception ex, string strClass, string strMethod)
         {
             Console.WriteLine(ex.Message);
 
@@ -738,8 +738,8 @@ namespace TwitchBot
             {
                 cmd.Parameters.Add("@time", SqlDbType.DateTime).Value = DateTime.Now;
                 cmd.Parameters.Add("@lineNum", SqlDbType.Int).Value = lineNumber;
-                cmd.Parameters.Add("@class", SqlDbType.VarChar, 100).Value = "Program";
-                cmd.Parameters.Add("@method", SqlDbType.VarChar, 100).Value = "Main(string[])";
+                cmd.Parameters.Add("@class", SqlDbType.VarChar, 100).Value = strClass;
+                cmd.Parameters.Add("@method", SqlDbType.VarChar, 100).Value = strMethod;
                 cmd.Parameters.Add("@msg", SqlDbType.VarChar, 4000).Value = ex.Message;
                 cmd.Parameters.Add("@broadcasterName", SqlDbType.VarChar, 50).Value = strBroadcasterName;
 
