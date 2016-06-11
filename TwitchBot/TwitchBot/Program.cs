@@ -237,17 +237,13 @@ namespace TwitchBot
                         if (message.Contains("PRIVMSG"))
                         {
                             // Modify message to only show user and message
-                            int indexFirstPoundSign = message.IndexOf('#');
+                            int intIndexParseSign = message.IndexOf('!');
                             StringBuilder strBdrMessage = new StringBuilder(message);
-                            strBdrMessage.Remove(0, indexFirstPoundSign + 1); // remove unnecessary info before and including the pound sign
+                            string strUserName = message.Substring(1, intIndexParseSign - 1);
+
+                            intIndexParseSign = message.IndexOf(" :");
+                            strBdrMessage.Remove(0, intIndexParseSign + 2); // remove unnecessary info before and including the parse symbol
                             message = strBdrMessage.ToString(); // replace old message string with new
-
-                            // Get user name from PRIVMSG
-                            int indexFirstSpace = message.IndexOf(" :");
-                            string strUserName = message.Substring(0, indexFirstSpace);
-
-                            strBdrMessage.Remove(0, indexFirstSpace + 2); // remove user name info before message
-                            message = strBdrMessage.ToString(); // replace old message with new
 
                             /* Broadcaster privileges */
                             if (strUserName.Equals(strBroadcasterName))
@@ -255,7 +251,7 @@ namespace TwitchBot
                                 if (message.Equals("!botsettings"))
                                 {
                                     irc.sendPublicChatMessage("Auto tweets set to \"" + isAutoPublishTweet + "\" " 
-                                        + "|| Auto display song set to \"" + isAutoDisplaySong + "\"");
+                                        + "|| Auto display songs set to \"" + isAutoDisplaySong + "\"");
                                 }
 
                                 if (message.Equals("!exitbot"))
