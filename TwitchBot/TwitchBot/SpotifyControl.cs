@@ -14,6 +14,9 @@ namespace TwitchBot
 
     class SpotifyControl
     {
+        private bool trackChanged = false; // used to prevent a paused song to skip to the next song
+                                           // from displaying both "upcoming" and "current" song stats
+
         public void Connect()
         {
             if (!SpotifyLocalAPI.IsSpotifyRunning())
@@ -53,6 +56,7 @@ namespace TwitchBot
         public void spotify_OnTrackChange(TrackChangeEventArgs e)
         {
             ShowUpdatedTrack(e.NewTrack, true, Program.isAutoDisplaySong);
+            trackChanged = true;
         }
 
         public void spotify_OnPlayStateChange(PlayStateEventArgs e)
@@ -60,8 +64,10 @@ namespace TwitchBot
             UpdatePlayingStatus(e.Playing);
 
             StatusResponse status = Program.spotify.GetStatus();
-            if (status.Track != null && status.Playing) // Update track infos
+            if (status.Track != null && status.Playing && !trackChanged) // Update track infos
                 ShowUpdatedTrack(status.Track, false, Program.isAutoDisplaySong);
+
+            trackChanged = false;
         }
 
         public void playBtn_Click()
