@@ -7,6 +7,6 @@ This is a console application that requires an Azure database login. Please chan
 
 After entering the password, the program will look for a local Spotify client. If there is one available, it will attempt to grab the song that is currently playing and post it onto the chat. This chat bot can control some of Spotify's music player like `!spotifyplay`, `!spotifypause`, `!spotifyskip`, and `!spotifyprev`.
 
-Check out the wiki for the full list of commands by [clicking here!](https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands)
+Check out the wiki for the full list of commands by [clicking here](https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands)!
 
 The bot itself is an account on Twitch that I have made in order to have a custom bot name.
