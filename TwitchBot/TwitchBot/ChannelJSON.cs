@@ -28,21 +28,7 @@ namespace TwitchBot
         //public bool partner { get; set; }
         //public string url { get; set; }
         //public int views { get; set; }
-        //public int followers { get; set; }
+        public int followers { get; set; }
         //public Links _links { get; set; }
     }
-
-    //public class Links
-    //{
-    //    public string self { get; set; }
-    //    public string follows { get; set; }
-    //    public string commercial { get; set; }
-    //    public string stream_key { get; set; }
-    //    public string chat { get; set; }
-    //    public string features { get; set; }
-    //    public string subscriptions { get; set; }
-    //    public string editors { get; set; }
-    //    public string teams { get; set; }
-    //    public string videos { get; set; }
-    //}
 }

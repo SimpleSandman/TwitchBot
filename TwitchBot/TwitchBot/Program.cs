@@ -34,6 +34,7 @@ namespace TwitchBot
         public static string strBotName = "MrSandmanBot";
         public static string connStr = "";      // connection string
         public static TimeZone localZone = TimeZone.CurrentTimeZone;
+        public static int intFollowers = 0;
         public static bool isAutoPublishTweet = false; // set to auto publish tweets (disabled by default)
         public static bool isAutoDisplaySong = false; // set to auto song status (disabled by default)
 
@@ -179,6 +180,8 @@ namespace TwitchBot
                 /* main server: irc.twitch.tv, 6667 */
                 irc = new IrcClient("irc.twitch.tv", 6667, strBotName, twitchOAuth);
                 irc.joinRoom(strBroadcasterName);
+
+                intFollowers = GetChannel().Result.followers;
 
                 /* Make new thread to get messages */
                 Thread thdIrcClient = new Thread(() => GetChatBox(spotifyCtrl, isSongRequest, twitchAccessToken, connStr));
@@ -475,7 +478,9 @@ namespace TwitchBot
                             /* General commands */
                             if (message.Equals("!commands"))
                             {
-                                irc.sendPublicChatMessage("Link to list of commands: "
+                                irc.sendPublicChatMessage("!hello | !currentsong | !requestlist | !requestsong [artist] - [song title] " 
+                                    + "| !utctime | !localtime |"
+                                    + " Link to full list of commands: "
                                     + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
                             }
 
@@ -496,7 +501,7 @@ namespace TwitchBot
                                 irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + upTime);
                             }
 
-                            /* Add song request to database */
+                            /* List song requests from database */
                             if (message.Equals("!requestlist"))
                             {
                                 string songList = "";
@@ -598,6 +603,47 @@ namespace TwitchBot
                                     irc.sendPublicChatMessage("The broadcaster is not playing a song at the moment");
                             }
 
+                            if (message.StartsWith("!slap @"))
+                            {
+                                Chatters chatters = GetChatters().Result.chatters;
+                                bool isUserFound = false;
+
+                                while (!isUserFound)
+                                {
+                                    // check moderators
+                                    foreach (string username in chatters.moderators)
+                                    {
+                                        if (message.ToLower().Contains(username))
+                                        {
+                                            if (username.Equals(strUserName))
+                                                irc.sendPublicChatMessage("Stop smacking yourself @" + strUserName);
+                                            else
+                                                irc.sendPublicChatMessage(strUserName + " slaps " + "@" + username);
+
+                                            isUserFound = true;
+                                        }
+                                    }
+
+                                    if (isUserFound) break; // escape loop properly
+
+                                    // check viewers
+                                    foreach (string username in chatters.viewers)
+                                    {
+                                        if (message.ToLower().Contains(username))
+                                        {
+                                            if (username.Equals(strUserName))
+                                                irc.sendPublicChatMessage("Stop smacking yourself @" + strUserName);
+                                            else
+                                                irc.sendPublicChatMessage(strUserName + " slaps " + "@" + username);
+
+                                            isUserFound = true;
+                                        }
+                                    }
+
+                                    break; // finished searching with no results
+                                }
+                            }
+
                             /* add more general commands here */
                         }
                     }
@@ -636,6 +682,26 @@ namespace TwitchBot
             {
                 var body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + strBroadcasterName);
                 var response = JsonConvert.DeserializeObject<ChannelJSON>(body);
+                return response;
+            }
+        }
+
+        static async Task<FollowerInfo> GetBroadcasterInfo()
+        {
+            using (var client = new HttpClient())
+            {
+                var body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + strBroadcasterName + "/follows?limit=" + intFollowers);
+                var response = JsonConvert.DeserializeObject<FollowerInfo>(body);
+                return response;
+            }
+        }
+
+        static async Task<ChatterInfo> GetChatters()
+        {
+            using (var client = new HttpClient())
+            {
+                var body = await client.GetStringAsync("https://tmi.twitch.tv/group/user/" + strBroadcasterName + "/chatters");
+                var response = JsonConvert.DeserializeObject<ChatterInfo>(body);
                 return response;
             }
         }

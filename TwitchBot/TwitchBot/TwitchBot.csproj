@@ -119,6 +119,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChannelJSON.cs" />
+    <Compile Include="ChatterInfo.cs" />
+    <Compile Include="FollowerInfo.cs" />
     <Compile Include="IrcClient.cs" />
     <Compile Include="PingSender.cs" />
     <Compile Include="PresenceReminder.cs" />
