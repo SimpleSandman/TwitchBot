@@ -619,13 +619,48 @@ namespace TwitchBot
                                 reactionCmd(message, strUserName, "Stop smacking yourself", "slaps");
 
                             if (message.StartsWith("!stab @"))
-                                reactionCmd(message, strUserName, "Stop stabbing yourself", "stabs");
+                                reactionCmd(message, strUserName, "Stop stabbing yourself", "stabs", " to death!");
+
+                            if (message.StartsWith("!shoot @"))
+                            {
+                                string strBodyPart = "'s ";
+                                Random rnd = new Random(DateTime.Now.Millisecond);
+                                int intBodyPart = rnd.Next(8); // between 0 and 7
+
+                                if (intBodyPart == 0)
+                                    strBodyPart += "head";
+                                else if (intBodyPart == 1)
+                                    strBodyPart += "left leg";
+                                else if (intBodyPart == 2)
+                                    strBodyPart += "right leg";
+                                else if (intBodyPart == 3)
+                                    strBodyPart += "left arm";
+                                else if (intBodyPart == 4)
+                                    strBodyPart += "right arm";
+                                else if (intBodyPart == 5)
+                                    strBodyPart += "stomach";
+                                else if (intBodyPart == 6)
+                                    strBodyPart += "neck";
+                                else // found largest random value
+                                    strBodyPart = " but missed";
+
+                                reactionCmd(message, strUserName, "You just shot your " + strBodyPart.Replace("'s ", ""), "shoots", strBodyPart);
+
+                                // bot responds if targeted
+                                if (message.Contains(strBotName))
+                                {
+                                    if (strBodyPart.Equals(" but missed"))
+                                        irc.sendPublicChatMessage("Ha! You missed @" + strUserName);
+                                    else
+                                        irc.sendPublicChatMessage("You think shooting me in the " + strBodyPart.Replace("'s ", "") + " would hurt me? I am a bot!");
+                                }
+                            }
 
                             if (message.StartsWith("!throw ") && message.Contains("@"))
                             {
                                 int intIndexAction = 7;
                                 string item = message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1);
-                                reactionCmd(message, strUserName, "Stop throwing " + item + " at yourself", "threw " + item + " at");
+                                reactionCmd(message, strUserName, "Stop throwing " + item + " at yourself", "throws " + item + " at");
                             }
 
                             /* Even more commands */
@@ -806,98 +841,83 @@ namespace TwitchBot
             Environment.Exit(0);
         }
 
-        public static void reactionCmd(string message, string strUserName, string strMsgToSelf, string strAction)
+        public static bool reactionCmd(string message, string strUserName, string strMsgToSelf, string strAction, string strAddlMsg = "")
         {
             Chatters chatters = GetChatters().Result.chatters;
-            bool isUserFound = false;
 
-            // used to control when to stop looking for a specific user
-            while (!isUserFound)
+            // check moderators
+            foreach (string moderator in chatters.moderators)
             {
-                // check moderators
-                foreach (string moderator in chatters.moderators)
+                if (message.ToLower().Contains(moderator))
                 {
-                    if (message.ToLower().Contains(moderator))
-                    {
-                        if (moderator.Equals(strUserName))
-                            irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
-                        else
-                            irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + moderator);
+                    if (moderator.Equals(strUserName))
+                        irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
+                    else
+                        irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + moderator + strAddlMsg);
 
-                        isUserFound = true;
-                    }
+                    return true;
                 }
-
-                if (isUserFound) break; // escape loop properly
-
-                // check staff
-                foreach (string staffMember in chatters.staff)
-                {
-                    if (message.ToLower().Contains(staffMember))
-                    {
-                        if (staffMember.Equals(strUserName))
-                            irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
-                        else
-                            irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + staffMember);
-
-                        isUserFound = true;
-                    }
-                }
-
-                if (isUserFound) break; // escape loop properly
-
-                // check admins
-                foreach (string admin in chatters.admins)
-                {
-                    if (message.ToLower().Contains(admin))
-                    {
-                        if (admin.Equals(strUserName))
-                            irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
-                        else
-                            irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + admin);
-
-                        isUserFound = true;
-                    }
-                }
-
-                if (isUserFound) break; // escape loop properly
-
-                // check global moderators
-                foreach (string globalMod in chatters.global_mods)
-                {
-                    if (message.ToLower().Contains(globalMod))
-                    {
-                        if (globalMod.Equals(strUserName))
-                            irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
-                        else
-                            irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + globalMod);
-
-                        isUserFound = true;
-                    }
-                }
-
-                if (isUserFound) break; // escape loop properly
-
-                // check viewers
-                foreach (string viewer in chatters.viewers)
-                {
-                    if (message.ToLower().Contains(viewer))
-                    {
-                        if (viewer.Equals(strUserName))
-                            irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
-                        else
-                            irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + viewer);
-
-                        isUserFound = true;
-                    }
-                }
-
-                if (isUserFound) break; // escape loop properly
-
-                // finished searching with no results
-                irc.sendPublicChatMessage("Cannot find the user you wanted to interact with @" + strUserName);
-                break; 
             }
+
+            // check staff
+            foreach (string staffMember in chatters.staff)
+            {
+                if (message.ToLower().Contains(staffMember))
+                {
+                    if (staffMember.Equals(strUserName))
+                        irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
+                    else
+                        irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + staffMember + strAddlMsg);
+
+                    return true;
+                }
+            }
+
+            // check admins
+            foreach (string admin in chatters.admins)
+            {
+                if (message.ToLower().Contains(admin))
+                {
+                    if (admin.Equals(strUserName))
+                        irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
+                    else
+                        irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + admin + strAddlMsg);
+
+                    return true;
+                }
+            }
+
+            // check global moderators
+            foreach (string globalMod in chatters.global_mods)
+            {
+                if (message.ToLower().Contains(globalMod))
+                {
+                    if (globalMod.Equals(strUserName))
+                        irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
+                    else
+                        irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + globalMod + strAddlMsg);
+
+                    return true;
+                }
+            }
+
+            // check viewers
+            foreach (string viewer in chatters.viewers)
+            {
+                if (message.ToLower().Contains(viewer))
+                {
+                    if (viewer.Equals(strUserName))
+                        irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
+                    else
+                        irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + viewer + strAddlMsg);
+
+                    return true;
+                }
+            }
+
+            // finished searching with no results
+            irc.sendPublicChatMessage("@" + strUserName + ": I cannot find the user you wanted to interact with. Perhaps the user left us?");
+            return false;
         }
         
     }
