@@ -32,9 +32,10 @@ namespace TwitchBot
         public static IrcClient irc;
         public static string strBroadcasterName = "simple_sandman";
         public static string strBotName = "MrSandmanBot";
-        public static string connStr = "";      // connection string
+        public static string connStr = ""; // connection string
         public static TimeZone localZone = TimeZone.CurrentTimeZone;
         public static int intFollowers = 0;
+        public static string strDiscordLink = "Link unavailable at the moment"; // provide discord server link if available
         public static bool isAutoPublishTweet = false; // set to auto publish tweets (disabled by default)
         public static bool isAutoDisplaySong = false; // set to auto song status (disabled by default)
 
@@ -53,7 +54,7 @@ namespace TwitchBot
             string twitterConsumerKey = "";
             string twitterConsumerSecret = "";
             string twitterAccessToken = "";
-            string twitterAccessSecret = "";            
+            string twitterAccessSecret = "";
 
             bool isSongRequest = false;  // check song request status (disabled by default)
             bool isConnected = false;    // check azure connection
@@ -154,6 +155,9 @@ namespace TwitchBot
                                 twitterAccessToken = reader["twitterAccessToken"].ToString();
                                 twitterAccessSecret = reader["twitterAccessSecret"].ToString();
 
+                                if (!String.IsNullOrEmpty(reader["discordLink"].ToString()))
+                                    strDiscordLink = reader["discordLink"].ToString();
+
                                 isAutoPublishTweet = (bool)reader["enableTweet"];
                                 isAutoDisplaySong = (bool)reader["enableDisplaySong"];
                             }
@@ -235,7 +239,7 @@ namespace TwitchBot
                     {
                         /* 
                         * Get user name and message from chat 
-                        * and check if user has access to functions
+                        * and check if user has access to certain functions
                         */
                         if (message.Contains("PRIVMSG"))
                         {
@@ -246,9 +250,11 @@ namespace TwitchBot
 
                             intIndexParseSign = message.IndexOf(" :");
                             strBdrMessage.Remove(0, intIndexParseSign + 2); // remove unnecessary info before and including the parse symbol
-                            message = strBdrMessage.ToString(); // replace old message string with new
+                            message = strBdrMessage.ToString();
 
-                            /* Broadcaster privileges */
+                            /* 
+                             * Broadcaster commands 
+                             */
                             if (strUserName.Equals(strBroadcasterName))
                             {
                                 if (message.Equals("!botsettings"))
@@ -277,6 +283,9 @@ namespace TwitchBot
 
                                 if (message.Equals("!spotifynext"))
                                     spotifyCtrl.skipBtn_Click();
+
+                                if (message.Equals("!discord"))
+                                    irc.sendPublicChatMessage("Come be a potato with us on our own Discord server! " + strDiscordLink);
 
                                 if (message.Equals("!enabletweet"))
                                 {
@@ -475,11 +484,13 @@ namespace TwitchBot
                                 }
                             }
 
-                            /* General commands */
+                            /* 
+                             * General commands 
+                             */
                             if (message.Equals("!commands"))
                             {
-                                irc.sendPublicChatMessage("!hello | !currentsong | !requestlist | !requestsong [artist] - [song title] " 
-                                    + "| !utctime | !localtime |"
+                                irc.sendPublicChatMessage("!hello | !slap @[username] | !stab @[username] | !throw [item] @[username] "
+                                    + "| !currentsong | !requestlist | !requestsong [artist] - [song title] | !utctime | !hosttime |"
                                     + " Link to full list of commands: "
                                     + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
                             }
@@ -490,8 +501,8 @@ namespace TwitchBot
                             if (message.Equals("!utctime"))
                                 irc.sendPublicChatMessage("UTC Time: " + DateTime.UtcNow.ToString());
 
-                            if (message.Equals("!localtime"))
-                                irc.sendPublicChatMessage("Local Time: " + DateTime.Now.ToString() + " (" + localZone.StandardName + ")");
+                            if (message.Equals("!hosttime"))
+                                irc.sendPublicChatMessage(strBroadcasterName + "'s Current Time: " + DateTime.Now.ToString() + " (" + localZone.StandardName + ")");
 
                             if (message.Equals("!uptime")) // need to check if channel is currently streaming
                             {
@@ -603,46 +614,22 @@ namespace TwitchBot
                                     irc.sendPublicChatMessage("The broadcaster is not playing a song at the moment");
                             }
 
+                            /* Action commands */
                             if (message.StartsWith("!slap @"))
+                                reactionCmd(message, strUserName, "Stop smacking yourself", "slaps");
+
+                            if (message.StartsWith("!stab @"))
+                                reactionCmd(message, strUserName, "Stop stabbing yourself", "stabs");
+
+                            if (message.StartsWith("!throw ") && message.Contains("@"))
                             {
-                                Chatters chatters = GetChatters().Result.chatters;
-                                bool isUserFound = false;
-
-                                while (!isUserFound)
-                                {
-                                    // check moderators
-                                    foreach (string username in chatters.moderators)
-                                    {
-                                        if (message.ToLower().Contains(username))
-                                        {
-                                            if (username.Equals(strUserName))
-                                                irc.sendPublicChatMessage("Stop smacking yourself @" + strUserName);
-                                            else
-                                                irc.sendPublicChatMessage(strUserName + " slaps " + "@" + username);
-
-                                            isUserFound = true;
-                                        }
-                                    }
-
-                                    if (isUserFound) break; // escape loop properly
-
-                                    // check viewers
-                                    foreach (string username in chatters.viewers)
-                                    {
-                                        if (message.ToLower().Contains(username))
-                                        {
-                                            if (username.Equals(strUserName))
-                                                irc.sendPublicChatMessage("Stop smacking yourself @" + strUserName);
-                                            else
-                                                irc.sendPublicChatMessage(strUserName + " slaps " + "@" + username);
-
-                                            isUserFound = true;
-                                        }
-                                    }
-
-                                    break; // finished searching with no results
-                                }
+                                int intIndexAction = 7;
+                                string item = message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1);
+                                reactionCmd(message, strUserName, "Stop throwing " + item + " at yourself", "threw " + item + " at");
                             }
+
+                            /* Even more commands */
+                            // add new commands here as well
 
                             /* add more general commands here */
                         }
@@ -817,6 +804,100 @@ namespace TwitchBot
                     + "Please notify the broadcaster of my abrupt departure.");
 
             Environment.Exit(0);
+        }
+
+        public static void reactionCmd(string message, string strUserName, string strMsgToSelf, string strAction)
+        {
+            Chatters chatters = GetChatters().Result.chatters;
+            bool isUserFound = false;
+
+            // used to control when to stop looking for a specific user
+            while (!isUserFound)
+            {
+                // check moderators
+                foreach (string moderator in chatters.moderators)
+                {
+                    if (message.ToLower().Contains(moderator))
+                    {
+                        if (moderator.Equals(strUserName))
+                            irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
+                        else
+                            irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + moderator);
+
+                        isUserFound = true;
+                    }
+                }
+
+                if (isUserFound) break; // escape loop properly
+
+                // check staff
+                foreach (string staffMember in chatters.staff)
+                {
+                    if (message.ToLower().Contains(staffMember))
+                    {
+                        if (staffMember.Equals(strUserName))
+                            irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
+                        else
+                            irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + staffMember);
+
+                        isUserFound = true;
+                    }
+                }
+
+                if (isUserFound) break; // escape loop properly
+
+                // check admins
+                foreach (string admin in chatters.admins)
+                {
+                    if (message.ToLower().Contains(admin))
+                    {
+                        if (admin.Equals(strUserName))
+                            irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
+                        else
+                            irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + admin);
+
+                        isUserFound = true;
+                    }
+                }
+
+                if (isUserFound) break; // escape loop properly
+
+                // check global moderators
+                foreach (string globalMod in chatters.global_mods)
+                {
+                    if (message.ToLower().Contains(globalMod))
+                    {
+                        if (globalMod.Equals(strUserName))
+                            irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
+                        else
+                            irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + globalMod);
+
+                        isUserFound = true;
+                    }
+                }
+
+                if (isUserFound) break; // escape loop properly
+
+                // check viewers
+                foreach (string viewer in chatters.viewers)
+                {
+                    if (message.ToLower().Contains(viewer))
+                    {
+                        if (viewer.Equals(strUserName))
+                            irc.sendPublicChatMessage(strMsgToSelf + " @" + strUserName);
+                        else
+                            irc.sendPublicChatMessage(strUserName + " " + strAction + " @" + viewer);
+
+                        isUserFound = true;
+                    }
+                }
+
+                if (isUserFound) break; // escape loop properly
+
+                // finished searching with no results
+                irc.sendPublicChatMessage("Cannot find the user you wanted to interact with @" + strUserName);
+                break; 
+            }
         }
         
     }
