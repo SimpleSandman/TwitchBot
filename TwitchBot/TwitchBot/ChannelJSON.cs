@@ -12,7 +12,7 @@ namespace TwitchBot
         //public string status { get; set; }
         //public string broadcaster_language { get; set; }
         //public string display_name { get; set; }
-        //public string game { get; set; }
+        public string game { get; set; }
         //public object delay { get; set; }
         //public string language { get; set; }
         //public int _id { get; set; }

@@ -31,6 +31,7 @@ namespace TwitchBot
         public static SpotifyLocalAPI spotify;
         public static IrcClient irc;
         public static string strBroadcasterName = "simple_sandman";
+        public static string strBroadcasterGame = "";
         public static string strBotName = "MrSandmanBot";
         public static string connStr = ""; // connection string
         public static TimeZone localZone = TimeZone.CurrentTimeZone;
@@ -185,7 +186,9 @@ namespace TwitchBot
                 irc = new IrcClient("irc.twitch.tv", 6667, strBotName, twitchOAuth);
                 irc.joinRoom(strBroadcasterName);
 
+                // Update channel info
                 intFollowers = GetChannel().Result.followers;
+                strBroadcasterGame = GetChannel().Result.game;
 
                 /* Make new thread to get messages */
                 Thread thdIrcClient = new Thread(() => GetChatBox(spotifyCtrl, isSongRequest, twitchAccessToken, connStr));
@@ -484,12 +487,18 @@ namespace TwitchBot
                                 }
                             }
 
+                            /*
+                             * Moderator commands
+                             */
+
+                            // insert commands here
+
                             /* 
                              * General commands 
                              */
                             if (message.Equals("!commands"))
                             {
-                                irc.sendPublicChatMessage("!hello | !slap @[username] | !stab @[username] | !throw [item] @[username] "
+                                irc.sendPublicChatMessage("!hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username]"
                                     + "| !currentsong | !requestlist | !requestsong [artist] - [song title] | !utctime | !hosttime |"
                                     + " Link to full list of commands: "
                                     + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
@@ -663,8 +672,93 @@ namespace TwitchBot
                                 reactionCmd(message, strUserName, "Stop throwing " + item + " at yourself", "throws " + item + " at");
                             }
 
-                            /* Even more commands */
-                            // add new commands here as well
+                            if (message.StartsWith("!partyup"))
+                            {
+                                string strPartyMember = "";
+                                int intGameID = 0;
+                                bool isPartyMemebrFound = false;
+
+                                // Get current game
+                                strBroadcasterGame = GetChannel().Result.game;
+
+                                // check if user entered something
+                                if (message.Length < 9)
+                                    irc.sendPublicChatMessage("Please enter a party member @" + strUserName);
+                                else
+                                    strPartyMember = message.Substring(9);
+
+                                // grab game id in order to find party member
+                                using (SqlConnection conn = new SqlConnection(connStr))
+                                {
+                                    conn.Open();
+                                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblGameList", conn))
+                                    using (SqlDataReader reader = cmd.ExecuteReader())
+                                    {
+                                        if (reader.HasRows)
+                                        {
+                                            while (reader.Read())
+                                            {
+                                                if (strBroadcasterGame.Equals(reader["name"].ToString()))
+                                                {
+                                                    intGameID = int.Parse(reader["id"].ToString());
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // if the game is not found
+                                // tell users this game is not accepting party up requests
+                                if (intGameID == 0)
+                                    irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' command");
+                                else // check if requested party member is valid
+                                {
+                                    using (SqlConnection conn = new SqlConnection(connStr))
+                                    {
+                                        conn.Open();
+                                        using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUp", conn))
+                                        using (SqlDataReader reader = cmd.ExecuteReader())
+                                        {
+                                            if (reader.HasRows)
+                                            {
+                                                while (reader.Read())
+                                                {
+                                                    if (strPartyMember.ToLower().Equals(reader["partyMember"].ToString()))
+                                                    {
+                                                        isPartyMemebrFound = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // insert party member if member exists from database
+                                    if (!isPartyMemebrFound)
+                                        irc.sendPublicChatMessage("I couldn't find the requested party memebr '" + strPartyMember + "' @" + strUserName
+                                            + ". Please check with the broadcaster for possible spelling errors");
+                                    else
+                                    {
+                                        string query = "INSERT INTO tblPartyUpRequests (username, partyMember, timeRequested) VALUES (@username, @partyMember, @timeRequested)";
+
+                                        // Create connection and command
+                                        using (SqlConnection conn = new SqlConnection(connStr))
+                                        using (SqlCommand cmd = new SqlCommand(query, conn))
+                                        {
+                                            cmd.Parameters.Add("@username", SqlDbType.VarChar, 50).Value = strUserName;
+                                            cmd.Parameters.Add("@partyMember", SqlDbType.VarChar, 50).Value = strPartyMember;
+                                            cmd.Parameters.Add("@timeRequested", SqlDbType.DateTime).Value = DateTime.Now;
+
+                                            conn.Open();
+                                            cmd.ExecuteNonQuery();
+                                            conn.Close();
+                                        }
+
+                                        irc.sendPublicChatMessage("@" + strUserName + ": " + strPartyMember + " has been added to the party queue");
+                                    }
+                                }
+                            }
 
                             /* add more general commands here */
                         }
