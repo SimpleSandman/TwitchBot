@@ -499,7 +499,7 @@ namespace TwitchBot
                             if (message.Equals("!commands"))
                             {
                                 irc.sendPublicChatMessage("!hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username]"
-                                    + "| !currentsong | !requestlist | !requestsong [artist] - [song title] | !utctime | !hosttime |"
+                                    + "| !currentsong | !songrequestlist | !requestsong [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] ---"
                                     + " Link to full list of commands: "
                                     + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
                             }
@@ -522,7 +522,7 @@ namespace TwitchBot
                             }
 
                             /* List song requests from database */
-                            if (message.Equals("!requestlist"))
+                            if (message.Equals("!songrequestlist"))
                             {
                                 string songList = "";
 
