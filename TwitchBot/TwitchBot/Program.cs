@@ -33,6 +33,7 @@ namespace TwitchBot
         public static string strBroadcasterName = "simple_sandman";
         public static string strBroadcasterGame = "";
         public static string strBotName = "MrSandmanBot";
+        public static string strCurrencyType = "dollars";
         public static string connStr = ""; // connection string
         public static TimeZone localZone = TimeZone.CurrentTimeZone;
         public static int intFollowers = 0;
@@ -158,6 +159,9 @@ namespace TwitchBot
 
                                 if (!String.IsNullOrEmpty(reader["discordLink"].ToString()))
                                     strDiscordLink = reader["discordLink"].ToString();
+
+                                if (!String.IsNullOrEmpty(reader["currencyType"].ToString()))
+                                    strCurrencyType = reader["currencyType"].ToString();
 
                                 isAutoPublishTweet = (bool)reader["enableTweet"];
                                 isAutoDisplaySong = (bool)reader["enableDisplaySong"];
@@ -484,6 +488,104 @@ namespace TwitchBot
 
                                     Console.WriteLine("Auto display songs is set to [" + isAutoDisplaySong + "]");
                                     irc.sendPublicChatMessage(strBroadcasterName + ": Automatic display songs is set to \"" + isAutoDisplaySong + "\"");
+                                }
+
+                                if (message.StartsWith("!charge") && message.Contains("@"))
+                                {
+                                    if (message.StartsWith("!charge @"))
+                                        irc.sendPublicChatMessage("Please enter a valid amount to a user @" + strUserName);
+                                    else
+                                    {
+                                        int intIndexAction = 8;
+                                        int intFee = int.Parse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1));
+                                        string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                                        int intWallet = hasBankAcct(strRecipient);
+
+                                        // check if user's bank account exists
+                                        if (intWallet == -1)
+                                            irc.sendPublicChatMessage("The user '" + strRecipient + "' is not currently banking with us @" + strUserName);
+                                        else
+                                        {
+                                            // insert fee into wallet
+                                            intWallet = intWallet - intFee;
+
+                                            string query = "UPDATE dbo.tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
+
+                                            // Create connection and command
+                                            using (SqlConnection conn = new SqlConnection(connStr))
+                                            using (SqlCommand cmd = new SqlCommand(query, conn))
+                                            {
+                                                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intWallet;
+                                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
+                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = 1; // ToDo: Make dynamic (debugging only)
+
+                                                conn.Open();
+                                                cmd.ExecuteNonQuery();
+                                                conn.Close();
+                                            }
+
+                                            // update user's currency
+                                            irc.sendPublicChatMessage("Charged " + intFee.ToString() + " " + strCurrencyType + " to " + strRecipient
+                                                + "'s account! They only have " + intWallet + " " + strCurrencyType + " to spend");
+                                        }
+                                    }
+                                }
+
+                                if (message.StartsWith("!deposit") && message.Contains("@"))
+                                {
+                                    if (message.StartsWith("!deposit @"))
+                                        irc.sendPublicChatMessage("Please enter a valid amount to a user @" + strUserName);
+                                    else
+                                    {
+                                        int intIndexAction = 9;
+                                        int intMoney = int.Parse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1));
+                                        string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                                        int intWallet = hasBankAcct(strRecipient);
+                                        
+                                        // check if user has a bank account
+                                        if (intWallet == -1)
+                                        {
+                                            string query = "INSERT INTO tblBank (username, wallet, broadcaster) VALUES (@username, @wallet, @broadcaster)";
+
+                                            // Create connection and command
+                                            using (SqlConnection conn = new SqlConnection(connStr))
+                                            using (SqlCommand cmd = new SqlCommand(query, conn))
+                                            {
+                                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
+                                                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intMoney;
+                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = 1; // ToDo: Make dynamic (debugging only)
+
+                                                conn.Open();
+                                                cmd.ExecuteNonQuery();
+                                                conn.Close();
+                                            }
+
+                                            irc.sendPublicChatMessage(strUserName + " has created a new account for @" + strRecipient 
+                                                + " with " + intMoney + " " + strCurrencyType + " to spend");
+                                        }
+                                        else // deposit money into wallet
+                                        {
+                                            intWallet = intWallet + intMoney;
+
+                                            string query = "UPDATE dbo.tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
+
+                                            // Create connection and command
+                                            using (SqlConnection conn = new SqlConnection(connStr))
+                                            using (SqlCommand cmd = new SqlCommand(query, conn))
+                                            {
+                                                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intWallet;
+                                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
+                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = 1; // ToDo: Make dynamic (debugging only)
+
+                                                conn.Open();
+                                                cmd.ExecuteNonQuery();
+                                                conn.Close();
+                                            }
+
+                                            irc.sendPublicChatMessage("Deposited " + intMoney.ToString() + " " + strCurrencyType + " to @" + strRecipient 
+                                                + "'s account! They now have " + intWallet + " " + strCurrencyType + " to spend");
+                                        }
+                                    }
                                 }
                             }
 
@@ -1032,5 +1134,33 @@ namespace TwitchBot
             return false;
         }
         
+        public static int hasBankAcct(string username)
+        {
+            int intBalance = -1;
+
+            // check if user already has a bank account
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBank", conn))
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            if (username.Equals(reader["username"].ToString()))
+                            {
+                                intBalance = int.Parse(reader["wallet"].ToString());
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return intBalance;
+        }
+
     }
 }
