@@ -668,8 +668,26 @@ namespace TwitchBot
                             if (message.StartsWith("!throw ") && message.Contains("@"))
                             {
                                 int intIndexAction = 7;
-                                string item = message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1);
-                                reactionCmd(message, strUserName, "Stop throwing " + item + " at yourself", "throws " + item + " at");
+
+                                if (message.StartsWith("!throw @"))
+                                    irc.sendPublicChatMessage("Please throw an item to a user @" + strUserName);
+                                else
+                                {
+                                    string item = message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1);
+
+                                    Random rnd = new Random(DateTime.Now.Millisecond);
+                                    int intEffectiveLvl = rnd.Next(3); // between 0 and 2
+                                    string strEffectiveness = "";
+
+                                    if (intEffectiveLvl == 0)
+                                        strEffectiveness = "It's super effective!";
+                                    else if (intEffectiveLvl == 1)
+                                        strEffectiveness = "It wasn't every effective";
+                                    else
+                                        strEffectiveness = "It had no effect";
+
+                                    reactionCmd(message, strUserName, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + strEffectiveness);
+                                }
                             }
 
                             if (message.StartsWith("!partyup"))
