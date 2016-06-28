@@ -500,7 +500,7 @@ namespace TwitchBot
                                         int intFee = -1;
                                         bool validFee = int.TryParse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1), out intFee);
                                         string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                                        int intWallet = hasBankAcct(strRecipient);
+                                        int intWallet = currencyBalance(strRecipient);
 
                                         // Check user's bank account
                                         if (intWallet == -1)
@@ -555,7 +555,7 @@ namespace TwitchBot
                                         int intDeposit = -1;
                                         bool validDeposit = int.TryParse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1), out intDeposit);
                                         string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                                        int intWallet = hasBankAcct(strRecipient);
+                                        int intWallet = currencyBalance(strRecipient);
 
                                         // check if deposit amount is valid
                                         if (intDeposit < 0)
@@ -911,6 +911,16 @@ namespace TwitchBot
                                 }
                             }
 
+                            if (message.Equals("!myfunds"))
+                            {
+                                int intBalance = currencyBalance(strUserName);
+
+                                if (intBalance == -1)
+                                    irc.sendPublicChatMessage("You are not currently banking with us at the moment. Please talk to a moderator about acquiring " + strCurrencyType);
+                                else
+                                    irc.sendPublicChatMessage("@" + strUserName + " currently has " + intBalance.ToString() + " " + strCurrencyType);
+                            }
+
                             /* add more general commands here */
                         }
                     }
@@ -1086,52 +1096,57 @@ namespace TwitchBot
             Environment.Exit(0);
         }
 
-        public static string chatterValid(string message, string strOrigUser, string strRecipient)
+        public static string chatterValid(string strOrigUser, string strRecipient, string strSearchCriteria = "")
         {
             Chatters chatters = GetChatters().Result.chatters;
 
             // check moderators
-            foreach (string moderator in chatters.moderators)
+            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("mod"))
             {
-                if (strRecipient.ToLower().Equals(moderator))
+                foreach (string moderator in chatters.moderators)
                 {
-                    return "mod";
+                    if (strRecipient.ToLower().Equals(moderator))
+                        return "mod";
                 }
             }
 
             // check viewers
-            foreach (string viewer in chatters.viewers)
+            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("viewer"))
             {
-                if (strRecipient.ToLower().Equals(viewer))
+                foreach (string viewer in chatters.viewers)
                 {
-                    return "viewer";
+                    if (strRecipient.ToLower().Equals(viewer))
+                        return "viewer";
                 }
             }
 
             // check staff
-            foreach (string staffMember in chatters.staff)
+            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("staff"))
             {
-                if (strRecipient.ToLower().Equals(staffMember))
+                foreach (string staffMember in chatters.staff)
                 {
-                    return "staff";
+                    if (strRecipient.ToLower().Equals(staffMember))
+                        return "staff";
                 }
             }
 
             // check admins
-            foreach (string admin in chatters.admins)
+            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("admin"))
             {
-                if (strRecipient.ToLower().Equals(admin))
+                foreach (string admin in chatters.admins)
                 {
-                    return "admin";
+                    if (strRecipient.ToLower().Equals(admin))
+                        return "admin";
                 }
             }
 
             // check global moderators
-            foreach (string globalMod in chatters.global_mods)
+            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("gmod"))
             {
-                if (strRecipient.ToLower().Equals(globalMod))
+                foreach (string globalMod in chatters.global_mods)
                 {
-                    return "gmod";
+                    if (strRecipient.ToLower().Equals(globalMod))
+                        return "gmod";
                 }
             }
 
@@ -1142,7 +1157,7 @@ namespace TwitchBot
 
         public static bool reactionCmd(string message, string strOrigUser, string strRecipient, string strMsgToSelf, string strAction, string strAddlMsg = "")
         {
-            string strRoleType = chatterValid(message, strOrigUser, strRecipient);
+            string strRoleType = chatterValid(strOrigUser, strRecipient);
 
             // check if user currently watching the channel
             if (!string.IsNullOrEmpty(strRoleType))
@@ -1158,7 +1173,7 @@ namespace TwitchBot
                 return false;
         }
         
-        public static int hasBankAcct(string username)
+        public static int currencyBalance(string username)
         {
             int intBalance = -1;
 
