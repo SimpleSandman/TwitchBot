@@ -122,6 +122,7 @@
     <Compile Include="ChatterInfo.cs" />
     <Compile Include="FollowerInfo.cs" />
     <Compile Include="IrcClient.cs" />
+    <Compile Include="Moderator.cs" />
     <Compile Include="PingSender.cs" />
     <Compile Include="PresenceReminder.cs" />
     <Compile Include="Program.cs" />

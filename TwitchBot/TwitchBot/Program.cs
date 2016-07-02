@@ -30,6 +30,7 @@ namespace TwitchBot
     {
         public static SpotifyLocalAPI spotify;
         public static IrcClient irc;
+        public static Moderator mod;
         public static string strBroadcasterName = "simple_sandman";
         public static string strBroadcasterGame = "";
         public static string strBotName = "MrSandmanBot";
@@ -53,6 +54,7 @@ namespace TwitchBot
             string twitchAccessToken = "";  // used for channel editing
 
             // Twitter variables
+            bool hasTwitterInfo = true;
             string twitterConsumerKey = "";
             string twitterConsumerSecret = "";
             string twitterAccessToken = "";
@@ -113,7 +115,7 @@ namespace TwitchBot
                         Console.WriteLine("-- Common technical issues: --");
                         Console.WriteLine("1: Check if Azure firewall settings has your client IP address.");
                         Console.WriteLine("2: Double check the connection string under 'Properties' and 'Settings'");
-                        Console.WriteLine("<<<< To exit this program at any time, press 'CTRL' + 'C' >>>>");
+                        Console.WriteLine("<<<< To exit this program at any time, press 'CTRL' + 'C' inside this terminal >>>>");
                         Console.WriteLine();
                     }
                     else
@@ -137,40 +139,59 @@ namespace TwitchBot
 
                 Console.WriteLine("Azure server connection successful!");
 
-                /* Get sensitive info from tblSettings */
+                /* Get sensitive info from tblChannelSettings */
                 using (SqlConnection conn = new SqlConnection(connStr))
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblSettings", conn))
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblChannelSettings", conn))
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.HasRows)
                         {
                             while (reader.Read())
                             {
+                                // Twitch info
                                 twitchOAuth = reader["twitchOAuth"].ToString();
                                 twitchClientID = reader["twitchClientID"].ToString();
                                 twitchAccessToken = reader["twitchAccessToken"].ToString();
 
-                                twitterConsumerKey = reader["twitterConsumerKey"].ToString();
-                                twitterConsumerSecret = reader["twitterConsumerSecret"].ToString();
-                                twitterAccessToken = reader["twitterAccessToken"].ToString();
-                                twitterAccessSecret = reader["twitterAccessSecret"].ToString();
+                                // Twitter info
+                                if (String.IsNullOrEmpty(reader["twitterConsumerKey"].ToString()))
+                                    hasTwitterInfo = false;
+                                else
+                                    twitterConsumerKey = reader["twitterConsumerKey"].ToString();
 
+                                if (String.IsNullOrEmpty(reader["twitterConsumerSecret"].ToString()))
+                                    hasTwitterInfo = false;
+                                else
+                                    twitterConsumerSecret = reader["twitterConsumerSecret"].ToString();
+
+                                if (String.IsNullOrEmpty(reader["twitterAccessToken"].ToString()))
+                                    hasTwitterInfo = false;
+                                else
+                                    twitterAccessToken = reader["twitterAccessToken"].ToString();
+
+                                if (String.IsNullOrEmpty(reader["twitterAccessSecret"].ToString()))
+                                    hasTwitterInfo = false;
+                                else
+                                    twitterAccessSecret = reader["twitterAccessSecret"].ToString();
+
+                                // Discord info
                                 if (!String.IsNullOrEmpty(reader["discordLink"].ToString()))
                                     strDiscordLink = reader["discordLink"].ToString();
 
+                                // Channel currency info
                                 if (!String.IsNullOrEmpty(reader["currencyType"].ToString()))
                                     strCurrencyType = reader["currencyType"].ToString();
 
-                                isAutoPublishTweet = (bool)reader["enableTweet"];
-                                isAutoDisplaySong = (bool)reader["enableDisplaySong"];
+                                isAutoPublishTweet = (bool)reader["enableTweet"]; // Twitter
+                                isAutoDisplaySong = (bool)reader["enableDisplaySong"]; // Spotify
                             }
                         }
                         else
                         {
                             conn.Close();
-                            Console.WriteLine("Check tblSettings for twitch or twitter variables");
+                            Console.WriteLine("Check tblChannelSettings for twitch or twitter variables");
                             Thread.Sleep(3000);
                             return;
                         }
@@ -195,7 +216,7 @@ namespace TwitchBot
                 strBroadcasterGame = GetChannel().Result.game;
 
                 /* Make new thread to get messages */
-                Thread thdIrcClient = new Thread(() => GetChatBox(spotifyCtrl, isSongRequest, twitchAccessToken, connStr));
+                Thread thdIrcClient = new Thread(() => GetChatBox(spotifyCtrl, isSongRequest, twitchAccessToken, hasTwitterInfo));
                 thdIrcClient.Start();
 
                 spotifyCtrl.Connect(); // attempt to connect to local Spotify client
@@ -205,18 +226,26 @@ namespace TwitchBot
                 Console.WriteLine("Automatic display songs is set to [" + isAutoDisplaySong + "]");
                 Console.WriteLine();
 
+                /* Get list of mods */
+                mod = new Moderator();
+                setListMods();
+
                 /* Ping to twitch server to prevent auto-disconnect */
                 PingSender ping = new PingSender();
                 ping.Start();
 
+                /* Remind viewers of bot's existance */
                 PresenceReminder preRmd = new PresenceReminder();
                 preRmd.Start();
 
-                /* Authenticate to Twitter */
-                Auth.ApplicationCredentials = new TwitterCredentials(
-                    twitterConsumerKey, twitterConsumerSecret,
-                    twitterAccessToken, twitterAccessSecret
-                );
+                /* Authenticate to Twitter if possible */
+                if (hasTwitterInfo)
+                {
+                    Auth.ApplicationCredentials = new TwitterCredentials(
+                        twitterConsumerKey, twitterConsumerSecret,
+                        twitterAccessToken, twitterAccessSecret
+                    );
+                }
             }
             catch (Exception ex)
             {
@@ -230,8 +259,7 @@ namespace TwitchBot
         /// <param name="spotifyCtrl"></param>
         /// <param name="isSongRequest"></param>
         /// <param name="twitchAccessToken"></param>
-        /// <param name="connStr"></param>
-        private static void GetChatBox(SpotifyControl spotifyCtrl, bool isSongRequest, string twitchAccessToken, string connStr)
+        private static void GetChatBox(SpotifyControl spotifyCtrl, bool isSongRequest, string twitchAccessToken, bool hasTwitterInfo)
         {
             try
             {
@@ -291,51 +319,58 @@ namespace TwitchBot
                                 if (message.Equals("!spotifynext"))
                                     spotifyCtrl.skipBtn_Click();
 
-                                if (message.Equals("!discord"))
-                                    irc.sendPublicChatMessage("Come be a potato with us on our own Discord server! " + strDiscordLink);
-
                                 if (message.Equals("!enabletweet"))
                                 {
-                                    isAutoPublishTweet = true;
-
-                                    /* Update auto tweet to database */
-                                    string query = "UPDATE tblSettings SET enableTweet = @enableTweet";
-
-                                    // Create connection and command
-                                    using (SqlConnection conn = new SqlConnection(connStr))
-                                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                                    if (!hasTwitterInfo)
+                                        irc.sendPublicChatMessage("You are missing twitter info @" + strBroadcasterName);
+                                    else
                                     {
-                                        cmd.Parameters.Add("@enableTweet", SqlDbType.Bit).Value = isAutoPublishTweet;
+                                        isAutoPublishTweet = true;
 
-                                        conn.Open();
-                                        cmd.ExecuteNonQuery();
-                                        conn.Close();
+                                        /* Update auto tweet to database */
+                                        string query = "UPDATE tblChannelSettings SET enableTweet = @enableTweet";
+
+                                        // Create connection and command
+                                        using (SqlConnection conn = new SqlConnection(connStr))
+                                        using (SqlCommand cmd = new SqlCommand(query, conn))
+                                        {
+                                            cmd.Parameters.Add("@enableTweet", SqlDbType.Bit).Value = isAutoPublishTweet;
+
+                                            conn.Open();
+                                            cmd.ExecuteNonQuery();
+                                            conn.Close();
+                                        }
+
+                                        Console.WriteLine("Auto publish tweets is set to [" + isAutoPublishTweet + "]");
+                                        irc.sendPublicChatMessage(strBroadcasterName + ": Automatic tweets is set to \"" + isAutoPublishTweet + "\"");
                                     }
-
-                                    Console.WriteLine("Auto publish tweets is set to [" + isAutoPublishTweet + "]");
-                                    irc.sendPublicChatMessage(strBroadcasterName + ": Automatic tweets is set to \"" + isAutoPublishTweet + "\"");
                                 }
 
                                 if (message.Equals("!disabletweet"))
                                 {
-                                    isAutoPublishTweet = false;
-
-                                    /* Update auto tweet to database */
-                                    string query = "UPDATE tblSettings SET enableTweet = @enableTweet";
-
-                                    // Create connection and command
-                                    using (SqlConnection conn = new SqlConnection(connStr))
-                                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                                    if (!hasTwitterInfo)
+                                        irc.sendPublicChatMessage("You are missing twitter info @" + strBroadcasterName);
+                                    else
                                     {
-                                        cmd.Parameters.Add("@enableTweet", SqlDbType.Bit).Value = isAutoPublishTweet;
+                                        isAutoPublishTweet = false;
 
-                                        conn.Open();
-                                        cmd.ExecuteNonQuery();
-                                        conn.Close();
+                                        /* Update auto tweet to database */
+                                        string query = "UPDATE tblChannelSettings SET enableTweet = @enableTweet";
+
+                                        // Create connection and command
+                                        using (SqlConnection conn = new SqlConnection(connStr))
+                                        using (SqlCommand cmd = new SqlCommand(query, conn))
+                                        {
+                                            cmd.Parameters.Add("@enableTweet", SqlDbType.Bit).Value = isAutoPublishTweet;
+
+                                            conn.Open();
+                                            cmd.ExecuteNonQuery();
+                                            conn.Close();
+                                        }
+
+                                        Console.WriteLine("Auto publish tweets is set to [" + isAutoPublishTweet + "]");
+                                        irc.sendPublicChatMessage(strBroadcasterName + ": Automatic tweets is set to \"" + isAutoPublishTweet + "\"");
                                     }
-
-                                    Console.WriteLine("Auto publish tweets is set to [" + isAutoPublishTweet + "]");
-                                    irc.sendPublicChatMessage(strBroadcasterName + ": Automatic tweets is set to \"" + isAutoPublishTweet + "\"");
                                 }
 
                                 if (message.Equals("!songrequests on"))
@@ -419,7 +454,7 @@ namespace TwitchBot
                                         {
                                             irc.sendPublicChatMessage("Twitch channel game status updated to \"" + game +
                                                 "\" || Restart your connection to the stream or twitch app in order to see the change");
-                                            if (isAutoPublishTweet)
+                                            if (isAutoPublishTweet && hasTwitterInfo)
                                             {
                                                 SendTweet("Watch me stream " + game + " on Twitch" + Environment.NewLine
                                                     + "http://goo.gl/SNyDFD" + Environment.NewLine
@@ -442,8 +477,13 @@ namespace TwitchBot
 
                                 if (message.StartsWith("!tweet"))
                                 {
-                                    string command = message;
-                                    SendTweet(message, command);
+                                    if (!hasTwitterInfo)
+                                        irc.sendPublicChatMessage("You are missing twitter info @" + strBroadcasterName);
+                                    else
+                                    {
+                                        string command = message;
+                                        SendTweet(message, command);
+                                    }
                                 }
 
                                 if (message.StartsWith("!displaysongs on"))
@@ -451,7 +491,7 @@ namespace TwitchBot
                                     isAutoDisplaySong = true;
 
                                     /* Update auto tweet to database */
-                                    string query = "UPDATE tblSettings SET enableDisplaySong = @enableDisplaySong";
+                                    string query = "UPDATE tblChannelSettings SET enableDisplaySong = @enableDisplaySong";
 
                                     // Create connection and command
                                     using (SqlConnection conn = new SqlConnection(connStr))
@@ -473,7 +513,7 @@ namespace TwitchBot
                                     isAutoDisplaySong = false;
 
                                     /* Update auto song display to database */
-                                    string query = "UPDATE tblSettings SET enableDisplaySong = @enableDisplaySong";
+                                    string query = "UPDATE tblChannelSettings SET enableDisplaySong = @enableDisplaySong";
 
                                     // Create connection and command
                                     using (SqlConnection conn = new SqlConnection(connStr))
@@ -489,6 +529,51 @@ namespace TwitchBot
                                     Console.WriteLine("Auto display songs is set to [" + isAutoDisplaySong + "]");
                                     irc.sendPublicChatMessage(strBroadcasterName + ": Automatic display songs is set to \"" + isAutoDisplaySong + "\"");
                                 }
+
+                                if (message.StartsWith("!addmod") && message.Contains("@"))
+                                {
+                                    string strRecipient = message.Substring(message.IndexOf("@") + 1);
+
+                                    mod.addNewModToLst(strRecipient.ToLower(), 1, connStr);
+
+                                    irc.sendPublicChatMessage("@" + strRecipient + " is now able to use moderator features within MrSandmanBot");
+                                }
+
+                                if (message.StartsWith("!delmod") && message.Contains("@"))
+                                {
+                                    string strRecipient = message.Substring(message.IndexOf("@") + 1);
+
+                                    mod.delOldModFromLst(strRecipient.ToLower(), 1, connStr);
+
+                                    irc.sendPublicChatMessage("@" + strRecipient + " is not able to use moderator features within MrSandmanBot any longer");
+                                }
+
+                                if (message.Equals("!listmod"))
+                                {
+                                    string strListModMsg = "";
+
+                                    if (mod.getLstMod().Count > 0)
+                                    {
+                                        foreach (string name in mod.getLstMod())
+                                            strListModMsg += name + " | ";
+
+                                        strListModMsg = strListModMsg.Remove(strListModMsg.Length - 3); // removed extra " | "
+                                        irc.sendPublicChatMessage("List of bot moderators: " + strListModMsg);
+                                    }
+                                    else
+                                        irc.sendPublicChatMessage("No one has moderator rights to @" + strBroadcasterName + "'s bot");
+                                }
+
+                                /* insert more broadcaster commands here */
+                            }
+
+                            /*
+                             * Moderator commands
+                             */
+                            if (strUserName.Equals(strBroadcasterName) || mod.getLstMod().Contains(strUserName.ToLower()))
+                            {
+                                if (message.Equals("!discord"))
+                                    irc.sendPublicChatMessage("Come be a potato with us on our own Discord server! " + strDiscordLink);
 
                                 if (message.StartsWith("!charge") && message.Contains("@"))
                                 {
@@ -609,14 +694,9 @@ namespace TwitchBot
                                         }
                                     }
                                 }
+
+                                /* insert moderator commands here */
                             }
-
-                            /*
-                             * Moderator commands
-                             * ToDo: check for moderators
-                             */
-
-                            /* insert moderator commands here */
 
                             /* 
                              * General commands 
@@ -1199,6 +1279,37 @@ namespace TwitchBot
             }
 
             return intBalance;
+        }
+
+        public static void setListMods()
+        {
+            try
+            {
+                List<string> modList = new List<string>();
+
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblModerators", conn))
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                modList.Add(reader["username"].ToString());
+                            }
+                        }
+                    }
+                }
+
+                mod.setLstMod(modList);
+            }
+            catch (Exception ex)
+            {   
+                Console.WriteLine(ex.Message);
+                LogError(ex, "Program", "getListMods()");
+            }
         }
 
     }
