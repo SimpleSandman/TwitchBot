@@ -31,9 +31,10 @@ namespace TwitchBot
         public static SpotifyLocalAPI spotify;
         public static IrcClient irc;
         public static Moderator mod;
-        public static string strBroadcasterName = "simple_sandman";
+        public static string strBroadcasterName = "";
+        public static int intBroadcasterID = 0;
         public static string strBroadcasterGame = "";
-        public static string strBotName = "MrSandmanBot";
+        public static string strBotName = "";
         public static string strCurrencyType = "coins";
         public static string connStr = ""; // connection string
         public static TimeZone localZone = TimeZone.CurrentTimeZone;
@@ -139,62 +140,76 @@ namespace TwitchBot
 
                 Console.WriteLine("Azure server connection successful!");
 
-                /* Get sensitive info from tblChannelSettings */
+                using (StreamReader sr = File.OpenText(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Bot-Settings.txt"))
+                {
+                    string s = String.Empty;
+                    while ((s = sr.ReadLine()) != null)
+                    {
+                        if (s.StartsWith("botName")) strBotName = s.Substring(s.IndexOf("=") + 2);
+                        else if (s.StartsWith("broadcaster")) strBroadcasterName = s.Substring(s.IndexOf("=") + 2);
+                        else if (s.StartsWith("twitchOAuth")) twitchOAuth = s.Substring(s.IndexOf("oauth:"));
+                        else if (s.StartsWith("twitchClientID")) twitchClientID = s.Substring(s.IndexOf("=") + 2);
+                        else if (s.StartsWith("twitchAccessToken")) twitchAccessToken = s.Substring(s.IndexOf("=") + 2);
+                        else if (s.StartsWith("twitterConsumerKey")) twitterConsumerKey = s.Substring(s.IndexOf("=") + 2);
+                        else if (s.StartsWith("twitterConsumerSecret")) twitterConsumerSecret = s.Substring(s.IndexOf("=") + 2);
+                        else if (s.StartsWith("twitterAccessToken")) twitterAccessToken = s.Substring(s.IndexOf("=") + 2);
+                        else if (s.StartsWith("twitterAccessSecret")) twitterAccessSecret = s.Substring(s.IndexOf("=") + 2);
+                        else if (s.StartsWith("discordLink")) strDiscordLink = s.Substring(s.IndexOf("=") + 2);
+                        else if (s.StartsWith("currencyType")) strCurrencyType = s.Substring(s.IndexOf("=") + 2);
+                        else if (s.StartsWith("enableTweet")) isAutoPublishTweet = bool.Parse(s.Substring(s.IndexOf("=") + 2));
+                        else if (s.StartsWith("enableDisplaySong")) isAutoDisplaySong = bool.Parse(s.Substring(s.IndexOf("=") + 2));
+                    }
+                }
+
+                // Check if required options are filled in
+                if (string.IsNullOrWhiteSpace(strBotName)
+                    && string.IsNullOrWhiteSpace(strBroadcasterName)
+                    && string.IsNullOrWhiteSpace(twitchOAuth)
+                    && string.IsNullOrWhiteSpace(twitchClientID)
+                    && string.IsNullOrWhiteSpace(twitchAccessToken))
+                {
+                    Console.WriteLine("Check your Bot-Settings.txt on your desktop for missing info pertaining to: ''");
+                    Thread.Sleep(3000);
+                    Environment.Exit(0);
+                }
+
+                // Get broadcaster ID
                 using (SqlConnection conn = new SqlConnection(connStr))
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblChannelSettings", conn))
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBroadcasters WHERE username = @username", conn))
                     {
-                        if (reader.HasRows)
+                        cmd.Parameters.AddWithValue("@username", strBroadcasterName);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            while (reader.Read())
+                            if (reader.HasRows)
                             {
-                                // Twitch info
-                                twitchOAuth = reader["twitchOAuth"].ToString();
-                                twitchClientID = reader["twitchClientID"].ToString();
-                                twitchAccessToken = reader["twitchAccessToken"].ToString();
-
-                                // Twitter info
-                                if (String.IsNullOrEmpty(reader["twitterConsumerKey"].ToString()))
-                                    hasTwitterInfo = false;
-                                else
-                                    twitterConsumerKey = reader["twitterConsumerKey"].ToString();
-
-                                if (String.IsNullOrEmpty(reader["twitterConsumerSecret"].ToString()))
-                                    hasTwitterInfo = false;
-                                else
-                                    twitterConsumerSecret = reader["twitterConsumerSecret"].ToString();
-
-                                if (String.IsNullOrEmpty(reader["twitterAccessToken"].ToString()))
-                                    hasTwitterInfo = false;
-                                else
-                                    twitterAccessToken = reader["twitterAccessToken"].ToString();
-
-                                if (String.IsNullOrEmpty(reader["twitterAccessSecret"].ToString()))
-                                    hasTwitterInfo = false;
-                                else
-                                    twitterAccessSecret = reader["twitterAccessSecret"].ToString();
-
-                                // Discord info
-                                if (!String.IsNullOrEmpty(reader["discordLink"].ToString()))
-                                    strDiscordLink = reader["discordLink"].ToString();
-
-                                // Channel currency info
-                                if (!String.IsNullOrEmpty(reader["currencyType"].ToString()))
-                                    strCurrencyType = reader["currencyType"].ToString();
-
-                                isAutoPublishTweet = (bool)reader["enableTweet"]; // Twitter
-                                isAutoDisplaySong = (bool)reader["enableDisplaySong"]; // Spotify
+                                while (reader.Read())
+                                {
+                                    if (strBroadcasterName.Equals(reader["username"].ToString().ToLower()))
+                                    {
+                                        intBroadcasterID = int.Parse(reader["id"].ToString());
+                                        break;
+                                    }
+                                }
                             }
                         }
-                        else
-                        {
-                            conn.Close();
-                            Console.WriteLine("Check tblChannelSettings for twitch or twitter variables");
-                            Thread.Sleep(3000);
-                            return;
-                        }
+                    }
+                }
+
+                // Add broadcaster as new user to database
+                if (intBroadcasterID == 0)
+                {
+                    string query = "INSERT INTO tblBroadcasters (username) VALUES (@username)";
+
+                    using (SqlConnection conn = new SqlConnection(connStr))
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strBroadcasterName;
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                        conn.Close();
                     }
                 }
 
@@ -208,8 +223,7 @@ namespace TwitchBot
                 // include the "oauth:" portion
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
-                irc = new IrcClient("irc.twitch.tv", 6667, strBotName, twitchOAuth);
-                irc.joinRoom(strBroadcasterName);
+                irc = new IrcClient("irc.twitch.tv", 6667, strBotName, twitchOAuth, strBroadcasterName);
 
                 // Update channel info
                 intFollowers = GetChannel().Result.followers;
@@ -695,6 +709,31 @@ namespace TwitchBot
                                     }
                                 }
 
+                                if (message.StartsWith("!popsonglist"))
+                                {
+                                    try
+                                    {
+                                        string query = "WITH T AS (SELECT TOP(1) * FROM tblSongRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
+
+                                        // Create connection and command
+                                        using (SqlConnection conn = new SqlConnection(connStr))
+                                        using (SqlCommand cmd = new SqlCommand(query, conn))
+                                        {
+                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
+
+                                            conn.Open();
+                                            cmd.ExecuteNonQuery();
+                                            conn.Close();
+                                        }
+
+                                        irc.sendPublicChatMessage("First song in queue has been removed from the request list");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine(ex.Message);
+                                    }
+                                }
+
                                 /* insert moderator commands here */
                             }
 
@@ -703,7 +742,7 @@ namespace TwitchBot
                              */
                             if (message.Equals("!commands"))
                             {
-                                irc.sendPublicChatMessage("!hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username]"
+                                irc.sendPublicChatMessage("--- !hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username]"
                                     + "| !currentsong | !songrequestlist | !requestsong [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] ---"
                                     + " Link to full list of commands: "
                                     + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
@@ -734,7 +773,7 @@ namespace TwitchBot
                                 using (SqlConnection conn = new SqlConnection(connStr))
                                 {
                                     conn.Open();
-                                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblSongRequests", conn))
+                                    using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM tblSongRequests", conn))
                                     using (SqlDataReader reader = cmd.ExecuteReader())
                                     {
                                         if (reader.HasRows)
@@ -752,13 +791,9 @@ namespace TwitchBot
                                                 var newRow = data.Rows.Add();
                                                 foreach (DataColumn col in data.Columns)
                                                 {
-                                                    // grab only the real data
-                                                    if (!col.ColumnName.Equals("Id"))
-                                                    {
-                                                        newRow[col.ColumnName] = reader[col.ColumnName];
-                                                        Console.WriteLine(newRow[col.ColumnName].ToString());
-                                                        songList = songList + newRow[col.ColumnName].ToString() + " || ";
-                                                    }
+                                                    newRow[col.ColumnName] = reader[col.ColumnName];
+                                                    Console.WriteLine(newRow[col.ColumnName].ToString());
+                                                    songList = songList + newRow[col.ColumnName].ToString() + " || ";
                                                 }
                                             }
                                             StringBuilder strBdrSongList = new StringBuilder(songList);
@@ -790,18 +825,20 @@ namespace TwitchBot
                                     if (!Regex.IsMatch(songRequest, @"^[a-zA-Z0-9 \-]+$"))
                                     {
                                         irc.sendPublicChatMessage("Only letters, numbers, and hyphens (-) are allowed. Please try again. "
-                                         + "If the problem persists, please contact the author of this bot");
+                                            + "If the problem persists, please contact my creator");
                                     }
                                     else
                                     {
                                         /* Add song request to database */
-                                        string query = "INSERT INTO tblSongRequests (songRequests) VALUES (@song)";
+                                        string query = "INSERT INTO tblSongRequests (songRequests, broadcaster, chatter) VALUES (@song, @broadcaster, @chatter)";
 
                                         // Create connection and command
                                         using (SqlConnection conn = new SqlConnection(connStr))
                                         using (SqlCommand cmd = new SqlCommand(query, conn))
                                         {
                                             cmd.Parameters.Add("@song", SqlDbType.VarChar, 200).Value = songRequest;
+                                            cmd.Parameters.Add("@broadcaster", SqlDbType.VarChar, 200).Value = intBroadcasterID;
+                                            cmd.Parameters.Add("@chatter", SqlDbType.VarChar, 200).Value = strUserName;
 
                                             conn.Open();
                                             cmd.ExecuteNonQuery();

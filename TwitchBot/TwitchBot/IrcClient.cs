@@ -19,9 +19,10 @@ namespace TwitchBot
         private StreamReader inputStream;
         private StreamWriter outputStream;
 
-        public IrcClient(string ip, int port, string userName, string password)
+        public IrcClient(string ip, int port, string userName, string password, string channel)
         {
             this.userName = userName;
+            this.channel = channel;
 
             tcpClient = new TcpClient(ip, port);
             inputStream = new StreamReader(tcpClient.GetStream());
@@ -30,12 +31,6 @@ namespace TwitchBot
             outputStream.WriteLine("PASS " + password);
             outputStream.WriteLine("NICK " + userName);
             outputStream.WriteLine("USER " + userName + " 8 * :" + userName);
-            outputStream.Flush();
-        }
-
-        public void joinRoom(string channel)
-        {
-            this.channel = channel;
             outputStream.WriteLine("JOIN #" + channel);
             outputStream.Flush();
         }
