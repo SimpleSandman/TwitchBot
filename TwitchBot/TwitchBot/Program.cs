@@ -711,22 +711,49 @@ namespace TwitchBot
 
                                 if (message.StartsWith("!popsonglist"))
                                 {
+                                    string strRemovedSong = "";
+
                                     try
                                     {
-                                        string query = "WITH T AS (SELECT TOP(1) * FROM tblSongRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
-
-                                        // Create connection and command
                                         using (SqlConnection conn = new SqlConnection(connStr))
-                                        using (SqlCommand cmd = new SqlCommand(query, conn))
                                         {
-                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
-
                                             conn.Open();
-                                            cmd.ExecuteNonQuery();
-                                            conn.Close();
+                                            using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
+                                            {
+                                                cmd.Parameters.AddWithValue("@broadcaster", intBroadcasterID);
+                                                using (SqlDataReader reader = cmd.ExecuteReader())
+                                                {
+                                                    if (reader.HasRows)
+                                                    {
+                                                        while (reader.Read())
+                                                        {
+                                                            strRemovedSong = reader["songRequests"].ToString();
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
 
-                                        irc.sendPublicChatMessage("First song in queue has been removed from the request list");
+                                        if (!string.IsNullOrWhiteSpace(strRemovedSong))
+                                        {
+                                            string query = "WITH T AS (SELECT TOP(1) * FROM tblSongRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
+
+                                            // Create connection and command
+                                            using (SqlConnection conn = new SqlConnection(connStr))
+                                            using (SqlCommand cmd = new SqlCommand(query, conn))
+                                            {
+                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
+
+                                                conn.Open();
+                                                cmd.ExecuteNonQuery();
+                                                conn.Close();
+                                            }
+
+                                            irc.sendPublicChatMessage("The first song in queue, '" + strRemovedSong + "' has been removed from the request list");
+                                        }
+                                        else
+                                            irc.sendPublicChatMessage("There are no songs that can be removed from the song request list");
                                     }
                                     catch (Exception ex)
                                     {
