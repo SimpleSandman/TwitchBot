@@ -287,6 +287,7 @@ namespace TwitchBot
                 {
                     // Read any message inside the chat room
                     string message = _irc.readMessage();
+                    bool hideExtraTimoutReminder = false; // handle duplicate timeout reminder message
                     Console.WriteLine(message);
 
                     if (!string.IsNullOrEmpty(message))
@@ -689,124 +690,64 @@ namespace TwitchBot
                              */
                             if (strUserName.Equals(_strBroadcasterName) || _mod.getLstMod().Contains(strUserName.ToLower()))
                             {
-                                if (message.Equals("!discord"))
+                                // check if moderator is still timed out from using this bot
+                                if (_timeout.getLstTimeout().ContainsKey(strUserName))
                                 {
-                                    try
-                                    {
-                                        _irc.sendPublicChatMessage("Come be a potato with us on our own Discord server! " + _strDiscordLink);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!discord");
-                                    }
+                                    string timeout = _timeout.getTimoutFromUser(strUserName, _intBroadcasterID, _connStr);
+
+                                    if (timeout.Equals("0 seconds"))
+                                        _irc.sendPublicChatMessage("You are now allowed to talk to me again @" + strUserName 
+                                            + ". Please try the requested command once more (if necessary)");
+                                    else
+                                        _irc.sendPublicChatMessage("I am not allowed to talk to you for " + timeout);
+
+                                    hideExtraTimoutReminder = true;
                                 }
-
-                                if (message.StartsWith("!charge") && message.Contains("@"))
+                                else
                                 {
-                                    try
+                                    if (message.Equals("!discord"))
                                     {
-                                        if (message.StartsWith("!charge @"))
-                                            _irc.sendPublicChatMessage("Please enter a valid amount to a user @" + strUserName);
-                                        else
+                                        try
                                         {
-                                            int intIndexAction = 8;
-                                            int intFee = -1;
-                                            bool validFee = int.TryParse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1), out intFee);
-                                            string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                                            int intWallet = currencyBalance(strRecipient);
-
-                                            // Check user's bank account
-                                            if (intWallet == -1)
-                                                _irc.sendPublicChatMessage("The user '" + strRecipient + "' is not currently banking with us @" + strUserName);
-                                            else if (intWallet == 0)
-                                                _irc.sendPublicChatMessage("'" + strRecipient + "' is out of " + _strCurrencyType + " @" + strUserName);
-                                            // Check if fee can be accepted
-                                            else if (intFee > 0)
-                                                _irc.sendPublicChatMessage("Please insert a negative amount or use the !deposit command to add " + _strCurrencyType + " to a user");
-                                            else if (!validFee)
-                                                _irc.sendPublicChatMessage("The fee wasn't accepted. Please try again with negative whole numbers only");
-                                            else /* Insert fee into wallet */
-                                            {
-                                                intWallet = intWallet + intFee;
-
-                                                // Zero out account balance if user is being charged more than they have
-                                                if (intWallet < 0)
-                                                    intWallet = 0;
-
-                                                string query = "UPDATE dbo.tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
-
-                                                using (SqlConnection conn = new SqlConnection(_connStr))
-                                                using (SqlCommand cmd = new SqlCommand(query, conn))
-                                                {
-                                                    cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intWallet;
-                                                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = 1; // ToDo: Make dynamic (debugging only)
-
-                                                    conn.Open();
-                                                    cmd.ExecuteNonQuery();
-                                                    conn.Close();
-                                                }
-
-                                                // prompt user's balance
-                                                if (intWallet == 0)
-                                                    _irc.sendPublicChatMessage("Charged " + intFee.ToString().Replace("-", "") + " " + _strCurrencyType + " to " + strRecipient
-                                                        + "'s account! They are out of " + _strCurrencyType + " to spend");
-                                                else
-                                                    _irc.sendPublicChatMessage("Charged " + intFee.ToString().Replace("-", "") + " " + _strCurrencyType + " to " + strRecipient
-                                                        + "'s account! They only have " + intWallet + " " + _strCurrencyType + " to spend");
-                                            }
+                                            _irc.sendPublicChatMessage("Come be a potato with us on our own Discord server! " + _strDiscordLink);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!discord");
                                         }
                                     }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!charge");
-                                    }
-                                }
 
-                                if (message.StartsWith("!deposit") && message.Contains("@"))
-                                {
-                                    try
+                                    if (message.StartsWith("!charge") && message.Contains("@"))
                                     {
-                                        if (message.StartsWith("!deposit @"))
-                                            _irc.sendPublicChatMessage("Please enter a valid amount to a user @" + strUserName);
-                                        else
+                                        try
                                         {
-                                            int intIndexAction = 9;
-                                            int intDeposit = -1;
-                                            bool validDeposit = int.TryParse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1), out intDeposit);
-                                            string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                                            int intWallet = currencyBalance(strRecipient);
-
-                                            // check if deposit amount is valid
-                                            if (intDeposit < 0)
-                                                _irc.sendPublicChatMessage("Please insert a positive amount or use the !charge command to remove " + _strCurrencyType + " from a user");
-                                            else if (!validDeposit)
-                                                _irc.sendPublicChatMessage("The deposit wasn't accepted. Please try again with positive whole numbers only");
+                                            if (message.StartsWith("!charge @"))
+                                                _irc.sendPublicChatMessage("Please enter a valid amount to a user @" + strUserName);
                                             else
                                             {
-                                                // check if user has a bank account
+                                                int intIndexAction = 8;
+                                                int intFee = -1;
+                                                bool validFee = int.TryParse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1), out intFee);
+                                                string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                                                int intWallet = currencyBalance(strRecipient);
+
+                                                // Check user's bank account
                                                 if (intWallet == -1)
+                                                    _irc.sendPublicChatMessage("The user '" + strRecipient + "' is not currently banking with us @" + strUserName);
+                                                else if (intWallet == 0)
+                                                    _irc.sendPublicChatMessage("'" + strRecipient + "' is out of " + _strCurrencyType + " @" + strUserName);
+                                                // Check if fee can be accepted
+                                                else if (intFee > 0)
+                                                    _irc.sendPublicChatMessage("Please insert a negative amount or use the !deposit command to add " + _strCurrencyType + " to a user");
+                                                else if (!validFee)
+                                                    _irc.sendPublicChatMessage("The fee wasn't accepted. Please try again with negative whole numbers only");
+                                                else /* Insert fee into wallet */
                                                 {
-                                                    string query = "INSERT INTO tblBank (username, wallet, broadcaster) VALUES (@username, @wallet, @broadcaster)";
+                                                    intWallet = intWallet + intFee;
 
-                                                    using (SqlConnection conn = new SqlConnection(_connStr))
-                                                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                                                    {
-                                                        cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                                                        cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intDeposit;
-                                                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = 1; // ToDo: Make dynamic (debugging only)
-
-                                                        conn.Open();
-                                                        cmd.ExecuteNonQuery();
-                                                        conn.Close();
-                                                    }
-
-                                                    _irc.sendPublicChatMessage(strUserName + " has created a new account for @" + strRecipient
-                                                        + " with " + intDeposit + " " + _strCurrencyType + " to spend");
-                                                }
-                                                else // deposit money into wallet
-                                                {
-                                                    intWallet = intWallet + intDeposit;
+                                                    // Zero out account balance if user is being charged more than they have
+                                                    if (intWallet < 0)
+                                                        intWallet = 0;
 
                                                     string query = "UPDATE dbo.tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
 
@@ -823,470 +764,535 @@ namespace TwitchBot
                                                     }
 
                                                     // prompt user's balance
-                                                    _irc.sendPublicChatMessage("Deposited " + intDeposit.ToString() + " " + _strCurrencyType + " to @" + strRecipient
-                                                        + "'s account! They now have " + intWallet + " " + _strCurrencyType + " to spend");
+                                                    if (intWallet == 0)
+                                                        _irc.sendPublicChatMessage("Charged " + intFee.ToString().Replace("-", "") + " " + _strCurrencyType + " to " + strRecipient
+                                                            + "'s account! They are out of " + _strCurrencyType + " to spend");
+                                                    else
+                                                        _irc.sendPublicChatMessage("Charged " + intFee.ToString().Replace("-", "") + " " + _strCurrencyType + " to " + strRecipient
+                                                            + "'s account! They only have " + intWallet + " " + _strCurrencyType + " to spend");
                                                 }
                                             }
                                         }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!deposit");
-                                    }
-                                }
-
-                                if (message.StartsWith("!popsonglist"))
-                                {
-                                    string strRemovedSong = "";
-
-                                    try
-                                    {
-                                        using (SqlConnection conn = new SqlConnection(_connStr))
+                                        catch (Exception ex)
                                         {
-                                            conn.Open();
-                                            using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
+                                            LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!charge");
+                                        }
+                                    }
+
+                                    if (message.StartsWith("!deposit") && message.Contains("@"))
+                                    {
+                                        try
+                                        {
+                                            if (message.StartsWith("!deposit @"))
+                                                _irc.sendPublicChatMessage("Please enter a valid amount to a user @" + strUserName);
+                                            else
                                             {
-                                                cmd.Parameters.AddWithValue("@broadcaster", _intBroadcasterID);
-                                                using (SqlDataReader reader = cmd.ExecuteReader())
+                                                int intIndexAction = 9;
+                                                int intDeposit = -1;
+                                                bool validDeposit = int.TryParse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1), out intDeposit);
+                                                string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                                                int intWallet = currencyBalance(strRecipient);
+
+                                                // check if deposit amount is valid
+                                                if (intDeposit < 0)
+                                                    _irc.sendPublicChatMessage("Please insert a positive amount or use the !charge command to remove " + _strCurrencyType + " from a user");
+                                                else if (!validDeposit)
+                                                    _irc.sendPublicChatMessage("The deposit wasn't accepted. Please try again with positive whole numbers only");
+                                                else
                                                 {
-                                                    if (reader.HasRows)
+                                                    // check if user has a bank account
+                                                    if (intWallet == -1)
                                                     {
-                                                        while (reader.Read())
+                                                        string query = "INSERT INTO tblBank (username, wallet, broadcaster) VALUES (@username, @wallet, @broadcaster)";
+
+                                                        using (SqlConnection conn = new SqlConnection(_connStr))
+                                                        using (SqlCommand cmd = new SqlCommand(query, conn))
                                                         {
-                                                            strRemovedSong = reader["songRequests"].ToString();
-                                                            break;
+                                                            cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
+                                                            cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intDeposit;
+                                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = 1; // ToDo: Make dynamic (debugging only)
+
+                                                            conn.Open();
+                                                            cmd.ExecuteNonQuery();
+                                                            conn.Close();
                                                         }
+
+                                                        _irc.sendPublicChatMessage(strUserName + " has created a new account for @" + strRecipient
+                                                            + " with " + intDeposit + " " + _strCurrencyType + " to spend");
+                                                    }
+                                                    else // deposit money into wallet
+                                                    {
+                                                        intWallet = intWallet + intDeposit;
+
+                                                        string query = "UPDATE dbo.tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
+
+                                                        using (SqlConnection conn = new SqlConnection(_connStr))
+                                                        using (SqlCommand cmd = new SqlCommand(query, conn))
+                                                        {
+                                                            cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intWallet;
+                                                            cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
+                                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = 1; // ToDo: Make dynamic (debugging only)
+
+                                                            conn.Open();
+                                                            cmd.ExecuteNonQuery();
+                                                            conn.Close();
+                                                        }
+
+                                                        // prompt user's balance
+                                                        _irc.sendPublicChatMessage("Deposited " + intDeposit.ToString() + " " + _strCurrencyType + " to @" + strRecipient
+                                                            + "'s account! They now have " + intWallet + " " + _strCurrencyType + " to spend");
                                                     }
                                                 }
                                             }
                                         }
-
-                                        if (!string.IsNullOrWhiteSpace(strRemovedSong))
+                                        catch (Exception ex)
                                         {
-                                            string query = "WITH T AS (SELECT TOP(1) * FROM tblSongRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
+                                            LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!deposit");
+                                        }
+                                    }
 
-                                            // Create connection and command
+                                    if (message.StartsWith("!popsonglist"))
+                                    {
+                                        string strRemovedSong = "";
+
+                                        try
+                                        {
                                             using (SqlConnection conn = new SqlConnection(_connStr))
-                                            using (SqlCommand cmd = new SqlCommand(query, conn))
                                             {
-                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
                                                 conn.Open();
-                                                cmd.ExecuteNonQuery();
-                                                conn.Close();
+                                                using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
+                                                {
+                                                    cmd.Parameters.AddWithValue("@broadcaster", _intBroadcasterID);
+                                                    using (SqlDataReader reader = cmd.ExecuteReader())
+                                                    {
+                                                        if (reader.HasRows)
+                                                        {
+                                                            while (reader.Read())
+                                                            {
+                                                                strRemovedSong = reader["songRequests"].ToString();
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                             }
 
-                                            _irc.sendPublicChatMessage("The first song in queue, '" + strRemovedSong + "' has been removed from the request list");
+                                            if (!string.IsNullOrWhiteSpace(strRemovedSong))
+                                            {
+                                                string query = "WITH T AS (SELECT TOP(1) * FROM tblSongRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
+
+                                                // Create connection and command
+                                                using (SqlConnection conn = new SqlConnection(_connStr))
+                                                using (SqlCommand cmd = new SqlCommand(query, conn))
+                                                {
+                                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+
+                                                    conn.Open();
+                                                    cmd.ExecuteNonQuery();
+                                                    conn.Close();
+                                                }
+
+                                                _irc.sendPublicChatMessage("The first song in queue, '" + strRemovedSong + "' has been removed from the request list");
+                                            }
+                                            else
+                                                _irc.sendPublicChatMessage("There are no songs that can be removed from the song request list");
                                         }
-                                        else
-                                            _irc.sendPublicChatMessage("There are no songs that can be removed from the song request list");
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!charge");
-                                    }
-                                }
-
-                                if (message.StartsWith("!addtimeout") && message.Contains("@"))
-                                {
-                                    try
-                                    {
-                                        if (message.StartsWith("!addtimeout @"))
-                                            _irc.sendPublicChatMessage("I cannot make a user not talk to me without this format '!addtimeout [seconds] @[username]'");
-                                        else
+                                        catch (Exception ex)
                                         {
-                                            int intIndexAction = 12;
-                                            string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                                            double dblSec = -1;
-                                            bool validDeposit = double.TryParse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1), out dblSec);
+                                            LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!charge");
+                                        }
+                                    }
 
-                                            if (!validDeposit || dblSec < 0.00)
-                                                _irc.sendPublicChatMessage("The timeout amount wasn't accepted. Please try again with positive seconds only");
-                                            else if (dblSec < 15.00)
-                                                _irc.sendPublicChatMessage("The duration needs to be at least 15 seconds long. Please try again");
+                                    if (message.StartsWith("!addtimeout") && message.Contains("@"))
+                                    {
+                                        try
+                                        {
+                                            if (message.StartsWith("!addtimeout @"))
+                                                _irc.sendPublicChatMessage("I cannot make a user not talk to me without this format '!addtimeout [seconds] @[username]'");
+                                            //else if (message.ToLower().Contains(_strBroadcasterName.ToLower()))
+                                            //_irc.sendPublicChatMessage("I cannot betray @" + _strBroadcasterName + " by not allowing him to communicate with me @" + strUserName);
                                             else
                                             {
-                                                _timeout.addTimeoutToLst(strRecipient, _intBroadcasterID, dblSec, _connStr);
+                                                int intIndexAction = 12;
+                                                string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                                                double dblSec = -1;
+                                                bool validDeposit = double.TryParse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1), out dblSec);
 
-                                                _irc.sendPublicChatMessage(strRecipient + ", I don't want to talk to you for " + dblSec + " seconds");
+                                                if (!validDeposit || dblSec < 0.00)
+                                                    _irc.sendPublicChatMessage("The timeout amount wasn't accepted. Please try again with positive seconds only");
+                                                else if (dblSec < 15.00)
+                                                    _irc.sendPublicChatMessage("The duration needs to be at least 15 seconds long. Please try again");
+                                                else
+                                                {
+                                                    _timeout.addTimeoutToLst(strRecipient, _intBroadcasterID, dblSec, _connStr);
+
+                                                    _irc.sendPublicChatMessage(strRecipient + ", I don't want to talk to you for " + dblSec + " seconds");
+
+                                                    hideExtraTimoutReminder = true;
+                                                }
                                             }
                                         }
+                                        catch (Exception ex)
+                                        {
+                                            LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!addtimeout");
+                                        }
                                     }
-                                    catch (Exception ex)
+
+                                    if (message.StartsWith("!deltimeout @"))
                                     {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!addtimeout");
+                                        try
+                                        {
+                                            string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+
+                                            _timeout.delTimeoutFromLst(strRecipient, _intBroadcasterID, _connStr);
+
+                                            _irc.sendPublicChatMessage(strRecipient + " can now interact with me again because of @" + strUserName);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!deltimeout");
+                                        }
                                     }
-                                }
 
-                                if (message.StartsWith("!deltimeout @"))
-                                {
-                                    try
-                                    {
-                                        string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-
-                                        _timeout.delTimeoutFromLst(strRecipient, _intBroadcasterID, _connStr);
-
-                                        _irc.sendPublicChatMessage(strRecipient + " can now interact with me again because of @" + strUserName);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!deltimeout");
-                                    }
-                                }
-
-                                /* insert moderator commands here */
+                                    /* insert moderator commands here */
+                                } // end else not timeout check
                             }
 
                             /* 
                              * General commands 
                              */
-                            if (message.Equals("!commands"))
+                            if (_timeout.getLstTimeout().ContainsKey(strUserName))
                             {
-                                try
-                                {
-                                    _irc.sendPublicChatMessage("--- !hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username]"
-                                        + "| !currentsong | !songrequestlist | !requestsong [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] ---"
-                                        + " Link to full list of commands: "
-                                        + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!commands");
-                                }
+                                string timeout = _timeout.getTimoutFromUser(strUserName, _intBroadcasterID, _connStr);
+
+                                if (timeout.Equals("0 seconds"))
+                                    _irc.sendPublicChatMessage("You are now allowed to talk to me again @" + strUserName);
+                                else if (!hideExtraTimoutReminder)
+                                    _irc.sendPublicChatMessage("I am not allowed to talk to you for " + timeout);
                             }
-
-                            if (message.Equals("!hello"))
+                            else
                             {
-                                try
+                                if (message.Equals("!commands"))
                                 {
-                                    _irc.sendPublicChatMessage("Hey " + strUserName + "! Thanks for talking to me.");
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!hello");
-                                }
-                            }
-
-                            if (message.Equals("!utctime"))
-                            {
-                                try
-                                {
-                                    _irc.sendPublicChatMessage("UTC Time: " + DateTime.UtcNow.ToString());
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!utctime");
-                                }
-                            }
-
-                            if (message.Equals("!hosttime"))
-                            {
-                                try
-                                {
-                                    _irc.sendPublicChatMessage(_strBroadcasterName + "'s Current Time: " + DateTime.Now.ToString() + " (" + _localZone.StandardName + ")");
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!hosttime");
-                                }
-                            }
-
-                            if (message.Equals("!uptime")) // need to check if channel is currently streaming
-                            {
-                                try
-                                {
-                                    var upTimeRes = GetChannel();
-                                    TimeSpan ts = DateTime.UtcNow - DateTime.Parse(upTimeRes.Result.updated_at);
-                                    string upTime = String.Format("{0:h\\:mm\\:ss}", ts);
-                                    _irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + upTime);
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!uptime");
-                                }
-                            }
-
-                            /* List song requests from database */
-                            if (message.Equals("!songrequestlist"))
-                            {
-                                try
-                                {
-                                    string songList = "";
-
-                                    using (SqlConnection conn = new SqlConnection(_connStr))
+                                    try
                                     {
-                                        conn.Open();
-                                        using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM tblSongRequests", conn))
-                                        using (SqlDataReader reader = cmd.ExecuteReader())
-                                        {
-                                            if (reader.HasRows)
-                                            {
-                                                DataTable schemaTable = reader.GetSchemaTable();
-                                                DataTable data = new DataTable();
-                                                foreach (DataRow row in schemaTable.Rows)
-                                                {
-                                                    string colName = row.Field<string>("ColumnName");
-                                                    Type t = row.Field<Type>("DataType");
-                                                    data.Columns.Add(colName, t);
-                                                }
-                                                while (reader.Read())
-                                                {
-                                                    var newRow = data.Rows.Add();
-                                                    foreach (DataColumn col in data.Columns)
-                                                    {
-                                                        newRow[col.ColumnName] = reader[col.ColumnName];
-                                                        Console.WriteLine(newRow[col.ColumnName].ToString());
-                                                        songList = songList + newRow[col.ColumnName].ToString() + " || ";
-                                                    }
-                                                }
-                                                StringBuilder strBdrSongList = new StringBuilder(songList);
-                                                strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " || "
-                                                songList = strBdrSongList.ToString(); // replace old song list string with new
-                                                _irc.sendPublicChatMessage("Current List of Requested Songs: " + songList);
-                                            }
-                                            else
-                                            {
-                                                Console.WriteLine("No requests have been made");
-                                                _irc.sendPublicChatMessage("No requests have been made");
-                                            }
-                                        }
+                                        _irc.sendPublicChatMessage("--- !hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username]"
+                                            + "| !currentsong | !songrequestlist | !requestsong [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] ---"
+                                            + " Link to full list of commands: "
+                                            + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!commands");
                                     }
                                 }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!songrequestlist");
-                                }
-                            }
 
-                            /* Insert requested song into database */
-                            if (message.StartsWith("!requestsong"))
-                            {
-                                try
+                                if (message.Equals("!hello"))
                                 {
-                                    if (isSongRequest)
+                                    try
                                     {
-                                        // Grab the song name from the request
-                                        int index = message.IndexOf("!requestsong");
-                                        string songRequest = message.Substring(index, message.Length - index);
-                                        songRequest = songRequest.Replace("!requestsong ", "");
-                                        Console.WriteLine("New song request: " + songRequest);
-
-                                        // Check if song request has more than letters, numbers, and hyphens
-                                        if (!Regex.IsMatch(songRequest, @"^[a-zA-Z0-9 \-]+$"))
-                                        {
-                                            _irc.sendPublicChatMessage("Only letters, numbers, and hyphens (-) are allowed. Please try again. "
-                                                + "If the problem persists, please contact my creator");
-                                        }
-                                        else
-                                        {
-                                            /* Add song request to database */
-                                            string query = "INSERT INTO tblSongRequests (songRequests, broadcaster, chatter) VALUES (@song, @broadcaster, @chatter)";
-
-                                            // Create connection and command
-                                            using (SqlConnection conn = new SqlConnection(_connStr))
-                                            using (SqlCommand cmd = new SqlCommand(query, conn))
-                                            {
-                                                cmd.Parameters.Add("@song", SqlDbType.VarChar, 200).Value = songRequest;
-                                                cmd.Parameters.Add("@broadcaster", SqlDbType.VarChar, 200).Value = _intBroadcasterID;
-                                                cmd.Parameters.Add("@chatter", SqlDbType.VarChar, 200).Value = strUserName;
-
-                                                conn.Open();
-                                                cmd.ExecuteNonQuery();
-                                                conn.Close();
-                                            }
-
-                                            _irc.sendPublicChatMessage("The song \"" + songRequest + "\" has been successfully requested!");
-                                        }
+                                        _irc.sendPublicChatMessage("Hey " + strUserName + "! Thanks for talking to me.");
                                     }
-                                    else
-                                        _irc.sendPublicChatMessage("Song requests are disabled at the moment");
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!requestsong");
-                                }
-                            }
-
-                            if (message.Equals("!currentsong"))
-                            {
-                                try
-                                {
-                                    StatusResponse status = _spotify.GetStatus();
-                                    if (status != null)
+                                    catch (Exception ex)
                                     {
-                                        _irc.sendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
-                                            + " || Artist: " + status.Track.ArtistResource.Name
-                                            + " || Album: " + status.Track.AlbumResource.Name);
-                                    }
-                                    else
-                                        _irc.sendPublicChatMessage("The broadcaster is not playing a song at the moment");
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!currentsong");
-                                }
-                            }
-
-                            /* Action commands */
-                            if (message.StartsWith("!slap @"))
-                            {
-                                try
-                                {
-                                    string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                                    reactionCmd(message, strUserName, strRecipient, "Stop smacking yourself", "slaps");
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!slap");
-                                }
-                            }
-
-                            if (message.StartsWith("!stab @"))
-                            {
-                                try
-                                {
-                                    string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                                    reactionCmd(message, strUserName, strRecipient, "Stop stabbing yourself", "stabs", " to death!");
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!stab");
-                                }
-                            }
-
-                            if (message.StartsWith("!shoot @"))
-                            {
-                                try
-                                {
-                                    string strBodyPart = "'s ";
-                                    string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                                    Random rnd = new Random(DateTime.Now.Millisecond);
-                                    int intBodyPart = rnd.Next(8); // between 0 and 7
-
-                                    if (intBodyPart == 0)
-                                        strBodyPart += "head";
-                                    else if (intBodyPart == 1)
-                                        strBodyPart += "left leg";
-                                    else if (intBodyPart == 2)
-                                        strBodyPart += "right leg";
-                                    else if (intBodyPart == 3)
-                                        strBodyPart += "left arm";
-                                    else if (intBodyPart == 4)
-                                        strBodyPart += "right arm";
-                                    else if (intBodyPart == 5)
-                                        strBodyPart += "stomach";
-                                    else if (intBodyPart == 6)
-                                        strBodyPart += "neck";
-                                    else // found largest random value
-                                        strBodyPart = " but missed";
-
-                                    reactionCmd(message, strUserName, strRecipient, "You just shot your " + strBodyPart.Replace("'s ", ""), "shoots", strBodyPart);
-
-                                    // bot responds if targeted
-                                    if (strRecipient.Equals(_strBotName.ToLower()))
-                                    {
-                                        if (strBodyPart.Equals(" but missed"))
-                                            _irc.sendPublicChatMessage("Ha! You missed @" + strUserName);
-                                        else
-                                            _irc.sendPublicChatMessage("You think shooting me in the " + strBodyPart.Replace("'s ", "") + " would hurt me? I am a bot!");
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!hello");
                                     }
                                 }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!shoot");
-                                }
-                            }
 
-                            if (message.StartsWith("!throw ") && message.Contains("@"))
-                            {
-                                try
+                                if (message.Equals("!utctime"))
                                 {
-                                    int intIndexAction = 7;
-
-                                    if (message.StartsWith("!throw @"))
-                                        _irc.sendPublicChatMessage("Please throw an item to a user @" + strUserName);
-                                    else
+                                    try
                                     {
-                                        string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                                        string item = message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1);
-
-                                        Random rnd = new Random(DateTime.Now.Millisecond);
-                                        int intEffectiveLvl = rnd.Next(3); // between 0 and 2
-                                        string strEffectiveness = "";
-
-                                        if (intEffectiveLvl == 0)
-                                            strEffectiveness = "It's super effective!";
-                                        else if (intEffectiveLvl == 1)
-                                            strEffectiveness = "It wasn't very effective";
-                                        else
-                                            strEffectiveness = "It had no effect";
-
-                                        reactionCmd(message, strUserName, strRecipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + strEffectiveness);
+                                        _irc.sendPublicChatMessage("UTC Time: " + DateTime.UtcNow.ToString());
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!utctime");
                                     }
                                 }
-                                catch (Exception ex)
+
+                                if (message.Equals("!hosttime"))
                                 {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!throw");
-                                }
-                            }
-
-                            if (message.StartsWith("!partyup"))
-                            {
-                                try
-                                {
-                                    string strPartyMember = "";
-                                    int intGameID = 0;
-                                    bool isPartyMemebrFound = false;
-
-                                    // Get current game
-                                    _strBroadcasterGame = GetChannel().Result.game;
-
-                                    // check if user entered something
-                                    if (message.Length < 9)
-                                        _irc.sendPublicChatMessage("Please enter a party member @" + strUserName);
-                                    else
-                                        strPartyMember = message.Substring(9);
-
-                                    // grab game id in order to find party member
-                                    using (SqlConnection conn = new SqlConnection(_connStr))
+                                    try
                                     {
-                                        conn.Open();
-                                        using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblGameList", conn))
-                                        using (SqlDataReader reader = cmd.ExecuteReader())
-                                        {
-                                            if (reader.HasRows)
-                                            {
-                                                while (reader.Read())
-                                                {
-                                                    if (_strBroadcasterGame.Equals(reader["name"].ToString()))
-                                                    {
-                                                        intGameID = int.Parse(reader["id"].ToString());
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        _irc.sendPublicChatMessage(_strBroadcasterName + "'s Current Time: " + DateTime.Now.ToString() + " (" + _localZone.StandardName + ")");
                                     }
-
-                                    // if the game is not found
-                                    // tell users this game is not accepting party up requests
-                                    if (intGameID == 0)
-                                        _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' command");
-                                    else // check if requested party member is valid
+                                    catch (Exception ex)
                                     {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!hosttime");
+                                    }
+                                }
+
+                                if (message.Equals("!uptime")) // need to check if channel is currently streaming
+                                {
+                                    try
+                                    {
+                                        var upTimeRes = GetChannel();
+                                        TimeSpan ts = DateTime.UtcNow - DateTime.Parse(upTimeRes.Result.updated_at);
+                                        string upTime = String.Format("{0:h\\:mm\\:ss}", ts);
+                                        _irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + upTime);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!uptime");
+                                    }
+                                }
+
+                                /* List song requests from database */
+                                if (message.Equals("!songrequestlist"))
+                                {
+                                    try
+                                    {
+                                        string songList = "";
+
                                         using (SqlConnection conn = new SqlConnection(_connStr))
                                         {
                                             conn.Open();
-                                            using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUp", conn))
+                                            using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM tblSongRequests", conn))
+                                            using (SqlDataReader reader = cmd.ExecuteReader())
+                                            {
+                                                if (reader.HasRows)
+                                                {
+                                                    DataTable schemaTable = reader.GetSchemaTable();
+                                                    DataTable data = new DataTable();
+                                                    foreach (DataRow row in schemaTable.Rows)
+                                                    {
+                                                        string colName = row.Field<string>("ColumnName");
+                                                        Type t = row.Field<Type>("DataType");
+                                                        data.Columns.Add(colName, t);
+                                                    }
+                                                    while (reader.Read())
+                                                    {
+                                                        var newRow = data.Rows.Add();
+                                                        foreach (DataColumn col in data.Columns)
+                                                        {
+                                                            newRow[col.ColumnName] = reader[col.ColumnName];
+                                                            Console.WriteLine(newRow[col.ColumnName].ToString());
+                                                            songList = songList + newRow[col.ColumnName].ToString() + " || ";
+                                                        }
+                                                    }
+                                                    StringBuilder strBdrSongList = new StringBuilder(songList);
+                                                    strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " || "
+                                                    songList = strBdrSongList.ToString(); // replace old song list string with new
+                                                    _irc.sendPublicChatMessage("Current List of Requested Songs: " + songList);
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("No requests have been made");
+                                                    _irc.sendPublicChatMessage("No requests have been made");
+                                                }
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!songrequestlist");
+                                    }
+                                }
+
+                                /* Insert requested song into database */
+                                if (message.StartsWith("!requestsong"))
+                                {
+                                    try
+                                    {
+                                        if (isSongRequest)
+                                        {
+                                            // Grab the song name from the request
+                                            int index = message.IndexOf("!requestsong");
+                                            string songRequest = message.Substring(index, message.Length - index);
+                                            songRequest = songRequest.Replace("!requestsong ", "");
+                                            Console.WriteLine("New song request: " + songRequest);
+
+                                            // Check if song request has more than letters, numbers, and hyphens
+                                            if (!Regex.IsMatch(songRequest, @"^[a-zA-Z0-9 \-]+$"))
+                                            {
+                                                _irc.sendPublicChatMessage("Only letters, numbers, and hyphens (-) are allowed. Please try again. "
+                                                    + "If the problem persists, please contact my creator");
+                                            }
+                                            else
+                                            {
+                                                /* Add song request to database */
+                                                string query = "INSERT INTO tblSongRequests (songRequests, broadcaster, chatter) VALUES (@song, @broadcaster, @chatter)";
+
+                                                // Create connection and command
+                                                using (SqlConnection conn = new SqlConnection(_connStr))
+                                                using (SqlCommand cmd = new SqlCommand(query, conn))
+                                                {
+                                                    cmd.Parameters.Add("@song", SqlDbType.VarChar, 200).Value = songRequest;
+                                                    cmd.Parameters.Add("@broadcaster", SqlDbType.VarChar, 200).Value = _intBroadcasterID;
+                                                    cmd.Parameters.Add("@chatter", SqlDbType.VarChar, 200).Value = strUserName;
+
+                                                    conn.Open();
+                                                    cmd.ExecuteNonQuery();
+                                                    conn.Close();
+                                                }
+
+                                                _irc.sendPublicChatMessage("The song \"" + songRequest + "\" has been successfully requested!");
+                                            }
+                                        }
+                                        else
+                                            _irc.sendPublicChatMessage("Song requests are disabled at the moment");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!requestsong");
+                                    }
+                                }
+
+                                if (message.Equals("!currentsong"))
+                                {
+                                    try
+                                    {
+                                        StatusResponse status = _spotify.GetStatus();
+                                        if (status != null)
+                                        {
+                                            _irc.sendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
+                                                + " || Artist: " + status.Track.ArtistResource.Name
+                                                + " || Album: " + status.Track.AlbumResource.Name);
+                                        }
+                                        else
+                                            _irc.sendPublicChatMessage("The broadcaster is not playing a song at the moment");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!currentsong");
+                                    }
+                                }
+
+                                /* Action commands */
+                                if (message.StartsWith("!slap @"))
+                                {
+                                    try
+                                    {
+                                        string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                                        reactionCmd(message, strUserName, strRecipient, "Stop smacking yourself", "slaps");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!slap");
+                                    }
+                                }
+
+                                if (message.StartsWith("!stab @"))
+                                {
+                                    try
+                                    {
+                                        string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                                        reactionCmd(message, strUserName, strRecipient, "Stop stabbing yourself", "stabs", " to death!");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!stab");
+                                    }
+                                }
+
+                                if (message.StartsWith("!shoot @"))
+                                {
+                                    try
+                                    {
+                                        string strBodyPart = "'s ";
+                                        string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                                        Random rnd = new Random(DateTime.Now.Millisecond);
+                                        int intBodyPart = rnd.Next(8); // between 0 and 7
+
+                                        if (intBodyPart == 0)
+                                            strBodyPart += "head";
+                                        else if (intBodyPart == 1)
+                                            strBodyPart += "left leg";
+                                        else if (intBodyPart == 2)
+                                            strBodyPart += "right leg";
+                                        else if (intBodyPart == 3)
+                                            strBodyPart += "left arm";
+                                        else if (intBodyPart == 4)
+                                            strBodyPart += "right arm";
+                                        else if (intBodyPart == 5)
+                                            strBodyPart += "stomach";
+                                        else if (intBodyPart == 6)
+                                            strBodyPart += "neck";
+                                        else // found largest random value
+                                            strBodyPart = " but missed";
+
+                                        reactionCmd(message, strUserName, strRecipient, "You just shot your " + strBodyPart.Replace("'s ", ""), "shoots", strBodyPart);
+
+                                        // bot responds if targeted
+                                        if (strRecipient.Equals(_strBotName.ToLower()))
+                                        {
+                                            if (strBodyPart.Equals(" but missed"))
+                                                _irc.sendPublicChatMessage("Ha! You missed @" + strUserName);
+                                            else
+                                                _irc.sendPublicChatMessage("You think shooting me in the " + strBodyPart.Replace("'s ", "") + " would hurt me? I am a bot!");
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!shoot");
+                                    }
+                                }
+
+                                if (message.StartsWith("!throw ") && message.Contains("@"))
+                                {
+                                    try
+                                    {
+                                        int intIndexAction = 7;
+
+                                        if (message.StartsWith("!throw @"))
+                                            _irc.sendPublicChatMessage("Please throw an item to a user @" + strUserName);
+                                        else
+                                        {
+                                            string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                                            string item = message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1);
+
+                                            Random rnd = new Random(DateTime.Now.Millisecond);
+                                            int intEffectiveLvl = rnd.Next(3); // between 0 and 2
+                                            string strEffectiveness = "";
+
+                                            if (intEffectiveLvl == 0)
+                                                strEffectiveness = "It's super effective!";
+                                            else if (intEffectiveLvl == 1)
+                                                strEffectiveness = "It wasn't very effective";
+                                            else
+                                                strEffectiveness = "It had no effect";
+
+                                            reactionCmd(message, strUserName, strRecipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + strEffectiveness);
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!throw");
+                                    }
+                                }
+
+                                if (message.StartsWith("!partyup"))
+                                {
+                                    try
+                                    {
+                                        string strPartyMember = "";
+                                        int intGameID = 0;
+                                        bool isPartyMemebrFound = false;
+
+                                        // Get current game
+                                        _strBroadcasterGame = GetChannel().Result.game;
+
+                                        // check if user entered something
+                                        if (message.Length < 9)
+                                            _irc.sendPublicChatMessage("Please enter a party member @" + strUserName);
+                                        else
+                                            strPartyMember = message.Substring(9);
+
+                                        // grab game id in order to find party member
+                                        using (SqlConnection conn = new SqlConnection(_connStr))
+                                        {
+                                            conn.Open();
+                                            using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblGameList", conn))
                                             using (SqlDataReader reader = cmd.ExecuteReader())
                                             {
                                                 if (reader.HasRows)
                                                 {
                                                     while (reader.Read())
                                                     {
-                                                        if (strPartyMember.ToLower().Equals(reader["partyMember"].ToString()))
+                                                        if (_strBroadcasterGame.Equals(reader["name"].ToString()))
                                                         {
-                                                            isPartyMemebrFound = true;
+                                                            intGameID = int.Parse(reader["id"].ToString());
                                                             break;
                                                         }
                                                     }
@@ -1294,55 +1300,82 @@ namespace TwitchBot
                                             }
                                         }
 
-                                        // insert party member if member exists from database
-                                        if (!isPartyMemebrFound)
-                                            _irc.sendPublicChatMessage("I couldn't find the requested party memebr '" + strPartyMember + "' @" + strUserName
-                                                + ". Please check with the broadcaster for possible spelling errors");
-                                        else
+                                        // if the game is not found
+                                        // tell users this game is not accepting party up requests
+                                        if (intGameID == 0)
+                                            _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' command");
+                                        else // check if requested party member is valid
                                         {
-                                            string query = "INSERT INTO tblPartyUpRequests (username, partyMember, timeRequested) VALUES (@username, @partyMember, @timeRequested)";
-
-                                            // Create connection and command
                                             using (SqlConnection conn = new SqlConnection(_connStr))
-                                            using (SqlCommand cmd = new SqlCommand(query, conn))
                                             {
-                                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 50).Value = strUserName;
-                                                cmd.Parameters.Add("@partyMember", SqlDbType.VarChar, 50).Value = strPartyMember;
-                                                cmd.Parameters.Add("@timeRequested", SqlDbType.DateTime).Value = DateTime.Now;
-
                                                 conn.Open();
-                                                cmd.ExecuteNonQuery();
-                                                conn.Close();
+                                                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUp", conn))
+                                                using (SqlDataReader reader = cmd.ExecuteReader())
+                                                {
+                                                    if (reader.HasRows)
+                                                    {
+                                                        while (reader.Read())
+                                                        {
+                                                            if (strPartyMember.ToLower().Equals(reader["partyMember"].ToString()))
+                                                            {
+                                                                isPartyMemebrFound = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                             }
 
-                                            _irc.sendPublicChatMessage("@" + strUserName + ": " + strPartyMember + " has been added to the party queue");
+                                            // insert party member if member exists from database
+                                            if (!isPartyMemebrFound)
+                                                _irc.sendPublicChatMessage("I couldn't find the requested party memebr '" + strPartyMember + "' @" + strUserName
+                                                    + ". Please check with the broadcaster for possible spelling errors");
+                                            else
+                                            {
+                                                string query = "INSERT INTO tblPartyUpRequests (username, partyMember, timeRequested) VALUES (@username, @partyMember, @timeRequested)";
+
+                                                // Create connection and command
+                                                using (SqlConnection conn = new SqlConnection(_connStr))
+                                                using (SqlCommand cmd = new SqlCommand(query, conn))
+                                                {
+                                                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 50).Value = strUserName;
+                                                    cmd.Parameters.Add("@partyMember", SqlDbType.VarChar, 50).Value = strPartyMember;
+                                                    cmd.Parameters.Add("@timeRequested", SqlDbType.DateTime).Value = DateTime.Now;
+
+                                                    conn.Open();
+                                                    cmd.ExecuteNonQuery();
+                                                    conn.Close();
+                                                }
+
+                                                _irc.sendPublicChatMessage("@" + strUserName + ": " + strPartyMember + " has been added to the party queue");
+                                            }
                                         }
                                     }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!partyup");
+                                    }
                                 }
-                                catch (Exception ex)
+
+                                if (message.Equals("!myfunds"))
                                 {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!partyup");
+                                    try
+                                    {
+                                        int intBalance = currencyBalance(strUserName);
+
+                                        if (intBalance == -1)
+                                            _irc.sendPublicChatMessage("You are not currently banking with us at the moment. Please talk to a moderator about acquiring " + _strCurrencyType);
+                                        else
+                                            _irc.sendPublicChatMessage("@" + strUserName + " currently has " + intBalance.ToString() + " " + _strCurrencyType);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!myfunds");
+                                    }
                                 }
+
+                                /* add more general commands here */
                             }
-
-                            if (message.Equals("!myfunds"))
-                            {
-                                try
-                                {
-                                    int intBalance = currencyBalance(strUserName);
-
-                                    if (intBalance == -1)
-                                        _irc.sendPublicChatMessage("You are not currently banking with us at the moment. Please talk to a moderator about acquiring " + _strCurrencyType);
-                                    else
-                                        _irc.sendPublicChatMessage("@" + strUserName + " currently has " + intBalance.ToString() + " " + _strCurrencyType);
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!myfunds");
-                                }
-                            }
-
-                            /* add more general commands here */
                         }
                     }
                 } // end master while loop
@@ -1711,6 +1744,20 @@ namespace TwitchBot
             {
                 Console.WriteLine(ex.Message);
                 LogError(ex, "Program", "setListTimeouts()", true);
+            }
+        }
+
+        public void isUserTimedout(string strUserName)
+        {
+            if (_timeout.getLstTimeout().ContainsKey(strUserName))
+            {
+                string timeout = _timeout.getTimoutFromUser(strUserName, _intBroadcasterID, _connStr);
+
+                if (timeout.Equals("0 seconds"))
+                    _irc.sendPublicChatMessage("You are now allowed to talk to me again @" + strUserName
+                        + ". Please try the requested command once more");
+                else
+                    _irc.sendPublicChatMessage("I am not allowed to talk to you for " + timeout);
             }
         }
 
