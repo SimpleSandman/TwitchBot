@@ -22,22 +22,22 @@ namespace TwitchBot
             if (!SpotifyLocalAPI.IsSpotifyRunning())
             {
                 Console.WriteLine("Spotify isn't running!");
-                Program.irc.sendPublicChatMessage("Spotify isn't running!");
+                Program._irc.sendPublicChatMessage("Spotify isn't running!");
                 return;
             }
             if (!SpotifyLocalAPI.IsSpotifyWebHelperRunning())
             {
                 Console.WriteLine("SpotifyWebHelper isn't running!");
-                Program.irc.sendPublicChatMessage("Spotify isn't running!");
+                Program._irc.sendPublicChatMessage("Spotify isn't running!");
                 return;
             }
 
-            bool successful = Program.spotify.Connect();
+            bool successful = Program._spotify.Connect();
             if (successful)
             {
                 Console.WriteLine("Connection to Spotify successful");
                 UpdateInfos();
-                Program.spotify.ListenForEvents = true;
+                Program._spotify.ListenForEvents = true;
             }
             else
             {
@@ -55,7 +55,7 @@ namespace TwitchBot
 
         public void spotify_OnTrackChange(TrackChangeEventArgs e)
         {
-            ShowUpdatedTrack(e.NewTrack, true, Program.isAutoDisplaySong);
+            ShowUpdatedTrack(e.NewTrack, true, Program._isAutoDisplaySong);
             trackChanged = true;
         }
 
@@ -63,36 +63,36 @@ namespace TwitchBot
         {
             UpdatePlayingStatus(e.Playing);
 
-            StatusResponse status = Program.spotify.GetStatus();
+            StatusResponse status = Program._spotify.GetStatus();
             if (status.Track != null && status.Playing && !trackChanged) // Update track infos
-                ShowUpdatedTrack(status.Track, false, Program.isAutoDisplaySong);
+                ShowUpdatedTrack(status.Track, false, Program._isAutoDisplaySong);
 
             trackChanged = false;
         }
 
         public void playBtn_Click()
         {
-            Program.spotify.Play();
+            Program._spotify.Play();
         }
 
         public void pauseBtn_Click()
         {
-            Program.spotify.Pause();
+            Program._spotify.Pause();
         }
 
         public void prevBtn_Click()
         {
-            Program.spotify.Previous();
+            Program._spotify.Previous();
         }
 
         public void skipBtn_Click()
         {
-            Program.spotify.Skip();
+            Program._spotify.Skip();
         }
 
         public void UpdateInfos()
         {
-            StatusResponse status = Program.spotify.GetStatus();
+            StatusResponse status = Program._spotify.GetStatus();
             if (status == null)
                 return;
 
@@ -102,7 +102,7 @@ namespace TwitchBot
             Console.WriteLine("Version: " + status.Version.ToString() + "\n");
 
             if (status.Track != null && status.Playing) // Update track infos
-                ShowUpdatedTrack(status.Track, false, Program.isAutoDisplaySong);
+                ShowUpdatedTrack(status.Track, false, Program._isAutoDisplaySong);
         }
 
         public void ShowUpdatedTrack(Track track, bool isSongChanged, bool isDisplayed)
@@ -135,7 +135,7 @@ namespace TwitchBot
                 }
             }
 
-            Program.irc.sendPublicChatMessage(pendingMessage);
+            Program._irc.sendPublicChatMessage(pendingMessage);
         }
     }
 }

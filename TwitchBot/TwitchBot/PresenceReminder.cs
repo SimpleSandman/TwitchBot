@@ -28,7 +28,7 @@ namespace TwitchBot
         {
             while (true)
             {
-                Program.irc.sendPublicChatMessage("Just as a reminder. Big brother is watching! deIlluminati " 
+                Program._irc.sendPublicChatMessage("Just as a reminder. Big brother is watching! deIlluminati " 
                     + "Type !commands to see the list of this bot's commands");
                 Thread.Sleep(1200000); // 20 minutes
             }

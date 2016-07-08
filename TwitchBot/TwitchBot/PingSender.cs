@@ -32,7 +32,7 @@ namespace TwitchBot
         {
             while (true)
             {
-                Program.irc.sendIrcMessage(PING + "irc.twitch.tv");
+                Program._irc.sendIrcMessage(PING + "irc.twitch.tv");
                 Thread.Sleep(300000); // 5 minutes
             }
         }

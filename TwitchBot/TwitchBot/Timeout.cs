@@ -8,25 +8,54 @@ using System.Threading.Tasks;
 
 namespace TwitchBot
 {
-    public class Moderator
+    public class Timeout
     {
-        private List<string> lstMod = new List<string>();
+        private Dictionary<string, DateTime> lstTimeout = new Dictionary<string, DateTime>();
 
-        public List<string> getLstMod()
+        public Dictionary<string, DateTime> getLstTimeout()
         {
-            return lstMod;
+            return lstTimeout;
         }
 
-        public void setLstMod(List<string> value)
+        public void setLstTimeout(Dictionary<string, DateTime> value)
         {
-            lstMod = value;
+            lstTimeout = value;
         }
 
-        public void addNewModToLst(string strRecipient, int strBroadcaster, string connStr)
+        public void addTimeoutToLst(string strRecipient, int intBroadcaster, double dblSec, string connStr)
         {
             try
             {
-                string query = "INSERT INTO tblModerators (username, broadcaster) VALUES (@username, @broadcaster)";
+                string query = "INSERT INTO tblTimeout (username, broadcaster, timeout) VALUES (@username, @broadcaster, @timeout)";
+                DateTime dtTimeout = new DateTime();
+                dtTimeout = DateTime.UtcNow.AddSeconds(dblSec);
+
+                // Create connection and command
+                using (SqlConnection conn = new SqlConnection(connStr))
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcaster;
+                    cmd.Parameters.Add("@timeout", SqlDbType.DateTime).Value = dtTimeout;
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                    conn.Close();
+                }
+
+                lstTimeout.Add(strRecipient, dtTimeout);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        public void delTimeoutFromLst(string strRecipient, int strBroadcaster, string connStr)
+        {
+            try
+            {
+                string query = "DELETE FROM tblTimeout WHERE username = @username AND broadcaster = @broadcaster";
 
                 // Create connection and command
                 using (SqlConnection conn = new SqlConnection(connStr))
@@ -40,33 +69,7 @@ namespace TwitchBot
                     conn.Close();
                 }
 
-                lstMod.Add(strRecipient);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-
-        public void delOldModFromLst(string strUserName, int strBroadcaster, string connStr)
-        {
-            try
-            {
-                string query = "DELETE FROM tblModerators WHERE username = @username AND broadcaster = @broadcaster";
-
-                // Create connection and command
-                using (SqlConnection conn = new SqlConnection(connStr))
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strUserName;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = strBroadcaster;
-
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                    conn.Close();
-                }
-
-                lstMod.Remove(strUserName);
+                lstTimeout.Remove(strRecipient);
             }
             catch (Exception ex)
             {

@@ -133,6 +133,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="SpotifyControl.cs" />
+    <Compile Include="Timeout.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
