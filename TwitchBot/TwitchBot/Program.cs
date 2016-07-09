@@ -1312,11 +1312,12 @@ namespace TwitchBot
                                     }
                                 }
 
-                                if (message.StartsWith("!partyup"))
+                                if (message.StartsWith("!partyuprequest"))
                                 {
                                     try
                                     {
                                         string strPartyMember = "";
+                                        int intInputIndex = 16;
                                         int intGameID = 0;
                                         bool isPartyMemebrFound = false;
 
@@ -1324,10 +1325,10 @@ namespace TwitchBot
                                         _strBroadcasterGame = GetChannel().Result.game;
 
                                         // check if user entered something
-                                        if (message.Length < 9)
+                                        if (message.Length < intInputIndex)
                                             _irc.sendPublicChatMessage("Please enter a party member @" + strUserName);
                                         else
-                                            strPartyMember = message.Substring(9);
+                                            strPartyMember = message.Substring(intInputIndex);
 
                                         // grab game id in order to find party member
                                         using (SqlConnection conn = new SqlConnection(_connStr))
@@ -1369,8 +1370,9 @@ namespace TwitchBot
                                                         {
                                                             while (reader.Read())
                                                             {
-                                                                if (strPartyMember.ToLower().Equals(reader["partyMember"].ToString()))
+                                                                if (strPartyMember.ToLower().Equals(reader["partyMember"].ToString().ToLower()))
                                                                 {
+                                                                    strPartyMember = reader["partyMember"].ToString();
                                                                     isPartyMemebrFound = true;
                                                                     break;
                                                                 }
@@ -1410,6 +1412,79 @@ namespace TwitchBot
                                     catch (Exception ex)
                                     {
                                         LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!partyup");
+                                    }
+                                }
+
+                                if (message.Equals("!partyuplist"))
+                                {
+                                    try
+                                    {
+                                        string strPartyList = "The available party members are ";
+                                        int intGameID = 0;
+
+                                        // Get current game
+                                        _strBroadcasterGame = GetChannel().Result.game;
+
+                                        // grab game id in order to find party member
+                                        using (SqlConnection conn = new SqlConnection(_connStr))
+                                        {
+                                            conn.Open();
+                                            using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblGameList", conn))
+                                            using (SqlDataReader reader = cmd.ExecuteReader())
+                                            {
+                                                if (reader.HasRows)
+                                                {
+                                                    while (reader.Read())
+                                                    {
+                                                        if (_strBroadcasterGame.Equals(reader["name"].ToString()))
+                                                        {
+                                                            intGameID = int.Parse(reader["id"].ToString());
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // if the game is not found
+                                        // tell users this game is not part of the party up system
+                                        if (intGameID == 0)
+                                            _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' command");
+                                        else
+                                        {
+                                            using (SqlConnection conn = new SqlConnection(_connStr))
+                                            {
+                                                conn.Open();
+                                                using (SqlCommand cmd = new SqlCommand("SELECT partyMember FROM tblPartyUp WHERE game = @game AND broadcaster = @broadcaster", conn))
+                                                {
+                                                    cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
+                                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                                    using (SqlDataReader reader = cmd.ExecuteReader())
+                                                    {
+                                                        if (reader.HasRows)
+                                                        {
+                                                            while (reader.Read())
+                                                            {
+                                                                strPartyList += reader["partyMember"].ToString() + " || ";
+                                                            }
+                                                            StringBuilder strBdrPartyList = new StringBuilder(strPartyList);
+                                                            strBdrPartyList.Remove(strPartyList.Length - 4, 4); // remove extra " || "
+                                                            strPartyList = strBdrPartyList.ToString(); // replace old party member list string with new
+                                                            _irc.sendPublicChatMessage(strPartyList);
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("No party members are set for this game");
+                                                            _irc.sendPublicChatMessage("No party members are set for this game");
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!partyuplist");
                                     }
                                 }
 
