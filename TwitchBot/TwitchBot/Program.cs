@@ -64,6 +64,7 @@ namespace TwitchBot
 
             bool isSongRequest = false;  // check song request status (disabled by default)
             bool isConnected = false;    // check azure connection
+            bool hasExtraInfo = false;   // check broadcaster has existing extra settings
 
             /* Insert user ID for database */
             Console.Write("Azure database username required: ");
@@ -156,9 +157,6 @@ namespace TwitchBot
                         else if (s.StartsWith("twitterAccessToken")) twitterAccessToken = s.Substring(s.IndexOf("=") + 2);
                         else if (s.StartsWith("twitterAccessSecret")) twitterAccessSecret = s.Substring(s.IndexOf("=") + 2);
                         else if (s.StartsWith("discordLink")) _strDiscordLink = s.Substring(s.IndexOf("=") + 2);
-                        else if (s.StartsWith("currencyType")) _strCurrencyType = s.Substring(s.IndexOf("=") + 2);
-                        else if (s.StartsWith("enableTweet")) _isAutoPublishTweet = bool.Parse(s.Substring(s.IndexOf("=") + 2));
-                        else if (s.StartsWith("enableDisplaySong")) _isAutoDisplaySong = bool.Parse(s.Substring(s.IndexOf("=") + 2));
                     }
                 }
 
@@ -236,9 +234,53 @@ namespace TwitchBot
 
                 spotifyCtrl.Connect(); // attempt to connect to local Spotify client
 
+                // Grab non-essential settings
+                using (SqlConnection conn = new SqlConnection(_connStr))
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblChannelSettings WHERE broadcaster = @broadcaster", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@broadcaster", _intBroadcasterID);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _isAutoPublishTweet = Convert.ToBoolean(reader["enableTweet"]);
+                                    _isAutoDisplaySong = Convert.ToBoolean(reader["enableDisplaySong"]);
+                                    _strCurrencyType = reader["currencyType"].ToString();
+                                    hasExtraInfo = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Insert default values for extra settings for the broadcaster
+                if (!hasExtraInfo)
+                {
+                    string query = "INSERT INTO tblChannelSettings (enableTweet, enableDisplaySong, currencyType, broadcaster) " + 
+                        "VALUES (@enableTweet, @enableDisplaySong, @currencyType, @broadcaster)";
+
+                    using (SqlConnection conn = new SqlConnection(_connStr))
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.Add("@enableTweet", SqlDbType.Bit).Value = _isAutoPublishTweet;
+                        cmd.Parameters.Add("@enableDisplaySong", SqlDbType.Bit).Value = _isAutoDisplaySong;
+                        cmd.Parameters.Add("@currencyType", SqlDbType.VarChar, 50).Value = _strCurrencyType;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;                        
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                        conn.Close();
+                    }
+                }
+
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine("Bot settings: Automatic tweets is set to [" + _isAutoPublishTweet + "]");
                 Console.WriteLine("Automatic display songs is set to [" + _isAutoDisplaySong + "]");
+                Console.WriteLine("Currency type is set to [" + _strCurrencyType + "]");
                 Console.WriteLine();
 
                 /* Get list of mods */
@@ -317,7 +359,8 @@ namespace TwitchBot
                                     try
                                     {
                                         _irc.sendPublicChatMessage("Auto tweets set to \"" + _isAutoPublishTweet + "\" "
-                                            + "|| Auto display songs set to \"" + _isAutoDisplaySong + "\"");
+                                            + "|| Auto display songs set to \"" + _isAutoDisplaySong + "\"" 
+                                            + "|| Currency set to \"" + _strCurrencyType + "\"");
                                     }
                                     catch (Exception ex)
                                     {
@@ -364,13 +407,14 @@ namespace TwitchBot
                                             _isAutoPublishTweet = true;
 
                                             /* Update auto tweet to database */
-                                            string query = "UPDATE tblChannelSettings SET enableTweet = @enableTweet";
+                                            string query = "UPDATE tblChannelSettings SET enableTweet = @enableTweet WHERE broadcaster = @broadcaster";
 
                                             // Create connection and command
                                             using (SqlConnection conn = new SqlConnection(_connStr))
                                             using (SqlCommand cmd = new SqlCommand(query, conn))
                                             {
                                                 cmd.Parameters.Add("@enableTweet", SqlDbType.Bit).Value = _isAutoPublishTweet;
+                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
                                                 conn.Open();
                                                 cmd.ExecuteNonQuery();
@@ -398,13 +442,14 @@ namespace TwitchBot
                                             _isAutoPublishTweet = false;
 
                                             /* Update auto tweet to database */
-                                            string query = "UPDATE tblChannelSettings SET enableTweet = @enableTweet";
+                                            string query = "UPDATE tblChannelSettings SET enableTweet = @enableTweet WHERE broadcaster = @broadcaster";
 
                                             // Create connection and command
                                             using (SqlConnection conn = new SqlConnection(_connStr))
                                             using (SqlCommand cmd = new SqlCommand(query, conn))
                                             {
                                                 cmd.Parameters.Add("@enableTweet", SqlDbType.Bit).Value = _isAutoPublishTweet;
+                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
                                                 conn.Open();
                                                 cmd.ExecuteNonQuery();
@@ -576,13 +621,14 @@ namespace TwitchBot
                                         _isAutoDisplaySong = true;
 
                                         /* Update auto tweet to database */
-                                        string query = "UPDATE tblChannelSettings SET enableDisplaySong = @enableDisplaySong";
+                                        string query = "UPDATE tblChannelSettings SET enableDisplaySong = @enableDisplaySong WHERE broadcaster = @broadcaster";
 
                                         // Create connection and command
                                         using (SqlConnection conn = new SqlConnection(_connStr))
                                         using (SqlCommand cmd = new SqlCommand(query, conn))
                                         {
                                             cmd.Parameters.Add("@enableDisplaySong", SqlDbType.Bit).Value = _isAutoDisplaySong;
+                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
                                             conn.Open();
                                             cmd.ExecuteNonQuery();
@@ -605,13 +651,14 @@ namespace TwitchBot
                                         _isAutoDisplaySong = false;
 
                                         /* Update auto song display to database */
-                                        string query = "UPDATE tblChannelSettings SET enableDisplaySong = @enableDisplaySong";
+                                        string query = "UPDATE tblChannelSettings SET enableDisplaySong = @enableDisplaySong WHERE broadcaster = @broadcaster";
 
                                         // Create connection and command
                                         using (SqlConnection conn = new SqlConnection(_connStr))
                                         using (SqlCommand cmd = new SqlCommand(query, conn))
                                         {
                                             cmd.Parameters.Add("@enableDisplaySong", SqlDbType.Bit).Value = _isAutoDisplaySong;
+                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
                                             conn.Open();
                                             cmd.ExecuteNonQuery();
@@ -756,7 +803,7 @@ namespace TwitchBot
                                                     {
                                                         cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intWallet;
                                                         cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                                                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = 1; // ToDo: Make dynamic (debugging only)
+                                                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
                                                         conn.Open();
                                                         cmd.ExecuteNonQuery();
@@ -810,7 +857,7 @@ namespace TwitchBot
                                                         {
                                                             cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
                                                             cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intDeposit;
-                                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = 1; // ToDo: Make dynamic (debugging only)
+                                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
                                                             conn.Open();
                                                             cmd.ExecuteNonQuery();
@@ -831,7 +878,7 @@ namespace TwitchBot
                                                         {
                                                             cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intWallet;
                                                             cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = 1; // ToDo: Make dynamic (debugging only)
+                                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
                                                             conn.Open();
                                                             cmd.ExecuteNonQuery();
@@ -1048,38 +1095,41 @@ namespace TwitchBot
                                         using (SqlConnection conn = new SqlConnection(_connStr))
                                         {
                                             conn.Open();
-                                            using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM tblSongRequests", conn))
-                                            using (SqlDataReader reader = cmd.ExecuteReader())
+                                            using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster", conn))
                                             {
-                                                if (reader.HasRows)
+                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                                using (SqlDataReader reader = cmd.ExecuteReader())
                                                 {
-                                                    DataTable schemaTable = reader.GetSchemaTable();
-                                                    DataTable data = new DataTable();
-                                                    foreach (DataRow row in schemaTable.Rows)
+                                                    if (reader.HasRows)
                                                     {
-                                                        string colName = row.Field<string>("ColumnName");
-                                                        Type t = row.Field<Type>("DataType");
-                                                        data.Columns.Add(colName, t);
-                                                    }
-                                                    while (reader.Read())
-                                                    {
-                                                        var newRow = data.Rows.Add();
-                                                        foreach (DataColumn col in data.Columns)
+                                                        DataTable schemaTable = reader.GetSchemaTable();
+                                                        DataTable data = new DataTable();
+                                                        foreach (DataRow row in schemaTable.Rows)
                                                         {
-                                                            newRow[col.ColumnName] = reader[col.ColumnName];
-                                                            Console.WriteLine(newRow[col.ColumnName].ToString());
-                                                            songList = songList + newRow[col.ColumnName].ToString() + " || ";
+                                                            string colName = row.Field<string>("ColumnName");
+                                                            Type t = row.Field<Type>("DataType");
+                                                            data.Columns.Add(colName, t);
                                                         }
+                                                        while (reader.Read())
+                                                        {
+                                                            var newRow = data.Rows.Add();
+                                                            foreach (DataColumn col in data.Columns)
+                                                            {
+                                                                newRow[col.ColumnName] = reader[col.ColumnName];
+                                                                Console.WriteLine(newRow[col.ColumnName].ToString());
+                                                                songList = songList + newRow[col.ColumnName].ToString() + " || ";
+                                                            }
+                                                        }
+                                                        StringBuilder strBdrSongList = new StringBuilder(songList);
+                                                        strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " || "
+                                                        songList = strBdrSongList.ToString(); // replace old song list string with new
+                                                        _irc.sendPublicChatMessage("Current List of Requested Songs: " + songList);
                                                     }
-                                                    StringBuilder strBdrSongList = new StringBuilder(songList);
-                                                    strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " || "
-                                                    songList = strBdrSongList.ToString(); // replace old song list string with new
-                                                    _irc.sendPublicChatMessage("Current List of Requested Songs: " + songList);
-                                                }
-                                                else
-                                                {
-                                                    Console.WriteLine("No requests have been made");
-                                                    _irc.sendPublicChatMessage("No requests have been made");
+                                                    else
+                                                    {
+                                                        Console.WriteLine("No requests have been made");
+                                                        _irc.sendPublicChatMessage("No requests have been made");
+                                                    }
                                                 }
                                             }
                                         }
@@ -1309,17 +1359,21 @@ namespace TwitchBot
                                             using (SqlConnection conn = new SqlConnection(_connStr))
                                             {
                                                 conn.Open();
-                                                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUp", conn))
-                                                using (SqlDataReader reader = cmd.ExecuteReader())
+                                                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUp WHERE broadcaster = @broadcaster AND game = @game", conn))
                                                 {
-                                                    if (reader.HasRows)
+                                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                                    cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
+                                                    using (SqlDataReader reader = cmd.ExecuteReader())
                                                     {
-                                                        while (reader.Read())
+                                                        if (reader.HasRows)
                                                         {
-                                                            if (strPartyMember.ToLower().Equals(reader["partyMember"].ToString()))
+                                                            while (reader.Read())
                                                             {
-                                                                isPartyMemebrFound = true;
-                                                                break;
+                                                                if (strPartyMember.ToLower().Equals(reader["partyMember"].ToString()))
+                                                                {
+                                                                    isPartyMemebrFound = true;
+                                                                    break;
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -1332,7 +1386,8 @@ namespace TwitchBot
                                                     + ". Please check with the broadcaster for possible spelling errors");
                                             else
                                             {
-                                                string query = "INSERT INTO tblPartyUpRequests (username, partyMember, timeRequested) VALUES (@username, @partyMember, @timeRequested)";
+                                                string query = "INSERT INTO tblPartyUpRequests (username, partyMember, timeRequested, broadcaster) " 
+                                                    + "VALUES (@username, @partyMember, @timeRequested, @broadcaster)";
 
                                                 // Create connection and command
                                                 using (SqlConnection conn = new SqlConnection(_connStr))
@@ -1341,6 +1396,7 @@ namespace TwitchBot
                                                     cmd.Parameters.Add("@username", SqlDbType.VarChar, 50).Value = strUserName;
                                                     cmd.Parameters.Add("@partyMember", SqlDbType.VarChar, 50).Value = strPartyMember;
                                                     cmd.Parameters.Add("@timeRequested", SqlDbType.DateTime).Value = DateTime.Now;
+                                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
                                                     conn.Open();
                                                     cmd.ExecuteNonQuery();
