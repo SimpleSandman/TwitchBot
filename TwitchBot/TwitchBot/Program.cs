@@ -898,7 +898,7 @@ namespace TwitchBot
                                         }
                                     }
 
-                                    if (message.StartsWith("!popsonglist"))
+                                    if (message.Equals("!popsongrequest"))
                                     {
                                         string strRemovedSong = "";
 
@@ -947,6 +947,58 @@ namespace TwitchBot
                                         catch (Exception ex)
                                         {
                                             LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!charge");
+                                        }
+                                    }
+
+                                    if (message.Equals("!poppartyuprequest"))
+                                    {
+                                        string strRemovedPartyMember = "";
+
+                                        try
+                                        {
+                                            using (SqlConnection conn = new SqlConnection(_connStr))
+                                            {
+                                                conn.Open();
+                                                using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) partyMember, username FROM tblPartyUpRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
+                                                {
+                                                    cmd.Parameters.AddWithValue("@broadcaster", _intBroadcasterID);
+                                                    using (SqlDataReader reader = cmd.ExecuteReader())
+                                                    {
+                                                        if (reader.HasRows)
+                                                        {
+                                                            while (reader.Read())
+                                                            {
+                                                                strRemovedPartyMember = reader["partyMember"].ToString();
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            if (!string.IsNullOrWhiteSpace(strRemovedPartyMember))
+                                            {
+                                                string query = "WITH T AS (SELECT TOP(1) * FROM tblPartyUpRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
+
+                                                // Create connection and command
+                                                using (SqlConnection conn = new SqlConnection(_connStr))
+                                                using (SqlCommand cmd = new SqlCommand(query, conn))
+                                                {
+                                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+
+                                                    conn.Open();
+                                                    cmd.ExecuteNonQuery();
+                                                    conn.Close();
+                                                }
+
+                                                _irc.sendPublicChatMessage("The first party member in queue, '" + strRemovedPartyMember + "' has been removed from the request list");
+                                            }
+                                            else
+                                                _irc.sendPublicChatMessage("There are no songs that can be removed from the song request list");
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!poppartyuprequest");
                                         }
                                     }
 
@@ -1411,7 +1463,7 @@ namespace TwitchBot
                                     }
                                     catch (Exception ex)
                                     {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!partyup");
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!partyuprequest");
                                     }
                                 }
 
@@ -1419,7 +1471,7 @@ namespace TwitchBot
                                 {
                                     try
                                     {
-                                        string strPartyList = "The available party members are ";
+                                        string strPartyList = "The available party members are: ";
                                         int intGameID = 0;
 
                                         // Get current game
