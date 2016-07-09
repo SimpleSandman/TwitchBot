@@ -1507,7 +1507,7 @@ namespace TwitchBot
                                             using (SqlConnection conn = new SqlConnection(_connStr))
                                             {
                                                 conn.Open();
-                                                using (SqlCommand cmd = new SqlCommand("SELECT partyMember FROM tblPartyUp WHERE game = @game AND broadcaster = @broadcaster", conn))
+                                                using (SqlCommand cmd = new SqlCommand("SELECT partyMember FROM tblPartyUp WHERE game = @game AND broadcaster = @broadcaster ORDER BY partyMember", conn))
                                                 {
                                                     cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
                                                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
