@@ -1364,14 +1364,15 @@ namespace TwitchBot
                                     }
                                 }
 
-                                if (message.StartsWith("!partyuprequest"))
+                                if (message.StartsWith("!requestpartymember"))
                                 {
                                     try
                                     {
                                         string strPartyMember = "";
-                                        int intInputIndex = 16;
+                                        int intInputIndex = 20;
                                         int intGameID = 0;
                                         bool isPartyMemebrFound = false;
+                                        bool isDuplicateRequestor = false;
 
                                         // Get current game
                                         _strBroadcasterGame = GetChannel().Result.game;
@@ -1406,26 +1407,27 @@ namespace TwitchBot
                                         // if the game is not found
                                         // tell users this game is not accepting party up requests
                                         if (intGameID == 0)
-                                            _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' command");
-                                        else // check if requested party member is valid
+                                            _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
+                                        else // check if user has already requested a party member
                                         {
                                             using (SqlConnection conn = new SqlConnection(_connStr))
                                             {
                                                 conn.Open();
-                                                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUp WHERE broadcaster = @broadcaster AND game = @game", conn))
+                                                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUpRequests " 
+                                                    + "WHERE broadcaster = @broadcaster AND game = @game AND username = @username", conn))
                                                 {
                                                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
                                                     cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
+                                                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strUserName;
                                                     using (SqlDataReader reader = cmd.ExecuteReader())
                                                     {
                                                         if (reader.HasRows)
                                                         {
                                                             while (reader.Read())
                                                             {
-                                                                if (strPartyMember.ToLower().Equals(reader["partyMember"].ToString().ToLower()))
+                                                                if (strUserName.ToLower().Equals(reader["username"].ToString().ToLower()))
                                                                 {
-                                                                    strPartyMember = reader["partyMember"].ToString();
-                                                                    isPartyMemebrFound = true;
+                                                                    isDuplicateRequestor = true;
                                                                     break;
                                                                 }
                                                             }
@@ -1434,36 +1436,141 @@ namespace TwitchBot
                                                 }
                                             }
 
-                                            // insert party member if member exists from database
-                                            if (!isPartyMemebrFound)
-                                                _irc.sendPublicChatMessage("I couldn't find the requested party memebr '" + strPartyMember + "' @" + strUserName
-                                                    + ". Please check with the broadcaster for possible spelling errors");
-                                            else
+                                            if (isDuplicateRequestor)
+                                                _irc.sendPublicChatMessage("You have already requested a party member. Please wait until your request has been completed @" + strUserName);
+                                            else // search for party member user is requesting
                                             {
-                                                string query = "INSERT INTO tblPartyUpRequests (username, partyMember, timeRequested, broadcaster) " 
-                                                    + "VALUES (@username, @partyMember, @timeRequested, @broadcaster)";
-
-                                                // Create connection and command
                                                 using (SqlConnection conn = new SqlConnection(_connStr))
-                                                using (SqlCommand cmd = new SqlCommand(query, conn))
                                                 {
-                                                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 50).Value = strUserName;
-                                                    cmd.Parameters.Add("@partyMember", SqlDbType.VarChar, 50).Value = strPartyMember;
-                                                    cmd.Parameters.Add("@timeRequested", SqlDbType.DateTime).Value = DateTime.Now;
-                                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
                                                     conn.Open();
-                                                    cmd.ExecuteNonQuery();
-                                                    conn.Close();
+                                                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUp WHERE broadcaster = @broadcaster AND game = @game", conn))
+                                                    {
+                                                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                                        cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
+                                                        using (SqlDataReader reader = cmd.ExecuteReader())
+                                                        {
+                                                            if (reader.HasRows)
+                                                            {
+                                                                while (reader.Read())
+                                                                {
+                                                                    if (strPartyMember.ToLower().Equals(reader["partyMember"].ToString().ToLower()))
+                                                                    {
+                                                                        strPartyMember = reader["partyMember"].ToString();
+                                                                        isPartyMemebrFound = true;
+                                                                        break;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
 
-                                                _irc.sendPublicChatMessage("@" + strUserName + ": " + strPartyMember + " has been added to the party queue");
+                                                // insert party member if they exists from database
+                                                if (!isPartyMemebrFound)
+                                                    _irc.sendPublicChatMessage("I couldn't find the requested party memebr '" + strPartyMember + "' @" + strUserName
+                                                        + ". Please check with the broadcaster for possible spelling errors");
+                                                else
+                                                {
+                                                    string query = "INSERT INTO tblPartyUpRequests (username, partyMember, timeRequested, broadcaster, game) "
+                                                        + "VALUES (@username, @partyMember, @timeRequested, @broadcaster, @game)";
+
+                                                    // Create connection and command
+                                                    using (SqlConnection conn = new SqlConnection(_connStr))
+                                                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                                                    {
+                                                        cmd.Parameters.Add("@username", SqlDbType.VarChar, 50).Value = strUserName;
+                                                        cmd.Parameters.Add("@partyMember", SqlDbType.VarChar, 50).Value = strPartyMember;
+                                                        cmd.Parameters.Add("@timeRequested", SqlDbType.DateTime).Value = DateTime.Now;
+                                                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                                        cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
+
+                                                        conn.Open();
+                                                        cmd.ExecuteNonQuery();
+                                                        conn.Close();
+                                                    }
+
+                                                    _irc.sendPublicChatMessage("@" + strUserName + ": " + strPartyMember + " has been added to the party queue");
+                                                }
                                             }
                                         }
                                     }
                                     catch (Exception ex)
                                     {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!partyuprequest");
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!requestpartymember");
+                                    }
+                                }
+
+                                if (message.Equals("!partyuprequestlist"))
+                                {
+                                    try
+                                    {
+                                        string strPartyList = "Here are the requested party members: ";
+                                        int intGameID = 0;
+
+                                        // Get current game
+                                        _strBroadcasterGame = GetChannel().Result.game;
+
+                                        // grab game id in order to find party member
+                                        using (SqlConnection conn = new SqlConnection(_connStr))
+                                        {
+                                            conn.Open();
+                                            using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblGameList", conn))
+                                            using (SqlDataReader reader = cmd.ExecuteReader())
+                                            {
+                                                if (reader.HasRows)
+                                                {
+                                                    while (reader.Read())
+                                                    {
+                                                        if (_strBroadcasterGame.Equals(reader["name"].ToString()))
+                                                        {
+                                                            intGameID = int.Parse(reader["id"].ToString());
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // if the game is not found
+                                        // tell users this game is not part of the party up system
+                                        if (intGameID == 0)
+                                            _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
+                                        else
+                                        {
+                                            using (SqlConnection conn = new SqlConnection(_connStr))
+                                            {
+                                                conn.Open();
+                                                using (SqlCommand cmd = new SqlCommand("SELECT username, partyMember FROM tblPartyUpRequests " 
+                                                    + "WHERE game = @game AND broadcaster = @broadcaster ORDER BY Id", conn))
+                                                {
+                                                    cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
+                                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                                    using (SqlDataReader reader = cmd.ExecuteReader())
+                                                    {
+                                                        if (reader.HasRows)
+                                                        {
+                                                            while (reader.Read())
+                                                            {
+                                                                strPartyList += reader["partyMember"].ToString() + " <-- " + reader["username"].ToString() + " || ";
+                                                            }
+                                                            StringBuilder strBdrPartyList = new StringBuilder(strPartyList);
+                                                            strBdrPartyList.Remove(strPartyList.Length - 4, 4); // remove extra " || "
+                                                            strPartyList = strBdrPartyList.ToString(); // replace old party member list string with new
+                                                            _irc.sendPublicChatMessage(strPartyList);
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("No party members are set for this game");
+                                                            _irc.sendPublicChatMessage("No party members are set for this game");
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!partyuprequestlist");
                                     }
                                 }
 
@@ -1501,7 +1608,7 @@ namespace TwitchBot
                                         // if the game is not found
                                         // tell users this game is not part of the party up system
                                         if (intGameID == 0)
-                                            _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' command");
+                                            _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
                                         else
                                         {
                                             using (SqlConnection conn = new SqlConnection(_connStr))
