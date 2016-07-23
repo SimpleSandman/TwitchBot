@@ -1011,8 +1011,6 @@ namespace TwitchBot
                                                 _timeout.addTimeoutToLst(strRecipient, _intBroadcasterID, dblSec, _connStr);
 
                                                 _irc.sendPublicChatMessage(strRecipient + ", I don't want to talk to you for " + dblSec + " seconds");
-
-                                                hideExtraTimoutReminder = true;
                                             }
                                         }
                                     }
