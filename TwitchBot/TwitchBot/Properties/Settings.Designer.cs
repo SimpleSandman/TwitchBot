@@ -31,5 +31,125 @@ namespace TwitchBot.Properties {
                 return ((string)(this["conn"]));
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string botName {
+            get {
+                return ((string)(this["botName"]));
+            }
+            set {
+                this["botName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string broadcaster {
+            get {
+                return ((string)(this["broadcaster"]));
+            }
+            set {
+                this["broadcaster"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string twitchOAuth {
+            get {
+                return ((string)(this["twitchOAuth"]));
+            }
+            set {
+                this["twitchOAuth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string twitchClientID {
+            get {
+                return ((string)(this["twitchClientID"]));
+            }
+            set {
+                this["twitchClientID"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string twitchAccessToken {
+            get {
+                return ((string)(this["twitchAccessToken"]));
+            }
+            set {
+                this["twitchAccessToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string twitterConsumerKey {
+            get {
+                return ((string)(this["twitterConsumerKey"]));
+            }
+            set {
+                this["twitterConsumerKey"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string twitterConsumerSecret {
+            get {
+                return ((string)(this["twitterConsumerSecret"]));
+            }
+            set {
+                this["twitterConsumerSecret"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string twitterAccessToken {
+            get {
+                return ((string)(this["twitterAccessToken"]));
+            }
+            set {
+                this["twitterAccessToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string twitterAccessSecret {
+            get {
+                return ((string)(this["twitterAccessSecret"]));
+            }
+            set {
+                this["twitterAccessSecret"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string discordLink {
+            get {
+                return ((string)(this["discordLink"]));
+            }
+            set {
+                this["discordLink"] = value;
+            }
+        }
     }
 }
