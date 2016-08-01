@@ -45,11 +45,7 @@ namespace TwitchBot
         public static bool _isAutoDisplaySong = false; // set to auto song status (disabled by default)
 
         static void Main(string[] args)
-        {
-            string userID = "";       // username
-            string pass = "";         // password
-            ConsoleKeyInfo key;       // keystroke            
-
+        {       
             // Twitch variables
             string twitchOAuth = "";
             string twitchClientID = "";
@@ -63,83 +59,40 @@ namespace TwitchBot
             string twitterAccessSecret = "";
 
             bool isSongRequest = false;  // check song request status (disabled by default)
-            bool isConnected = false;    // check azure connection
             bool hasExtraInfo = false;   // check broadcaster has existing extra settings
 
-            /* Insert user ID for database */
-            Console.Write("Azure database username required: ");
-            userID = Console.ReadLine();
-
+            /* Connect to database or exit program on connection error */
             try
             {
-                /* 
-                 * Connect to database and retry password until success 
-                 */
-                do
+                // Append username and password to connection string
+                _connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.conn"].ConnectionString;
+
+                // Check if server is connected
+                if (!IsServerConnected(_connStr))
                 {
-                    Console.Write("Azure database password required: ");
-                    do
-                    {
-                        key = Console.ReadKey(true); // enter masked password here from user input
+                    // clear sensitive data
+                    _connStr = null;
 
-                        // backspace should not work
-                        if (key.Key != ConsoleKey.Backspace && key.Key != ConsoleKey.Enter)
-                        {
-                            pass += key.KeyChar;
-                            Console.Write("*");
-                        }
-                        else
-                        {
-                            if (key.Key == ConsoleKey.Backspace && pass.Length > 0)
-                            {
-                                pass = pass.Substring(0, (pass.Length - 1));
-                                Console.Write("\b \b");
-                            }
-                        }
-                    }
-                    // Stops receiving keys once enter is pressed
-                    while (key.Key != ConsoleKey.Enter);
-
+                    Console.WriteLine("Azure connection failed. Please try again");
                     Console.WriteLine();
-
-                    // Append username and password to connection string
-                    _connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.conn"].ConnectionString;
-                    _connStr = _connStr + ";User ID=" + userID + ";Password=" + pass;
-
-                    // Check if server is connected
-                    if (!IsServerConnected(_connStr))
-                    {
-                        // clear sensitive data
-                        pass = null;
-                        _connStr = null;
-
-                        Console.WriteLine("Azure connection failed. Username or password are incorrect. Please try again.");
-                        Console.WriteLine();
-                        Console.WriteLine("-- Common technical issues: --");
-                        Console.WriteLine("1: Check if Azure firewall settings has your client IP address.");
-                        Console.WriteLine("2: Double check the connection string under 'Properties' and 'Settings'");
-                        Console.WriteLine("<<<< To exit this program at any time, press 'CTRL' + 'C' inside this terminal >>>>");
-                        Console.WriteLine();
-                    }
-                    else
-                        isConnected = true;
+                    Console.WriteLine("-- Common technical issues: --");
+                    Console.WriteLine("1: Check if Azure firewall settings has your client IP address.");
+                    Console.WriteLine("2: Double check the connection string under 'Properties' and 'Settings'");
+                    Console.WriteLine();
+                    Thread.Sleep(3000);
+                    Environment.Exit(0);
                 }
-                while (!isConnected);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                Console.WriteLine("**** Local troubleshooting needed ****");
+                Console.WriteLine("Error Message: " + ex.Message);
+                Console.WriteLine("**** Local troubleshooting needed by author of this bot ****");
                 Thread.Sleep(3000);
                 Environment.Exit(0);
             }
 
             /* Try to grab the info needed for the bot to connect to the channel */
             try {
-                // Clear sensitive data
-                pass = null;
-                userID = null;
-
                 Console.WriteLine("Azure server connection successful!");
 
                 using (StreamReader sr = File.OpenText(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Bot-Settings.txt"))
