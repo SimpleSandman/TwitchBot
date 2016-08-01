@@ -26,7 +26,6 @@ namespace TwitchBot.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=wq0h19zq44.database.windows.net,1433;Initial Catalog=twitchbotdb")]
         public string conn {
             get {
                 return ((string)(this["conn"]));
