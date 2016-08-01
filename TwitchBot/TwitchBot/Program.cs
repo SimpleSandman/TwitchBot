@@ -993,8 +993,8 @@ namespace TwitchBot
                                     {
                                         if (message.StartsWith("!addtimeout @"))
                                             _irc.sendPublicChatMessage("I cannot make a user not talk to me without this format '!addtimeout [seconds] @[username]'");
-                                        //else if (message.ToLower().Contains(_strBroadcasterName.ToLower()))
-                                        //_irc.sendPublicChatMessage("I cannot betray @" + _strBroadcasterName + " by not allowing him to communicate with me @" + strUserName);
+                                        else if (message.ToLower().Contains(_strBroadcasterName.ToLower()))
+                                            _irc.sendPublicChatMessage("I cannot betray @" + _strBroadcasterName + " by not allowing him to communicate with me @" + strUserName);
                                         else
                                         {
                                             int intIndexAction = 12;
