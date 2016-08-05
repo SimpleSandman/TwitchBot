@@ -108,6 +108,7 @@ namespace TwitchBot
                 twitterAccessToken = Properties.Settings.Default.twitterAccessToken;
                 twitterAccessSecret = Properties.Settings.Default.twitterAccessSecret;
                 _strDiscordLink = Properties.Settings.Default.discordLink;
+                _strCurrencyType = Properties.Settings.Default.currencyType;
 
                 // Check if program has client ID (developer needs to provide this inside the settings)
                 if (string.IsNullOrWhiteSpace(twitchClientID))
