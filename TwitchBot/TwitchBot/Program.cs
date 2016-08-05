@@ -59,13 +59,13 @@ namespace TwitchBot
             string twitterAccessSecret = "";
 
             bool isSongRequest = false;  // check song request status (disabled by default)
-            bool hasExtraInfo = false;   // check broadcaster has existing extra settings
 
             /* Connect to database or exit program on connection error */
             try
             {
-                // Append username and password to connection string
-                _connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.conn"].ConnectionString;
+                // Grab connection string
+                //_connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.conn"].ConnectionString; // production only
+                _connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.connTest"].ConnectionString; // debugging only
 
                 // Check if server is connected
                 if (!IsServerConnected(_connStr))
@@ -80,7 +80,7 @@ namespace TwitchBot
                     Console.WriteLine("2: Double check the connection string under 'Properties' and 'Settings'");
                     Console.WriteLine();
                     Thread.Sleep(3000);
-                    Environment.Exit(0);
+                    Environment.Exit(1);
                 }
             }
             catch (Exception ex)
@@ -88,66 +88,259 @@ namespace TwitchBot
                 Console.WriteLine("Error Message: " + ex.Message);
                 Console.WriteLine("**** Local troubleshooting needed by author of this bot ****");
                 Thread.Sleep(3000);
-                Environment.Exit(0);
+                Environment.Exit(1);
             }
 
             /* Try to grab the info needed for the bot to connect to the channel */
-            try {
-                Console.WriteLine("Azure server connection successful!");
+            try
+            {
+                Console.WriteLine("Database connection successful!");
+                Console.WriteLine();
+                Console.WriteLine("Checking if user settings has all necessary info...");
 
-                using (StreamReader sr = File.OpenText(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Bot-Settings.txt"))
+                _strBotName = Properties.Settings.Default.botName;
+                _strBroadcasterName = Properties.Settings.Default.broadcaster;
+                twitchOAuth = Properties.Settings.Default.twitchOAuth;
+                twitchClientID = Properties.Settings.Default.twitchClientID;
+                twitchAccessToken = Properties.Settings.Default.twitchAccessToken;
+                twitterConsumerKey = Properties.Settings.Default.twitterConsumerKey;
+                twitterConsumerSecret = Properties.Settings.Default.twitterConsumerSecret;
+                twitterAccessToken = Properties.Settings.Default.twitterAccessToken;
+                twitterAccessSecret = Properties.Settings.Default.twitterAccessSecret;
+                _strDiscordLink = Properties.Settings.Default.discordLink;
+
+                // Check if program has client ID (developer needs to provide this inside the settings)
+                if (string.IsNullOrWhiteSpace(twitchClientID))
                 {
-                    string s = String.Empty;
-                    while ((s = sr.ReadLine()) != null)
-                    {
-                        if (s.StartsWith("botName")) _strBotName = s.Substring(s.IndexOf("=") + 2);
-                        else if (s.StartsWith("broadcaster")) _strBroadcasterName = s.Substring(s.IndexOf("=") + 2);
-                        else if (s.StartsWith("twitchOAuth")) twitchOAuth = s.Substring(s.IndexOf("oauth:"));
-                        else if (s.StartsWith("twitchClientID")) twitchClientID = s.Substring(s.IndexOf("=") + 2);
-                        else if (s.StartsWith("twitchAccessToken")) twitchAccessToken = s.Substring(s.IndexOf("=") + 2);
-                        else if (s.StartsWith("twitterConsumerKey")) twitterConsumerKey = s.Substring(s.IndexOf("=") + 2);
-                        else if (s.StartsWith("twitterConsumerSecret")) twitterConsumerSecret = s.Substring(s.IndexOf("=") + 2);
-                        else if (s.StartsWith("twitterAccessToken")) twitterAccessToken = s.Substring(s.IndexOf("=") + 2);
-                        else if (s.StartsWith("twitterAccessSecret")) twitterAccessSecret = s.Substring(s.IndexOf("=") + 2);
-                        else if (s.StartsWith("discordLink")) _strDiscordLink = s.Substring(s.IndexOf("=") + 2);
-                    }
+                    Console.WriteLine("Error: MISSING Twitch Client ID");
+                    Console.WriteLine("Please contact the author of this bot to re-release this application with the client ID");
+                    Thread.Sleep(3000);
+                    Environment.Exit(1);
                 }
 
-                // Check if required options are filled in
-                if (string.IsNullOrWhiteSpace(_strBotName)
+                // Check if user has the minimum info in order to run the bot
+                while (string.IsNullOrWhiteSpace(_strBotName)
                     && string.IsNullOrWhiteSpace(_strBroadcasterName)
                     && string.IsNullOrWhiteSpace(twitchOAuth)
-                    && string.IsNullOrWhiteSpace(twitchClientID)
                     && string.IsNullOrWhiteSpace(twitchAccessToken))
                 {
-                    Console.WriteLine("Check your Bot-Settings.txt on your desktop for missing info pertaining to: ''");
-                    Thread.Sleep(3000);
-                    Environment.Exit(0);
+                    Console.WriteLine("You are missing essential info");
+                    if (string.IsNullOrWhiteSpace(_strBotName))
+                    {
+                        Console.WriteLine("Enter your bot's username: ");
+                        Properties.Settings.Default.botName = Console.ReadLine();
+                        _strBotName = Properties.Settings.Default.botName;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(_strBroadcasterName))
+                    {
+                        Console.WriteLine("Enter your Twitch username: ");
+                        Properties.Settings.Default.broadcaster = Console.ReadLine();
+                        _strBroadcasterName = Properties.Settings.Default.broadcaster;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(twitchOAuth))
+                    {
+                        Console.WriteLine("Enter your Twitch OAuth: ");
+                        Properties.Settings.Default.twitchOAuth = Console.ReadLine();
+                        twitchOAuth = Properties.Settings.Default.twitchOAuth;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(twitchAccessToken))
+                    {
+                        Console.WriteLine("Enter your Twitch Access Token: ");
+                        Properties.Settings.Default.twitchAccessToken = Console.ReadLine();
+                        twitchAccessToken = Properties.Settings.Default.twitchAccessToken;
+                    }
+
+                    Properties.Settings.Default.Save();
+                    Console.WriteLine("Saved Settings!");
+                    Console.WriteLine();
                 }
 
-                // Get broadcaster ID
-                using (SqlConnection conn = new SqlConnection(_connStr))
+                // Option to edit settings before running it
+                Console.WriteLine("Do you want to edit your essential bot settings (y/n or yes/no)?");
+                string strResponse = Console.ReadLine().ToLower();
+
+                // Check if user inserted a valid option
+                while (!(strResponse.Equals("y") || strResponse.Equals("yes") 
+                    || strResponse.Equals("n") || strResponse.Equals("no")))
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBroadcasters WHERE username = @username", conn))
-                    {
-                        cmd.Parameters.AddWithValue("@username", _strBroadcasterName);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    if (_strBroadcasterName.Equals(reader["username"].ToString().ToLower()))
-                                    {
-                                        _intBroadcasterID = int.Parse(reader["id"].ToString());
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    Console.WriteLine("Please insert a valid option (y/n or yes/no)");
+                    strResponse = Console.ReadLine().ToLower();
                 }
+
+                // Change some settings
+                if (strResponse.Equals("y") || strResponse.Equals("yes"))
+                {
+                    int intOption = 0;
+                    Console.WriteLine();
+
+                    /* Loop until user is finished making changes */
+                    do
+                    {
+                        // Display bot settings
+                        Console.WriteLine("---> Here are your essential bot settings <---");
+                        Console.WriteLine("1. Bot's username: " + Properties.Settings.Default.botName);
+                        Console.WriteLine("2. Your main Twitch username: " + Properties.Settings.Default.broadcaster);
+                        Console.WriteLine("3. Twitch OAuth: " + Properties.Settings.Default.twitchOAuth);
+                        Console.WriteLine("4. Twitch Access Token: " + Properties.Settings.Default.twitchAccessToken);
+
+                        Console.WriteLine();
+                        Console.WriteLine("From the options 1-4 (or 0 to exit editing), which option do you want to edit?");
+
+                        // Edit an option
+                        if (int.TryParse(Console.ReadLine(), out intOption) && intOption < 5 && intOption >= 0)
+                        {
+                            Console.WriteLine();
+                            switch (intOption)
+                            {
+                                case 1:
+                                    Console.WriteLine("Enter your bot's new username: ");
+                                    Properties.Settings.Default.botName = Console.ReadLine();
+                                    _strBotName = Properties.Settings.Default.botName;
+                                    break;
+                                case 2:
+                                    Console.WriteLine("Enter your new Twitch username: ");
+                                    Properties.Settings.Default.broadcaster = Console.ReadLine();
+                                    _strBroadcasterName = Properties.Settings.Default.broadcaster;
+                                    break;
+                                case 3:
+                                    Console.WriteLine("Enter your new Twitch OAuth (include 'oauth:' along the 30 character phrase): ");
+                                    Properties.Settings.Default.twitchOAuth = Console.ReadLine();
+                                    twitchOAuth = Properties.Settings.Default.twitchOAuth;
+                                    break;
+                                case 4:
+                                    Console.WriteLine("Enter your new Twitch access token: ");
+                                    Properties.Settings.Default.twitchAccessToken = Console.ReadLine();
+                                    twitchAccessToken = Properties.Settings.Default.twitchAccessToken;
+                                    break;
+                            }
+
+                            Properties.Settings.Default.Save();
+                            Console.WriteLine("Saved Settings!");
+                            Console.WriteLine();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Please write a valid option between 1-4 (or 0 to exit editing)");
+                            Console.WriteLine();
+                        }
+                    } while (intOption != 0);
+
+                    Console.WriteLine("Finished with editing settings");
+                }
+                else // No need to change settings
+                    Console.WriteLine("Essential settings confirmed!");
+
+                Console.WriteLine();
+
+                // Extra settings menu
+                Console.WriteLine("Do you want to edit your extra bot settings [twitter/discord/currency] (y/n or yes/no)?");
+                strResponse = Console.ReadLine().ToLower();
+
+                // Check if user inserted a valid option
+                while (!(strResponse.Equals("y") || strResponse.Equals("yes")
+                    || strResponse.Equals("n") || strResponse.Equals("no")))
+                {
+                    Console.WriteLine("Please insert a valid option (y/n or yes/no)");
+                    strResponse = Console.ReadLine().ToLower();
+                }
+
+                // Change some settings
+                if (strResponse.Equals("y") || strResponse.Equals("yes"))
+                {
+                    int intOption = 0;
+                    Console.WriteLine();
+
+                    /* Loop until user is finished making changes */
+                    do
+                    {
+                        // Display bot settings
+                        Console.WriteLine("---> Here are your extra bot settings <---");
+                        Console.WriteLine("1. Twitter consumer key: " + Properties.Settings.Default.twitterConsumerKey);
+                        Console.WriteLine("2. Twitter consumer secret: " + Properties.Settings.Default.twitterConsumerSecret);
+                        Console.WriteLine("3. Twitter access token: " + Properties.Settings.Default.twitterAccessToken);
+                        Console.WriteLine("4. Twitter access secret: " + Properties.Settings.Default.twitterAccessSecret);
+                        Console.WriteLine("5. Discord link: " + Properties.Settings.Default.discordLink);
+                        Console.WriteLine("6. Currency type: " + Properties.Settings.Default.currencyType);
+                        Console.WriteLine("7. Enable Auto Tweets: " + Properties.Settings.Default.enableTweet);
+                        Console.WriteLine("8. Enable Auto Display Songs: " + Properties.Settings.Default.enableDisplaySong);
+
+                        Console.WriteLine();
+                        Console.WriteLine("From the options 1-8 (or 0 to exit editing), which option do you want to edit?");
+
+                        // Edit an option
+                        string strOption = Console.ReadLine();
+                        if (int.TryParse(strOption, out intOption) && intOption < 9 && intOption >= 0)
+                        {
+                            Console.WriteLine();
+                            switch (intOption)
+                            {
+                                case 1:
+                                    Console.WriteLine("Enter your new Twitter consumer key: ");
+                                    Properties.Settings.Default.twitterConsumerKey = Console.ReadLine();
+                                    twitterConsumerKey = Properties.Settings.Default.twitterConsumerKey;
+                                    break;
+                                case 2:
+                                    Console.WriteLine("Enter your new Twitter consumer secret: ");
+                                    Properties.Settings.Default.twitterConsumerSecret = Console.ReadLine();
+                                    twitterConsumerSecret = Properties.Settings.Default.twitterConsumerSecret;
+                                    break;
+                                case 3:
+                                    Console.WriteLine("Enter your new Twitter access token: ");
+                                    Properties.Settings.Default.twitterAccessToken = Console.ReadLine();
+                                    twitterAccessToken = Properties.Settings.Default.twitterAccessToken;
+                                    break;
+                                case 4:
+                                    Console.WriteLine("Enter your new Twitter access secret: ");
+                                    Properties.Settings.Default.twitterAccessSecret = Console.ReadLine();
+                                    twitterAccessSecret = Properties.Settings.Default.twitterAccessSecret;
+                                    break;
+                                case 5:
+                                    Console.WriteLine("Enter your new Discord link: ");
+                                    Properties.Settings.Default.discordLink = Console.ReadLine();
+                                    _strDiscordLink = Properties.Settings.Default.discordLink;
+                                    break;
+                                case 6:
+                                    Console.WriteLine("Enter your new currency type: ");
+                                    Properties.Settings.Default.currencyType = Console.ReadLine();
+                                    _strCurrencyType = Properties.Settings.Default.currencyType;
+                                    break;
+                                case 7:
+                                    Console.WriteLine("Want to enable (true) or disable (false) auto tweets: ");
+                                    Properties.Settings.Default.enableTweet = Convert.ToBoolean(Console.ReadLine());
+                                    _isAutoPublishTweet = Properties.Settings.Default.enableTweet;
+                                    break;
+                                case 8:
+                                    Console.WriteLine("Want to enable (true) or disable (false) display songs from Spotify: ");
+                                    Properties.Settings.Default.enableDisplaySong = Convert.ToBoolean(Console.ReadLine());
+                                    _isAutoDisplaySong = Properties.Settings.Default.enableDisplaySong;
+                                    break;
+                            }
+
+                            Properties.Settings.Default.Save();
+                            Console.WriteLine("Saved Settings!");
+                            Console.WriteLine();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Please write a valid option between 1-8 (or 0 to exit editing)");
+                            Console.WriteLine();
+                        }
+                    } while (intOption != 0);
+
+                    Console.WriteLine("Finished with editing settings");
+                }
+                else // No need to change settings
+                    Console.WriteLine("Extra settings confirmed!");
+
+                Console.WriteLine();
+                Console.WriteLine("Time to get to work!");
+                Console.WriteLine();
+
+                // Get broadcaster ID so the user can only see their data from the db
+                _intBroadcasterID = getBroadcasterID(_strBroadcasterName.ToLower());
 
                 // Add broadcaster as new user to database
                 if (_intBroadcasterID == 0)
@@ -163,6 +356,17 @@ namespace TwitchBot
                         cmd.ExecuteNonQuery();
                         conn.Close();
                     }
+
+                    _intBroadcasterID = getBroadcasterID(_strBroadcasterName.ToLower());
+                }
+
+                // Try looking for the broadcaster's ID again
+                if (_intBroadcasterID == 0)
+                {
+                    Console.WriteLine("Cannot find a broadcaster ID for you. " 
+                        + "Please contact the author with a detailed description of the issue");
+                    Thread.Sleep(3000);
+                    Environment.Exit(1);
                 }
 
                 /* Connect to local spotify client */
@@ -170,6 +374,10 @@ namespace TwitchBot
                 SpotifyControl spotifyCtrl = new SpotifyControl();
                 _spotify.OnPlayStateChange += spotifyCtrl.spotify_OnPlayStateChange;
                 _spotify.OnTrackChange += spotifyCtrl.spotify_OnTrackChange;
+
+                /* Make sure usernames are set to lowercase for the rest of the application */
+                _strBotName = _strBotName.ToLower();
+                _strBroadcasterName = _strBroadcasterName.ToLower();
 
                 // Password from www.twitchapps.com/tmi/
                 // include the "oauth:" portion
@@ -187,53 +395,12 @@ namespace TwitchBot
 
                 spotifyCtrl.Connect(); // attempt to connect to local Spotify client
 
-                // Grab non-essential settings
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblChannelSettings WHERE broadcaster = @broadcaster", conn))
-                    {
-                        cmd.Parameters.AddWithValue("@broadcaster", _intBroadcasterID);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _isAutoPublishTweet = Convert.ToBoolean(reader["enableTweet"]);
-                                    _isAutoDisplaySong = Convert.ToBoolean(reader["enableDisplaySong"]);
-                                    _strCurrencyType = reader["currencyType"].ToString();
-                                    hasExtraInfo = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Insert default values for extra settings for the broadcaster
-                if (!hasExtraInfo)
-                {
-                    string query = "INSERT INTO tblChannelSettings (enableTweet, enableDisplaySong, currencyType, broadcaster) " + 
-                        "VALUES (@enableTweet, @enableDisplaySong, @currencyType, @broadcaster)";
-
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.Add("@enableTweet", SqlDbType.Bit).Value = _isAutoPublishTweet;
-                        cmd.Parameters.Add("@enableDisplaySong", SqlDbType.Bit).Value = _isAutoDisplaySong;
-                        cmd.Parameters.Add("@currencyType", SqlDbType.VarChar, 50).Value = _strCurrencyType;
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;                        
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
-                        conn.Close();
-                    }
-                }
-
                 /* Whisper broadcaster bot settings */
-                Console.WriteLine("Bot settings: Automatic tweets is set to [" + _isAutoPublishTweet + "]");
-                Console.WriteLine("Automatic display songs is set to [" + _isAutoDisplaySong + "]");
-                Console.WriteLine("Currency type is set to [" + _strCurrencyType + "]");
+                Console.WriteLine("---> Extra Bot Settings <---");
+                Console.WriteLine("Discord link: " + _strDiscordLink);
+                Console.WriteLine("Currency type: " + _strCurrencyType);
+                Console.WriteLine("Enable Auto Tweets: " + _isAutoPublishTweet);
+                Console.WriteLine("Enable Auto Display Songs: " + _isAutoDisplaySong);
                 Console.WriteLine();
 
                 /* Get list of mods */
@@ -312,7 +479,7 @@ namespace TwitchBot
                                     try
                                     {
                                         _irc.sendPublicChatMessage("Auto tweets set to \"" + _isAutoPublishTweet + "\" "
-                                            + "|| Auto display songs set to \"" + _isAutoDisplaySong + "\"" 
+                                            + "|| Auto display songs set to \"" + _isAutoDisplaySong + "\" " 
                                             + "|| Currency set to \"" + _strCurrencyType + "\"");
                                     }
                                     catch (Exception ex)
@@ -358,21 +525,8 @@ namespace TwitchBot
                                         else
                                         {
                                             _isAutoPublishTweet = true;
-
-                                            /* Update auto tweet to database */
-                                            string query = "UPDATE tblChannelSettings SET enableTweet = @enableTweet WHERE broadcaster = @broadcaster";
-
-                                            // Create connection and command
-                                            using (SqlConnection conn = new SqlConnection(_connStr))
-                                            using (SqlCommand cmd = new SqlCommand(query, conn))
-                                            {
-                                                cmd.Parameters.Add("@enableTweet", SqlDbType.Bit).Value = _isAutoPublishTweet;
-                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
-                                                conn.Open();
-                                                cmd.ExecuteNonQuery();
-                                                conn.Close();
-                                            }
+                                            Properties.Settings.Default.enableTweet = _isAutoPublishTweet;
+                                            Properties.Settings.Default.Save();
 
                                             Console.WriteLine("Auto publish tweets is set to [" + _isAutoPublishTweet + "]");
                                             _irc.sendPublicChatMessage(_strBroadcasterName + ": Automatic tweets is set to \"" + _isAutoPublishTweet + "\"");
@@ -393,21 +547,8 @@ namespace TwitchBot
                                         else
                                         {
                                             _isAutoPublishTweet = false;
-
-                                            /* Update auto tweet to database */
-                                            string query = "UPDATE tblChannelSettings SET enableTweet = @enableTweet WHERE broadcaster = @broadcaster";
-
-                                            // Create connection and command
-                                            using (SqlConnection conn = new SqlConnection(_connStr))
-                                            using (SqlCommand cmd = new SqlCommand(query, conn))
-                                            {
-                                                cmd.Parameters.Add("@enableTweet", SqlDbType.Bit).Value = _isAutoPublishTweet;
-                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
-                                                conn.Open();
-                                                cmd.ExecuteNonQuery();
-                                                conn.Close();
-                                            }
+                                            Properties.Settings.Default.enableTweet = _isAutoPublishTweet;
+                                            Properties.Settings.Default.Save();
 
                                             Console.WriteLine("Auto publish tweets is set to [" + _isAutoPublishTweet + "]");
                                             _irc.sendPublicChatMessage(_strBroadcasterName + ": Automatic tweets is set to \"" + _isAutoPublishTweet + "\"");
@@ -572,21 +713,8 @@ namespace TwitchBot
                                     try
                                     {
                                         _isAutoDisplaySong = true;
-
-                                        /* Update auto tweet to database */
-                                        string query = "UPDATE tblChannelSettings SET enableDisplaySong = @enableDisplaySong WHERE broadcaster = @broadcaster";
-
-                                        // Create connection and command
-                                        using (SqlConnection conn = new SqlConnection(_connStr))
-                                        using (SqlCommand cmd = new SqlCommand(query, conn))
-                                        {
-                                            cmd.Parameters.Add("@enableDisplaySong", SqlDbType.Bit).Value = _isAutoDisplaySong;
-                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
-                                            conn.Open();
-                                            cmd.ExecuteNonQuery();
-                                            conn.Close();
-                                        }
+                                        Properties.Settings.Default.enableDisplaySong = _isAutoDisplaySong;
+                                        Properties.Settings.Default.Save();
 
                                         Console.WriteLine("Auto display songs is set to [" + _isAutoDisplaySong + "]");
                                         _irc.sendPublicChatMessage(_strBroadcasterName + ": Automatic display songs is set to \"" + _isAutoDisplaySong + "\"");
@@ -602,21 +730,8 @@ namespace TwitchBot
                                     try
                                     {
                                         _isAutoDisplaySong = false;
-
-                                        /* Update auto song display to database */
-                                        string query = "UPDATE tblChannelSettings SET enableDisplaySong = @enableDisplaySong WHERE broadcaster = @broadcaster";
-
-                                        // Create connection and command
-                                        using (SqlConnection conn = new SqlConnection(_connStr))
-                                        using (SqlCommand cmd = new SqlCommand(query, conn))
-                                        {
-                                            cmd.Parameters.Add("@enableDisplaySong", SqlDbType.Bit).Value = _isAutoDisplaySong;
-                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
-                                            conn.Open();
-                                            cmd.ExecuteNonQuery();
-                                            conn.Close();
-                                        }
+                                        Properties.Settings.Default.enableDisplaySong = _isAutoDisplaySong;
+                                        Properties.Settings.Default.Save();
 
                                         Console.WriteLine("Auto display songs is set to [" + _isAutoDisplaySong + "]");
                                         _irc.sendPublicChatMessage(_strBroadcasterName + ": Automatic display songs is set to \"" + _isAutoDisplaySong + "\"");
@@ -1718,7 +1833,11 @@ namespace TwitchBot
 
         public static void LogError(Exception ex, string strClass, string strMethod, bool hasToExit, string strCmd = "N/A")
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine("Error: " + ex.Message);
+
+            // if username not available grab default user to show local error after db connection
+            if (_intBroadcasterID == 0)
+                _intBroadcasterID = getBroadcasterID("n/a");
 
             /* Get line number from error message */
             int lineNumber = 0;
@@ -1756,7 +1875,7 @@ namespace TwitchBot
             }
 
             string strPublicErrMsg = "I ran into an unexpected internal error! "
-                    + "@" + _strBroadcasterName + " please look into the error log when you have time";
+                + "@" + _strBroadcasterName + " please look into the error log when you have time";
 
             if (hasToExit)
                 strPublicErrMsg += " I am leaving as well. Have a great time with this stream everyone :)";
@@ -1976,6 +2095,36 @@ namespace TwitchBot
             }
 
             return false;
+        }
+
+        private static int getBroadcasterID(string strBroadcaster)
+        {
+            int intBroadcasterID = 0;
+
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBroadcasters WHERE username = @username", conn))
+                {
+                    cmd.Parameters.AddWithValue("@username", strBroadcaster);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                if (strBroadcaster.Equals(reader["username"].ToString().ToLower()))
+                                {
+                                    intBroadcasterID = int.Parse(reader["id"].ToString());
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return intBroadcasterID;
         }
 
     }

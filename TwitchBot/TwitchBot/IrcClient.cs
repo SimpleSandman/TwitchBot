@@ -10,6 +10,7 @@ using System.IO;
 
 namespace TwitchBot
 {
+    // Reference: https://www.youtube.com/watch?v=Ss-OzV9aUZg
     class IrcClient
     {
         public string userName;
