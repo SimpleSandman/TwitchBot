@@ -23,15 +23,6 @@ namespace TwitchBot.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        public string conn {
-            get {
-                return ((string)(this["conn"]));
-            }
-        }
-        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
@@ -152,6 +143,9 @@ namespace TwitchBot.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(localdb)\\ProjectsV13;Initial Catalog=twitchbotdb;Integrated Security" +
+            "=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;ApplicationIn" +
+            "tent=ReadWrite;MultiSubnetFailover=False")]
         public string connTest {
             get {
                 return ((string)(this["connTest"]));
@@ -191,6 +185,27 @@ namespace TwitchBot.Properties {
             }
             set {
                 this["enableDisplaySong"] = value;
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
+        public string conn {
+            get {
+                return ((string)(this["conn"]));
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("12")]
+        public int streamLatency {
+            get {
+                return ((int)(this["streamLatency"]));
+            }
+            set {
+                this["streamLatency"] = value;
             }
         }
     }

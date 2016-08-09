@@ -33,8 +33,8 @@ namespace TwitchBot
         public static Moderator _mod;
         public static Timeout _timeout;
         public static string _strBroadcasterName = "";
-        public static int _intBroadcasterID = 0;
-        public static int _intStreamLatency = 8;
+        public static int _intBroadcasterID = 0; // associated with db
+        public static int _intStreamLatency = 12; // (in seconds)
         public static string _strBroadcasterGame = "";
         public static string _strBotName = "";
         public static string _strCurrencyType = "coins";
@@ -79,7 +79,7 @@ namespace TwitchBot
                     Console.WriteLine();
                     Console.WriteLine("-- Common technical issues: --");
                     Console.WriteLine("1: Check if firewall settings has your client IP address.");
-                    Console.WriteLine("2: Double check the connection string under 'Properties' and 'Settings'");
+                    Console.WriteLine("2: Double check the connection string under 'Properties' inside 'Settings'");
                     Console.WriteLine();
                     Thread.Sleep(3000);
                     Environment.Exit(1);
@@ -113,6 +113,7 @@ namespace TwitchBot
                 _strCurrencyType = Properties.Settings.Default.currencyType;
                 _isAutoDisplaySong = Properties.Settings.Default.enableDisplaySong;
                 _isAutoPublishTweet = Properties.Settings.Default.enableTweet;
+                _intStreamLatency = Properties.Settings.Default.streamLatency;
 
                 // Check if program has client ID (developer needs to provide this inside the settings)
                 if (string.IsNullOrWhiteSpace(twitchClientID))
@@ -271,13 +272,14 @@ namespace TwitchBot
                         Console.WriteLine("6. Currency type: " + Properties.Settings.Default.currencyType);
                         Console.WriteLine("7. Enable Auto Tweets: " + Properties.Settings.Default.enableTweet);
                         Console.WriteLine("8. Enable Auto Display Songs: " + Properties.Settings.Default.enableDisplaySong);
+                        Console.WriteLine("9. Stream Latency: " + Properties.Settings.Default.streamLatency);
 
                         Console.WriteLine();
-                        Console.WriteLine("From the options 1-8 (or 0 to exit editing), which option do you want to edit?");
+                        Console.WriteLine("From the options 1-9 (or 0 to exit editing), which option do you want to edit?");
 
                         // Edit an option
                         string strOption = Console.ReadLine();
-                        if (int.TryParse(strOption, out intOption) && intOption < 9 && intOption >= 0)
+                        if (int.TryParse(strOption, out intOption) && intOption < 10 && intOption >= 0)
                         {
                             Console.WriteLine();
                             switch (intOption)
@@ -322,6 +324,11 @@ namespace TwitchBot
                                     Properties.Settings.Default.enableDisplaySong = Convert.ToBoolean(Console.ReadLine());
                                     _isAutoDisplaySong = Properties.Settings.Default.enableDisplaySong;
                                     break;
+                                case 9:
+                                    Console.WriteLine("Enter your new stream latency (in seconds): ");
+                                    Properties.Settings.Default.streamLatency = int.Parse(Console.ReadLine());
+                                    _intStreamLatency = Properties.Settings.Default.streamLatency;
+                                    break;
                             }
 
                             Properties.Settings.Default.Save();
@@ -330,7 +337,7 @@ namespace TwitchBot
                         }
                         else
                         {
-                            Console.WriteLine("Please write a valid option between 1-8 (or 0 to exit editing)");
+                            Console.WriteLine("Please write a valid option between 1-9 (or 0 to exit editing)");
                             Console.WriteLine();
                         }
                     } while (intOption != 0);
@@ -406,6 +413,7 @@ namespace TwitchBot
                 Console.WriteLine("Currency type: " + _strCurrencyType);
                 Console.WriteLine("Enable Auto Tweets: " + _isAutoPublishTweet);
                 Console.WriteLine("Enable Auto Display Songs: " + _isAutoDisplaySong);
+                Console.WriteLine("Stream latency: " + _intStreamLatency + " second(s)");
                 Console.WriteLine();
 
                 /* Start listening for delayed messages */
@@ -1113,6 +1121,24 @@ namespace TwitchBot
                                     }
                                 }
 
+                                if (message.StartsWith("!setlatency") && !isUserTimedout(strUserName))
+                                {
+                                    int intLatency = -1;
+                                    bool validInput = int.TryParse(message.Substring(12), out intLatency);
+                                    if (!validInput || intLatency < 0)
+                                        _irc.sendPublicChatMessage("Please insert a valid positive alloted amount of time (in seconds)");
+                                    else
+                                    {
+                                        // set and save latency
+                                        _intStreamLatency = intLatency;
+                                        Properties.Settings.Default.streamLatency = _intStreamLatency;
+                                        Properties.Settings.Default.Save();
+
+                                        Console.WriteLine("Stream latency set to " + _intStreamLatency + " second(s)");
+                                        _irc.sendPublicChatMessage("Bot settings for stream latency set to " + _intStreamLatency + " second(s) @" + strUserName);
+                                    }
+                                }
+
                                 /* insert moderator commands here */
                             }
 
@@ -1515,7 +1541,7 @@ namespace TwitchBot
 
                                             // insert party member if they exists from database
                                             if (!isPartyMemebrFound)
-                                                _irc.sendPublicChatMessage("I couldn't find the requested party memebr '" + strPartyMember + "' @" + strUserName
+                                                _irc.sendPublicChatMessage("I couldn't find the requested party member '" + strPartyMember + "' @" + strUserName
                                                     + ". Please check with the broadcaster for possible spelling errors");
                                             else
                                             {
