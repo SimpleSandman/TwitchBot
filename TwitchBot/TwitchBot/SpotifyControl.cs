@@ -55,7 +55,7 @@ namespace TwitchBot
 
         public void spotify_OnTrackChange(TrackChangeEventArgs e)
         {
-            ShowUpdatedTrack(e.NewTrack, true, Program._isAutoDisplaySong);
+            ShowUpdatedTrack(e.NewTrack, Program._isAutoDisplaySong);
             trackChanged = true;
         }
 
@@ -65,7 +65,7 @@ namespace TwitchBot
 
             StatusResponse status = Program._spotify.GetStatus();
             if (status.Track != null && status.Playing && !trackChanged) // Update track infos
-                ShowUpdatedTrack(status.Track, false, Program._isAutoDisplaySong);
+                ShowUpdatedTrack(status.Track, Program._isAutoDisplaySong);
 
             trackChanged = false;
         }
@@ -102,10 +102,10 @@ namespace TwitchBot
             Console.WriteLine("Version: " + status.Version.ToString() + "\n");
 
             if (status.Track != null && status.Playing) // Update track infos
-                ShowUpdatedTrack(status.Track, false, Program._isAutoDisplaySong);
+                ShowUpdatedTrack(status.Track, Program._isAutoDisplaySong);
         }
 
-        public void ShowUpdatedTrack(Track track, bool isSongChanged, bool isDisplayed)
+        public void ShowUpdatedTrack(Track track, bool isDisplayed)
         {
             string pendingMessage = "";
 
@@ -120,22 +120,16 @@ namespace TwitchBot
             // if song is allowed to be displayed to the chat
             if (isDisplayed)
             {
-                // send message of current song info to chat
-                if (isSongChanged)
-                {
-                    pendingMessage = "Upcoming Song: " + track.TrackResource.Name
-                        + " || Artist: " + track.ArtistResource.Name
-                        + " || Album: " + track.AlbumResource.Name;
-                }
-                else
-                {
-                    pendingMessage = "Current Song: " + track.TrackResource.Name
-                        + " || Artist: " + track.ArtistResource.Name
-                        + " || Album: " + track.AlbumResource.Name;
-                }
+                pendingMessage = "Current Song: " + track.TrackResource.Name
+                    + " || Artist: " + track.ArtistResource.Name
+                    + " || Album: " + track.AlbumResource.Name;
             }
 
-            Program._irc.sendPublicChatMessage(pendingMessage);
+            Program._lstTupDelayMsg.Add(new Tuple<string, DateTime>(
+                    pendingMessage, 
+                    DateTime.Now.AddSeconds(Program._intStreamLatency)
+                )
+            );
         }
     }
 }

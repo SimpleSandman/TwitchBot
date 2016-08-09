@@ -135,6 +135,7 @@
   <ItemGroup>
     <Compile Include="ChannelJSON.cs" />
     <Compile Include="ChatterInfo.cs" />
+    <Compile Include="DelayMsg.cs" />
     <Compile Include="FollowerInfo.cs" />
     <Compile Include="IrcClient.cs" />
     <Compile Include="Moderator.cs" />

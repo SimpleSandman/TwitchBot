@@ -34,6 +34,7 @@ namespace TwitchBot
         public static Timeout _timeout;
         public static string _strBroadcasterName = "";
         public static int _intBroadcasterID = 0;
+        public static int _intStreamLatency = 8;
         public static string _strBroadcasterGame = "";
         public static string _strBotName = "";
         public static string _strCurrencyType = "coins";
@@ -43,6 +44,7 @@ namespace TwitchBot
         public static string _strDiscordLink = "Link unavailable at the moment"; // provide discord server link if available
         public static bool _isAutoPublishTweet = false; // set to auto publish tweets (disabled by default)
         public static bool _isAutoDisplaySong = false; // set to auto song status (disabled by default)
+        public static List<Tuple<string, DateTime>> _lstTupDelayMsg = new List<Tuple<string, DateTime>>(); // used to handle delayed msgs
 
         static void Main(string[] args)
         {       
@@ -58,14 +60,14 @@ namespace TwitchBot
             string twitterAccessToken = "";
             string twitterAccessSecret = "";
 
-            bool isSongRequest = false;  // check song request status (disabled by default)
+            bool isSongRequestAvail = false;  // check song request status (disabled by default)
 
             /* Connect to database or exit program on connection error */
             try
             {
                 // Grab connection string
-                //_connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.conn"].ConnectionString; // production only
-                _connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.connTest"].ConnectionString; // debugging only
+                _connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.conn"].ConnectionString; // production only
+                //_connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.connTest"].ConnectionString; // debugging only
 
                 // Check if server is connected
                 if (!IsServerConnected(_connStr))
@@ -73,10 +75,10 @@ namespace TwitchBot
                     // clear sensitive data
                     _connStr = null;
 
-                    Console.WriteLine("Azure connection failed. Please try again");
+                    Console.WriteLine("Datebase connection failed. Please try again");
                     Console.WriteLine();
                     Console.WriteLine("-- Common technical issues: --");
-                    Console.WriteLine("1: Check if Azure firewall settings has your client IP address.");
+                    Console.WriteLine("1: Check if firewall settings has your client IP address.");
                     Console.WriteLine("2: Double check the connection string under 'Properties' and 'Settings'");
                     Console.WriteLine();
                     Thread.Sleep(3000);
@@ -109,6 +111,8 @@ namespace TwitchBot
                 twitterAccessSecret = Properties.Settings.Default.twitterAccessSecret;
                 _strDiscordLink = Properties.Settings.Default.discordLink;
                 _strCurrencyType = Properties.Settings.Default.currencyType;
+                _isAutoDisplaySong = Properties.Settings.Default.enableDisplaySong;
+                _isAutoPublishTweet = Properties.Settings.Default.enableTweet;
 
                 // Check if program has client ID (developer needs to provide this inside the settings)
                 if (string.IsNullOrWhiteSpace(twitchClientID))
@@ -391,7 +395,7 @@ namespace TwitchBot
                 _strBroadcasterGame = GetChannel().Result.game;
 
                 /* Make new thread to get messages */
-                Thread thdIrcClient = new Thread(() => GetChatBox(spotifyCtrl, isSongRequest, twitchAccessToken, hasTwitterInfo));
+                Thread thdIrcClient = new Thread(() => GetChatBox(spotifyCtrl, isSongRequestAvail, twitchAccessToken, hasTwitterInfo));
                 thdIrcClient.Start();
 
                 spotifyCtrl.Connect(); // attempt to connect to local Spotify client
@@ -403,6 +407,10 @@ namespace TwitchBot
                 Console.WriteLine("Enable Auto Tweets: " + _isAutoPublishTweet);
                 Console.WriteLine("Enable Auto Display Songs: " + _isAutoDisplaySong);
                 Console.WriteLine();
+
+                /* Start listening for delayed messages */
+                DelayMsg delayMsg = new DelayMsg();
+                delayMsg.Start();
 
                 /* Get list of mods */
                 _mod = new Moderator();
@@ -439,10 +447,10 @@ namespace TwitchBot
         /// Monitor chat box for commands
         /// </summary>
         /// <param name="spotifyCtrl"></param>
-        /// <param name="isSongRequest"></param>
+        /// <param name="isSongRequestAvail"></param>
         /// <param name="twitchAccessToken"></param>
         /// <param name="hasTwitterInfo"></param>
-        private static void GetChatBox(SpotifyControl spotifyCtrl, bool isSongRequest, string twitchAccessToken, bool hasTwitterInfo)
+        private static void GetChatBox(SpotifyControl spotifyCtrl, bool isSongRequestAvail, string twitchAccessToken, bool hasTwitterInfo)
         {
             try
             {
@@ -565,7 +573,7 @@ namespace TwitchBot
                                 {
                                     try
                                     {
-                                        isSongRequest = true;
+                                        isSongRequestAvail = true;
                                         _irc.sendPublicChatMessage("Song requests enabled");
                                     }
                                     catch (Exception ex)
@@ -578,7 +586,7 @@ namespace TwitchBot
                                 {
                                     try
                                     {
-                                        isSongRequest = false;
+                                        isSongRequestAvail = false;
                                         _irc.sendPublicChatMessage("Song requests disabled");
                                     }
                                     catch (Exception ex)
@@ -1237,7 +1245,7 @@ namespace TwitchBot
                             {
                                 try
                                 {
-                                    if (isSongRequest)
+                                    if (isSongRequestAvail)
                                     {
                                         // Grab the song name from the request
                                         int index = message.IndexOf("!requestsong");
