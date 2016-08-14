@@ -22,13 +22,11 @@ namespace TwitchBot
             if (!SpotifyLocalAPI.IsSpotifyRunning())
             {
                 Console.WriteLine("Spotify isn't running!");
-                Program._irc.sendPublicChatMessage("Spotify isn't running!");
                 return;
             }
             if (!SpotifyLocalAPI.IsSpotifyWebHelperRunning())
             {
                 Console.WriteLine("SpotifyWebHelper isn't running!");
-                Program._irc.sendPublicChatMessage("Spotify isn't running!");
                 return;
             }
 

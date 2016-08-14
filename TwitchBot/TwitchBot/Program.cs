@@ -577,7 +577,7 @@ namespace TwitchBot
                                     }
                                 }
 
-                                if (message.Equals("!songrequests on"))
+                                if (message.Equals("!srmode on"))
                                 {
                                     try
                                     {
@@ -586,11 +586,11 @@ namespace TwitchBot
                                     }
                                     catch (Exception ex)
                                     {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!songrequests on");
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!srmode on");
                                     }
                                 }
 
-                                if (message.Equals("!songrequests off"))
+                                if (message.Equals("!srmode off"))
                                 {
                                     try
                                     {
@@ -599,7 +599,7 @@ namespace TwitchBot
                                     }
                                     catch (Exception ex)
                                     {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!songrequests off");
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!srmode off");
                                     }
                                 }
 
@@ -814,6 +814,19 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* ToDo: Implement !countdown */
+                                if (message.StartsWith("!countdown"))
+                                {
+                                    try
+                                    {
+                                        // do something here
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!countdown");
+                                    }
+                                }
+
                                 /* insert more broadcaster commands here */
                             }
 
@@ -968,7 +981,7 @@ namespace TwitchBot
                                     }
                                 }
 
-                                if (message.Equals("!popsongrequest") && !isUserTimedout(strUserName))
+                                if (message.Equals("!popsr") && !isUserTimedout(strUserName))
                                 {
                                     string strRemovedSong = "";
 
@@ -1016,7 +1029,7 @@ namespace TwitchBot
                                     }
                                     catch (Exception ex)
                                     {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!charge");
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!popsr");
                                     }
                                 }
 
@@ -1150,7 +1163,7 @@ namespace TwitchBot
                                 try
                                 {
                                     _irc.sendPublicChatMessage("--- !hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username]"
-                                        + "| !currentsong | !songrequestlist | !requestsong [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] ---"
+                                        + "| !currentsong | !srlist | !sr [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] ---"
                                         + " Link to full list of commands: "
                                         + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
                                 }
@@ -1212,7 +1225,7 @@ namespace TwitchBot
                             }
 
                             /* List song requests from database */
-                            if (message.Equals("!songrequestlist") && !isUserTimedout(strUserName))
+                            if (message.Equals("!srlist") && !isUserTimedout(strUserName))
                             {
                                 try
                                 {
@@ -1262,21 +1275,21 @@ namespace TwitchBot
                                 }
                                 catch (Exception ex)
                                 {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!songrequestlist");
+                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!srlist");
                                 }
                             }
 
                             /* Insert requested song into database */
-                            if (message.StartsWith("!requestsong") && !isUserTimedout(strUserName))
+                            if (message.StartsWith("!sr ") && !isUserTimedout(strUserName))
                             {
                                 try
                                 {
                                     if (isSongRequestAvail)
                                     {
                                         // Grab the song name from the request
-                                        int index = message.IndexOf("!requestsong");
+                                        int index = message.IndexOf("!sr");
                                         string songRequest = message.Substring(index, message.Length - index);
-                                        songRequest = songRequest.Replace("!requestsong ", "");
+                                        songRequest = songRequest.Replace("!sr ", "");
                                         Console.WriteLine("New song request: " + songRequest);
 
                                         // Check if song request has more than letters, numbers, and hyphens
@@ -1311,7 +1324,7 @@ namespace TwitchBot
                                 }
                                 catch (Exception ex)
                                 {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!requestsong");
+                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!sr");
                                 }
                             }
 
