@@ -121,13 +121,13 @@ namespace TwitchBot
                 pendingMessage = "Current Song: " + track.TrackResource.Name
                     + " || Artist: " + track.ArtistResource.Name
                     + " || Album: " + track.AlbumResource.Name;
-            }
 
-            Program._lstTupDelayMsg.Add(new Tuple<string, DateTime>(
-                    pendingMessage, 
-                    DateTime.Now.AddSeconds(Program._intStreamLatency)
-                )
-            );
+                Program._lstTupDelayMsg.Add(new Tuple<string, DateTime>(
+                        pendingMessage,
+                        DateTime.Now.AddSeconds(Program._intStreamLatency)
+                    )
+                );
+            }
         }
     }
 }

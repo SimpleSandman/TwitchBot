@@ -66,8 +66,8 @@ namespace TwitchBot
             try
             {
                 // Grab connection string
-                _connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.conn"].ConnectionString; // production only
-                //_connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.connTest"].ConnectionString; // debugging only
+                //_connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.conn"].ConnectionString; // production only
+                _connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.connTest"].ConnectionString; // debugging only
 
                 // Check if server is connected
                 if (!IsServerConnected(_connStr))
@@ -814,16 +814,186 @@ namespace TwitchBot
                                     }
                                 }
 
-                                /* ToDo: Implement !countdown */
-                                if (message.StartsWith("!countdown"))
+                                if (message.StartsWith("!addcountdown"))
                                 {
                                     try
                                     {
-                                        // do something here
+                                        // get due date of countdown
+                                        string strCountdownDT = message.Substring(14, 20); // MM-DD-YY hh:mm:ss AM
+                                        DateTime dtCountdown = Convert.ToDateTime(strCountdownDT);
+
+                                        // get message of countdown
+                                        string strCountdownMsg = message.Substring(34);
+
+                                        // log new countdown into db
+                                        string query = "INSERT INTO tblCountdown (dueDate, message, broadcaster) VALUES (@dueDate, @message, @broadcaster)";
+
+                                        using (SqlConnection conn = new SqlConnection(_connStr))
+                                        using (SqlCommand cmd = new SqlCommand(query, conn))
+                                        {
+                                            cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = dtCountdown;
+                                            cmd.Parameters.Add("@message", SqlDbType.VarChar, 50).Value = strCountdownMsg;
+                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+
+                                            conn.Open();
+                                            cmd.ExecuteNonQuery();
+                                        }
+
+                                        Console.WriteLine("Countdown added!");
+                                        _irc.sendPublicChatMessage("");
                                     }
                                     catch (Exception ex)
                                     {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!countdown");
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!addcountdown");
+                                    }
+                                }
+
+                                if (message.StartsWith("!editcountdown"))
+                                {
+                                    try
+                                    {
+                                        int intReqCountdownID = -1;
+                                        bool bolValidCountdownID = int.TryParse(message.Substring(18, GetNthIndex(message, ' ', 2) - GetNthIndex(message, ' ', 1)), out intReqCountdownID);
+
+                                        // validate requested countdown ID
+                                        if (!bolValidCountdownID || intReqCountdownID < 0)
+                                            _irc.sendPublicChatMessage("Please use a positive whole number to find your countdown ID");
+                                        else
+                                        {
+                                            // check if countdown ID exists
+                                            int intCountdownID = -1;
+                                            using (SqlConnection conn = new SqlConnection(_connStr))
+                                            {
+                                                conn.Open();
+                                                using (SqlCommand cmd = new SqlCommand("SELECT id, broadcaster FROM tblCountdown " 
+                                                    + "WHERE broadcaster = @broadcaster", conn))
+                                                {
+                                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                                    using (SqlDataReader reader = cmd.ExecuteReader())
+                                                    {
+                                                        if (reader.HasRows)
+                                                        {
+                                                            while (reader.Read())
+                                                            {
+                                                                if (intReqCountdownID.ToString().Equals(reader["id"].ToString()))
+                                                                {
+                                                                    intCountdownID = int.Parse(reader["id"].ToString());
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // check if countdown ID was retrieved
+                                            if (intCountdownID == -1)
+                                                _irc.sendPublicChatMessage($"Cannot find the countdown ID: {intReqCountdownID}");
+                                            else
+                                            {
+                                                int intInputType = -1; // check if input is in the correct format
+                                                DateTime dtCountdown = new DateTime();
+                                                string strCountdownInput = message.Substring(20);
+
+                                                // check if user wants to edit the DateTime or message
+                                                if (message.StartsWith("!editcountdownDTE"))
+                                                {
+                                                    // get new due date of countdown
+                                                    bool bolValidCountdownDT = DateTime.TryParse(strCountdownInput, out dtCountdown);
+
+                                                    if (!bolValidCountdownDT)
+                                                        _irc.sendPublicChatMessage("Please enter a valid date and time @" + strUserName);
+                                                    else
+                                                        intInputType = 1;
+                                                }
+                                                else if (message.StartsWith("!editcountdownMSG"))
+                                                {
+                                                    // get new message of countdown
+                                                    if (string.IsNullOrWhiteSpace(strCountdownInput))
+                                                        _irc.sendPublicChatMessage("Please enter a valid message @" + strUserName);
+                                                    else
+                                                        intInputType = 2;
+                                                }
+
+                                                // if input is correct update db
+                                                if (intInputType > 0)
+                                                {
+                                                    string strQuery = "";
+
+                                                    if (intInputType == 1)
+                                                        strQuery = "UPDATE dbo.tblCountdown SET dueDate = @dueDate WHERE (Id = @id AND broadcaster = @broadcaster)";
+                                                    else if (intInputType == 2)
+                                                        strQuery = "UPDATE dbo.tblCountdown SET message = @message WHERE (Id = @id AND broadcaster = @broadcaster)";
+
+                                                    using (SqlConnection conn = new SqlConnection(_connStr))
+                                                    using (SqlCommand cmd = new SqlCommand(strQuery, conn))
+                                                    {
+                                                        // append proper parameter
+                                                        if (intInputType == 1)
+                                                            cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = dtCountdown;
+                                                        else if (intInputType == 2)
+                                                            cmd.Parameters.Add("@message", SqlDbType.VarChar, 50).Value = strCountdownInput;
+
+                                                        cmd.Parameters.Add("@id", SqlDbType.Int).Value = intCountdownID;   
+                                                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+
+                                                        conn.Open();
+                                                        cmd.ExecuteNonQuery();
+                                                    }
+
+                                                    Console.WriteLine($"Changes to countdown ID: {intReqCountdownID} have been made @{strUserName}");
+                                                    _irc.sendPublicChatMessage($"Changes to countdown ID: {intReqCountdownID} have been made @{strUserName}");
+                                                }
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!editcountdown");
+                                    }
+                                }
+
+                                if (message.Equals("!listcountdown"))
+                                {
+                                    try
+                                    {
+                                        string strCountdownList = "";
+
+                                        using (SqlConnection conn = new SqlConnection(_connStr))
+                                        {
+                                            conn.Open();
+                                            using (SqlCommand cmd = new SqlCommand("SELECT Id, dueDate, message, broadcaster FROM tblCountdown "
+                                                + "WHERE broadcaster = @broadcaster ORDER BY Id", conn))
+                                            {
+                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                                using (SqlDataReader reader = cmd.ExecuteReader())
+                                                {
+                                                    if (reader.HasRows)
+                                                    {
+                                                        while (reader.Read())
+                                                        {
+                                                            strCountdownList += "ID: " +  reader["Id"].ToString() 
+                                                                + " Message: \"" + reader["message"].ToString() 
+                                                                + "\" Time: \"" + reader["dueDate"].ToString()
+                                                                + "\" || ";
+                                                        }
+                                                        StringBuilder strBdrPartyList = new StringBuilder(strCountdownList);
+                                                        strBdrPartyList.Remove(strCountdownList.Length - 4, 4); // remove extra " || "
+                                                        strCountdownList = strBdrPartyList.ToString(); // replace old countdown list string with new
+                                                        _irc.sendPublicChatMessage(strCountdownList);
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("No countdown messages are set at the moment");
+                                                        _irc.sendPublicChatMessage("No countdown messages are set at the moment @" + strUserName);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!listcountdown");
                                     }
                                 }
 
@@ -871,7 +1041,7 @@ namespace TwitchBot
                                                 _irc.sendPublicChatMessage("Please insert a negative amount or use the !deposit command to add " + _strCurrencyType + " to a user");
                                             else if (!validFee)
                                                 _irc.sendPublicChatMessage("The fee wasn't accepted. Please try again with negative whole numbers only");
-                                            else /* Insert fee into wallet */
+                                            else /* Insert fee from wallet */
                                             {
                                                 intWallet = intWallet + intFee;
 
@@ -890,7 +1060,6 @@ namespace TwitchBot
 
                                                     conn.Open();
                                                     cmd.ExecuteNonQuery();
-                                                    conn.Close();
                                                 }
 
                                                 // prompt user's balance
@@ -944,7 +1113,6 @@ namespace TwitchBot
 
                                                         conn.Open();
                                                         cmd.ExecuteNonQuery();
-                                                        conn.Close();
                                                     }
 
                                                     _irc.sendPublicChatMessage(strUserName + " has created a new account for @" + strRecipient
@@ -965,7 +1133,6 @@ namespace TwitchBot
 
                                                         conn.Open();
                                                         cmd.ExecuteNonQuery();
-                                                        conn.Close();
                                                     }
 
                                                     // prompt user's balance
