@@ -491,6 +491,7 @@ namespace TwitchBot
                              */
                             if (strUserName.Equals(_strBroadcasterName))
                             {
+                                /* Display bot settings */
                                 if (message.Equals("!botsettings"))
                                 {
                                     try
@@ -505,6 +506,7 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Stop running the bot */
                                 if (message.Equals("!exitbot"))
                                 {
                                     try
@@ -518,21 +520,27 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Manually connect to Spotify */
                                 if (message.Equals("!spotifyconnect"))
-                                    spotifyCtrl.Connect(); // manually connect to spotify
+                                    spotifyCtrl.Connect();
 
+                                /* Press local Spotify play button [>] */
                                 if (message.Equals("!spotifyplay"))
                                     spotifyCtrl.playBtn_Click();
 
+                                /* Press local Spotify pause button [||] */
                                 if (message.Equals("!spotifypause"))
                                     spotifyCtrl.pauseBtn_Click();
 
+                                /* Press local Spotify previous button [|<] */
                                 if (message.Equals("!spotifyprev"))
                                     spotifyCtrl.prevBtn_Click();
 
+                                /* Press local Spotify next (skip) button [>|] */
                                 if (message.Equals("!spotifynext"))
                                     spotifyCtrl.skipBtn_Click();
 
+                                /* Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets) */
                                 if (message.Equals("!enabletweet"))
                                 {
                                     try
@@ -555,6 +563,7 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Disables tweets from being sent out from this bot */
                                 if (message.Equals("!disabletweet"))
                                 {
                                     try
@@ -577,6 +586,7 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Enables viewers to request songs (default off) */
                                 if (message.Equals("!srmode on"))
                                 {
                                     try
@@ -590,6 +600,7 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Disables viewers to request songs (default off) */
                                 if (message.Equals("!srmode off"))
                                 {
                                     try
@@ -603,6 +614,8 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Updates the title of the Twitch channel */
+                                // Usage: !updatetitle "[title]" (with quotation marks)
                                 if (message.StartsWith("!updatetitle"))
                                 {
                                     try
@@ -652,6 +665,8 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Updates the game of the Twitch channel */
+                                // Usage: !updategame "[game]" (with quotation marks)
                                 if (message.StartsWith("!updategame"))
                                 {
                                     try
@@ -707,6 +722,8 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Sends a manual tweet (if credentials have been provided) */
+                                // Useage: !tweet "[message]" (use quotation marks)
                                 if (message.StartsWith("!tweet"))
                                 {
                                     try
@@ -725,7 +742,8 @@ namespace TwitchBot
                                     }
                                 }
 
-                                if (message.StartsWith("!displaysongs on"))
+                                /* Enables songs from local Spotify to be displayed inside the chat */
+                                if (message.Equals("!displaysongs on"))
                                 {
                                     try
                                     {
@@ -742,7 +760,8 @@ namespace TwitchBot
                                     }
                                 }
 
-                                if (message.StartsWith("!displaysongs off"))
+                                /* Disables songs from local Spotify to be displayed inside the chat */
+                                if (message.Equals("!displaysongs off"))
                                 {
                                     try
                                     {
@@ -759,6 +778,8 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Add viewer to moderator list so they can have access to bot moderator commands */
+                                // Useage: !addmod @[username]
                                 if (message.StartsWith("!addmod") && message.Contains("@"))
                                 {
                                     try
@@ -775,6 +796,8 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Remove moderator from list so they can't access the bot moderator commands */
+                                // Useage: !delmod @[username]
                                 if (message.StartsWith("!delmod") && message.Contains("@"))
                                 {
                                     try
@@ -791,6 +814,7 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* List bot moderators */
                                 if (message.Equals("!listmod"))
                                 {
                                     try
@@ -814,6 +838,8 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Add countdown */
+                                // Useage: !addcountdown [MM-DD-YY] [hh:mm:ss] [AM/PM] [message]
                                 if (message.StartsWith("!addcountdown"))
                                 {
                                     try
@@ -840,7 +866,7 @@ namespace TwitchBot
                                         }
 
                                         Console.WriteLine("Countdown added!");
-                                        _irc.sendPublicChatMessage("");
+                                        _irc.sendPublicChatMessage($"Countdown added @{strUserName}");
                                     }
                                     catch (Exception ex)
                                     {
@@ -848,12 +874,16 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Edit countdown details (for either date and time or message) */
+                                // Usage (message): !editcountdownMSG [countdown id] [message]
+                                // Usage (date and time): !editcountdownDTE [countdown id] [MM-DD-YY] [hh:mm:ss] [AM/PM]
                                 if (message.StartsWith("!editcountdown"))
                                 {
                                     try
                                     {
                                         int intReqCountdownID = -1;
-                                        bool bolValidCountdownID = int.TryParse(message.Substring(18, GetNthIndex(message, ' ', 2) - GetNthIndex(message, ' ', 1)), out intReqCountdownID);
+                                        string strReqCountdownID = message.Substring(18, GetNthIndex(message, ' ', 2) - GetNthIndex(message, ' ', 1) - 1);
+                                        bool bolValidCountdownID = int.TryParse(strReqCountdownID, out intReqCountdownID);
 
                                         // validate requested countdown ID
                                         if (!bolValidCountdownID || intReqCountdownID < 0)
@@ -893,9 +923,9 @@ namespace TwitchBot
                                             {
                                                 int intInputType = -1; // check if input is in the correct format
                                                 DateTime dtCountdown = new DateTime();
-                                                string strCountdownInput = message.Substring(20);
+                                                string strCountdownInput = message.Substring(GetNthIndex(message, ' ', 2) + 1);
 
-                                                // check if user wants to edit the DateTime or message
+                                                /* Check if user wants to edit the date and time or message */
                                                 if (message.StartsWith("!editcountdownDTE"))
                                                 {
                                                     // get new due date of countdown
@@ -953,6 +983,7 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* List all of the countdowns the broadcaster has set */
                                 if (message.Equals("!listcountdown"))
                                 {
                                     try
@@ -1001,7 +1032,7 @@ namespace TwitchBot
                             }
 
                             /*
-                             * Moderator commands
+                             * Moderator commands (also checks if user has been timed out from using a command)
                              */
                             if (strUserName.Equals(_strBroadcasterName) || _mod.getLstMod().Contains(strUserName.ToLower()))
                             {
