@@ -39,7 +39,6 @@ namespace TwitchBot
         public static string _strBotName = "";
         public static string _strCurrencyType = "coins";
         public static string _connStr = ""; // connection string
-        public static TimeZone _localZone = TimeZone.CurrentTimeZone;
         public static int _intFollowers = 0;
         public static string _strDiscordLink = "Link unavailable at the moment"; // provide discord server link if available
         public static bool _isAutoPublishTweet = false; // set to auto publish tweets (disabled by default)
@@ -65,9 +64,24 @@ namespace TwitchBot
             /* Connect to database or exit program on connection error */
             try
             {
-                // Grab connection string
-                //_connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.conn"].ConnectionString; // production only
-                _connStr = ConfigurationManager.ConnectionStrings["TwitchBot.Properties.Settings.connTest"].ConnectionString; // debugging only
+                // Grab connection string (production or test)
+                if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.conn))
+                {
+                    _connStr = Properties.Settings.Default.conn; // production database only
+                    Console.WriteLine("Connecting to database...");
+                }
+                else if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.connTest))
+                {
+                    _connStr = Properties.Settings.Default.connTest; // test database only
+                    Console.WriteLine("<<<< WARNING: Connecting to local database (testing only) >>>>");
+                }
+                else
+                {
+                    Console.WriteLine("Internal Error: Connection string to database not provided!");
+                    Console.WriteLine("Shutting down now...");
+                    Thread.Sleep(3500);
+                    Environment.Exit(1);
+                }
 
                 // Check if server is connected
                 if (!IsServerConnected(_connStr))
@@ -81,14 +95,17 @@ namespace TwitchBot
                     Console.WriteLine("1: Check if firewall settings has your client IP address.");
                     Console.WriteLine("2: Double check the connection string under 'Properties' inside 'Settings'");
                     Console.WriteLine();
-                    Thread.Sleep(3000);
+                    Console.WriteLine("Shutting down now...");
+                    Thread.Sleep(5000);
                     Environment.Exit(1);
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error Message: " + ex.Message);
-                Console.WriteLine("**** Local troubleshooting needed by author of this bot ****");
+                Console.WriteLine("Local troubleshooting needed by author of this bot");
+                Console.WriteLine();
+                Console.WriteLine("Shutting down now...");
                 Thread.Sleep(3000);
                 Environment.Exit(1);
             }
@@ -100,6 +117,7 @@ namespace TwitchBot
                 Console.WriteLine();
                 Console.WriteLine("Checking if user settings has all necessary info...");
 
+                // Grab settings
                 _strBotName = Properties.Settings.Default.botName;
                 _strBroadcasterName = Properties.Settings.Default.broadcaster;
                 twitchOAuth = Properties.Settings.Default.twitchOAuth;
@@ -120,11 +138,14 @@ namespace TwitchBot
                 {
                     Console.WriteLine("Error: MISSING Twitch Client ID");
                     Console.WriteLine("Please contact the author of this bot to re-release this application with the client ID");
+                    Console.WriteLine();
+                    Console.WriteLine("Shutting down now...");
                     Thread.Sleep(3000);
                     Environment.Exit(1);
                 }
 
                 // Check if user has the minimum info in order to run the bot
+                // Tell user to input essential info
                 while (string.IsNullOrWhiteSpace(_strBotName)
                     && string.IsNullOrWhiteSpace(_strBroadcasterName)
                     && string.IsNullOrWhiteSpace(twitchOAuth)
@@ -1399,7 +1420,7 @@ namespace TwitchBot
                             {
                                 try
                                 {
-                                    _irc.sendPublicChatMessage(_strBroadcasterName + "'s Current Time: " + DateTime.Now.ToString() + " (" + _localZone.StandardName + ")");
+                                    _irc.sendPublicChatMessage(_strBroadcasterName + "'s Current Time: " + DateTime.Now.ToString() + " (" + TimeZone.CurrentTimeZone.StandardName + ")");
                                 }
                                 catch (Exception ex)
                                 {
@@ -2131,8 +2152,10 @@ namespace TwitchBot
 
             if (hasToExit)
             {
+                Console.WriteLine();
+                Console.WriteLine("Shutting down now...");
                 Thread.Sleep(3000);
-                Environment.Exit(0);
+                Environment.Exit(1);
             }
         }
 
