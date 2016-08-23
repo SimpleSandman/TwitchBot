@@ -1057,6 +1057,7 @@ namespace TwitchBot
                              */
                             if (strUserName.Equals(_strBroadcasterName) || _mod.getLstMod().Contains(strUserName.ToLower()))
                             {
+                                /* Posts discord link into chat (if available) */
                                 if (message.Equals("!discord") && !isUserTimedout(strUserName))
                                 {
                                     try
@@ -1069,6 +1070,8 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Takes money away from a user */
+                                // Useage: !charge [-amount] @[username]
                                 if (message.StartsWith("!charge") && message.Contains("@") && !isUserTimedout(strUserName))
                                 {
                                     try
@@ -1130,6 +1133,8 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Gives money to user */
+                                // Useage: !deposit [amount] @[username]
                                 if (message.StartsWith("!deposit") && message.Contains("@") && !isUserTimedout(strUserName))
                                 {
                                     try
@@ -1200,6 +1205,7 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Removes the first song in the queue of song requests */
                                 if (message.Equals("!popsr") && !isUserTimedout(strUserName))
                                 {
                                     string strRemovedSong = "";
@@ -1252,6 +1258,7 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Removes first party memeber in queue of party up requests */
                                 if (message.Equals("!poppartyuprequest") && !isUserTimedout(strUserName))
                                 {
                                     string strRemovedPartyMember = "";
@@ -1304,6 +1311,8 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Bot-specific timeout on a user for a set amount of time */
+                                // Useage: !addtimeout [seconds] @[username]
                                 if (message.StartsWith("!addtimeout") && message.Contains("@") && !isUserTimedout(strUserName))
                                 {
                                     try
@@ -1337,6 +1346,8 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Remove bot-specific timeout on a user for a set amount of time */
+                                // Useage: !deltimeout @[username]
                                 if (message.StartsWith("!deltimeout @") && !isUserTimedout(strUserName))
                                 {
                                     try
@@ -1353,6 +1364,8 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Set delay for messages based on the latency of the stream */
+                                // Useage: !setlatency [seconds]
                                 if (message.StartsWith("!setlatency") && !isUserTimedout(strUserName))
                                 {
                                     int intLatency = -1;
@@ -1377,7 +1390,7 @@ namespace TwitchBot
                             /* 
                              * General commands 
                              */
-                            if (message.Equals("!commands") && !isUserTimedout(strUserName))
+                            if (message.Equals("!cmds") && !isUserTimedout(strUserName))
                             {
                                 try
                                 {
@@ -1388,7 +1401,7 @@ namespace TwitchBot
                                 }
                                 catch (Exception ex)
                                 {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!commands");
+                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!cmds");
                                 }
                             }
 
