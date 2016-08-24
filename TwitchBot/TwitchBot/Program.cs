@@ -456,8 +456,8 @@ namespace TwitchBot
                 ping.Start();
 
                 /* Remind viewers of bot's existance */
-                //PresenceReminder preRmd = new PresenceReminder();
-                //preRmd.Start();
+                PresenceReminder preRmd = new PresenceReminder();
+                preRmd.Start();
 
                 /* Authenticate to Twitter if possible */
                 if (hasTwitterInfo)
@@ -517,30 +517,13 @@ namespace TwitchBot
                                 /* Display bot settings */
                                 if (message.Equals("!botsettings"))
                                 {
-                                    try
-                                    {
-                                        _irc.sendPublicChatMessage("Auto tweets set to \"" + _isAutoPublishTweet + "\" "
-                                            + "|| Auto display songs set to \"" + _isAutoDisplaySong + "\" " 
-                                            + "|| Currency set to \"" + _strCurrencyType + "\"");
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!botsettings");
-                                    }
+                                    _cmdBrdCstr.CmdBotSettings(_isAutoPublishTweet, _isAutoDisplaySong, _strCurrencyType);
                                 }
 
                                 /* Stop running the bot */
                                 if (message.Equals("!exitbot"))
                                 {
-                                    try
-                                    {
-                                        _irc.sendPublicChatMessage("Bye! Have a beautiful time!");
-                                        Environment.Exit(0); // exit program
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!exitbot");
-                                    }
+                                    _cmdBrdCstr.CmdExitBot();
                                 }
 
                                 /* Manually connect to Spotify */
