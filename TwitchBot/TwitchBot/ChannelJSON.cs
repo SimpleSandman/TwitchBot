@@ -18,7 +18,7 @@ namespace TwitchBot
         //public int _id { get; set; }
         //public string name { get; set; }
         //public string created_at { get; set; }
-        public string updated_at { get; set; }
+        //public string updated_at { get; set; }
         //public string logo { get; set; }
         //public object banner { get; set; }
         //public string video_banner { get; set; }

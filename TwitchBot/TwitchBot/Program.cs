@@ -44,6 +44,8 @@ namespace TwitchBot
         public static bool _isAutoPublishTweet = false; // set to auto publish tweets (disabled by default)
         public static bool _isAutoDisplaySong = false; // set to auto song status (disabled by default)
         public static List<Tuple<string, DateTime>> _lstTupDelayMsg = new List<Tuple<string, DateTime>>(); // used to handle delayed msgs
+        public static CmdBrdCstr _cmdBrdCstr = new CmdBrdCstr();
+        public static CmdGen _cmdGen = new CmdGen();
 
         static void Main(string[] args)
         {       
@@ -454,8 +456,8 @@ namespace TwitchBot
                 ping.Start();
 
                 /* Remind viewers of bot's existance */
-                PresenceReminder preRmd = new PresenceReminder();
-                preRmd.Start();
+                //PresenceReminder preRmd = new PresenceReminder();
+                //preRmd.Start();
 
                 /* Authenticate to Twitter if possible */
                 if (hasTwitterInfo)
@@ -488,7 +490,7 @@ namespace TwitchBot
                 {
                     // Read any message inside the chat room
                     string message = _irc.readMessage();
-                    Console.WriteLine(message);
+                    Console.WriteLine(message); // Print raw irc message
 
                     if (!string.IsNullOrEmpty(message))
                     {
@@ -1407,157 +1409,34 @@ namespace TwitchBot
 
                             if (message.Equals("!hello") && !isUserTimedout(strUserName))
                             {
-                                try
-                                {
-                                    _irc.sendPublicChatMessage("Hey " + strUserName + "! Thanks for talking to me.");
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!hello");
-                                }
+                                _cmdGen.CmdHello(strUserName);
                             }
 
                             if (message.Equals("!utctime") && !isUserTimedout(strUserName))
                             {
-                                try
-                                {
-                                    _irc.sendPublicChatMessage("UTC Time: " + DateTime.UtcNow.ToString());
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!utctime");
-                                }
+                                _cmdGen.CmdUtcTime();
                             }
 
                             if (message.Equals("!hosttime") && !isUserTimedout(strUserName))
                             {
-                                try
-                                {
-                                    _irc.sendPublicChatMessage(_strBroadcasterName + "'s Current Time: " + DateTime.Now.ToString() + " (" + TimeZone.CurrentTimeZone.StandardName + ")");
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!hosttime");
-                                }
+                                _cmdGen.CmdHostTime(_strBroadcasterName);
                             }
 
-                            if (message.Equals("!uptime") && !isUserTimedout(strUserName)) // need to check if channel is currently streaming
+                            if (message.Equals("!duration") && !isUserTimedout(strUserName)) // need to check if channel is currently streaming
                             {
-                                try
-                                {
-                                    var upTimeRes = GetChannel();
-                                    TimeSpan ts = DateTime.UtcNow - DateTime.Parse(upTimeRes.Result.updated_at);
-                                    string upTime = String.Format("{0:h\\:mm\\:ss}", ts);
-                                    _irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + upTime);
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!uptime");
-                                }
+                                _cmdGen.CmdDuration();
                             }
 
                             /* List song requests from database */
                             if (message.Equals("!srlist") && !isUserTimedout(strUserName))
                             {
-                                try
-                                {
-                                    string songList = "";
-
-                                    using (SqlConnection conn = new SqlConnection(_connStr))
-                                    {
-                                        conn.Open();
-                                        using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster", conn))
-                                        {
-                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                                            using (SqlDataReader reader = cmd.ExecuteReader())
-                                            {
-                                                if (reader.HasRows)
-                                                {
-                                                    DataTable schemaTable = reader.GetSchemaTable();
-                                                    DataTable data = new DataTable();
-                                                    foreach (DataRow row in schemaTable.Rows)
-                                                    {
-                                                        string colName = row.Field<string>("ColumnName");
-                                                        Type t = row.Field<Type>("DataType");
-                                                        data.Columns.Add(colName, t);
-                                                    }
-                                                    while (reader.Read())
-                                                    {
-                                                        var newRow = data.Rows.Add();
-                                                        foreach (DataColumn col in data.Columns)
-                                                        {
-                                                            newRow[col.ColumnName] = reader[col.ColumnName];
-                                                            Console.WriteLine(newRow[col.ColumnName].ToString());
-                                                            songList = songList + newRow[col.ColumnName].ToString() + " || ";
-                                                        }
-                                                    }
-                                                    StringBuilder strBdrSongList = new StringBuilder(songList);
-                                                    strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " || "
-                                                    songList = strBdrSongList.ToString(); // replace old song list string with new
-                                                    _irc.sendPublicChatMessage("Current List of Requested Songs: " + songList);
-                                                }
-                                                else
-                                                {
-                                                    Console.WriteLine("No requests have been made");
-                                                    _irc.sendPublicChatMessage("No requests have been made");
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!srlist");
-                                }
+                                _cmdGen.CmdListSR();
                             }
 
                             /* Insert requested song into database */
                             if (message.StartsWith("!sr ") && !isUserTimedout(strUserName))
                             {
-                                try
-                                {
-                                    if (isSongRequestAvail)
-                                    {
-                                        // Grab the song name from the request
-                                        int index = message.IndexOf("!sr");
-                                        string songRequest = message.Substring(index, message.Length - index);
-                                        songRequest = songRequest.Replace("!sr ", "");
-                                        Console.WriteLine("New song request: " + songRequest);
-
-                                        // Check if song request has more than letters, numbers, and hyphens
-                                        if (!Regex.IsMatch(songRequest, @"^[a-zA-Z0-9 \-]+$"))
-                                        {
-                                            _irc.sendPublicChatMessage("Only letters, numbers, and hyphens (-) are allowed. Please try again. "
-                                                + "If the problem persists, please contact my creator");
-                                        }
-                                        else
-                                        {
-                                            /* Add song request to database */
-                                            string query = "INSERT INTO tblSongRequests (songRequests, broadcaster, chatter) VALUES (@song, @broadcaster, @chatter)";
-
-                                            // Create connection and command
-                                            using (SqlConnection conn = new SqlConnection(_connStr))
-                                            using (SqlCommand cmd = new SqlCommand(query, conn))
-                                            {
-                                                cmd.Parameters.Add("@song", SqlDbType.VarChar, 200).Value = songRequest;
-                                                cmd.Parameters.Add("@broadcaster", SqlDbType.VarChar, 200).Value = _intBroadcasterID;
-                                                cmd.Parameters.Add("@chatter", SqlDbType.VarChar, 200).Value = strUserName;
-
-                                                conn.Open();
-                                                cmd.ExecuteNonQuery();
-                                                conn.Close();
-                                            }
-
-                                            _irc.sendPublicChatMessage("The song \"" + songRequest + "\" has been successfully requested!");
-                                        }
-                                    }
-                                    else
-                                        _irc.sendPublicChatMessage("Song requests are disabled at the moment");
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!sr");
-                                }
+                                _cmdGen.CmdSR(isSongRequestAvail, message, strUserName);
                             }
 
                             if (message.Equals("!currentsong") && !isUserTimedout(strUserName))
@@ -2017,30 +1896,40 @@ namespace TwitchBot
 
         static async Task<ChannelJSON> GetChannel()
         {
-            using (var client = new HttpClient())
+            using (HttpClient client = new HttpClient())
             {
-                var body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + _strBroadcasterName);
-                var response = JsonConvert.DeserializeObject<ChannelJSON>(body);
+                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + _strBroadcasterName);
+                ChannelJSON response = JsonConvert.DeserializeObject<ChannelJSON>(body);
                 return response;
             }
         }
 
-        static async Task<FollowerInfo> GetBroadcasterInfo()
+        public static async Task<RootStreamJSON> GetStream()
         {
-            using (var client = new HttpClient())
+            using (HttpClient client = new HttpClient())
             {
-                var body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + _strBroadcasterName + "/follows?limit=" + _intFollowers);
-                var response = JsonConvert.DeserializeObject<FollowerInfo>(body);
+                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/streams/" + _strBroadcasterName);
+                RootStreamJSON response = JsonConvert.DeserializeObject<RootStreamJSON>(body);
+                return response;
+            }
+        }
+
+        static async Task<FollowerInfo> GetFollowerInfo()
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + _strBroadcasterName + "/follows?limit=" + _intFollowers);
+                FollowerInfo response = JsonConvert.DeserializeObject<FollowerInfo>(body);
                 return response;
             }
         }
 
         static async Task<ChatterInfo> GetChatters()
         {
-            using (var client = new HttpClient())
+            using (HttpClient client = new HttpClient())
             {
-                var body = await client.GetStringAsync("https://tmi.twitch.tv/group/user/" + _strBroadcasterName + "/chatters");
-                var response = JsonConvert.DeserializeObject<ChatterInfo>(body);
+                string body = await client.GetStringAsync("https://tmi.twitch.tv/group/user/" + _strBroadcasterName + "/chatters");
+                ChatterInfo response = JsonConvert.DeserializeObject<ChatterInfo>(body);
                 return response;
             }
         }

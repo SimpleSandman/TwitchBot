@@ -135,6 +135,8 @@
   <ItemGroup>
     <Compile Include="ChannelJSON.cs" />
     <Compile Include="ChatterInfo.cs" />
+    <Compile Include="CmdBrdCstr.cs" />
+    <Compile Include="CmdGen.cs" />
     <Compile Include="DelayMsg.cs" />
     <Compile Include="FollowerInfo.cs" />
     <Compile Include="IrcClient.cs" />
@@ -150,6 +152,7 @@
     </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="SpotifyControl.cs" />
+    <Compile Include="StreamJSON.cs" />
     <Compile Include="Timeout.cs" />
   </ItemGroup>
   <ItemGroup>
