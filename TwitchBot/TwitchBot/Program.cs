@@ -516,15 +516,11 @@ namespace TwitchBot
                             {
                                 /* Display bot settings */
                                 if (message.Equals("!botsettings"))
-                                {
                                     _cmdBrdCstr.CmdBotSettings(_isAutoPublishTweet, _isAutoDisplaySong, _strCurrencyType);
-                                }
 
                                 /* Stop running the bot */
                                 if (message.Equals("!exitbot"))
-                                {
                                     _cmdBrdCstr.CmdExitBot();
-                                }
 
                                 /* Manually connect to Spotify */
                                 if (message.Equals("!spotifyconnect"))
@@ -547,129 +543,25 @@ namespace TwitchBot
                                     spotifyCtrl.skipBtn_Click();
 
                                 /* Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets) */
-                                if (message.Equals("!enabletweet"))
-                                {
-                                    try
-                                    {
-                                        if (!hasTwitterInfo)
-                                            _irc.sendPublicChatMessage("You are missing twitter info @" + _strBroadcasterName);
-                                        else
-                                        {
-                                            _isAutoPublishTweet = true;
-                                            Properties.Settings.Default.enableTweet = _isAutoPublishTweet;
-                                            Properties.Settings.Default.Save();
-
-                                            Console.WriteLine("Auto publish tweets is set to [" + _isAutoPublishTweet + "]");
-                                            _irc.sendPublicChatMessage(_strBroadcasterName + ": Automatic tweets is set to \"" + _isAutoPublishTweet + "\"");
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!enabletweet");
-                                    }
-                                }
+                                if (message.Equals("!settweet on"))
+                                    _cmdBrdCstr.CmdEnableTweet(ref _isAutoPublishTweet, _strBroadcasterName, hasTwitterInfo);
 
                                 /* Disables tweets from being sent out from this bot */
-                                if (message.Equals("!disabletweet"))
-                                {
-                                    try
-                                    {
-                                        if (!hasTwitterInfo)
-                                            _irc.sendPublicChatMessage("You are missing twitter info @" + _strBroadcasterName);
-                                        else
-                                        {
-                                            _isAutoPublishTweet = false;
-                                            Properties.Settings.Default.enableTweet = _isAutoPublishTweet;
-                                            Properties.Settings.Default.Save();
-
-                                            Console.WriteLine("Auto publish tweets is set to [" + _isAutoPublishTweet + "]");
-                                            _irc.sendPublicChatMessage(_strBroadcasterName + ": Automatic tweets is set to \"" + _isAutoPublishTweet + "\"");
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!disabletweet");
-                                    }
-                                }
+                                if (message.Equals("!settweet off"))
+                                    _cmdBrdCstr.CmdDisableTweet(ref _isAutoPublishTweet, _strBroadcasterName, hasTwitterInfo);
 
                                 /* Enables viewers to request songs (default off) */
                                 if (message.Equals("!srmode on"))
-                                {
-                                    try
-                                    {
-                                        isSongRequestAvail = true;
-                                        _irc.sendPublicChatMessage("Song requests enabled");
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!srmode on");
-                                    }
-                                }
+                                    _cmdBrdCstr.CmdEnableSRMode(ref isSongRequestAvail);
 
                                 /* Disables viewers to request songs (default off) */
                                 if (message.Equals("!srmode off"))
-                                {
-                                    try
-                                    {
-                                        isSongRequestAvail = false;
-                                        _irc.sendPublicChatMessage("Song requests disabled");
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!srmode off");
-                                    }
-                                }
+                                    _cmdBrdCstr.CmdDisableSRMode(ref isSongRequestAvail);
 
                                 /* Updates the title of the Twitch channel */
-                                // Usage: !updatetitle "[title]" (with quotation marks)
+                                // Usage: !updatetitle [title]
                                 if (message.StartsWith("!updatetitle"))
-                                {
-                                    try
-                                    {
-                                        // Get title from command parameter
-                                        string title = string.Empty;
-                                        int lengthParam1 = (GetNthIndex(message, '"', 2) - message.IndexOf('"')) - 1;
-                                        int startIndexParam1 = message.IndexOf('"') + 1;
-                                        title = message.Substring(startIndexParam1, lengthParam1);
-
-                                        // Send HTTP method PUT to base URI in order to change the title
-                                        var client = new RestClient("https://api.twitch.tv/kraken/channels/" + _strBroadcasterName);
-                                        var request = new RestRequest(Method.PUT);
-                                        request.AddHeader("cache-control", "no-cache");
-                                        request.AddHeader("content-type", "application/json");
-                                        request.AddHeader("authorization", "OAuth " + twitchAccessToken);
-                                        request.AddHeader("accept", "application/vnd.twitchtv.v3+json");
-                                        request.AddParameter("application/json", "{\"channel\":{\"status\":\"" + title + "\"}}",
-                                            ParameterType.RequestBody);
-
-                                        IRestResponse response = null;
-                                        try
-                                        {
-                                            response = client.Execute(request);
-                                            string statResponse = response.StatusCode.ToString();
-                                            if (statResponse.Contains("OK"))
-                                            {
-                                                _irc.sendPublicChatMessage("Twitch channel title updated to \"" + title +
-                                                    "\" || Refresh your browser ([CTRL] + [F5]) or twitch app in order to see the change");
-                                            }
-                                            else
-                                                Console.WriteLine(response.ErrorMessage);
-                                        }
-                                        catch (WebException ex)
-                                        {
-                                            if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.BadRequest)
-                                            {
-                                                Console.WriteLine("Error 400 detected!!");
-                                            }
-                                            response = (IRestResponse)ex.Response;
-                                            Console.WriteLine("Error: " + response);
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!updatetitle");
-                                    }
-                                }
+                                    _cmdBrdCstr.CmdUpdateTitle(message, twitchAccessToken, _strBroadcasterName);
 
                                 /* Updates the game of the Twitch channel */
                                 // Usage: !updategame "[game]" (with quotation marks)
@@ -701,7 +593,7 @@ namespace TwitchBot
                                             if (statResponse.Contains("OK"))
                                             {
                                                 _irc.sendPublicChatMessage("Twitch channel game status updated to \"" + game +
-                                                    "\" || Restart your connection to the stream or twitch app in order to see the change");
+                                                    "\" || Restart your connection to the stream or twitch app to see the change");
                                                 if (_isAutoPublishTweet && hasTwitterInfo)
                                                 {
                                                     SendTweet("Watch me stream " + game + " on Twitch" + Environment.NewLine
@@ -1924,7 +1816,7 @@ namespace TwitchBot
         /// <param name="findChar"></param>
         /// <param name="n"></param>
         /// <returns></returns>
-        private static int GetNthIndex(string s, char findChar, int n)
+        public static int GetNthIndex(string s, char findChar, int n)
         {
             int count = 0;
             
