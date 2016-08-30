@@ -22,7 +22,7 @@ namespace TwitchBot
             lstMod = value;
         }
 
-        public void addNewModToLst(string strRecipient, int strBroadcaster, string connStr)
+        public void addNewModToLst(string strRecipient, int intBroadcaster, string connStr)
         {
             try
             {
@@ -33,7 +33,7 @@ namespace TwitchBot
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = strBroadcaster;
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcaster;
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
@@ -48,7 +48,7 @@ namespace TwitchBot
             }
         }
 
-        public void delOldModFromLst(string strUserName, int strBroadcaster, string connStr)
+        public void delOldModFromLst(string strRecipient, int intBroadcaster, string connStr)
         {
             try
             {
@@ -58,15 +58,15 @@ namespace TwitchBot
                 using (SqlConnection conn = new SqlConnection(connStr))
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strUserName;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = strBroadcaster;
+                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcaster;
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
                     conn.Close();
                 }
 
-                lstMod.Remove(strUserName);
+                lstMod.Remove(strRecipient);
             }
             catch (Exception ex)
             {

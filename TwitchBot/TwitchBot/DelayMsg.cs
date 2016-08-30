@@ -10,7 +10,6 @@ namespace TwitchBot
     public class DelayMsg
     {
         private Thread _msgSender;
-        private List<Tuple<string, DateTime>> _lstTupSentMsg = new List<Tuple<string, DateTime>>();
         
         public DelayMsg()
         {
@@ -25,33 +24,27 @@ namespace TwitchBot
 
         public void Run()
         {
-            while (true)
+            try
             {
-                /* Make sure to send messages at the proper time */
-                if (Program._lstTupDelayMsg.Count > 0)
+                while (true)
                 {
-                    foreach (Tuple<string, DateTime> lstTupDelayMsg in Program._lstTupDelayMsg)
+                    /* Make sure to send messages at the proper time */
+                    if (Program._lstTupDelayMsg.Count > 0)
                     {
-                        if (lstTupDelayMsg.Item2 < DateTime.Now)
+                        /* Send the first element from the list of delayed messages */
+                        Tuple<string, DateTime> tupFirstMsg = Program._lstTupDelayMsg.First();
+                        if (tupFirstMsg.Item2 < DateTime.Now)
                         {
-                            Program._irc.sendPublicChatMessage(lstTupDelayMsg.Item1);
-                            Console.WriteLine("Message sent: " + lstTupDelayMsg.Item1);
-                            _lstTupSentMsg.Add(lstTupDelayMsg); // mark message as sent
+                            Program._irc.sendPublicChatMessage(tupFirstMsg.Item1);
+                            Console.WriteLine("Message sent: " + tupFirstMsg.Item1);
+                            Program._lstTupDelayMsg.Remove(tupFirstMsg); // remove sent message from list
                         }
-                    }
-
-                    /* Remove sent messages from list of delayed messages */
-                    if (_lstTupSentMsg.Count > 0)
-                    {
-                        foreach (Tuple<string, DateTime> lstTupRmMsg in _lstTupSentMsg)
-                        {
-                            int intIndex = Program._lstTupDelayMsg.FindIndex(r => r == lstTupRmMsg);
-                            Program._lstTupDelayMsg.RemoveAt(intIndex); // remove message from delay message list
-                        }
-
-                        _lstTupSentMsg.Clear();
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Program.LogError(ex, "DelayMsg", "Run()", false);
             }
         }
     }

@@ -52,10 +52,16 @@ namespace TwitchBot
         {
             try
             {
-                string strDuration = Program.GetStream().Result.stream.created_at;
-                TimeSpan ts = DateTime.UtcNow - DateTime.Parse(strDuration, new DateTimeFormatInfo(), DateTimeStyles.AdjustToUniversal);
-                string strResultDuration = String.Format("{0:h\\:mm\\:ss}", ts);
-                Program._irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
+                // Check if the channel is live
+                if (Program.GetStream().Result.stream != null)
+                {
+                    string strDuration = Program.GetStream().Result.stream.created_at;
+                    TimeSpan ts = DateTime.UtcNow - DateTime.Parse(strDuration, new DateTimeFormatInfo(), DateTimeStyles.AdjustToUniversal);
+                    string strResultDuration = String.Format("{0:h\\:mm\\:ss}", ts);
+                    Program._irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
+                }
+                else
+                    Program._irc.sendPublicChatMessage("This channel is not live anything at the moment");
             }
             catch (Exception ex)
             {
