@@ -519,271 +519,96 @@ namespace TwitchBot
                                     _cmdBrdCstr.CmdBotSettings();
 
                                 /* Stop running the bot */
-                                if (message.Equals("!exitbot"))
+                                else if (message.Equals("!exitbot"))
                                     _cmdBrdCstr.CmdExitBot();
 
                                 /* Manually connect to Spotify */
-                                if (message.Equals("!spotifyconnect"))
+                                else if (message.Equals("!spotifyconnect"))
                                     spotifyCtrl.Connect();
 
                                 /* Press local Spotify play button [>] */
-                                if (message.Equals("!spotifyplay"))
+                                else if (message.Equals("!spotifyplay"))
                                     spotifyCtrl.playBtn_Click();
 
                                 /* Press local Spotify pause button [||] */
-                                if (message.Equals("!spotifypause"))
+                                else if (message.Equals("!spotifypause"))
                                     spotifyCtrl.pauseBtn_Click();
 
                                 /* Press local Spotify previous button [|<] */
-                                if (message.Equals("!spotifyprev"))
+                                else if (message.Equals("!spotifyprev"))
                                     spotifyCtrl.prevBtn_Click();
 
                                 /* Press local Spotify next (skip) button [>|] */
-                                if (message.Equals("!spotifynext"))
+                                else if (message.Equals("!spotifynext"))
                                     spotifyCtrl.skipBtn_Click();
 
                                 /* Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets) */
-                                if (message.Equals("!sendtweet on"))
+                                else if (message.Equals("!sendtweet on"))
                                     _cmdBrdCstr.CmdEnableTweet(hasTwitterInfo);
 
                                 /* Disables tweets from being sent out from this bot */
-                                if (message.Equals("!sendtweet off"))
+                                else if (message.Equals("!sendtweet off"))
                                     _cmdBrdCstr.CmdDisableTweet(hasTwitterInfo);
 
                                 /* Enables viewers to request songs (default off) */
-                                if (message.Equals("!srmode on"))
+                                else if (message.Equals("!srmode on"))
                                     _cmdBrdCstr.CmdEnableSRMode(ref isSongRequestAvail);
 
                                 /* Disables viewers to request songs (default off) */
-                                if (message.Equals("!srmode off"))
+                                else if (message.Equals("!srmode off"))
                                     _cmdBrdCstr.CmdDisableSRMode(ref isSongRequestAvail);
 
                                 /* Updates the title of the Twitch channel */
                                 // Usage: !updatetitle [title]
-                                if (message.StartsWith("!updatetitle"))
+                                else if (message.StartsWith("!updatetitle"))
                                     _cmdBrdCstr.CmdUpdateTitle(message, twitchAccessToken);
 
                                 /* Updates the game of the Twitch channel */
                                 // Usage: !updategame "[game]" (with quotation marks)
-                                if (message.StartsWith("!updategame"))
+                                else if (message.StartsWith("!updategame"))
                                     _cmdBrdCstr.CmdUpdateGame(message, twitchAccessToken, hasTwitterInfo);
 
                                 /* Sends a manual tweet (if credentials have been provided) */
                                 // Useage: !tweet "[message]" (use quotation marks)
-                                if (message.StartsWith("!tweet"))
+                                else if (message.StartsWith("!tweet"))
                                     _cmdBrdCstr.CmdTweet(hasTwitterInfo, message);
 
                                 /* Enables songs from local Spotify to be displayed inside the chat */
-                                if (message.Equals("!displaysongs on"))
+                                else if (message.Equals("!displaysongs on"))
                                     _cmdBrdCstr.CmdEnableDisplaySongs();
 
                                 /* Disables songs from local Spotify to be displayed inside the chat */
-                                if (message.Equals("!displaysongs off"))
+                                else if (message.Equals("!displaysongs off"))
                                     _cmdBrdCstr.CmdDisableDisplaySongs();
 
                                 /* Add viewer to moderator list so they can have access to bot moderator commands */
                                 // Useage: !addmod @[username]
-                                if (message.StartsWith("!addmod") && message.Contains("@"))
+                                else if (message.StartsWith("!addmod") && message.Contains("@"))
                                     _cmdBrdCstr.CmdAddBotMod(message);
 
                                 /* Remove moderator from list so they can't access the bot moderator commands */
                                 // Useage: !delmod @[username]
-                                if (message.StartsWith("!delmod") && message.Contains("@"))
+                                else if (message.StartsWith("!delmod") && message.Contains("@"))
                                     _cmdBrdCstr.CmdDelBotMod(message);
 
                                 /* List bot moderators */
-                                if (message.Equals("!listmod"))
+                                else if (message.Equals("!listmod"))
                                     _cmdBrdCstr.CmdListMod();
 
                                 /* Add countdown */
                                 // Useage: !addcountdown [MM-DD-YY] [hh:mm:ss] [AM/PM] [message]
-                                if (message.StartsWith("!addcountdown"))
-                                {
-                                    try
-                                    {
-                                        // get due date of countdown
-                                        string strCountdownDT = message.Substring(14, 20); // MM-DD-YY hh:mm:ss AM
-                                        DateTime dtCountdown = Convert.ToDateTime(strCountdownDT);
-
-                                        // get message of countdown
-                                        string strCountdownMsg = message.Substring(34);
-
-                                        // log new countdown into db
-                                        string query = "INSERT INTO tblCountdown (dueDate, message, broadcaster) VALUES (@dueDate, @message, @broadcaster)";
-
-                                        using (SqlConnection conn = new SqlConnection(_connStr))
-                                        using (SqlCommand cmd = new SqlCommand(query, conn))
-                                        {
-                                            cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = dtCountdown;
-                                            cmd.Parameters.Add("@message", SqlDbType.VarChar, 50).Value = strCountdownMsg;
-                                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
-                                            conn.Open();
-                                            cmd.ExecuteNonQuery();
-                                        }
-
-                                        Console.WriteLine("Countdown added!");
-                                        _irc.sendPublicChatMessage($"Countdown added @{strUserName}");
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!addcountdown");
-                                    }
-                                }
+                                else if (message.StartsWith("!addcountdown"))
+                                    _cmdBrdCstr.CmdAddCountdown(message, strUserName);
 
                                 /* Edit countdown details (for either date and time or message) */
                                 // Usage (message): !editcountdownMSG [countdown id] [message]
                                 // Usage (date and time): !editcountdownDTE [countdown id] [MM-DD-YY] [hh:mm:ss] [AM/PM]
-                                if (message.StartsWith("!editcountdown"))
-                                {
-                                    try
-                                    {
-                                        int intReqCountdownID = -1;
-                                        string strReqCountdownID = message.Substring(18, GetNthIndex(message, ' ', 2) - GetNthIndex(message, ' ', 1) - 1);
-                                        bool bolValidCountdownID = int.TryParse(strReqCountdownID, out intReqCountdownID);
-
-                                        // validate requested countdown ID
-                                        if (!bolValidCountdownID || intReqCountdownID < 0)
-                                            _irc.sendPublicChatMessage("Please use a positive whole number to find your countdown ID");
-                                        else
-                                        {
-                                            // check if countdown ID exists
-                                            int intCountdownID = -1;
-                                            using (SqlConnection conn = new SqlConnection(_connStr))
-                                            {
-                                                conn.Open();
-                                                using (SqlCommand cmd = new SqlCommand("SELECT id, broadcaster FROM tblCountdown " 
-                                                    + "WHERE broadcaster = @broadcaster", conn))
-                                                {
-                                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                                                    using (SqlDataReader reader = cmd.ExecuteReader())
-                                                    {
-                                                        if (reader.HasRows)
-                                                        {
-                                                            while (reader.Read())
-                                                            {
-                                                                if (intReqCountdownID.ToString().Equals(reader["id"].ToString()))
-                                                                {
-                                                                    intCountdownID = int.Parse(reader["id"].ToString());
-                                                                    break;
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            // check if countdown ID was retrieved
-                                            if (intCountdownID == -1)
-                                                _irc.sendPublicChatMessage($"Cannot find the countdown ID: {intReqCountdownID}");
-                                            else
-                                            {
-                                                int intInputType = -1; // check if input is in the correct format
-                                                DateTime dtCountdown = new DateTime();
-                                                string strCountdownInput = message.Substring(GetNthIndex(message, ' ', 2) + 1);
-
-                                                /* Check if user wants to edit the date and time or message */
-                                                if (message.StartsWith("!editcountdownDTE"))
-                                                {
-                                                    // get new due date of countdown
-                                                    bool bolValidCountdownDT = DateTime.TryParse(strCountdownInput, out dtCountdown);
-
-                                                    if (!bolValidCountdownDT)
-                                                        _irc.sendPublicChatMessage("Please enter a valid date and time @" + strUserName);
-                                                    else
-                                                        intInputType = 1;
-                                                }
-                                                else if (message.StartsWith("!editcountdownMSG"))
-                                                {
-                                                    // get new message of countdown
-                                                    if (string.IsNullOrWhiteSpace(strCountdownInput))
-                                                        _irc.sendPublicChatMessage("Please enter a valid message @" + strUserName);
-                                                    else
-                                                        intInputType = 2;
-                                                }
-
-                                                // if input is correct update db
-                                                if (intInputType > 0)
-                                                {
-                                                    string strQuery = "";
-
-                                                    if (intInputType == 1)
-                                                        strQuery = "UPDATE dbo.tblCountdown SET dueDate = @dueDate WHERE (Id = @id AND broadcaster = @broadcaster)";
-                                                    else if (intInputType == 2)
-                                                        strQuery = "UPDATE dbo.tblCountdown SET message = @message WHERE (Id = @id AND broadcaster = @broadcaster)";
-
-                                                    using (SqlConnection conn = new SqlConnection(_connStr))
-                                                    using (SqlCommand cmd = new SqlCommand(strQuery, conn))
-                                                    {
-                                                        // append proper parameter
-                                                        if (intInputType == 1)
-                                                            cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = dtCountdown;
-                                                        else if (intInputType == 2)
-                                                            cmd.Parameters.Add("@message", SqlDbType.VarChar, 50).Value = strCountdownInput;
-
-                                                        cmd.Parameters.Add("@id", SqlDbType.Int).Value = intCountdownID;   
-                                                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
-                                                        conn.Open();
-                                                        cmd.ExecuteNonQuery();
-                                                    }
-
-                                                    Console.WriteLine($"Changes to countdown ID: {intReqCountdownID} have been made @{strUserName}");
-                                                    _irc.sendPublicChatMessage($"Changes to countdown ID: {intReqCountdownID} have been made @{strUserName}");
-                                                }
-                                            }
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!editcountdown");
-                                    }
-                                }
+                                else if (message.StartsWith("!editcountdown"))
+                                    _cmdBrdCstr.CmdEditCountdown(message, strUserName);
 
                                 /* List all of the countdowns the broadcaster has set */
-                                if (message.Equals("!listcountdown"))
-                                {
-                                    try
-                                    {
-                                        string strCountdownList = "";
-
-                                        using (SqlConnection conn = new SqlConnection(_connStr))
-                                        {
-                                            conn.Open();
-                                            using (SqlCommand cmd = new SqlCommand("SELECT Id, dueDate, message, broadcaster FROM tblCountdown "
-                                                + "WHERE broadcaster = @broadcaster ORDER BY Id", conn))
-                                            {
-                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                                                using (SqlDataReader reader = cmd.ExecuteReader())
-                                                {
-                                                    if (reader.HasRows)
-                                                    {
-                                                        while (reader.Read())
-                                                        {
-                                                            strCountdownList += "ID: " +  reader["Id"].ToString() 
-                                                                + " Message: \"" + reader["message"].ToString() 
-                                                                + "\" Time: \"" + reader["dueDate"].ToString()
-                                                                + "\" || ";
-                                                        }
-                                                        StringBuilder strBdrPartyList = new StringBuilder(strCountdownList);
-                                                        strBdrPartyList.Remove(strCountdownList.Length - 4, 4); // remove extra " || "
-                                                        strCountdownList = strBdrPartyList.ToString(); // replace old countdown list string with new
-                                                        _irc.sendPublicChatMessage(strCountdownList);
-                                                    }
-                                                    else
-                                                    {
-                                                        Console.WriteLine("No countdown messages are set at the moment");
-                                                        _irc.sendPublicChatMessage("No countdown messages are set at the moment @" + strUserName);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!listcountdown");
-                                    }
-                                }
+                                else if (message.Equals("!listcountdown"))
+                                    _cmdBrdCstr.CmdListCountdown(strUserName);
 
                                 /* insert more broadcaster commands here */
                             }
