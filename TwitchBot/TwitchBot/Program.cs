@@ -45,6 +45,7 @@ namespace TwitchBot
         public static bool _isAutoDisplaySong = false; // set to auto song status (disabled by default)
         public static List<Tuple<string, DateTime>> _lstTupDelayMsg = new List<Tuple<string, DateTime>>(); // used to handle delayed msgs
         public static CmdBrdCstr _cmdBrdCstr = new CmdBrdCstr();
+        public static CmdMod _cmdMod = new CmdMod();
         public static CmdGen _cmdGen = new CmdGen();
 
         static void Main(string[] args)
@@ -618,18 +619,9 @@ namespace TwitchBot
                              */
                             if (strUserName.Equals(_strBroadcasterName) || _mod.getLstMod().Contains(strUserName.ToLower()))
                             {
-                                /* Posts discord link into chat (if available) */
+                                /* Displays Discord link into chat (if available) */
                                 if (message.Equals("!discord") && !isUserTimedout(strUserName))
-                                {
-                                    try
-                                    {
-                                        _irc.sendPublicChatMessage("Come be a potato with us on our own Discord server! " + _strDiscordLink);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!discord");
-                                    }
-                                }
+                                    _cmdMod.CmdDiscord();
 
                                 /* Takes money away from a user */
                                 // Useage: !charge [-amount] @[username]

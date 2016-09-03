@@ -137,6 +137,7 @@
     <Compile Include="ChatterInfo.cs" />
     <Compile Include="CmdBrdCstr.cs" />
     <Compile Include="CmdGen.cs" />
+    <Compile Include="CmdMod.cs" />
     <Compile Include="DelayMsg.cs" />
     <Compile Include="FollowerInfo.cs" />
     <Compile Include="IrcClient.cs" />
