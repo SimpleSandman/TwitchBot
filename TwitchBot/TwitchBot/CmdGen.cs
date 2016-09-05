@@ -12,6 +12,21 @@ namespace TwitchBot
 {
     public class CmdGen
     {
+        public void CmdCmds()
+        {
+            try
+            {
+                Program._irc.sendPublicChatMessage("--- !hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username]"
+                    + "| !currentsong | !srlist | !sr [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] ---"
+                    + " Link to full list of commands: "
+                    + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
+            }
+            catch (Exception ex)
+            {
+                Program.LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!cmds");
+            }
+        }
+
         public void CmdHello(string strUserName)
         {
             try
@@ -61,7 +76,7 @@ namespace TwitchBot
                     Program._irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
                 }
                 else
-                    Program._irc.sendPublicChatMessage("This channel is not live anything at the moment");
+                    Program._irc.sendPublicChatMessage("This channel is not streaming anything at the moment");
             }
             catch (Exception ex)
             {

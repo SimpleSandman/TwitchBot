@@ -518,7 +518,7 @@ namespace TwitchBot
         /// <summary>
         /// List all of the countdowns the broadcaster has set
         /// </summary>
-        /// <param name="strUserName"></param>
+        /// <param name="strUserName">User that sent the message</param>
         public void CmdListCountdown(string strUserName)
         {
             try
