@@ -685,7 +685,7 @@ namespace TwitchBot
                             else if (message.StartsWith("!sr ") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdSR(isSongRequestAvail, message, strUserName);
 
-                            else if (message.Equals("!currentsong") && !isUserTimedout(strUserName))
+                            else if (message.Equals("!spotifycurr") && !isUserTimedout(strUserName))
                             {
                                 try
                                 {
@@ -701,7 +701,7 @@ namespace TwitchBot
                                 }
                                 catch (Exception ex)
                                 {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!currentsong");
+                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!spotifycurr");
                                 }
                             }
 
