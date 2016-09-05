@@ -662,18 +662,23 @@ namespace TwitchBot
                             /* 
                              * General commands 
                              */
+                            /* Display some viewer commands a link to command documentation */
                             if (message.Equals("!cmds") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdCmds();
 
+                            /* Display a static greeting */
                             else if (message.Equals("!hello") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdHello(strUserName);
 
+                            /* Display the current time in UTC (Coordinated Universal Time) */
                             else if (message.Equals("!utctime") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdUtcTime();
 
+                            /* Display the current time in the time zone the host is located */
                             else if (message.Equals("!hosttime") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdHostTime(_strBroadcasterName);
 
+                            /* Shows how long the broadcaster has been streaming */
                             else if (message.Equals("!duration") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdDuration();
 
@@ -682,44 +687,20 @@ namespace TwitchBot
                                 _cmdGen.CmdListSR();
 
                             /* Insert requested song into database */
+                            // Useage: !sr [artist] - [song title]
                             else if (message.StartsWith("!sr ") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdSR(isSongRequestAvail, message, strUserName);
 
+                            /* Displays the current song being played from Spotify */
                             else if (message.Equals("!spotifycurr") && !isUserTimedout(strUserName))
-                            {
-                                try
-                                {
-                                    StatusResponse status = _spotify.GetStatus();
-                                    if (status != null)
-                                    {
-                                        _irc.sendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
-                                            + " || Artist: " + status.Track.ArtistResource.Name
-                                            + " || Album: " + status.Track.AlbumResource.Name);
-                                    }
-                                    else
-                                        _irc.sendPublicChatMessage("The broadcaster is not playing a song at the moment");
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!spotifycurr");
-                                }
-                            }
+                                _cmdGen.CmdSpotifyCurr();
 
-                            /* Action commands */
-                            if (message.StartsWith("!slap @") && !isUserTimedout(strUserName))
-                            {
-                                try
-                                {
-                                    string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                                    reactionCmd(message, strUserName, strRecipient, "Stop smacking yourself", "slaps", Effectiveness());
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!slap");
-                                }
-                            }
+                            /* Slaps a user and rates its effectiveness */
+                            // Useage: !slap @[username]
+                            else if (message.StartsWith("!slap @") && !isUserTimedout(strUserName))
+                                _cmdGen.CmdSlap(message, strUserName);
 
-                            if (message.StartsWith("!stab @") && !isUserTimedout(strUserName))
+                            else if (message.StartsWith("!stab @") && !isUserTimedout(strUserName))
                             {
                                 try
                                 {
@@ -732,7 +713,7 @@ namespace TwitchBot
                                 }
                             }
 
-                            if (message.StartsWith("!shoot @") && !isUserTimedout(strUserName))
+                            else if (message.StartsWith("!shoot @") && !isUserTimedout(strUserName))
                             {
                                 try
                                 {
@@ -775,7 +756,7 @@ namespace TwitchBot
                                 }
                             }
 
-                            if (message.StartsWith("!throw ") && message.Contains("@") && !isUserTimedout(strUserName))
+                            else if (message.StartsWith("!throw ") && message.Contains("@") && !isUserTimedout(strUserName))
                             {
                                 try
                                 {
@@ -797,7 +778,7 @@ namespace TwitchBot
                                 }
                             }
 
-                            if (message.StartsWith("!partyup ") && !isUserTimedout(strUserName))
+                            else if (message.StartsWith("!partyup ") && !isUserTimedout(strUserName))
                             {
                                 try
                                 {
@@ -933,7 +914,7 @@ namespace TwitchBot
                                 }
                             }
 
-                            if (message.Equals("!partyuprequestlist") && !isUserTimedout(strUserName))
+                            else if (message.Equals("!partyuprequestlist") && !isUserTimedout(strUserName))
                             {
                                 try
                                 {
@@ -1007,7 +988,7 @@ namespace TwitchBot
                                 }
                             }
 
-                            if (message.Equals("!partyuplist") && !isUserTimedout(strUserName))
+                            else if (message.Equals("!partyuplist") && !isUserTimedout(strUserName))
                             {
                                 try
                                 {
@@ -1080,7 +1061,7 @@ namespace TwitchBot
                                 }
                             }
 
-                            if (message.Equals("!myfunds") && !isUserTimedout(strUserName))
+                            else if (message.Equals("!myfunds") && !isUserTimedout(strUserName))
                             {
                                 try
                                 {
@@ -1355,7 +1336,7 @@ namespace TwitchBot
             return "";
         }
 
-        private static bool reactionCmd(string message, string strOrigUser, string strRecipient, string strMsgToSelf, string strAction, string strAddlMsg = "")
+        public static bool reactionCmd(string message, string strOrigUser, string strRecipient, string strMsgToSelf, string strAction, string strAddlMsg = "")
         {
             string strRoleType = chatterValid(strOrigUser, strRecipient);
 
@@ -1533,7 +1514,7 @@ namespace TwitchBot
             return intBroadcasterID;
         }
 
-        private static string Effectiveness()
+        public static string Effectiveness()
         {
             Random rnd = new Random(DateTime.Now.Millisecond);
             int intEffectiveLvl = rnd.Next(3); // between 0 and 2

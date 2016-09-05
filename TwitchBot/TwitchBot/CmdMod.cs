@@ -20,7 +20,7 @@ namespace TwitchBot
                 if (String.IsNullOrEmpty(Program._strDiscordLink) || Program._strDiscordLink.Equals("Link unavailable at the moment"))
                     Program._irc.sendPublicChatMessage("Discord link unavailable at the moment");
                 else
-                    Program._irc.sendPublicChatMessage("Join me on a wonderful discord server I am a part of! " + Program._strDiscordLink);
+                    Program._irc.sendPublicChatMessage("Join me on a wonderful discord server I am proud to be a part of! " + Program._strDiscordLink);
             }
             catch (Exception ex)
             {

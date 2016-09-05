@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Data.SqlClient;
 using System.Data;
 using System.Text.RegularExpressions;
+using SpotifyAPI.Local.Models;
 
 namespace TwitchBot
 {
@@ -17,7 +18,7 @@ namespace TwitchBot
             try
             {
                 Program._irc.sendPublicChatMessage("--- !hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username]"
-                    + "| !currentsong | !srlist | !sr [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] ---"
+                    + "| !spotifycurr | !srlist | !sr [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] ---"
                     + " Link to full list of commands: "
                     + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
             }
@@ -184,6 +185,42 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 Program.LogError(ex, "CmdGen", "CmdSR(bool, string, string)", false, "!sr");
+            }
+        }
+
+        /// <summary>
+        /// Displays the current song being played from Spotify
+        /// </summary>
+        public void CmdSpotifyCurr()
+        {
+            try
+            {
+                StatusResponse status = Program._spotify.GetStatus();
+                if (status != null)
+                {
+                    Program._irc.sendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
+                        + " || Artist: " + status.Track.ArtistResource.Name
+                        + " || Album: " + status.Track.AlbumResource.Name);
+                }
+                else
+                    Program._irc.sendPublicChatMessage("The broadcaster is not playing a song at the moment");
+            }
+            catch (Exception ex)
+            {
+                Program.LogError(ex, "CmdGen", "CmdSpotifyCurr()", false, "!spotifycurr");
+            }
+        }
+
+        public void CmdSlap(string message, string strUserName)
+        {
+            try
+            {
+                string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                Program.reactionCmd(message, strUserName, strRecipient, "Stop smacking yourself", "slaps", Program.Effectiveness());
+            }
+            catch (Exception ex)
+            {
+                Program.LogError(ex, "CmdGen", "CmdSlap(string, string)", false, "!slap");
             }
         }
     }
