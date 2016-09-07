@@ -36,7 +36,7 @@ namespace TwitchBot
                         if (tupFirstMsg.Item2 < DateTime.Now)
                         {
                             Program._irc.sendPublicChatMessage(tupFirstMsg.Item1);
-                            Console.WriteLine("Message sent: " + tupFirstMsg.Item1);
+                            Console.WriteLine("Delayed message sent: " + tupFirstMsg.Item1);
                             Program._lstTupDelayMsg.Remove(tupFirstMsg); // remove sent message from list
                         }
                     }

@@ -28,7 +28,7 @@ namespace TwitchBot
 {
     class Program
     {
-        public static SpotifyLocalAPI _spotify;
+        public static SpotifyControl _spotify;
         public static IrcClient _irc;
         public static Moderator _mod;
         public static Timeout _timeout;
@@ -406,10 +406,7 @@ namespace TwitchBot
                 }
 
                 /* Connect to local spotify client */
-                _spotify = new SpotifyLocalAPI();
-                SpotifyControl spotifyCtrl = new SpotifyControl();
-                _spotify.OnPlayStateChange += spotifyCtrl.spotify_OnPlayStateChange;
-                _spotify.OnTrackChange += spotifyCtrl.spotify_OnTrackChange;
+                _spotify = new SpotifyControl();
 
                 /* Make sure usernames are set to lowercase for the rest of the application */
                 _strBotName = _strBotName.ToLower();
@@ -422,14 +419,14 @@ namespace TwitchBot
                 _irc = new IrcClient("irc.twitch.tv", 6667, _strBotName, twitchOAuth, _strBroadcasterName);
 
                 // Update channel info
-                _intFollowers = GetChannel().Result.followers;
-                _strBroadcasterGame = GetChannel().Result.game;
+                _intFollowers = TaskJSON.GetChannel().Result.followers;
+                _strBroadcasterGame = TaskJSON.GetChannel().Result.game;
 
                 /* Make new thread to get messages */
-                Thread thdIrcClient = new Thread(() => GetChatBox(spotifyCtrl, isSongRequestAvail, twitchAccessToken, hasTwitterInfo));
+                Thread thdIrcClient = new Thread(() => GetChatBox(isSongRequestAvail, twitchAccessToken, hasTwitterInfo));
                 thdIrcClient.Start();
 
-                spotifyCtrl.Connect(); // attempt to connect to local Spotify client
+                _spotify.Connect(); // attempt to connect to local Spotify client
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine("---> Extra Bot Settings <---");
@@ -478,11 +475,10 @@ namespace TwitchBot
         /// <summary>
         /// Monitor chat box for commands
         /// </summary>
-        /// <param name="spotifyCtrl"></param>
         /// <param name="isSongRequestAvail"></param>
         /// <param name="twitchAccessToken"></param>
         /// <param name="hasTwitterInfo"></param>
-        private static void GetChatBox(SpotifyControl spotifyCtrl, bool isSongRequestAvail, string twitchAccessToken, bool hasTwitterInfo)
+        private static void GetChatBox(bool isSongRequestAvail, string twitchAccessToken, bool hasTwitterInfo)
         {
             try
             {
@@ -525,23 +521,23 @@ namespace TwitchBot
 
                                 /* Manually connect to Spotify */
                                 else if (message.Equals("!spotifyconnect"))
-                                    spotifyCtrl.Connect();
+                                    _spotify.Connect();
 
                                 /* Press local Spotify play button [>] */
                                 else if (message.Equals("!spotifyplay"))
-                                    spotifyCtrl.playBtn_Click();
+                                    _spotify.playBtn_Click();
 
                                 /* Press local Spotify pause button [||] */
                                 else if (message.Equals("!spotifypause"))
-                                    spotifyCtrl.pauseBtn_Click();
+                                    _spotify.pauseBtn_Click();
 
                                 /* Press local Spotify previous button [|<] */
                                 else if (message.Equals("!spotifyprev"))
-                                    spotifyCtrl.prevBtn_Click();
+                                    _spotify.prevBtn_Click();
 
                                 /* Press local Spotify next (skip) button [>|] */
                                 else if (message.Equals("!spotifynext"))
-                                    spotifyCtrl.skipBtn_Click();
+                                    _spotify.skipBtn_Click();
 
                                 /* Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets) */
                                 else if (message.Equals("!sendtweet on"))
@@ -764,46 +760,6 @@ namespace TwitchBot
             }
         }
 
-        public static async Task<ChannelJSON> GetChannel()
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + _strBroadcasterName);
-                ChannelJSON response = JsonConvert.DeserializeObject<ChannelJSON>(body);
-                return response;
-            }
-        }
-
-        public static async Task<RootStreamJSON> GetStream()
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/streams/" + _strBroadcasterName);
-                RootStreamJSON response = JsonConvert.DeserializeObject<RootStreamJSON>(body);
-                return response;
-            }
-        }
-
-        static async Task<FollowerInfo> GetFollowerInfo()
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + _strBroadcasterName + "/follows?limit=" + _intFollowers);
-                FollowerInfo response = JsonConvert.DeserializeObject<FollowerInfo>(body);
-                return response;
-            }
-        }
-
-        static async Task<ChatterInfo> GetChatters()
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                string body = await client.GetStringAsync("https://tmi.twitch.tv/group/user/" + _strBroadcasterName + "/chatters");
-                ChatterInfo response = JsonConvert.DeserializeObject<ChatterInfo>(body);
-                return response;
-            }
-        }
-
         /// <summary>
         /// Find the Nth index of a character
         /// </summary>
@@ -937,7 +893,7 @@ namespace TwitchBot
             if (strRecipient.Equals(_strBotName))
                 return "mod";
 
-            Chatters chatters = GetChatters().Result.chatters;
+            Chatters chatters = TaskJSON.GetChatters().Result.chatters;
 
             // check moderators
             if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("mod"))

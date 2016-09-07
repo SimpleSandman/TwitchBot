@@ -24,7 +24,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, bool)", false, "!cmds");
+                Program.LogError(ex, "CmdGen", "CmdCmds()", false, "!cmds");
             }
         }
 
@@ -69,9 +69,9 @@ namespace TwitchBot
             try
             {
                 // Check if the channel is live
-                if (Program.GetStream().Result.stream != null)
+                if (TaskJSON.GetStream().Result.stream != null)
                 {
-                    string strDuration = Program.GetStream().Result.stream.created_at;
+                    string strDuration = TaskJSON.GetStream().Result.stream.created_at;
                     TimeSpan ts = DateTime.UtcNow - DateTime.Parse(strDuration, new DateTimeFormatInfo(), DateTimeStyles.AdjustToUniversal);
                     string strResultDuration = String.Format("{0:h\\:mm\\:ss}", ts);
                     Program._irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
@@ -347,7 +347,7 @@ namespace TwitchBot
                 bool isDuplicateRequestor = false;
 
                 // Get current game
-                Program._strBroadcasterGame = Program.GetChannel().Result.game;
+                Program._strBroadcasterGame = TaskJSON.GetChannel().Result.game;
 
                 // check if user entered something
                 if (message.Length < intInputIndex)
@@ -483,7 +483,7 @@ namespace TwitchBot
                 int intGameID = 0;
 
                 // Get current game
-                Program._strBroadcasterGame = Program.GetChannel().Result.game;
+                Program._strBroadcasterGame = TaskJSON.GetChannel().Result.game;
 
                 // grab game id in order to find party member
                 using (SqlConnection conn = new SqlConnection(Program._connStr))
@@ -560,7 +560,7 @@ namespace TwitchBot
                 int intGameID = 0;
 
                 // Get current game
-                Program._strBroadcasterGame = Program.GetChannel().Result.game;
+                Program._strBroadcasterGame = TaskJSON.GetChannel().Result.game;
 
                 // grab game id in order to find party member
                 using (SqlConnection conn = new SqlConnection(Program._connStr))

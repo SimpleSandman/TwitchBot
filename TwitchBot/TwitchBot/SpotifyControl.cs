@@ -14,8 +14,16 @@ namespace TwitchBot
 
     class SpotifyControl
     {
+        private SpotifyLocalAPI _spotify;
         private bool trackChanged = false; // used to prevent a paused song to skip to the next song
                                            // from displaying both "upcoming" and "current" song stats
+
+        public SpotifyControl()
+        {
+            _spotify = new SpotifyLocalAPI();
+            _spotify.OnPlayStateChange += spotify_OnPlayStateChange;
+            _spotify.OnTrackChange += spotify_OnTrackChange;
+        }
 
         public void Connect()
         {
@@ -24,25 +32,52 @@ namespace TwitchBot
                 Console.WriteLine("Spotify isn't running!");
                 return;
             }
+
             if (!SpotifyLocalAPI.IsSpotifyWebHelperRunning())
             {
                 Console.WriteLine("SpotifyWebHelper isn't running!");
                 return;
             }
 
-            bool successful = Program._spotify.Connect();
+            bool successful = _spotify.Connect();
             if (successful)
             {
                 Console.WriteLine("Connection to Spotify successful");
                 UpdateInfos();
-                Program._spotify.ListenForEvents = true;
+                _spotify.ListenForEvents = true;
             }
             else
             {
-                Console.WriteLine("Couldn't connect to the spotify client. Retry? ('Y' = Yes and 'N' = No)");
-                if (Console.ReadLine() == "Y")
+                Console.WriteLine("Couldn't connect to the spotify client. Retry? ('y' = Yes and 'n' = No)");
+                Console.WriteLine("If this problem persists, try reinstalling Spotify to the latest version");
+                if (Console.ReadLine() == "y")
                     Connect();
             }
+        }
+
+        public void playBtn_Click()
+        {
+            _spotify.Play();
+        }
+
+        public void pauseBtn_Click()
+        {
+            _spotify.Pause();
+        }
+
+        public void prevBtn_Click()
+        {
+            _spotify.Previous();
+        }
+
+        public void skipBtn_Click()
+        {
+            _spotify.Skip();
+        }
+
+        public StatusResponse GetStatus()
+        {
+            return _spotify.GetStatus();
         }
 
         public void UpdatePlayingStatus(bool playing)
@@ -51,46 +86,26 @@ namespace TwitchBot
 
         }
 
-        public void spotify_OnTrackChange(TrackChangeEventArgs e)
+        private void spotify_OnTrackChange(object sender, TrackChangeEventArgs e)
         {
             ShowUpdatedTrack(e.NewTrack, Program._isAutoDisplaySong);
             trackChanged = true;
         }
 
-        public void spotify_OnPlayStateChange(PlayStateEventArgs e)
+        private void spotify_OnPlayStateChange(object sender, PlayStateEventArgs e)
         {
             UpdatePlayingStatus(e.Playing);
 
-            StatusResponse status = Program._spotify.GetStatus();
+            StatusResponse status = _spotify.GetStatus();
             if (status.Track != null && status.Playing && !trackChanged) // Update track infos
                 ShowUpdatedTrack(status.Track, Program._isAutoDisplaySong);
 
             trackChanged = false;
         }
 
-        public void playBtn_Click()
-        {
-            Program._spotify.Play();
-        }
-
-        public void pauseBtn_Click()
-        {
-            Program._spotify.Pause();
-        }
-
-        public void prevBtn_Click()
-        {
-            Program._spotify.Previous();
-        }
-
-        public void skipBtn_Click()
-        {
-            Program._spotify.Skip();
-        }
-
         public void UpdateInfos()
         {
-            StatusResponse status = Program._spotify.GetStatus();
+            StatusResponse status = _spotify.GetStatus();
             if (status == null)
                 return;
 
