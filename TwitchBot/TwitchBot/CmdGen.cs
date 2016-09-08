@@ -18,7 +18,7 @@ namespace TwitchBot
             try
             {
                 Program._irc.sendPublicChatMessage("--- !hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username]"
-                    + "| !spotifycurr | !srlist | !sr [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] ---"
+                    + "| !spotifycurr | !srlist | !sr [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] | !gamble [money] ---"
                     + " Link to full list of commands: "
                     + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
             }
@@ -193,7 +193,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdSR(bool, string, string)", false, "!sr");
+                Program.LogError(ex, "CmdGen", "CmdSR(bool, string, string)", false, "!sr", message);
             }
         }
 
@@ -234,7 +234,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdSlap(string, string)", false, "!slap");
+                Program.LogError(ex, "CmdGen", "CmdSlap(string, string)", false, "!slap", message);
             }
         }
 
@@ -252,7 +252,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdStab(string, string)", false, "!stab");
+                Program.LogError(ex, "CmdGen", "CmdStab(string, string)", false, "!stab", message);
             }
         }
 
@@ -300,7 +300,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdShoot(string, string)", false, "!shoot");
+                Program.LogError(ex, "CmdGen", "CmdShoot(string, string)", false, "!shoot", message);
             }
         }
 
@@ -327,7 +327,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdThrow(string, string)", false, "!throw");
+                Program.LogError(ex, "CmdGen", "CmdThrow(string, string)", false, "!throw", message);
             }
         }
 
@@ -468,7 +468,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdPartyUp(string, string)", false, "!partyup");
+                Program.LogError(ex, "CmdGen", "CmdPartyUp(string, string)", false, "!partyup", message);
             }
         }
 
@@ -643,6 +643,62 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 Program.LogError(ex, "CmdGen", "CmdCheckFunds()", false, "!myfunds");
+            }
+        }
+
+        /// <summary>
+        /// Gamble away currency
+        /// </summary>
+        /// <param name="message">Chat message from the user</param>
+        /// <param name="strUserName">User that sent the message</param>
+        public void CmdGamble(string message, string strUserName)
+        {
+            try
+            {
+                int intGambledMoney = 0; // Money put into the gambling system
+                bool bolValid = int.TryParse(message.Substring(message.IndexOf(" ") + 1), out intGambledMoney);
+                int intWalletBalance = Program.currencyBalance(strUserName);
+
+                if (!bolValid || intGambledMoney < 0)
+                    Program._irc.sendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{strUserName}");
+                else if (intGambledMoney > intWalletBalance)
+                    Program._irc.sendPublicChatMessage($"You do not have the sufficient funds to gamble {intGambledMoney} {Program._strCurrencyType} @{strUserName}");
+                else
+                {
+                    Random rnd = new Random(DateTime.Now.Millisecond);
+                    int intDiceRoll = rnd.Next(1, 101); // between 1 and 100
+                    int intNewBalance = 0;
+
+                    string strResult = $"Gambled \"{intGambledMoney} {Program._strCurrencyType}\" and the dice roll is \"{intDiceRoll}.\" Therefore, ";
+
+                    // Check the 100-sided die roll result
+                    if (intDiceRoll < 61) // lose gambled money
+                    {
+                        intNewBalance = intWalletBalance - intGambledMoney;
+                        Program.updateWallet(strUserName, intNewBalance);
+                        strResult += $"you lost {intGambledMoney} {Program._strCurrencyType}";
+                    }
+                    else if (intDiceRoll >= 61 && intDiceRoll <= 98) // earn double
+                    {
+                        intNewBalance = intWalletBalance + (intGambledMoney * 2);
+                        Program.updateWallet(strUserName, intNewBalance);
+                        strResult += $"you won double of your earnings ({intGambledMoney} {Program._strCurrencyType})";
+                    }
+                    else if (intDiceRoll == 99 || intDiceRoll == 100) // earn triple
+                    {
+                        intNewBalance = intWalletBalance + (intGambledMoney * 3);
+                        Program.updateWallet(strUserName, intNewBalance);
+                        strResult += $"you won triple of your earnings ({intGambledMoney} {Program._strCurrencyType})";
+                    }
+
+                    strResult += $" and now have {intNewBalance} {Program._strCurrencyType}";
+
+                    Program._irc.sendPublicChatMessage(strResult);
+                }
+            }
+            catch (Exception ex)
+            {
+                Program.LogError(ex, "CmdGen", "GetChatBox(SpotifyControl, bool, string, string)", false, "!gamble", message);
             }
         }
     }

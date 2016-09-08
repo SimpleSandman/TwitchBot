@@ -728,6 +728,11 @@ namespace TwitchBot
                             else if (message.Equals("!myfunds") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdCheckFunds(strUserName);
 
+                            /* Gamble money away */
+                            // Useage: !gamble [insert amount]
+                            else if (message.StartsWith("!gamble ") && !isUserTimedout(strUserName))
+                                _cmdGen.CmdGamble(message, strUserName);
+
                             /* add more general commands here */
                         }
                     }
@@ -826,7 +831,7 @@ namespace TwitchBot
             }
         }
 
-        public static void LogError(Exception ex, string strClass, string strMethod, bool hasToExit, string strCmd = "N/A")
+        public static void LogError(Exception ex, string strClass, string strMethod, bool hasToExit, string strCmd = "N/A", string strUserMsg = "N/A")
         {
             Console.WriteLine("Error: " + ex.Message);
 
@@ -849,8 +854,8 @@ namespace TwitchBot
             }
 
             /* Add song request to database */
-            string query = "INSERT INTO tblErrorLog (errorTime, errorLine, errorClass, errorMethod, errorMsg, broadcaster, command) "
-                + "VALUES (@time, @lineNum, @class, @method, @msg, @broadcaster, @command)";
+            string query = "INSERT INTO tblErrorLog (errorTime, errorLine, errorClass, errorMethod, errorMsg, broadcaster, command, userMsg) "
+                + "VALUES (@time, @lineNum, @class, @method, @msg, @broadcaster, @command, @userMsg)";
 
             // Create connection and command
             using (SqlConnection conn = new SqlConnection(_connStr))
@@ -863,6 +868,7 @@ namespace TwitchBot
                 cmd.Parameters.Add("@msg", SqlDbType.VarChar, 4000).Value = ex.Message;
                 cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
                 cmd.Parameters.Add("@command", SqlDbType.VarChar, 100).Value = strCmd;
+                cmd.Parameters.Add("@userMsg", SqlDbType.VarChar, 500).Value = strUserMsg;
 
                 conn.Open();
                 cmd.ExecuteNonQuery();
@@ -893,6 +899,7 @@ namespace TwitchBot
             if (strRecipient.Equals(_strBotName))
                 return "mod";
 
+            // Grab list of chatters (viewers, mods, etc.)
             Chatters chatters = TaskJSON.GetChatters().Result.chatters;
 
             // check moderators
@@ -997,6 +1004,22 @@ namespace TwitchBot
             }
 
             return intBalance;
+        }
+
+        public static void updateWallet(string strWalletOwner, int intNewWalletBalance)
+        {
+            string query = "UPDATE dbo.tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
+
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intNewWalletBalance;
+                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strWalletOwner;
+                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
         }
 
         private static void setListMods()

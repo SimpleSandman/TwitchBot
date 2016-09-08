@@ -54,29 +54,21 @@ namespace TwitchBot
                         Program._irc.sendPublicChatMessage("'" + strRecipient + "' is out of " + Program._strCurrencyType + " @" + strUserName);
                     // Check if fee can be accepted
                     else if (intFee > 0)
-                        Program._irc.sendPublicChatMessage("Please insert a negative amount or use the !deposit command to add " + Program._strCurrencyType + " to a user");
+                    {
+                        Program._irc.sendPublicChatMessage("Please insert a negative whole amount (no decimal numbers) "
+                            + " or use the !deposit command to add " + Program._strCurrencyType + " to a user");
+                    }
                     else if (!validFee)
-                        Program._irc.sendPublicChatMessage("The fee wasn't accepted. Please try again with negative whole numbers only");
+                        Program._irc.sendPublicChatMessage("The fee wasn't accepted. Please try again with negative whole amount (no decimals)");
                     else /* Insert fee from wallet */
                     {
-                        intWallet = intWallet + intFee;
+                        intWallet += intFee;
 
                         // Zero out account balance if user is being charged more than they have
                         if (intWallet < 0)
                             intWallet = 0;
 
-                        string query = "UPDATE dbo.tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
-
-                        using (SqlConnection conn = new SqlConnection(Program._connStr))
-                        using (SqlCommand cmd = new SqlCommand(query, conn))
-                        {
-                            cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intWallet;
-                            cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
-
-                            conn.Open();
-                            cmd.ExecuteNonQuery();
-                        }
+                        Program.updateWallet(strRecipient, intWallet);
 
                         // Prompt user's balance
                         if (intWallet == 0)
@@ -103,25 +95,27 @@ namespace TwitchBot
         {
             try
             {
+                string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+
                 // Check for valid command
                 if (message.StartsWith("!deposit @"))
                     Program._irc.sendPublicChatMessage("Please enter a valid amount to a user @" + strUserName);
                 // Check if moderator is trying to give money to themselves
-                else if (Program._mod.getLstMod().Contains(strUserName.ToLower()))
+                else if (Program._mod.getLstMod().Contains(strUserName.ToLower()) && strRecipient.Equals(strUserName))
                     Program._irc.sendPublicChatMessage("You cannot add funds to your own account @" + strUserName);
                 else
                 {
                     int intIndexAction = 9;
                     int intDeposit = -1;
                     bool validDeposit = int.TryParse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1), out intDeposit);
-                    string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
                     int intWallet = Program.currencyBalance(strRecipient);
 
                     // Check if deposit amount is valid
                     if (intDeposit < 0)
-                        Program._irc.sendPublicChatMessage("Please insert a positive amount or use the !charge command to remove " + Program._strCurrencyType + " from a user");
+                        Program._irc.sendPublicChatMessage("Please insert a positive whole amount (no decimals) " 
+                            + " or use the !charge command to remove " + Program._strCurrencyType + " from a user");
                     else if (!validDeposit)
-                        Program._irc.sendPublicChatMessage("The deposit wasn't accepted. Please try again with positive whole numbers only");
+                        Program._irc.sendPublicChatMessage("The deposit wasn't accepted. Please try again with positive whole amount (no decimals)");
                     else
                     {
                         // Check if user has a bank account
@@ -145,20 +139,9 @@ namespace TwitchBot
                         }
                         else // Deposit money into wallet
                         {
-                            intWallet = intWallet + intDeposit;
+                            intWallet += intDeposit;
 
-                            string query = "UPDATE dbo.tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
-
-                            using (SqlConnection conn = new SqlConnection(Program._connStr))
-                            using (SqlCommand cmd = new SqlCommand(query, conn))
-                            {
-                                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intWallet;
-                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
-
-                                conn.Open();
-                                cmd.ExecuteNonQuery();
-                            }
+                            Program.updateWallet(strRecipient, intWallet);
 
                             // Prompt user's balance
                             Program._irc.sendPublicChatMessage("Deposited " + intDeposit.ToString() + " " + Program._strCurrencyType + " to @" + strRecipient
