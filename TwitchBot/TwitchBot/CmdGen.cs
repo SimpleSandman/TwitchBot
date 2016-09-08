@@ -701,5 +701,55 @@ namespace TwitchBot
                 Program.LogError(ex, "CmdGen", "GetChatBox(SpotifyControl, bool, string, string)", false, "!gamble", message);
             }
         }
+
+        /// <summary>
+        /// Display random mod/broadcaster quote
+        /// </summary>
+        public void CmdQuote()
+        {
+            try
+            {
+                List<Quote> lstQuote = new List<Quote>();
+
+                // Get quotes from tblQuote and put them into a list
+                using (SqlConnection conn = new SqlConnection(Program._connStr))
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblQuote WHERE broadcaster = @broadcaster", conn))
+                    {
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    Quote qte = new Quote();
+                                    qte.strMessage = reader["userQuote"].ToString();
+                                    qte.strAuthor = reader["username"].ToString();
+                                    qte.dtTimeCreated = Convert.ToDateTime(reader["timeCreated"]);
+                                    lstQuote.Add(qte);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Randomly pick a quote from the list to display
+                Random rnd = new Random(DateTime.Now.Millisecond);
+                int intIndex = rnd.Next(lstQuote.Count);
+
+                Quote qteResult = new Quote();
+                qteResult = lstQuote.ElementAt(intIndex); // grab random quote from list of quotes
+                string strQuote = $"\"{qteResult.strMessage}\" - {qteResult.strAuthor} " +
+                    $"({qteResult.dtTimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {qteResult.dtTimeCreated.Year})";
+
+                Program._irc.sendPublicChatMessage(strQuote);
+            }
+            catch (Exception ex)
+            {
+                Program.LogError(ex, "CmdGen", "CmdQuote()", false, "!quote");
+            }
+        }
     }
 }

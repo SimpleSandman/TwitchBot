@@ -354,5 +354,31 @@ namespace TwitchBot
                 Program.LogError(ex, "CmdMod", "CmdSetLatency(string, string)", false, "!setlatency");
             }
         }
+
+        /// <summary>
+        /// Add a mod/broadcaster quote
+        /// </summary>
+        /// <param name="message">Chat message from the user</param>
+        /// <param name="strUserName">User that sent the message</param>
+        public void CmdAddQuote(string message, string strUserName)
+        {
+            string strQuote = message.Substring(message.IndexOf(" ") + 1);
+
+            string query = "INSERT INTO tblQuote (userQuote, username, timeCreated, broadcaster) VALUES (@userQuote, @username, @timeCreated, @broadcaster)";
+
+            using (SqlConnection conn = new SqlConnection(Program._connStr))
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.Add("@userQuote", SqlDbType.VarChar, 500).Value = strQuote;
+                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strUserName;
+                cmd.Parameters.Add("@timeCreated", SqlDbType.DateTime).Value = DateTime.Now;
+                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+
+            Program._irc.sendPublicChatMessage($"Quote has been created @{strUserName}");
+        }
     }
 }

@@ -23,6 +23,7 @@ using Tweetinvi.Core;
 using Tweetinvi.Core.Credentials;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace TwitchBot
 {
@@ -557,17 +558,17 @@ namespace TwitchBot
 
                                 /* Updates the title of the Twitch channel */
                                 // Usage: !updatetitle [title]
-                                else if (message.StartsWith("!updatetitle"))
+                                else if (message.StartsWith("!updatetitle "))
                                     _cmdBrdCstr.CmdUpdateTitle(message, twitchAccessToken);
 
                                 /* Updates the game of the Twitch channel */
                                 // Usage: !updategame "[game]" (with quotation marks)
-                                else if (message.StartsWith("!updategame"))
+                                else if (message.StartsWith("!updategame "))
                                     _cmdBrdCstr.CmdUpdateGame(message, twitchAccessToken, hasTwitterInfo);
 
                                 /* Sends a manual tweet (if credentials have been provided) */
-                                // Useage: !tweet "[message]" (use quotation marks)
-                                else if (message.StartsWith("!tweet"))
+                                // Usage: !tweet "[message]" (use quotation marks)
+                                else if (message.StartsWith("!tweet "))
                                     _cmdBrdCstr.CmdTweet(hasTwitterInfo, message);
 
                                 /* Enables songs from local Spotify to be displayed inside the chat */
@@ -579,13 +580,13 @@ namespace TwitchBot
                                     _cmdBrdCstr.CmdDisableDisplaySongs();
 
                                 /* Add viewer to moderator list so they can have access to bot moderator commands */
-                                // Useage: !addmod @[username]
-                                else if (message.StartsWith("!addmod") && message.Contains("@"))
+                                // Usage: !addmod @[username]
+                                else if (message.StartsWith("!addmod ") && message.Contains("@"))
                                     _cmdBrdCstr.CmdAddBotMod(message);
 
                                 /* Remove moderator from list so they can't access the bot moderator commands */
-                                // Useage: !delmod @[username]
-                                else if (message.StartsWith("!delmod") && message.Contains("@"))
+                                // Usage: !delmod @[username]
+                                else if (message.StartsWith("!delmod ") && message.Contains("@"))
                                     _cmdBrdCstr.CmdDelBotMod(message);
 
                                 /* List bot moderators */
@@ -593,8 +594,8 @@ namespace TwitchBot
                                     _cmdBrdCstr.CmdListMod();
 
                                 /* Add countdown */
-                                // Useage: !addcountdown [MM-DD-YY] [hh:mm:ss] [AM/PM] [message]
-                                else if (message.StartsWith("!addcountdown"))
+                                // Usage: !addcountdown [MM-DD-YY] [hh:mm:ss] [AM/PM] [message]
+                                else if (message.StartsWith("!addcountdown "))
                                     _cmdBrdCstr.CmdAddCountdown(message, strUserName);
 
                                 /* Edit countdown details (for either date and time or message) */
@@ -620,13 +621,13 @@ namespace TwitchBot
                                     _cmdMod.CmdDiscord();
 
                                 /* Takes money away from a user */
-                                // Useage: !charge [-amount] @[username]
-                                else if (message.StartsWith("!charge") && message.Contains("@") && !isUserTimedout(strUserName))
+                                // Usage: !charge [-amount] @[username]
+                                else if (message.StartsWith("!charge ") && message.Contains("@") && !isUserTimedout(strUserName))
                                     _cmdMod.CmdCharge(message, strUserName);
 
                                 /* Gives money to user */
-                                // Useage: !deposit [amount] @[username]
-                                else if (message.StartsWith("!deposit") && message.Contains("@") && !isUserTimedout(strUserName))
+                                // Usage: !deposit [amount] @[username]
+                                else if (message.StartsWith("!deposit ") && message.Contains("@") && !isUserTimedout(strUserName))
                                     _cmdMod.CmdDeposit(message, strUserName);
 
                                 /* Removes the first song in the queue of song requests */
@@ -638,19 +639,24 @@ namespace TwitchBot
                                     _cmdMod.CmdPopPartyUpRequest();
 
                                 /* Bot-specific timeout on a user for a set amount of time */
-                                // Useage: !addtimeout [seconds] @[username]
-                                else if (message.StartsWith("!addtimeout") && message.Contains("@") && !isUserTimedout(strUserName))
+                                // Usage: !addtimeout [seconds] @[username]
+                                else if (message.StartsWith("!addtimeout ") && message.Contains("@") && !isUserTimedout(strUserName))
                                     _cmdMod.CmdAddTimeout(message, strUserName);
 
                                 /* Remove bot-specific timeout on a user for a set amount of time */
-                                // Useage: !deltimeout @[username]
+                                // Usage: !deltimeout @[username]
                                 else if (message.StartsWith("!deltimeout @") && !isUserTimedout(strUserName))
                                     _cmdMod.CmdDelTimeout(message, strUserName);
 
                                 /* Set delay for messages based on the latency of the stream */
-                                // Useage: !setlatency [seconds]
-                                else if (message.StartsWith("!setlatency") && !isUserTimedout(strUserName))
+                                // Usage: !setlatency [seconds]
+                                else if (message.StartsWith("!setlatency ") && !isUserTimedout(strUserName))
                                     _cmdMod.CmdSetLatency(message, strUserName);
+
+                                /* Add a mod/broadcaster quote */
+                                // Usage: !addquote [quote]
+                                else if (message.StartsWith("!addquote ") && !isUserTimedout(strUserName))
+                                    _cmdMod.CmdAddQuote(message, strUserName);
 
                                 /* insert moderator commands here */
                             }
@@ -683,7 +689,7 @@ namespace TwitchBot
                                 _cmdGen.CmdListSR();
 
                             /* Request a song for the host to play */
-                            // Useage: !sr [artist] - [song title]
+                            // Usage: !sr [artist] - [song title]
                             else if (message.StartsWith("!sr ") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdSR(isSongRequestAvail, message, strUserName);
 
@@ -692,27 +698,27 @@ namespace TwitchBot
                                 _cmdGen.CmdSpotifyCurr();
 
                             /* Slaps a user and rates its effectiveness */
-                            // Useage: !slap @[username]
+                            // Usage: !slap @[username]
                             else if (message.StartsWith("!slap @") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdSlap(message, strUserName);
 
                             /* Stabs a user and rates its effectiveness */
-                            // Useage: !stab @[username]
+                            // Usage: !stab @[username]
                             else if (message.StartsWith("!stab @") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdStab(message, strUserName);
 
                             /* Shoots a viewer's random body part */
-                            // Useage !shoot @[username]
+                            // Usage !shoot @[username]
                             else if (message.StartsWith("!shoot @") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdShoot(message, strUserName);
 
                             /* Throws an item at a viewer and rates its effectiveness against the victim */
-                            // Useage: !throw [item] @username
+                            // Usage: !throw [item] @username
                             else if (message.StartsWith("!throw ") && message.Contains("@") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdThrow(message, strUserName);
 
                             /* Request party member if game and character exists in party up system */
-                            // Useage: !partyup [party member name]
+                            // Usage: !partyup [party member name]
                             else if (message.StartsWith("!partyup ") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdPartyUp(message, strUserName);
 
@@ -729,9 +735,13 @@ namespace TwitchBot
                                 _cmdGen.CmdCheckFunds(strUserName);
 
                             /* Gamble money away */
-                            // Useage: !gamble [insert amount]
+                            // Usage: !gamble [money]
                             else if (message.StartsWith("!gamble ") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdGamble(message, strUserName);
+
+                            /* Display random mod/broadcaster quote */
+                            else if (message.Equals("!quote") && !isUserTimedout(strUserName))
+                                _cmdGen.CmdQuote();
 
                             /* add more general commands here */
                         }
