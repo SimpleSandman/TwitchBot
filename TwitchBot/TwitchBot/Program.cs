@@ -66,7 +66,7 @@ namespace TwitchBot
 
                 //Since not previously configured, configure bot and save changes using configuration wizard
                 TwitchBotConfigurator.ConfigureBot(twitchBotConfigurationSection);
-                appConfig.Save(ConfigurationSaveMode.Modified);
+                appConfig.Save(ConfigurationSaveMode.Full);
                 ConfigurationManager.RefreshSection("TwitchBotConfiguration");
             }
 
@@ -78,7 +78,7 @@ namespace TwitchBot
                 connectionStringSetting = new ConnectionStringSettings();
                 TwitchBotConfigurator.ConfigureConnectionString("TwitchBotConnectionString", connectionStringSetting);
                 appConfig.ConnectionStrings.ConnectionStrings.Add(connectionStringSetting);
-                appConfig.Save(ConfigurationSaveMode.Modified);
+                appConfig.Save(ConfigurationSaveMode.Full);
                 ConfigurationManager.RefreshSection("connectionStrings");
             }
             var connectionString = connectionStringSetting.ConnectionString;
@@ -154,20 +154,20 @@ namespace TwitchBot
                 //Console.WriteLine("Checking if user settings has all necessary info...");
 
                 //// Grab settings
-                //_strBotName = Properties.Settings.Default.botName;
-                //_strBroadcasterName = Properties.Settings.Default.broadcaster;
-                //twitchOAuth = Properties.Settings.Default.twitchOAuth;
-                //twitchClientID = Properties.Settings.Default.twitchClientID;
-                //twitchAccessToken = Properties.Settings.Default.twitchAccessToken;
-                //twitterConsumerKey = Properties.Settings.Default.twitterConsumerKey;
-                //twitterConsumerSecret = Properties.Settings.Default.twitterConsumerSecret;
-                //twitterAccessToken = Properties.Settings.Default.twitterAccessToken;
-                //twitterAccessSecret = Properties.Settings.Default.twitterAccessSecret;
-                //_strDiscordLink = Properties.Settings.Default.discordLink;
-                //_strCurrencyType = Properties.Settings.Default.currencyType;
-                //_isAutoDisplaySong = Properties.Settings.Default.enableDisplaySong;
-                //_isAutoPublishTweet = Properties.Settings.Default.enableTweet;
-                //_intStreamLatency = Properties.Settings.Default.streamLatency;
+                _strBotName =               twitchBotConfigurationSection.BotName;
+                _strBroadcasterName =       twitchBotConfigurationSection.Broadcaster;
+                twitchOAuth =               twitchBotConfigurationSection.TwitchOAuth;
+                twitchClientID =            twitchBotConfigurationSection.TwitchClientId;
+                twitchAccessToken =         twitchBotConfigurationSection.TwitchAccessToken;
+                twitterConsumerKey =        twitchBotConfigurationSection.TwitterConsumerKey;
+                twitterConsumerSecret =     twitchBotConfigurationSection.TwitterConsumerSecret;
+                twitterAccessToken =        twitchBotConfigurationSection.TwitterAccessToken;
+                twitterAccessSecret =       twitchBotConfigurationSection.TwitterAccessSecret;
+                _strDiscordLink =           twitchBotConfigurationSection.DiscordLink;
+                _strCurrencyType =          twitchBotConfigurationSection.CurrencyType;
+                _isAutoDisplaySong =        twitchBotConfigurationSection.EnableDisplaySong;
+                _isAutoPublishTweet =       twitchBotConfigurationSection.EnableTweets;
+                _intStreamLatency =         twitchBotConfigurationSection.StreamLatency;
 
                 //// Check if program has client ID (developer needs to provide this inside the settings)
                 //if (string.IsNullOrWhiteSpace(twitchClientID))

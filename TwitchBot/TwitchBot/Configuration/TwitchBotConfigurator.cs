@@ -9,7 +9,7 @@ namespace TwitchBot.Configuration
 {
     public static class TwitchBotConfigurator
     {
- 
+
         public static void ConfigureBot(TwitchBotConfigurationSection config)
         {
             // do process to configure bots, call into other sections if needed before finishing
