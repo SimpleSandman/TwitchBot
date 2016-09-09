@@ -24,6 +24,8 @@ using Tweetinvi.Core.Credentials;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using TwitchBot.Configuration;
+using System.Collections;
 
 namespace TwitchBot
 {
@@ -50,7 +52,37 @@ namespace TwitchBot
         public static CmdGen _cmdGen = new CmdGen();
 
         static void Main(string[] args)
-        {       
+        {
+            var appConfig = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var twitchBotConfigurationSection = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
+
+            if(twitchBotConfigurationSection == null)
+            {
+                //section not in app.config create a default, add it to the config, and save
+                twitchBotConfigurationSection = new TwitchBotConfigurationSection();
+                appConfig.Sections.Add("TwitchBotConfiguration", twitchBotConfigurationSection);
+                appConfig.Save(ConfigurationSaveMode.Full);
+                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+
+                //Since not previously configured, configure bot and save changes using configuration wizard
+                TwitchBotConfigurator.ConfigureBot(twitchBotConfigurationSection);
+                appConfig.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+            }
+
+            //Bot already configured, do stuff
+            //Lets get the connection string, and if it doesn't exist lets run the configuration wizard to add it to the config
+            var connectionStringSetting = appConfig.ConnectionStrings.ConnectionStrings["TwitchBotConnectionString"];
+            if(connectionStringSetting == null)
+            {
+                connectionStringSetting = new ConnectionStringSettings();
+                TwitchBotConfigurator.ConfigureConnectionString("TwitchBotConnectionString", connectionStringSetting);
+                appConfig.ConnectionStrings.ConnectionStrings.Add(connectionStringSetting);
+                appConfig.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("connectionStrings");
+            }
+            var connectionString = connectionStringSetting.ConnectionString;
+
             // Twitch variables
             string twitchOAuth = "";
             string twitchClientID = "";
@@ -69,23 +101,23 @@ namespace TwitchBot
             try
             {
                 // Grab connection string (production or test)
-                if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.conn))
-                {
-                    _connStr = Properties.Settings.Default.conn; // production database only
-                    Console.WriteLine("Connecting to database...");
-                }
-                else if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.connTest))
-                {
-                    _connStr = Properties.Settings.Default.connTest; // test database only
+//                if (!string.IsNullOrWhiteSpace(connectionString))
+//                {
+//                    _connStr = connectionString; // production database only
+//                    Console.WriteLine("Connecting to database...");
+//                }
+//                else if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.connTest))
+//                {
+                    _connStr = connectionString; // test database only
                     Console.WriteLine("<<<< WARNING: Connecting to local database (testing only) >>>>");
-                }
-                else
-                {
-                    Console.WriteLine("Internal Error: Connection string to database not provided!");
-                    Console.WriteLine("Shutting down now...");
-                    Thread.Sleep(3500);
-                    Environment.Exit(1);
-                }
+//                }
+//                else
+//                {
+//                    Console.WriteLine("Internal Error: Connection string to database not provided!");
+//                    Console.WriteLine("Shutting down now...");
+//                    Thread.Sleep(3500);
+//                    Environment.Exit(1);
+//                }
 
                 // Check if server is connected
                 if (!IsServerConnected(_connStr))
@@ -117,262 +149,262 @@ namespace TwitchBot
             /* Try to grab the info needed for the bot to connect to the channel */
             try
             {
-                Console.WriteLine("Database connection successful!");
-                Console.WriteLine();
-                Console.WriteLine("Checking if user settings has all necessary info...");
+                //Console.WriteLine("Database connection successful!");
+                //Console.WriteLine();
+                //Console.WriteLine("Checking if user settings has all necessary info...");
 
-                // Grab settings
-                _strBotName = Properties.Settings.Default.botName;
-                _strBroadcasterName = Properties.Settings.Default.broadcaster;
-                twitchOAuth = Properties.Settings.Default.twitchOAuth;
-                twitchClientID = Properties.Settings.Default.twitchClientID;
-                twitchAccessToken = Properties.Settings.Default.twitchAccessToken;
-                twitterConsumerKey = Properties.Settings.Default.twitterConsumerKey;
-                twitterConsumerSecret = Properties.Settings.Default.twitterConsumerSecret;
-                twitterAccessToken = Properties.Settings.Default.twitterAccessToken;
-                twitterAccessSecret = Properties.Settings.Default.twitterAccessSecret;
-                _strDiscordLink = Properties.Settings.Default.discordLink;
-                _strCurrencyType = Properties.Settings.Default.currencyType;
-                _isAutoDisplaySong = Properties.Settings.Default.enableDisplaySong;
-                _isAutoPublishTweet = Properties.Settings.Default.enableTweet;
-                _intStreamLatency = Properties.Settings.Default.streamLatency;
+                //// Grab settings
+                //_strBotName = Properties.Settings.Default.botName;
+                //_strBroadcasterName = Properties.Settings.Default.broadcaster;
+                //twitchOAuth = Properties.Settings.Default.twitchOAuth;
+                //twitchClientID = Properties.Settings.Default.twitchClientID;
+                //twitchAccessToken = Properties.Settings.Default.twitchAccessToken;
+                //twitterConsumerKey = Properties.Settings.Default.twitterConsumerKey;
+                //twitterConsumerSecret = Properties.Settings.Default.twitterConsumerSecret;
+                //twitterAccessToken = Properties.Settings.Default.twitterAccessToken;
+                //twitterAccessSecret = Properties.Settings.Default.twitterAccessSecret;
+                //_strDiscordLink = Properties.Settings.Default.discordLink;
+                //_strCurrencyType = Properties.Settings.Default.currencyType;
+                //_isAutoDisplaySong = Properties.Settings.Default.enableDisplaySong;
+                //_isAutoPublishTweet = Properties.Settings.Default.enableTweet;
+                //_intStreamLatency = Properties.Settings.Default.streamLatency;
 
-                // Check if program has client ID (developer needs to provide this inside the settings)
-                if (string.IsNullOrWhiteSpace(twitchClientID))
-                {
-                    Console.WriteLine("Error: MISSING Twitch Client ID");
-                    Console.WriteLine("Please contact the author of this bot to re-release this application with the client ID");
-                    Console.WriteLine();
-                    Console.WriteLine("Shutting down now...");
-                    Thread.Sleep(3000);
-                    Environment.Exit(1);
-                }
+                //// Check if program has client ID (developer needs to provide this inside the settings)
+                //if (string.IsNullOrWhiteSpace(twitchClientID))
+                //{
+                //    Console.WriteLine("Error: MISSING Twitch Client ID");
+                //    Console.WriteLine("Please contact the author of this bot to re-release this application with the client ID");
+                //    Console.WriteLine();
+                //    Console.WriteLine("Shutting down now...");
+                //    Thread.Sleep(3000);
+                //    Environment.Exit(1);
+                //}
 
-                // Check if user has the minimum info in order to run the bot
-                // Tell user to input essential info
-                while (string.IsNullOrWhiteSpace(_strBotName)
-                    && string.IsNullOrWhiteSpace(_strBroadcasterName)
-                    && string.IsNullOrWhiteSpace(twitchOAuth)
-                    && string.IsNullOrWhiteSpace(twitchAccessToken))
-                {
-                    Console.WriteLine("You are missing essential info");
-                    if (string.IsNullOrWhiteSpace(_strBotName))
-                    {
-                        Console.WriteLine("Enter your bot's username: ");
-                        Properties.Settings.Default.botName = Console.ReadLine();
-                        _strBotName = Properties.Settings.Default.botName;
-                    }
+                //// Check if user has the minimum info in order to run the bot
+                //// Tell user to input essential info
+                //while (string.IsNullOrWhiteSpace(_strBotName)
+                //    && string.IsNullOrWhiteSpace(_strBroadcasterName)
+                //    && string.IsNullOrWhiteSpace(twitchOAuth)
+                //    && string.IsNullOrWhiteSpace(twitchAccessToken))
+                //{
+                //    Console.WriteLine("You are missing essential info");
+                //    if (string.IsNullOrWhiteSpace(_strBotName))
+                //    {
+                //        Console.WriteLine("Enter your bot's username: ");
+                //        Properties.Settings.Default.botName = Console.ReadLine();
+                //        _strBotName = Properties.Settings.Default.botName;
+                //    }
 
-                    if (string.IsNullOrWhiteSpace(_strBroadcasterName))
-                    {
-                        Console.WriteLine("Enter your Twitch username: ");
-                        Properties.Settings.Default.broadcaster = Console.ReadLine();
-                        _strBroadcasterName = Properties.Settings.Default.broadcaster;
-                    }
+                //    if (string.IsNullOrWhiteSpace(_strBroadcasterName))
+                //    {
+                //        Console.WriteLine("Enter your Twitch username: ");
+                //        Properties.Settings.Default.broadcaster = Console.ReadLine();
+                //        _strBroadcasterName = Properties.Settings.Default.broadcaster;
+                //    }
 
-                    if (string.IsNullOrWhiteSpace(twitchOAuth))
-                    {
-                        Console.WriteLine("Enter your Twitch OAuth: ");
-                        Properties.Settings.Default.twitchOAuth = Console.ReadLine();
-                        twitchOAuth = Properties.Settings.Default.twitchOAuth;
-                    }
+                //    if (string.IsNullOrWhiteSpace(twitchOAuth))
+                //    {
+                //        Console.WriteLine("Enter your Twitch OAuth: ");
+                //        Properties.Settings.Default.twitchOAuth = Console.ReadLine();
+                //        twitchOAuth = Properties.Settings.Default.twitchOAuth;
+                //    }
 
-                    if (string.IsNullOrWhiteSpace(twitchAccessToken))
-                    {
-                        Console.WriteLine("Enter your Twitch Access Token: ");
-                        Properties.Settings.Default.twitchAccessToken = Console.ReadLine();
-                        twitchAccessToken = Properties.Settings.Default.twitchAccessToken;
-                    }
+                //    if (string.IsNullOrWhiteSpace(twitchAccessToken))
+                //    {
+                //        Console.WriteLine("Enter your Twitch Access Token: ");
+                //        Properties.Settings.Default.twitchAccessToken = Console.ReadLine();
+                //        twitchAccessToken = Properties.Settings.Default.twitchAccessToken;
+                //    }
 
-                    Properties.Settings.Default.Save();
-                    Console.WriteLine("Saved Settings!");
-                    Console.WriteLine();
-                }
+                //    Properties.Settings.Default.Save();
+                //    Console.WriteLine("Saved Settings!");
+                //    Console.WriteLine();
+                //}
 
-                // Option to edit settings before running it
-                Console.WriteLine("Do you want to edit your essential bot settings (y/n or yes/no)?");
-                string strResponse = Console.ReadLine().ToLower();
+                //// Option to edit settings before running it
+                //Console.WriteLine("Do you want to edit your essential bot settings (y/n or yes/no)?");
+                //string strResponse = Console.ReadLine().ToLower();
 
-                // Check if user inserted a valid option
-                while (!(strResponse.Equals("y") || strResponse.Equals("yes") 
-                    || strResponse.Equals("n") || strResponse.Equals("no")))
-                {
-                    Console.WriteLine("Please insert a valid option (y/n or yes/no)");
-                    strResponse = Console.ReadLine().ToLower();
-                }
+                //// Check if user inserted a valid option
+                //while (!(strResponse.Equals("y") || strResponse.Equals("yes")
+                //    || strResponse.Equals("n") || strResponse.Equals("no")))
+                //{
+                //    Console.WriteLine("Please insert a valid option (y/n or yes/no)");
+                //    strResponse = Console.ReadLine().ToLower();
+                //}
 
-                // Change some settings
-                if (strResponse.Equals("y") || strResponse.Equals("yes"))
-                {
-                    int intOption = 0;
-                    Console.WriteLine();
+                //// Change some settings
+                //if (strResponse.Equals("y") || strResponse.Equals("yes"))
+                //{
+                //    int intOption = 0;
+                //    Console.WriteLine();
 
-                    /* Loop until user is finished making changes */
-                    do
-                    {
-                        // Display bot settings
-                        Console.WriteLine("---> Here are your essential bot settings <---");
-                        Console.WriteLine("1. Bot's username: " + Properties.Settings.Default.botName);
-                        Console.WriteLine("2. Your main Twitch username: " + Properties.Settings.Default.broadcaster);
-                        Console.WriteLine("3. Twitch OAuth: " + Properties.Settings.Default.twitchOAuth);
-                        Console.WriteLine("4. Twitch Access Token: " + Properties.Settings.Default.twitchAccessToken);
+                //    /* Loop until user is finished making changes */
+                //    do
+                //    {
+                //        // Display bot settings
+                //        Console.WriteLine("---> Here are your essential bot settings <---");
+                //        Console.WriteLine("1. Bot's username: " + Properties.Settings.Default.botName);
+                //        Console.WriteLine("2. Your main Twitch username: " + Properties.Settings.Default.broadcaster);
+                //        Console.WriteLine("3. Twitch OAuth: " + Properties.Settings.Default.twitchOAuth);
+                //        Console.WriteLine("4. Twitch Access Token: " + Properties.Settings.Default.twitchAccessToken);
 
-                        Console.WriteLine();
-                        Console.WriteLine("From the options 1-4 (or 0 to exit editing), which option do you want to edit?");
+                //        Console.WriteLine();
+                //        Console.WriteLine("From the options 1-4 (or 0 to exit editing), which option do you want to edit?");
 
-                        // Edit an option
-                        if (int.TryParse(Console.ReadLine(), out intOption) && intOption < 5 && intOption >= 0)
-                        {
-                            Console.WriteLine();
-                            switch (intOption)
-                            {
-                                case 1:
-                                    Console.WriteLine("Enter your bot's new username: ");
-                                    Properties.Settings.Default.botName = Console.ReadLine();
-                                    _strBotName = Properties.Settings.Default.botName;
-                                    break;
-                                case 2:
-                                    Console.WriteLine("Enter your new Twitch username: ");
-                                    Properties.Settings.Default.broadcaster = Console.ReadLine();
-                                    _strBroadcasterName = Properties.Settings.Default.broadcaster;
-                                    break;
-                                case 3:
-                                    Console.WriteLine("Enter your new Twitch OAuth (include 'oauth:' along the 30 character phrase): ");
-                                    Properties.Settings.Default.twitchOAuth = Console.ReadLine();
-                                    twitchOAuth = Properties.Settings.Default.twitchOAuth;
-                                    break;
-                                case 4:
-                                    Console.WriteLine("Enter your new Twitch access token: ");
-                                    Properties.Settings.Default.twitchAccessToken = Console.ReadLine();
-                                    twitchAccessToken = Properties.Settings.Default.twitchAccessToken;
-                                    break;
-                            }
+                //        // Edit an option
+                //        if (int.TryParse(Console.ReadLine(), out intOption) && intOption < 5 && intOption >= 0)
+                //        {
+                //            Console.WriteLine();
+                //            switch (intOption)
+                //            {
+                //                case 1:
+                //                    Console.WriteLine("Enter your bot's new username: ");
+                //                    Properties.Settings.Default.botName = Console.ReadLine();
+                //                    _strBotName = Properties.Settings.Default.botName;
+                //                    break;
+                //                case 2:
+                //                    Console.WriteLine("Enter your new Twitch username: ");
+                //                    Properties.Settings.Default.broadcaster = Console.ReadLine();
+                //                    _strBroadcasterName = Properties.Settings.Default.broadcaster;
+                //                    break;
+                //                case 3:
+                //                    Console.WriteLine("Enter your new Twitch OAuth (include 'oauth:' along the 30 character phrase): ");
+                //                    Properties.Settings.Default.twitchOAuth = Console.ReadLine();
+                //                    twitchOAuth = Properties.Settings.Default.twitchOAuth;
+                //                    break;
+                //                case 4:
+                //                    Console.WriteLine("Enter your new Twitch access token: ");
+                //                    Properties.Settings.Default.twitchAccessToken = Console.ReadLine();
+                //                    twitchAccessToken = Properties.Settings.Default.twitchAccessToken;
+                //                    break;
+                //            }
 
-                            Properties.Settings.Default.Save();
-                            Console.WriteLine("Saved Settings!");
-                            Console.WriteLine();
-                        }
-                        else
-                        {
-                            Console.WriteLine("Please write a valid option between 1-4 (or 0 to exit editing)");
-                            Console.WriteLine();
-                        }
-                    } while (intOption != 0);
+                //            Properties.Settings.Default.Save();
+                //            Console.WriteLine("Saved Settings!");
+                //            Console.WriteLine();
+                //        }
+                //        else
+                //        {
+                //            Console.WriteLine("Please write a valid option between 1-4 (or 0 to exit editing)");
+                //            Console.WriteLine();
+                //        }
+                //    } while (intOption != 0);
 
-                    Console.WriteLine("Finished with editing settings");
-                }
-                else // No need to change settings
-                    Console.WriteLine("Essential settings confirmed!");
+                //    Console.WriteLine("Finished with editing settings");
+                //}
+                //else // No need to change settings
+                //    Console.WriteLine("Essential settings confirmed!");
 
-                Console.WriteLine();
+                //Console.WriteLine();
 
-                // Extra settings menu
-                Console.WriteLine("Do you want to edit your extra bot settings [twitter/discord/currency] (y/n or yes/no)?");
-                strResponse = Console.ReadLine().ToLower();
+                //// Extra settings menu
+                //Console.WriteLine("Do you want to edit your extra bot settings [twitter/discord/currency] (y/n or yes/no)?");
+                //strResponse = Console.ReadLine().ToLower();
 
-                // Check if user inserted a valid option
-                while (!(strResponse.Equals("y") || strResponse.Equals("yes")
-                    || strResponse.Equals("n") || strResponse.Equals("no")))
-                {
-                    Console.WriteLine("Please insert a valid option (y/n or yes/no)");
-                    strResponse = Console.ReadLine().ToLower();
-                }
+                //// Check if user inserted a valid option
+                //while (!(strResponse.Equals("y") || strResponse.Equals("yes")
+                //    || strResponse.Equals("n") || strResponse.Equals("no")))
+                //{
+                //    Console.WriteLine("Please insert a valid option (y/n or yes/no)");
+                //    strResponse = Console.ReadLine().ToLower();
+                //}
 
-                // Change some settings
-                if (strResponse.Equals("y") || strResponse.Equals("yes"))
-                {
-                    int intOption = 0;
-                    Console.WriteLine();
+                //// Change some settings
+                //if (strResponse.Equals("y") || strResponse.Equals("yes"))
+                //{
+                //    int intOption = 0;
+                //    Console.WriteLine();
 
-                    /* Loop until user is finished making changes */
-                    do
-                    {
-                        // Display bot settings
-                        Console.WriteLine("---> Here are your extra bot settings <---");
-                        Console.WriteLine("1. Twitter consumer key: " + Properties.Settings.Default.twitterConsumerKey);
-                        Console.WriteLine("2. Twitter consumer secret: " + Properties.Settings.Default.twitterConsumerSecret);
-                        Console.WriteLine("3. Twitter access token: " + Properties.Settings.Default.twitterAccessToken);
-                        Console.WriteLine("4. Twitter access secret: " + Properties.Settings.Default.twitterAccessSecret);
-                        Console.WriteLine("5. Discord link: " + Properties.Settings.Default.discordLink);
-                        Console.WriteLine("6. Currency type: " + Properties.Settings.Default.currencyType);
-                        Console.WriteLine("7. Enable Auto Tweets: " + Properties.Settings.Default.enableTweet);
-                        Console.WriteLine("8. Enable Auto Display Songs: " + Properties.Settings.Default.enableDisplaySong);
-                        Console.WriteLine("9. Stream Latency: " + Properties.Settings.Default.streamLatency);
+                //    /* Loop until user is finished making changes */
+                //    do
+                //    {
+                //        // Display bot settings
+                //        Console.WriteLine("---> Here are your extra bot settings <---");
+                //        Console.WriteLine("1. Twitter consumer key: " + Properties.Settings.Default.twitterConsumerKey);
+                //        Console.WriteLine("2. Twitter consumer secret: " + Properties.Settings.Default.twitterConsumerSecret);
+                //        Console.WriteLine("3. Twitter access token: " + Properties.Settings.Default.twitterAccessToken);
+                //        Console.WriteLine("4. Twitter access secret: " + Properties.Settings.Default.twitterAccessSecret);
+                //        Console.WriteLine("5. Discord link: " + Properties.Settings.Default.discordLink);
+                //        Console.WriteLine("6. Currency type: " + Properties.Settings.Default.currencyType);
+                //        Console.WriteLine("7. Enable Auto Tweets: " + Properties.Settings.Default.enableTweet);
+                //        Console.WriteLine("8. Enable Auto Display Songs: " + Properties.Settings.Default.enableDisplaySong);
+                //        Console.WriteLine("9. Stream Latency: " + Properties.Settings.Default.streamLatency);
 
-                        Console.WriteLine();
-                        Console.WriteLine("From the options 1-9 (or 0 to exit editing), which option do you want to edit?");
+                //        Console.WriteLine();
+                //        Console.WriteLine("From the options 1-9 (or 0 to exit editing), which option do you want to edit?");
 
-                        // Edit an option
-                        string strOption = Console.ReadLine();
-                        if (int.TryParse(strOption, out intOption) && intOption < 10 && intOption >= 0)
-                        {
-                            Console.WriteLine();
-                            switch (intOption)
-                            {
-                                case 1:
-                                    Console.WriteLine("Enter your new Twitter consumer key: ");
-                                    Properties.Settings.Default.twitterConsumerKey = Console.ReadLine();
-                                    twitterConsumerKey = Properties.Settings.Default.twitterConsumerKey;
-                                    break;
-                                case 2:
-                                    Console.WriteLine("Enter your new Twitter consumer secret: ");
-                                    Properties.Settings.Default.twitterConsumerSecret = Console.ReadLine();
-                                    twitterConsumerSecret = Properties.Settings.Default.twitterConsumerSecret;
-                                    break;
-                                case 3:
-                                    Console.WriteLine("Enter your new Twitter access token: ");
-                                    Properties.Settings.Default.twitterAccessToken = Console.ReadLine();
-                                    twitterAccessToken = Properties.Settings.Default.twitterAccessToken;
-                                    break;
-                                case 4:
-                                    Console.WriteLine("Enter your new Twitter access secret: ");
-                                    Properties.Settings.Default.twitterAccessSecret = Console.ReadLine();
-                                    twitterAccessSecret = Properties.Settings.Default.twitterAccessSecret;
-                                    break;
-                                case 5:
-                                    Console.WriteLine("Enter your new Discord link: ");
-                                    Properties.Settings.Default.discordLink = Console.ReadLine();
-                                    _strDiscordLink = Properties.Settings.Default.discordLink;
-                                    break;
-                                case 6:
-                                    Console.WriteLine("Enter your new currency type: ");
-                                    Properties.Settings.Default.currencyType = Console.ReadLine();
-                                    _strCurrencyType = Properties.Settings.Default.currencyType;
-                                    break;
-                                case 7:
-                                    Console.WriteLine("Want to enable (true) or disable (false) auto tweets: ");
-                                    Properties.Settings.Default.enableTweet = Convert.ToBoolean(Console.ReadLine());
-                                    _isAutoPublishTweet = Properties.Settings.Default.enableTweet;
-                                    break;
-                                case 8:
-                                    Console.WriteLine("Want to enable (true) or disable (false) display songs from Spotify: ");
-                                    Properties.Settings.Default.enableDisplaySong = Convert.ToBoolean(Console.ReadLine());
-                                    _isAutoDisplaySong = Properties.Settings.Default.enableDisplaySong;
-                                    break;
-                                case 9:
-                                    Console.WriteLine("Enter your new stream latency (in seconds): ");
-                                    Properties.Settings.Default.streamLatency = int.Parse(Console.ReadLine());
-                                    _intStreamLatency = Properties.Settings.Default.streamLatency;
-                                    break;
-                            }
+                //        // Edit an option
+                //        string strOption = Console.ReadLine();
+                //        if (int.TryParse(strOption, out intOption) && intOption < 10 && intOption >= 0)
+                //        {
+                //            Console.WriteLine();
+                //            switch (intOption)
+                //            {
+                //                case 1:
+                //                    Console.WriteLine("Enter your new Twitter consumer key: ");
+                //                    Properties.Settings.Default.twitterConsumerKey = Console.ReadLine();
+                //                    twitterConsumerKey = Properties.Settings.Default.twitterConsumerKey;
+                //                    break;
+                //                case 2:
+                //                    Console.WriteLine("Enter your new Twitter consumer secret: ");
+                //                    Properties.Settings.Default.twitterConsumerSecret = Console.ReadLine();
+                //                    twitterConsumerSecret = Properties.Settings.Default.twitterConsumerSecret;
+                //                    break;
+                //                case 3:
+                //                    Console.WriteLine("Enter your new Twitter access token: ");
+                //                    Properties.Settings.Default.twitterAccessToken = Console.ReadLine();
+                //                    twitterAccessToken = Properties.Settings.Default.twitterAccessToken;
+                //                    break;
+                //                case 4:
+                //                    Console.WriteLine("Enter your new Twitter access secret: ");
+                //                    Properties.Settings.Default.twitterAccessSecret = Console.ReadLine();
+                //                    twitterAccessSecret = Properties.Settings.Default.twitterAccessSecret;
+                //                    break;
+                //                case 5:
+                //                    Console.WriteLine("Enter your new Discord link: ");
+                //                    Properties.Settings.Default.discordLink = Console.ReadLine();
+                //                    _strDiscordLink = Properties.Settings.Default.discordLink;
+                //                    break;
+                //                case 6:
+                //                    Console.WriteLine("Enter your new currency type: ");
+                //                    Properties.Settings.Default.currencyType = Console.ReadLine();
+                //                    _strCurrencyType = Properties.Settings.Default.currencyType;
+                //                    break;
+                //                case 7:
+                //                    Console.WriteLine("Want to enable (true) or disable (false) auto tweets: ");
+                //                    Properties.Settings.Default.enableTweet = Convert.ToBoolean(Console.ReadLine());
+                //                    _isAutoPublishTweet = Properties.Settings.Default.enableTweet;
+                //                    break;
+                //                case 8:
+                //                    Console.WriteLine("Want to enable (true) or disable (false) display songs from Spotify: ");
+                //                    Properties.Settings.Default.enableDisplaySong = Convert.ToBoolean(Console.ReadLine());
+                //                    _isAutoDisplaySong = Properties.Settings.Default.enableDisplaySong;
+                //                    break;
+                //                case 9:
+                //                    Console.WriteLine("Enter your new stream latency (in seconds): ");
+                //                    Properties.Settings.Default.streamLatency = int.Parse(Console.ReadLine());
+                //                    _intStreamLatency = Properties.Settings.Default.streamLatency;
+                //                    break;
+                //            }
 
-                            Properties.Settings.Default.Save();
-                            Console.WriteLine("Saved Settings!");
-                            Console.WriteLine();
-                        }
-                        else
-                        {
-                            Console.WriteLine("Please write a valid option between 1-9 (or 0 to exit editing)");
-                            Console.WriteLine();
-                        }
-                    } while (intOption != 0);
+                //            Properties.Settings.Default.Save();
+                //            Console.WriteLine("Saved Settings!");
+                //            Console.WriteLine();
+                //        }
+                //        else
+                //        {
+                //            Console.WriteLine("Please write a valid option between 1-9 (or 0 to exit editing)");
+                //            Console.WriteLine();
+                //        }
+                //    } while (intOption != 0);
 
-                    Console.WriteLine("Finished with editing settings");
-                }
-                else // No need to change settings
-                    Console.WriteLine("Extra settings confirmed!");
+                //    Console.WriteLine("Finished with editing settings");
+                //}
+                //else // No need to change settings
+                //    Console.WriteLine("Extra settings confirmed!");
 
-                Console.WriteLine();
+                //Console.WriteLine();
 
                 // Get broadcaster ID so the user can only see their data from the db
                 _intBroadcasterID = getBroadcasterID(_strBroadcasterName.ToLower());
@@ -398,7 +430,7 @@ namespace TwitchBot
                 // Try looking for the broadcaster's ID again
                 if (_intBroadcasterID == 0)
                 {
-                    Console.WriteLine("Cannot find a broadcaster ID for you. " 
+                    Console.WriteLine("Cannot find a broadcaster ID for you. "
                         + "Please contact the author with a detailed description of the issue");
                     Thread.Sleep(3000);
                     Environment.Exit(1);
@@ -786,7 +818,7 @@ namespace TwitchBot
         public static int GetNthIndex(string s, char findChar, int n)
         {
             int count = 0;
-            
+
             for (int i = 0; i < s.Length; i++)
             {
                 if (s[i] == findChar)
@@ -824,7 +856,7 @@ namespace TwitchBot
 
             // Check if message length is at or under 140 characters
             var basicTweet = new object();
-            
+
             if (tweetMessage.Length <= 140)
             {
                 basicTweet = Tweet.PublishTweet(tweetMessage);
@@ -985,7 +1017,7 @@ namespace TwitchBot
             else
                 return false;
         }
-        
+
         public static int currencyBalance(string username)
         {
             int intBalance = -1;
@@ -1061,7 +1093,7 @@ namespace TwitchBot
                 _mod.setLstMod(lstMod);
             }
             catch (Exception ex)
-            {   
+            {
                 Console.WriteLine(ex.Message);
                 LogError(ex, "Program", "setListMods()", true);
             }
