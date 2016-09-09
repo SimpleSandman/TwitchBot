@@ -26,6 +26,7 @@ using System.Diagnostics;
 using System.Globalization;
 using TwitchBot.Configuration;
 using System.Collections;
+using Autofac;
 
 namespace TwitchBot
 {
@@ -82,6 +83,22 @@ namespace TwitchBot
                 ConfigurationManager.RefreshSection("connectionStrings");
             }
             var connectionString = connectionStringSetting.ConnectionString;
+
+
+            //Create a container builder and register all classes that will be composed for the application
+            var builder = new ContainerBuilder();
+
+            builder.RegisterType<TwitchBotApplication>();
+
+            var container = builder.Build();
+
+            //Define main lifetime scope
+            //Get an instance of TwitchBotApplication and execute main loop
+            using (var scope = container.BeginLifetimeScope())
+            {
+                var app = scope.Resolve<TwitchBotApplication>();
+                Task.WaitAll(app.RunAsync());
+            }
 
             // Twitch variables
             string twitchOAuth = "";
