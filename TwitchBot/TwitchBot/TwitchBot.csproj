@@ -139,6 +139,7 @@
     <Compile Include="CmdBrdCstr.cs" />
     <Compile Include="CmdGen.cs" />
     <Compile Include="CmdMod.cs" />
+    <Compile Include="Configuration\TwitchBotConfigurationSection.cs" />
     <Compile Include="DelayMsg.cs" />
     <Compile Include="FollowerInfo.cs" />
     <Compile Include="IrcClient.cs" />
