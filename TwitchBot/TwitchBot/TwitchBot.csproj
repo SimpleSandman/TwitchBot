@@ -159,6 +159,7 @@
     <Compile Include="StreamJSON.cs" />
     <Compile Include="TaskJSON.cs" />
     <Compile Include="Timeout.cs" />
+    <Compile Include="TwitchBotApp.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
