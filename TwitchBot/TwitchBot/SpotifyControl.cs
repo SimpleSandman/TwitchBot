@@ -48,9 +48,9 @@ namespace TwitchBot
             }
             else
             {
-                Console.WriteLine("Couldn't connect to the spotify client. Retry? ('y' = Yes and 'n' = No)");
+                Console.WriteLine("Couldn't connect to the spotify client. Retry? (Yes = 'y' and No = 'n')");
                 Console.WriteLine("If this problem persists, try reinstalling Spotify to the latest version");
-                if (Console.ReadLine() == "y")
+                if (Console.ReadLine().Equals("y"))
                     Connect();
             }
         }

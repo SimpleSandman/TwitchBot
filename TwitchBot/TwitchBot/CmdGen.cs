@@ -17,10 +17,10 @@ namespace TwitchBot
         {
             try
             {
-                Program._irc.sendPublicChatMessage("--- !hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username]"
-                    + "| !spotifycurr | !srlist | !sr [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] | !gamble [money] ---"
-                    + " Link to full list of commands: "
-                    + "https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands");
+                Program._irc.sendPublicChatMessage("---> !hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username] "
+                    + "| !spotifycurr | !srlist | !sr [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] | !gamble [money] "
+                    + "| !quote <---"
+                    + " Link to full list of commands: http://bit.ly/2bXLlEe");
             }
             catch (Exception ex)
             {
@@ -698,7 +698,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "GetChatBox(SpotifyControl, bool, string, string)", false, "!gamble", message);
+                Program.LogError(ex, "CmdGen", "CmdGamble(string, string)", false, "!gamble", message);
             }
         }
 
@@ -735,16 +735,22 @@ namespace TwitchBot
                     }
                 }
 
-                // Randomly pick a quote from the list to display
-                Random rnd = new Random(DateTime.Now.Millisecond);
-                int intIndex = rnd.Next(lstQuote.Count);
+                // Check if there any quotes inside the system
+                if (lstQuote.Count == 0)
+                    Program._irc.sendPublicChatMessage("There are no quotes to be displayed at the moment");
+                else
+                {
+                    // Randomly pick a quote from the list to display
+                    Random rnd = new Random(DateTime.Now.Millisecond);
+                    int intIndex = rnd.Next(lstQuote.Count);
 
-                Quote qteResult = new Quote();
-                qteResult = lstQuote.ElementAt(intIndex); // grab random quote from list of quotes
-                string strQuote = $"\"{qteResult.strMessage}\" - {qteResult.strAuthor} " +
-                    $"({qteResult.dtTimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {qteResult.dtTimeCreated.Year})";
+                    Quote qteResult = new Quote();
+                    qteResult = lstQuote.ElementAt(intIndex); // grab random quote from list of quotes
+                    string strQuote = $"\"{qteResult.strMessage}\" - {qteResult.strAuthor} " +
+                        $"({qteResult.dtTimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {qteResult.dtTimeCreated.Year})";
 
-                Program._irc.sendPublicChatMessage(strQuote);
+                    Program._irc.sendPublicChatMessage(strQuote);
+                }
             }
             catch (Exception ex)
             {

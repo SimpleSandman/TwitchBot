@@ -373,8 +373,6 @@ namespace TwitchBot
                     Console.WriteLine("Extra settings confirmed!");
 
                 Console.WriteLine();
-                Console.WriteLine("Time to get to work!");
-                Console.WriteLine();
 
                 // Get broadcaster ID so the user can only see their data from the db
                 _intBroadcasterID = getBroadcasterID(_strBroadcasterName.ToLower());
@@ -406,8 +404,13 @@ namespace TwitchBot
                     Environment.Exit(1);
                 }
 
-                /* Connect to local spotify client */
+                /* Connect to local Spotify client */
                 _spotify = new SpotifyControl();
+                _spotify.Connect();
+
+                Console.WriteLine();
+                Console.WriteLine("Time to get to work!");
+                Console.WriteLine();
 
                 /* Make sure usernames are set to lowercase for the rest of the application */
                 _strBotName = _strBotName.ToLower();
@@ -426,8 +429,6 @@ namespace TwitchBot
                 /* Make new thread to get messages */
                 Thread thdIrcClient = new Thread(() => GetChatBox(isSongRequestAvail, twitchAccessToken, hasTwitterInfo));
                 thdIrcClient.Start();
-
-                _spotify.Connect(); // attempt to connect to local Spotify client
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine("---> Extra Bot Settings <---");
