@@ -51,24 +51,24 @@ namespace TwitchBot
         /// <param name="bolHasTwitterInfo">Check for Twitter credentials</param>
         public void CmdEnableTweet(bool bolHasTwitterInfo)
         {
-            try
-            {
-                if (!bolHasTwitterInfo)
-                    Program._irc.sendPublicChatMessage("You are missing twitter info @" + Program._strBroadcasterName);
-                else
-                {
-                    Program._isAutoPublishTweet = true;
-                    Properties.Settings.Default.enableTweet = Program._isAutoPublishTweet;
-                    Properties.Settings.Default.Save();
+            //try
+            //{
+            //    if (!bolHasTwitterInfo)
+            //        Program._irc.sendPublicChatMessage("You are missing twitter info @" + Program._strBroadcasterName);
+            //    else
+            //    {
+            //        Program._isAutoPublishTweet = true;
+            //        Properties.Settings.Default.enableTweet = Program._isAutoPublishTweet;
+            //        Properties.Settings.Default.Save();
 
-                    Console.WriteLine("Auto publish tweets is set to [" + Program._isAutoPublishTweet + "]");
-                    Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic tweets is set to \"" + Program._isAutoPublishTweet + "\"");
-                }
-            }
-            catch (Exception ex)
-            {
-                Program.LogError(ex, "CmdBrdCstr", "CmdEnableTweet(bool)", false, "!sendtweet on");
-            }
+            //        Console.WriteLine("Auto publish tweets is set to [" + Program._isAutoPublishTweet + "]");
+            //        Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic tweets is set to \"" + Program._isAutoPublishTweet + "\"");
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Program.LogError(ex, "CmdBrdCstr", "CmdEnableTweet(bool)", false, "!sendtweet on");
+            //}
         }
 
         /// <summary>
@@ -77,24 +77,24 @@ namespace TwitchBot
         /// <param name="bolHasTwitterInfo">Check for Twitter credentials</param>
         public void CmdDisableTweet(bool bolHasTwitterInfo)
         {
-            try
-            {
-                if (!bolHasTwitterInfo)
-                    Program._irc.sendPublicChatMessage("You are missing twitter info @" + Program._strBroadcasterName);
-                else
-                {
-                    Program._isAutoPublishTweet = false;
-                    Properties.Settings.Default.enableTweet = Program._isAutoPublishTweet;
-                    Properties.Settings.Default.Save();
+            //try
+            //{
+            //    if (!bolHasTwitterInfo)
+            //        Program._irc.sendPublicChatMessage("You are missing twitter info @" + Program._strBroadcasterName);
+            //    else
+            //    {
+            //        Program._isAutoPublishTweet = false;
+            //        Properties.Settings.Default.enableTweet = Program._isAutoPublishTweet;
+            //        Properties.Settings.Default.Save();
 
-                    Console.WriteLine("Auto publish tweets is set to [" + Program._isAutoPublishTweet + "]");
-                    Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic tweets is set to \"" + Program._isAutoPublishTweet + "\"");
-                }
-            }
-            catch (Exception ex)
-            {
-                Program.LogError(ex, "CmdBrdCstr", "CmdDisableTweet(bool)", false, "!sendtweet off");
-            }
+            //        Console.WriteLine("Auto publish tweets is set to [" + Program._isAutoPublishTweet + "]");
+            //        Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic tweets is set to \"" + Program._isAutoPublishTweet + "\"");
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Program.LogError(ex, "CmdBrdCstr", "CmdDisableTweet(bool)", false, "!sendtweet off");
+            //}
         }
 
         /// <summary>
@@ -268,19 +268,19 @@ namespace TwitchBot
         /// </summary>
         public void CmdEnableDisplaySongs()
         {
-            try
-            {
-                Program._isAutoDisplaySong = true;
-                Properties.Settings.Default.enableDisplaySong = Program._isAutoDisplaySong;
-                Properties.Settings.Default.Save();
+            //try
+            //{
+            //    Program._isAutoDisplaySong = true;
+            //    Properties.Settings.Default.enableDisplaySong = Program._isAutoDisplaySong;
+            //    Properties.Settings.Default.Save();
 
-                Console.WriteLine("Auto display songs is set to [" + Program._isAutoDisplaySong + "]");
-                Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic display songs is set to \"" + Program._isAutoDisplaySong + "\"");
-            }
-            catch (Exception ex)
-            {
-                Program.LogError(ex, "CmdBrdCstr", "CmdEnableDisplaySongs()", false, "!displaysongs on");
-            }
+            //    Console.WriteLine("Auto display songs is set to [" + Program._isAutoDisplaySong + "]");
+            //    Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic display songs is set to \"" + Program._isAutoDisplaySong + "\"");
+            //}
+            //catch (Exception ex)
+            //{
+            //    Program.LogError(ex, "CmdBrdCstr", "CmdEnableDisplaySongs()", false, "!displaysongs on");
+            //}
         }
 
         /// <summary>
@@ -288,19 +288,19 @@ namespace TwitchBot
         /// </summary>
         public void CmdDisableDisplaySongs()
         {
-            try
-            {
-                Program._isAutoDisplaySong = false;
-                Properties.Settings.Default.enableDisplaySong = Program._isAutoDisplaySong;
-                Properties.Settings.Default.Save();
+            //try
+            //{
+            //    Program._isAutoDisplaySong = false;
+            //    Properties.Settings.Default.enableDisplaySong = Program._isAutoDisplaySong;
+            //    Properties.Settings.Default.Save();
 
-                Console.WriteLine("Auto display songs is set to [" + Program._isAutoDisplaySong + "]");
-                Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic display songs is set to \"" + Program._isAutoDisplaySong + "\"");
-            }
-            catch (Exception ex)
-            {
-                Program.LogError(ex, "CmdBrdCstr", "CmdDisableDisplaySongs()", false, "!displaysongs off");
-            }
+            //    Console.WriteLine("Auto display songs is set to [" + Program._isAutoDisplaySong + "]");
+            //    Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic display songs is set to \"" + Program._isAutoDisplaySong + "\"");
+            //}
+            //catch (Exception ex)
+            //{
+            //    Program.LogError(ex, "CmdBrdCstr", "CmdDisableDisplaySongs()", false, "!displaysongs off");
+            //}
         }
 
         /// <summary>

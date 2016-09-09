@@ -332,27 +332,27 @@ namespace TwitchBot
         /// <param name="strUserName">User that sent the message</param>
         public void CmdSetLatency(string message, string strUserName)
         {
-            try
-            {
-                int intLatency = -1;
-                bool validInput = int.TryParse(message.Substring(12), out intLatency);
-                if (!validInput || intLatency < 0)
-                    Program._irc.sendPublicChatMessage("Please insert a valid positive alloted amount of time (in seconds)");
-                else
-                {
-                    // set and save latency
-                    Program._intStreamLatency = intLatency;
-                    Properties.Settings.Default.streamLatency = Program._intStreamLatency;
-                    Properties.Settings.Default.Save();
+            //try
+            //{
+            //    int intLatency = -1;
+            //    bool validInput = int.TryParse(message.Substring(12), out intLatency);
+            //    if (!validInput || intLatency < 0)
+            //        Program._irc.sendPublicChatMessage("Please insert a valid positive alloted amount of time (in seconds)");
+            //    else
+            //    {
+            //        // set and save latency
+            //        Program._intStreamLatency = intLatency;
+            //        Properties.Settings.Default.streamLatency = Program._intStreamLatency;
+            //        Properties.Settings.Default.Save();
 
-                    Console.WriteLine("Stream latency set to " + Program._intStreamLatency + " second(s)");
-                    Program._irc.sendPublicChatMessage("Bot settings for stream latency set to " + Program._intStreamLatency + " second(s) @" + strUserName);
-                }
-            }
-            catch (Exception ex)
-            {
-                Program.LogError(ex, "CmdMod", "CmdSetLatency(string, string)", false, "!setlatency");
-            }
+            //        Console.WriteLine("Stream latency set to " + Program._intStreamLatency + " second(s)");
+            //        Program._irc.sendPublicChatMessage("Bot settings for stream latency set to " + Program._intStreamLatency + " second(s) @" + strUserName);
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Program.LogError(ex, "CmdMod", "CmdSetLatency(string, string)", false, "!setlatency");
+            //}
         }
 
         /// <summary>
