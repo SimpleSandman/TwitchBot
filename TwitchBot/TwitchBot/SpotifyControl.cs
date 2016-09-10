@@ -6,20 +6,23 @@ using System.Threading.Tasks;
 using SpotifyAPI.Local;
 using SpotifyAPI.Local.Enums;
 using SpotifyAPI.Local.Models;
+using TwitchBot.Configuration;
 
 namespace TwitchBot
 {
     /* Example Code for Local Spotify API */
     // https://github.com/JohnnyCrazy/SpotifyAPI-NET/blob/master/SpotifyAPI.Example/LocalControl.cs
 
-    class SpotifyControl
+    public class SpotifyControl
     {
+        private TwitchBotConfigurationSection _botConfig;
         private SpotifyLocalAPI _spotify;
         private bool trackChanged = false; // used to prevent a paused song to skip to the next song
                                            // from displaying both "upcoming" and "current" song stats
 
-        public SpotifyControl()
+        public SpotifyControl(TwitchBotConfigurationSection _botSection)
         {
+            _botConfig = _botConfig;
             _spotify = new SpotifyLocalAPI();
             _spotify.OnPlayStateChange += spotify_OnPlayStateChange;
             _spotify.OnTrackChange += spotify_OnTrackChange;
@@ -88,7 +91,7 @@ namespace TwitchBot
 
         private void spotify_OnTrackChange(object sender, TrackChangeEventArgs e)
         {
-            ShowUpdatedTrack(e.NewTrack, Program._isAutoDisplaySong);
+            ShowUpdatedTrack(e.NewTrack, _botConfig.EnableDisplaySong);
             trackChanged = true;
         }
 
@@ -98,7 +101,7 @@ namespace TwitchBot
 
             StatusResponse status = _spotify.GetStatus();
             if (status.Track != null && status.Playing && !trackChanged) // Update track infos
-                ShowUpdatedTrack(status.Track, Program._isAutoDisplaySong);
+                ShowUpdatedTrack(status.Track, _botConfig.EnableDisplaySong);
 
             trackChanged = false;
         }
@@ -115,7 +118,7 @@ namespace TwitchBot
             Console.WriteLine("Version: " + status.Version.ToString() + "\n");
 
             if (status.Track != null && status.Playing) // Update track infos
-                ShowUpdatedTrack(status.Track, Program._isAutoDisplaySong);
+                ShowUpdatedTrack(status.Track, _botConfig.EnableDisplaySong);
         }
 
         public void ShowUpdatedTrack(Track track, bool isDisplayed)
@@ -139,7 +142,7 @@ namespace TwitchBot
 
                 Program._lstTupDelayMsg.Add(new Tuple<string, DateTime>(
                         pendingMessage,
-                        DateTime.Now.AddSeconds(Program._intStreamLatency)
+                        DateTime.Now.AddSeconds(_botConfig.StreamLatency)
                     )
                 );
             }

@@ -8,11 +8,13 @@ namespace TwitchBot
 {
     class PresenceReminder
     {
+        private IrcClient _irc;
         private Thread presenceReminder;
 
         // Empty constructor makes instance of Thread
-        public PresenceReminder() 
+        public PresenceReminder(IrcClient irc) 
         {
+            _irc = irc;
             presenceReminder = new Thread (new ThreadStart (this.Run) ); 
         }
 
@@ -28,7 +30,7 @@ namespace TwitchBot
         {
             while (true)
             {
-                Program._irc.sendPublicChatMessage("Just as a reminder. Big brother is watching! deIlluminati " 
+                _irc.sendPublicChatMessage("Just as a reminder. Big brother is watching! deIlluminati " 
                     + "Type !cmds to see the list of this bot's commands");
                 Thread.Sleep(1200000); // 20 minutes
             }
