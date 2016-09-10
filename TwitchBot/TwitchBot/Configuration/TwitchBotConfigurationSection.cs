@@ -46,7 +46,7 @@ namespace TwitchBot.Configuration
             new ConfigurationProperty("currencyType", typeof(string), "", ConfigurationPropertyOptions.None);
 
         private static readonly ConfigurationProperty _enableTweet =
-            new ConfigurationProperty("enableTweet", typeof(bool), false, ConfigurationPropertyOptions.None);
+            new ConfigurationProperty("enableTweets", typeof(bool), false, ConfigurationPropertyOptions.None);
 
         private static readonly ConfigurationProperty _enableDisplaySong =
             new ConfigurationProperty("enableDisplaySong", typeof(bool), false, ConfigurationPropertyOptions.None);

@@ -11,7 +11,7 @@ using System.IO;
 namespace TwitchBot
 {
     // Reference: https://www.youtube.com/watch?v=Ss-OzV9aUZg
-    class IrcClient
+    public class IrcClient
     {
         public string userName;
         private string channel;
@@ -39,7 +39,8 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "IrcClient", "IrcClient(string, int, string, string, string)", true);
+                //TODO: Create a class for loggin
+                //Program.LogError(ex, "IrcClient", "IrcClient(string, int, string, string, string)", true);
             }
         }
 
@@ -52,7 +53,8 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "IrcClient", "sendIrcMessage", false);
+                //TODO: Create a class for login
+                //Program.LogError(ex, "IrcClient", "sendIrcMessage", false);
             }
         }
 
@@ -65,7 +67,8 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "IrcClient", "sendPublicMessage", false);
+                //TODO: Create class for Loggin
+                //Program.LogError(ex, "IrcClient", "sendPublicMessage", false);
             }
         }
 
