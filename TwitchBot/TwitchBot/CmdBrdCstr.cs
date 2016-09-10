@@ -7,11 +7,28 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Tweetinvi;
+using TwitchBot.Configuration;
 
 namespace TwitchBot
 {
     public class CmdBrdCstr
     {
+        private IrcClient _irc;
+        private Moderator _mod;
+        private TwitchBotConfigurationSection _botConfig;
+        private string _connStr;
+        private int _intBroadcasterID;
+
+        public CmdBrdCstr(IrcClient irc, Moderator mod, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId)
+        {
+            _irc = irc;
+            _mod = mod;
+            _botConfig = botConfig;
+            _connStr = connString;
+            _intBroadcasterID = broadcasterId;
+        }
+
         /// <summary>
         /// Display bot settings
         /// </summary>
@@ -19,13 +36,14 @@ namespace TwitchBot
         {
             try
             {
-                Program._irc.sendPublicChatMessage("Auto tweets set to \"" + Program._isAutoPublishTweet + "\" "
-                    + "|| Auto display songs set to \"" + Program._isAutoDisplaySong + "\" "
-                    + "|| Currency set to \"" + Program._strCurrencyType + "\"");
+                _irc.sendPublicChatMessage("Auto tweets set to \"" + _botConfig.EnableTweets + "\" "
+                    + "|| Auto display songs set to \"" + _botConfig.EnableDisplaySong + "\" "
+                    + "|| Currency set to \"" + _botConfig.CurrencyType + "\"");
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdBotSettings()", false, "!botsettings");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdBotSettings()", false, "!botsettings");
             }
         }
 
@@ -36,12 +54,13 @@ namespace TwitchBot
         {
             try
             {
-                Program._irc.sendPublicChatMessage("Bye! Have a beautiful time!");
+                _irc.sendPublicChatMessage("Bye! Have a beautiful time!");
                 Environment.Exit(0); // exit program
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdExitBot()", false, "!exitbot");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdExitBot()", false, "!exitbot");
             }
         }
 
@@ -51,24 +70,24 @@ namespace TwitchBot
         /// <param name="bolHasTwitterInfo">Check for Twitter credentials</param>
         public void CmdEnableTweet(bool bolHasTwitterInfo)
         {
-            try
-            {
-                if (!bolHasTwitterInfo)
-                    Program._irc.sendPublicChatMessage("You are missing twitter info @" + Program._strBroadcasterName);
-                else
-                {
-                    Program._isAutoPublishTweet = true;
-                    Properties.Settings.Default.enableTweet = Program._isAutoPublishTweet;
-                    Properties.Settings.Default.Save();
+            //try
+            //{
+            //    if (!bolHasTwitterInfo)
+            //        Program._irc.sendPublicChatMessage("You are missing twitter info @" + Program._strBroadcasterName);
+            //    else
+            //    {
+            //        Program._isAutoPublishTweet = true;
+            //        Properties.Settings.Default.enableTweet = Program._isAutoPublishTweet;
+            //        Properties.Settings.Default.Save();
 
-                    Console.WriteLine("Auto publish tweets is set to [" + Program._isAutoPublishTweet + "]");
-                    Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic tweets is set to \"" + Program._isAutoPublishTweet + "\"");
-                }
-            }
-            catch (Exception ex)
-            {
-                Program.LogError(ex, "CmdBrdCstr", "CmdEnableTweet(bool)", false, "!sendtweet on");
-            }
+            //        Console.WriteLine("Auto publish tweets is set to [" + Program._isAutoPublishTweet + "]");
+            //        Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic tweets is set to \"" + Program._isAutoPublishTweet + "\"");
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Program.LogError(ex, "CmdBrdCstr", "CmdEnableTweet(bool)", false, "!sendtweet on");
+            //}
         }
 
         /// <summary>
@@ -77,24 +96,24 @@ namespace TwitchBot
         /// <param name="bolHasTwitterInfo">Check for Twitter credentials</param>
         public void CmdDisableTweet(bool bolHasTwitterInfo)
         {
-            try
-            {
-                if (!bolHasTwitterInfo)
-                    Program._irc.sendPublicChatMessage("You are missing twitter info @" + Program._strBroadcasterName);
-                else
-                {
-                    Program._isAutoPublishTweet = false;
-                    Properties.Settings.Default.enableTweet = Program._isAutoPublishTweet;
-                    Properties.Settings.Default.Save();
+            //try
+            //{
+            //    if (!bolHasTwitterInfo)
+            //        Program._irc.sendPublicChatMessage("You are missing twitter info @" + Program._strBroadcasterName);
+            //    else
+            //    {
+            //        Program._isAutoPublishTweet = false;
+            //        Properties.Settings.Default.enableTweet = Program._isAutoPublishTweet;
+            //        Properties.Settings.Default.Save();
 
-                    Console.WriteLine("Auto publish tweets is set to [" + Program._isAutoPublishTweet + "]");
-                    Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic tweets is set to \"" + Program._isAutoPublishTweet + "\"");
-                }
-            }
-            catch (Exception ex)
-            {
-                Program.LogError(ex, "CmdBrdCstr", "CmdDisableTweet(bool)", false, "!sendtweet off");
-            }
+            //        Console.WriteLine("Auto publish tweets is set to [" + Program._isAutoPublishTweet + "]");
+            //        Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic tweets is set to \"" + Program._isAutoPublishTweet + "\"");
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Program.LogError(ex, "CmdBrdCstr", "CmdDisableTweet(bool)", false, "!sendtweet off");
+            //}
         }
 
         /// <summary>
@@ -106,11 +125,12 @@ namespace TwitchBot
             try
             {
                 isSongRequestAvail = true;
-                Program._irc.sendPublicChatMessage("Song requests enabled");
+                _irc.sendPublicChatMessage("Song requests enabled");
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdEnableSRMode(ref bool)", false, "!srmode on");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdEnableSRMode(ref bool)", false, "!srmode on");
             }
         }
 
@@ -123,11 +143,12 @@ namespace TwitchBot
             try
             {
                 isSongRequestAvail = false;
-                Program._irc.sendPublicChatMessage("Song requests disabled");
+                _irc.sendPublicChatMessage("Song requests disabled");
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdDisableSRMode(ref bool)", false, "!srmode off");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdDisableSRMode(ref bool)", false, "!srmode off");
             }
         }
 
@@ -144,7 +165,7 @@ namespace TwitchBot
                 string title = message.Substring(message.IndexOf(" ") + 1);
 
                 // Send HTTP method PUT to base URI in order to change the title
-                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + Program._strBroadcasterName);
+                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _botConfig.Broadcaster);
                 RestRequest request = new RestRequest(Method.PUT);
                 request.AddHeader("cache-control", "no-cache");
                 request.AddHeader("content-type", "application/json");
@@ -160,7 +181,7 @@ namespace TwitchBot
                     string statResponse = response.StatusCode.ToString();
                     if (statResponse.Contains("OK"))
                     {
-                        Program._irc.sendPublicChatMessage("Twitch channel title updated to \"" + title +
+                        _irc.sendPublicChatMessage("Twitch channel title updated to \"" + title +
                             "\" || Refresh your browser [F5] or twitch app to see the change");
                     }
                     else
@@ -178,7 +199,8 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdUpdateTitle(string, string, string)", false, "!updatetitle");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdUpdateTitle(string, string, string)", false, "!updatetitle");
             }
         }
 
@@ -196,7 +218,7 @@ namespace TwitchBot
                 string game = message.Substring(message.IndexOf(" ") + 1);
 
                 // Send HTTP method PUT to base URI in order to change the game
-                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + Program._strBroadcasterName);
+                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _botConfig.Broadcaster);
                 RestRequest request = new RestRequest(Method.PUT);
                 request.AddHeader("cache-control", "no-cache");
                 request.AddHeader("content-type", "application/json");
@@ -212,11 +234,11 @@ namespace TwitchBot
                     string statResponse = response.StatusCode.ToString();
                     if (statResponse.Contains("OK"))
                     {
-                        Program._irc.sendPublicChatMessage("Twitch channel game status updated to \"" + game +
+                        _irc.sendPublicChatMessage("Twitch channel game status updated to \"" + game +
                             "\" || Restart your connection to the stream or twitch app to see the change");
-                        if (Program._isAutoPublishTweet && bolHasTwitterInfo)
+                        if (_botConfig.EnableTweets && bolHasTwitterInfo)
                         {
-                            Program.SendTweet("Watch me stream " + game + " on Twitch" + Environment.NewLine
+                            SendTweet("Watch me stream " + game + " on Twitch" + Environment.NewLine
                                 + "http://goo.gl/SNyDFD" + Environment.NewLine
                                 + "#twitch #gaming #streaming", message);
                         }
@@ -236,7 +258,8 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdUpdateGame(string, string, string, bool, bool)", false, "!updategame");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdUpdateGame(string, string, string, bool, bool)", false, "!updategame");
             }
         }
 
@@ -250,16 +273,17 @@ namespace TwitchBot
             try
             {
                 if (!bolHasTwitterInfo)
-                    Program._irc.sendPublicChatMessage("You are missing twitter info @" + Program._strBroadcasterName);
+                    _irc.sendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
                 else
                 {
                     string command = message;
-                    Program.SendTweet(message, command);
+                    SendTweet(message, command);
                 }
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdTweet(bool, string, string)", false, "!tweet");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdTweet(bool, string, string)", false, "!tweet");
             }
         }
 
@@ -268,19 +292,19 @@ namespace TwitchBot
         /// </summary>
         public void CmdEnableDisplaySongs()
         {
-            try
-            {
-                Program._isAutoDisplaySong = true;
-                Properties.Settings.Default.enableDisplaySong = Program._isAutoDisplaySong;
-                Properties.Settings.Default.Save();
+            //try
+            //{
+            //    Program._isAutoDisplaySong = true;
+            //    Properties.Settings.Default.enableDisplaySong = Program._isAutoDisplaySong;
+            //    Properties.Settings.Default.Save();
 
-                Console.WriteLine("Auto display songs is set to [" + Program._isAutoDisplaySong + "]");
-                Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic display songs is set to \"" + Program._isAutoDisplaySong + "\"");
-            }
-            catch (Exception ex)
-            {
-                Program.LogError(ex, "CmdBrdCstr", "CmdEnableDisplaySongs()", false, "!displaysongs on");
-            }
+            //    Console.WriteLine("Auto display songs is set to [" + Program._isAutoDisplaySong + "]");
+            //    Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic display songs is set to \"" + Program._isAutoDisplaySong + "\"");
+            //}
+            //catch (Exception ex)
+            //{
+            //    Program.LogError(ex, "CmdBrdCstr", "CmdEnableDisplaySongs()", false, "!displaysongs on");
+            //}
         }
 
         /// <summary>
@@ -288,19 +312,19 @@ namespace TwitchBot
         /// </summary>
         public void CmdDisableDisplaySongs()
         {
-            try
-            {
-                Program._isAutoDisplaySong = false;
-                Properties.Settings.Default.enableDisplaySong = Program._isAutoDisplaySong;
-                Properties.Settings.Default.Save();
+            //try
+            //{
+            //    Program._isAutoDisplaySong = false;
+            //    Properties.Settings.Default.enableDisplaySong = Program._isAutoDisplaySong;
+            //    Properties.Settings.Default.Save();
 
-                Console.WriteLine("Auto display songs is set to [" + Program._isAutoDisplaySong + "]");
-                Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic display songs is set to \"" + Program._isAutoDisplaySong + "\"");
-            }
-            catch (Exception ex)
-            {
-                Program.LogError(ex, "CmdBrdCstr", "CmdDisableDisplaySongs()", false, "!displaysongs off");
-            }
+            //    Console.WriteLine("Auto display songs is set to [" + Program._isAutoDisplaySong + "]");
+            //    Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic display songs is set to \"" + Program._isAutoDisplaySong + "\"");
+            //}
+            //catch (Exception ex)
+            //{
+            //    Program.LogError(ex, "CmdBrdCstr", "CmdDisableDisplaySongs()", false, "!displaysongs off");
+            //}
         }
 
         /// <summary>
@@ -312,12 +336,13 @@ namespace TwitchBot
             try
             {
                 string strRecipient = message.Substring(message.IndexOf("@") + 1); // grab user from message
-                Program._mod.addNewModToLst(strRecipient.ToLower(), Program._intBroadcasterID, Program._connStr); // add user to mod list and add to db
-                Program._irc.sendPublicChatMessage("@" + strRecipient + " is now able to use moderator features within " + Program._strBotName);
+                _mod.addNewModToLst(strRecipient.ToLower(), _intBroadcasterID, _connStr); // add user to mod list and add to db
+                _irc.sendPublicChatMessage("@" + strRecipient + " is now able to use moderator features within " + _botConfig.BotName);
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdAddBotMod(string)", false, "!addmod");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdAddBotMod(string)", false, "!addmod");
             }
         }
 
@@ -330,12 +355,13 @@ namespace TwitchBot
             try
             {
                 string strRecipient = message.Substring(message.IndexOf("@") + 1); // grab user from message
-                Program._mod.delOldModFromLst(strRecipient.ToLower(), Program._intBroadcasterID, Program._connStr); // delete user from mod list and remove from db
-                Program._irc.sendPublicChatMessage("@" + strRecipient + " is not able to use moderator features within " + Program._strBotName + " any longer");
+                _mod.delOldModFromLst(strRecipient.ToLower(), _intBroadcasterID, _connStr); // delete user from mod list and remove from db
+                _irc.sendPublicChatMessage("@" + strRecipient + " is not able to use moderator features within " + _botConfig.BotName + " any longer");
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdDelBotMod(string)", false, "!delmod");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdDelBotMod(string)", false, "!delmod");
             }
         }
 
@@ -348,20 +374,21 @@ namespace TwitchBot
             {
                 string strListModMsg = "";
 
-                if (Program._mod.getLstMod().Count > 0)
+                if (_mod.getLstMod().Count > 0)
                 {
-                    foreach (string name in Program._mod.getLstMod())
+                    foreach (string name in _mod.getLstMod())
                         strListModMsg += name + " | ";
 
                     strListModMsg = strListModMsg.Remove(strListModMsg.Length - 3); // removed extra " | "
-                    Program._irc.sendPublicChatMessage("List of bot moderators: " + strListModMsg);
+                    _irc.sendPublicChatMessage("List of bot moderators: " + strListModMsg);
                 }
                 else
-                    Program._irc.sendPublicChatMessage("No one is ruling over me other than you @" + Program._strBroadcasterName);
+                    _irc.sendPublicChatMessage("No one is ruling over me other than you @" + _botConfig.Broadcaster);
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdListMod()", false, "!listmod");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdListMod()", false, "!listmod");
             }
         }
 
@@ -384,23 +411,24 @@ namespace TwitchBot
                 // log new countdown into db
                 string query = "INSERT INTO tblCountdown (dueDate, message, broadcaster) VALUES (@dueDate, @message, @broadcaster)";
 
-                using (SqlConnection conn = new SqlConnection(Program._connStr))
+                using (SqlConnection conn = new SqlConnection(_connStr))
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = dtCountdown;
                     cmd.Parameters.Add("@message", SqlDbType.VarChar, 50).Value = strCountdownMsg;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
                 }
 
                 Console.WriteLine("Countdown added!");
-                Program._irc.sendPublicChatMessage($"Countdown added @{strUserName}");
+                _irc.sendPublicChatMessage($"Countdown added @{strUserName}");
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdAddCountdown(string, string)", false, "!addcountdown");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdAddCountdown(string, string)", false, "!addcountdown");
             }
         }
 
@@ -419,18 +447,18 @@ namespace TwitchBot
 
                 // validate requested countdown ID
                 if (!bolValidCountdownID || intReqCountdownID < 0)
-                    Program._irc.sendPublicChatMessage("Please use a positive whole number to find your countdown ID");
+                    _irc.sendPublicChatMessage("Please use a positive whole number to find your countdown ID");
                 else
                 {
                     // check if countdown ID exists
                     int intCountdownID = -1;
-                    using (SqlConnection conn = new SqlConnection(Program._connStr))
+                    using (SqlConnection conn = new SqlConnection(_connStr))
                     {
                         conn.Open();
                         using (SqlCommand cmd = new SqlCommand("SELECT id, broadcaster FROM tblCountdown "
                             + "WHERE broadcaster = @broadcaster", conn))
                         {
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.HasRows)
@@ -450,7 +478,7 @@ namespace TwitchBot
 
                     // check if countdown ID was retrieved
                     if (intCountdownID == -1)
-                        Program._irc.sendPublicChatMessage($"Cannot find the countdown ID: {intReqCountdownID}");
+                        _irc.sendPublicChatMessage($"Cannot find the countdown ID: {intReqCountdownID}");
                     else
                     {
                         int intInputType = -1; // check if input is in the correct format
@@ -464,7 +492,7 @@ namespace TwitchBot
                             bool bolValidCountdownDT = DateTime.TryParse(strCountdownInput, out dtCountdown);
 
                             if (!bolValidCountdownDT)
-                                Program._irc.sendPublicChatMessage("Please enter a valid date and time @" + strUserName);
+                                _irc.sendPublicChatMessage("Please enter a valid date and time @" + strUserName);
                             else
                                 intInputType = 1;
                         }
@@ -472,7 +500,7 @@ namespace TwitchBot
                         {
                             // get new message of countdown
                             if (string.IsNullOrWhiteSpace(strCountdownInput))
-                                Program._irc.sendPublicChatMessage("Please enter a valid message @" + strUserName);
+                                _irc.sendPublicChatMessage("Please enter a valid message @" + strUserName);
                             else
                                 intInputType = 2;
                         }
@@ -487,7 +515,7 @@ namespace TwitchBot
                             else if (intInputType == 2)
                                 strQuery = "UPDATE dbo.tblCountdown SET message = @message WHERE (Id = @id AND broadcaster = @broadcaster)";
 
-                            using (SqlConnection conn = new SqlConnection(Program._connStr))
+                            using (SqlConnection conn = new SqlConnection(_connStr))
                             using (SqlCommand cmd = new SqlCommand(strQuery, conn))
                             {
                                 // append proper parameter
@@ -497,21 +525,22 @@ namespace TwitchBot
                                     cmd.Parameters.Add("@message", SqlDbType.VarChar, 50).Value = strCountdownInput;
 
                                 cmd.Parameters.Add("@id", SqlDbType.Int).Value = intCountdownID;
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
                                 conn.Open();
                                 cmd.ExecuteNonQuery();
                             }
 
                             Console.WriteLine($"Changes to countdown ID: {intReqCountdownID} have been made @{strUserName}");
-                            Program._irc.sendPublicChatMessage($"Changes to countdown ID: {intReqCountdownID} have been made @{strUserName}");
+                            _irc.sendPublicChatMessage($"Changes to countdown ID: {intReqCountdownID} have been made @{strUserName}");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string, string)", false, "!editcountdown");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string, string)", false, "!editcountdown");
             }
         }
 
@@ -525,13 +554,13 @@ namespace TwitchBot
             {
                 string strCountdownList = "";
 
-                using (SqlConnection conn = new SqlConnection(Program._connStr))
+                using (SqlConnection conn = new SqlConnection(_connStr))
                 {
                     conn.Open();
                     using (SqlCommand cmd = new SqlCommand("SELECT Id, dueDate, message, broadcaster FROM tblCountdown "
                         + "WHERE broadcaster = @broadcaster ORDER BY Id", conn))
                     {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
@@ -546,12 +575,12 @@ namespace TwitchBot
                                 StringBuilder strBdrPartyList = new StringBuilder(strCountdownList);
                                 strBdrPartyList.Remove(strCountdownList.Length - 4, 4); // remove extra " || "
                                 strCountdownList = strBdrPartyList.ToString(); // replace old countdown list string with new
-                                Program._irc.sendPublicChatMessage(strCountdownList);
+                                _irc.sendPublicChatMessage(strCountdownList);
                             }
                             else
                             {
                                 Console.WriteLine("No countdown messages are set at the moment");
-                                Program._irc.sendPublicChatMessage("No countdown messages are set at the moment @" + strUserName);
+                                _irc.sendPublicChatMessage("No countdown messages are set at the moment @" + strUserName);
                             }
                         }
                     }
@@ -559,7 +588,49 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdBrdCstr", "CmdListCountdown()", false, "!listcountdown");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdBrdCstr", "CmdListCountdown()", false, "!listcountdown");
+            }
+        }
+
+        public void SendTweet(string pendingMessage, string command)
+        {
+            // Check if there are at least two quotation marks before sending message using LINQ
+            string resultMessage = "";
+            if (command.Count(c => c == '"') < 2)
+            {
+                resultMessage = "Please use at least two quotation marks (\") before sending a tweet. " +
+                    "Quotations are used to find the start and end of a message wanting to be sent";
+                Console.WriteLine(resultMessage);
+                _irc.sendPublicChatMessage(resultMessage);
+                return;
+            }
+
+            // Get message from quotation parameter
+            string tweetMessage = string.Empty;
+            int length = (pendingMessage.LastIndexOf('"') - pendingMessage.IndexOf('"')) - 1;
+            if (length == -1) // if no quotations were found
+                length = pendingMessage.Length;
+            int startIndex = pendingMessage.IndexOf('"') + 1;
+            tweetMessage = pendingMessage.Substring(startIndex, length);
+
+            // Check if message length is at or under 140 characters
+            var basicTweet = new object();
+
+            if (tweetMessage.Length <= 140)
+            {
+                basicTweet = Tweet.PublishTweet(tweetMessage);
+                resultMessage = "Tweet successfully published!";
+                Console.WriteLine(resultMessage);
+                _irc.sendPublicChatMessage(resultMessage);
+            }
+            else
+            {
+                int overCharLimit = tweetMessage.Length - 140;
+                resultMessage = "The message you attempted to tweet had " + overCharLimit +
+                    " characters more than the 140 character limit. Please shorten your message and try again";
+                Console.WriteLine(resultMessage);
+                _irc.sendPublicChatMessage(resultMessage);
             }
         }
     }

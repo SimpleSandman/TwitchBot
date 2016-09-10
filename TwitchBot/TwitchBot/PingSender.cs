@@ -9,14 +9,16 @@ namespace TwitchBot
     /*
     * Class that sends PING to irc server every 5 minutes
     */
-    class PingSender
+    public class PingSender
     {
+        private IrcClient _irc;
         static string PING = "PING ";
         private Thread pingSender;
 
         // Empty constructor makes instance of Thread
-        public PingSender() 
+        public PingSender(IrcClient irc) 
         {
+            _irc = irc;
             pingSender = new Thread (new ThreadStart (this.Run) ); 
         }
 
@@ -32,7 +34,7 @@ namespace TwitchBot
         {
             while (true)
             {
-                Program._irc.sendIrcMessage(PING + "irc.twitch.tv");
+                _irc.sendIrcMessage(PING + "irc.twitch.tv");
                 Thread.Sleep(300000); // 5 minutes
             }
         }

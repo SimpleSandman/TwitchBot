@@ -8,23 +8,41 @@ using System.Data.SqlClient;
 using System.Data;
 using System.Text.RegularExpressions;
 using SpotifyAPI.Local.Models;
+using TwitchBot.Configuration;
 
 namespace TwitchBot
 {
     public class CmdGen
     {
+        private IrcClient _irc;
+        private SpotifyControl _spotify;
+        private TwitchBotConfigurationSection _botConfig;
+        private string _connStr;
+        private int _intBroadcasterID;
+        private string _strBroadcasterGame;
+
+        public CmdGen(IrcClient irc, SpotifyControl spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId)
+        {
+            _irc = irc;
+            _spotify = spotify;
+            _botConfig = botConfig;
+            _connStr = connString;
+            _intBroadcasterID = broadcasterId;
+        }
+
         public void CmdCmds()
         {
             try
             {
-                Program._irc.sendPublicChatMessage("---> !hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username] "
+                _irc.sendPublicChatMessage("---> !hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username] "
                     + "| !spotifycurr | !srlist | !sr [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] | !gamble [money] "
                     + "| !quote <---"
                     + " Link to full list of commands: http://bit.ly/2bXLlEe");
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdCmds()", false, "!cmds");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdCmds()", false, "!cmds");
             }
         }
 
@@ -32,11 +50,12 @@ namespace TwitchBot
         {
             try
             {
-                Program._irc.sendPublicChatMessage($"Hey @{strUserName}! Thanks for talking to me.");
+                _irc.sendPublicChatMessage($"Hey @{strUserName}! Thanks for talking to me.");
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdHello(string)", false, "!hello");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdHello(string)", false, "!hello");
             }
         }
 
@@ -44,11 +63,12 @@ namespace TwitchBot
         {
             try
             {
-                Program._irc.sendPublicChatMessage($"UTC Time: {DateTime.UtcNow.ToString()}");
+                _irc.sendPublicChatMessage($"UTC Time: {DateTime.UtcNow.ToString()}");
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdUtcTime()", false, "!utctime");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdUtcTime()", false, "!utctime");
             }
         }
 
@@ -56,11 +76,12 @@ namespace TwitchBot
         {
             try
             {
-                Program._irc.sendPublicChatMessage($"{strBroadcasterName}'s Current Time: {DateTime.Now.ToString()} ({TimeZone.CurrentTimeZone.StandardName})");
+                _irc.sendPublicChatMessage($"{strBroadcasterName}'s Current Time: {DateTime.Now.ToString()} ({TimeZone.CurrentTimeZone.StandardName})");
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdHostTime(string)", false, "!hosttime");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdHostTime(string)", false, "!hosttime");
             }
         }
 
@@ -69,19 +90,20 @@ namespace TwitchBot
             try
             {
                 // Check if the channel is live
-                if (TaskJSON.GetStream().Result.stream != null)
+                if (TaskJSON.GetStream(_botConfig.Broadcaster).Result.stream != null)
                 {
-                    string strDuration = TaskJSON.GetStream().Result.stream.created_at;
+                    string strDuration = TaskJSON.GetStream(_botConfig.Broadcaster).Result.stream.created_at;
                     TimeSpan ts = DateTime.UtcNow - DateTime.Parse(strDuration, new DateTimeFormatInfo(), DateTimeStyles.AdjustToUniversal);
                     string strResultDuration = String.Format("{0:h\\:mm\\:ss}", ts);
-                    Program._irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
+                    _irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
                 }
                 else
-                    Program._irc.sendPublicChatMessage("This channel is not streaming anything at the moment");
+                    _irc.sendPublicChatMessage("This channel is not streaming anything at the moment");
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdDuration(string)", false, "!duration");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdDuration(string)", false, "!duration");
             }
         }
 
@@ -94,12 +116,12 @@ namespace TwitchBot
             {
                 string songList = "";
 
-                using (SqlConnection conn = new SqlConnection(Program._connStr))
+                using (SqlConnection conn = new SqlConnection(_connStr))
                 {
                     conn.Open();
                     using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster", conn))
                     {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
@@ -125,12 +147,12 @@ namespace TwitchBot
                                 StringBuilder strBdrSongList = new StringBuilder(songList);
                                 strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " || "
                                 songList = strBdrSongList.ToString(); // replace old song list string with new
-                                Program._irc.sendPublicChatMessage("Current List of Requested Songs: " + songList);
+                                _irc.sendPublicChatMessage("Current List of Requested Songs: " + songList);
                             }
                             else
                             {
                                 Console.WriteLine("No requests have been made");
-                                Program._irc.sendPublicChatMessage("No requests have been made");
+                                _irc.sendPublicChatMessage("No requests have been made");
                             }
                         }
                     }
@@ -138,7 +160,8 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdSRList()", false, "!srlist");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdSRList()", false, "!srlist");
             }
         }
 
@@ -164,7 +187,7 @@ namespace TwitchBot
                     // Check if song request has more than letters, numbers, and hyphens
                     if (!Regex.IsMatch(songRequest, @"^[a-zA-Z0-9 \-\(\)\'\?]+$"))
                     {
-                        Program._irc.sendPublicChatMessage("Only letters, numbers, hyphens (-), parentheses (), " 
+                        _irc.sendPublicChatMessage("Only letters, numbers, hyphens (-), parentheses (), "
                             + "apostrophes ('), and question marks (?) are allowed. Please try again. "
                             + "If the problem persists, please contact my creator");
                     }
@@ -173,11 +196,11 @@ namespace TwitchBot
                         /* Add song request to database */
                         string query = "INSERT INTO tblSongRequests (songRequests, broadcaster, chatter) VALUES (@song, @broadcaster, @chatter)";
 
-                        using (SqlConnection conn = new SqlConnection(Program._connStr))
+                        using (SqlConnection conn = new SqlConnection(_connStr))
                         using (SqlCommand cmd = new SqlCommand(query, conn))
                         {
                             cmd.Parameters.Add("@song", SqlDbType.VarChar, 200).Value = songRequest;
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.VarChar, 200).Value = Program._intBroadcasterID;
+                            cmd.Parameters.Add("@broadcaster", SqlDbType.VarChar, 200).Value = _intBroadcasterID;
                             cmd.Parameters.Add("@chatter", SqlDbType.VarChar, 200).Value = strUserName;
 
                             conn.Open();
@@ -185,15 +208,16 @@ namespace TwitchBot
                             conn.Close();
                         }
 
-                        Program._irc.sendPublicChatMessage("The song \"" + songRequest + "\" has been successfully requested!");
+                        _irc.sendPublicChatMessage("The song \"" + songRequest + "\" has been successfully requested!");
                     }
                 }
                 else
-                    Program._irc.sendPublicChatMessage("Song requests are disabled at the moment");
+                    _irc.sendPublicChatMessage("Song requests are disabled at the moment");
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdSR(bool, string, string)", false, "!sr", message);
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdSR(bool, string, string)", false, "!sr", message);
             }
         }
 
@@ -204,19 +228,20 @@ namespace TwitchBot
         {
             try
             {
-                StatusResponse status = Program._spotify.GetStatus();
+                StatusResponse status = _spotify.GetStatus();
                 if (status != null)
                 {
-                    Program._irc.sendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
+                    _irc.sendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
                         + " || Artist: " + status.Track.ArtistResource.Name
                         + " || Album: " + status.Track.AlbumResource.Name);
                 }
                 else
-                    Program._irc.sendPublicChatMessage("The broadcaster is not playing a song at the moment");
+                    _irc.sendPublicChatMessage("The broadcaster is not playing a song at the moment");
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdSpotifyCurr()", false, "!spotifycurr");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdSpotifyCurr()", false, "!spotifycurr");
             }
         }
 
@@ -230,11 +255,12 @@ namespace TwitchBot
             try
             {
                 string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                Program.reactionCmd(message, strUserName, strRecipient, "Stop smacking yourself", "slaps", Program.Effectiveness());
+                reactionCmd(message, strUserName, strRecipient, "Stop smacking yourself", "slaps", Effectiveness());
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdSlap(string, string)", false, "!slap", message);
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdSlap(string, string)", false, "!slap", message);
             }
         }
 
@@ -248,11 +274,12 @@ namespace TwitchBot
             try
             {
                 string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                Program.reactionCmd(message, strUserName, strRecipient, "Stop stabbing yourself", "stabs", Program.Effectiveness());
+                reactionCmd(message, strUserName, strRecipient, "Stop stabbing yourself", "stabs", Effectiveness());
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdStab(string, string)", false, "!stab", message);
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdStab(string, string)", false, "!stab", message);
             }
         }
 
@@ -287,20 +314,21 @@ namespace TwitchBot
                 else // found largest random value
                     strBodyPart = " but missed";
 
-                Program.reactionCmd(message, strUserName, strRecipient, "You just shot your " + strBodyPart.Replace("'s ", ""), "shoots", strBodyPart);
+                reactionCmd(message, strUserName, strRecipient, "You just shot your " + strBodyPart.Replace("'s ", ""), "shoots", strBodyPart);
 
                 // bot responds if targeted
-                if (strRecipient.Equals(Program._strBotName.ToLower()))
+                if (strRecipient.Equals(_botConfig.BotName.ToLower()))
                 {
                     if (strBodyPart.Equals(" but missed"))
-                        Program._irc.sendPublicChatMessage("Ha! You missed @" + strUserName);
+                        _irc.sendPublicChatMessage("Ha! You missed @" + strUserName);
                     else
-                        Program._irc.sendPublicChatMessage("You think shooting me in the " + strBodyPart.Replace("'s ", "") + " would hurt me? I am a bot!");
+                        _irc.sendPublicChatMessage("You think shooting me in the " + strBodyPart.Replace("'s ", "") + " would hurt me? I am a bot!");
                 }
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdShoot(string, string)", false, "!shoot", message);
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdShoot(string, string)", false, "!shoot", message);
             }
         }
 
@@ -316,18 +344,19 @@ namespace TwitchBot
                 int intIndexAction = 7;
 
                 if (message.StartsWith("!throw @"))
-                    Program._irc.sendPublicChatMessage("Please throw an item to a user @" + strUserName);
+                    _irc.sendPublicChatMessage("Please throw an item to a user @" + strUserName);
                 else
                 {
                     string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
                     string item = message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1);
 
-                    Program.reactionCmd(message, strUserName, strRecipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + Program.Effectiveness());
+                    reactionCmd(message, strUserName, strRecipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + Effectiveness());
                 }
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdThrow(string, string)", false, "!throw", message);
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdThrow(string, string)", false, "!throw", message);
             }
         }
 
@@ -347,16 +376,16 @@ namespace TwitchBot
                 bool isDuplicateRequestor = false;
 
                 // Get current game
-                Program._strBroadcasterGame = TaskJSON.GetChannel().Result.game;
+                _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster).Result.game;
 
                 // check if user entered something
                 if (message.Length < intInputIndex)
-                    Program._irc.sendPublicChatMessage("Please enter a party member @" + strUserName);
+                    _irc.sendPublicChatMessage("Please enter a party member @" + strUserName);
                 else
                     strPartyMember = message.Substring(intInputIndex);
 
                 // grab game id in order to find party member
-                using (SqlConnection conn = new SqlConnection(Program._connStr))
+                using (SqlConnection conn = new SqlConnection(_connStr))
                 {
                     conn.Open();
                     using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblGameList", conn))
@@ -366,7 +395,7 @@ namespace TwitchBot
                         {
                             while (reader.Read())
                             {
-                                if (Program._strBroadcasterGame.Equals(reader["name"].ToString()))
+                                if (_strBroadcasterGame.Equals(reader["name"].ToString()))
                                 {
                                     intGameID = int.Parse(reader["id"].ToString());
                                     break;
@@ -379,16 +408,16 @@ namespace TwitchBot
                 // if the game is not found
                 // tell users this game is not accepting party up requests
                 if (intGameID == 0)
-                    Program._irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
+                    _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
                 else // check if user has already requested a party member
                 {
-                    using (SqlConnection conn = new SqlConnection(Program._connStr))
+                    using (SqlConnection conn = new SqlConnection(_connStr))
                     {
                         conn.Open();
                         using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUpRequests "
                             + "WHERE broadcaster = @broadcaster AND game = @game AND username = @username", conn))
                         {
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
                             cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
                             cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strUserName;
                             using (SqlDataReader reader = cmd.ExecuteReader())
@@ -409,15 +438,15 @@ namespace TwitchBot
                     }
 
                     if (isDuplicateRequestor)
-                        Program._irc.sendPublicChatMessage("You have already requested a party member. Please wait until your request has been completed @" + strUserName);
+                        _irc.sendPublicChatMessage("You have already requested a party member. Please wait until your request has been completed @" + strUserName);
                     else // search for party member user is requesting
                     {
-                        using (SqlConnection conn = new SqlConnection(Program._connStr))
+                        using (SqlConnection conn = new SqlConnection(_connStr))
                         {
                             conn.Open();
                             using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUp WHERE broadcaster = @broadcaster AND game = @game", conn))
                             {
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
                                 cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
                                 using (SqlDataReader reader = cmd.ExecuteReader())
                                 {
@@ -439,7 +468,7 @@ namespace TwitchBot
 
                         // insert party member if they exists from database
                         if (!isPartyMemebrFound)
-                            Program._irc.sendPublicChatMessage("I couldn't find the requested party member '" + strPartyMember + "' @" + strUserName
+                            _irc.sendPublicChatMessage("I couldn't find the requested party member '" + strPartyMember + "' @" + strUserName
                                 + ". Please check with the broadcaster for possible spelling errors");
                         else
                         {
@@ -447,13 +476,13 @@ namespace TwitchBot
                                 + "VALUES (@username, @partyMember, @timeRequested, @broadcaster, @game)";
 
                             // Create connection and command
-                            using (SqlConnection conn = new SqlConnection(Program._connStr))
+                            using (SqlConnection conn = new SqlConnection(_connStr))
                             using (SqlCommand cmd = new SqlCommand(query, conn))
                             {
                                 cmd.Parameters.Add("@username", SqlDbType.VarChar, 50).Value = strUserName;
                                 cmd.Parameters.Add("@partyMember", SqlDbType.VarChar, 50).Value = strPartyMember;
                                 cmd.Parameters.Add("@timeRequested", SqlDbType.DateTime).Value = DateTime.Now;
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
                                 cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
 
                                 conn.Open();
@@ -461,14 +490,15 @@ namespace TwitchBot
                                 conn.Close();
                             }
 
-                            Program._irc.sendPublicChatMessage("@" + strUserName + ": " + strPartyMember + " has been added to the party queue");
+                            _irc.sendPublicChatMessage("@" + strUserName + ": " + strPartyMember + " has been added to the party queue");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdPartyUp(string, string)", false, "!partyup", message);
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdPartyUp(string, string)", false, "!partyup", message);
             }
         }
 
@@ -483,10 +513,10 @@ namespace TwitchBot
                 int intGameID = 0;
 
                 // Get current game
-                Program._strBroadcasterGame = TaskJSON.GetChannel().Result.game;
+                _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster).Result.game;
 
                 // grab game id in order to find party member
-                using (SqlConnection conn = new SqlConnection(Program._connStr))
+                using (SqlConnection conn = new SqlConnection(_connStr))
                 {
                     conn.Open();
                     using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblGameList", conn))
@@ -496,7 +526,7 @@ namespace TwitchBot
                         {
                             while (reader.Read())
                             {
-                                if (Program._strBroadcasterGame.Equals(reader["name"].ToString()))
+                                if (_strBroadcasterGame.Equals(reader["name"].ToString()))
                                 {
                                     intGameID = int.Parse(reader["id"].ToString());
                                     break;
@@ -509,17 +539,17 @@ namespace TwitchBot
                 // if the game is not found
                 // tell users this game is not part of the party up system
                 if (intGameID == 0)
-                    Program._irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
+                    _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
                 else
                 {
-                    using (SqlConnection conn = new SqlConnection(Program._connStr))
+                    using (SqlConnection conn = new SqlConnection(_connStr))
                     {
                         conn.Open();
                         using (SqlCommand cmd = new SqlCommand("SELECT username, partyMember FROM tblPartyUpRequests "
                             + "WHERE game = @game AND broadcaster = @broadcaster ORDER BY Id", conn))
                         {
                             cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.HasRows)
@@ -531,12 +561,12 @@ namespace TwitchBot
                                     StringBuilder strBdrPartyList = new StringBuilder(strPartyList);
                                     strBdrPartyList.Remove(strPartyList.Length - 4, 4); // remove extra " || "
                                     strPartyList = strBdrPartyList.ToString(); // replace old party member list string with new
-                                    Program._irc.sendPublicChatMessage(strPartyList);
+                                    _irc.sendPublicChatMessage(strPartyList);
                                 }
                                 else
                                 {
                                     Console.WriteLine("No party members are set for this game");
-                                    Program._irc.sendPublicChatMessage("No party members are set for this game");
+                                    _irc.sendPublicChatMessage("No party members are set for this game");
                                 }
                             }
                         }
@@ -545,7 +575,8 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdPartyUpRequestList()", false, "!partyuprequestlist");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdPartyUpRequestList()", false, "!partyuprequestlist");
             }
         }
 
@@ -560,10 +591,10 @@ namespace TwitchBot
                 int intGameID = 0;
 
                 // Get current game
-                Program._strBroadcasterGame = TaskJSON.GetChannel().Result.game;
+                _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster).Result.game;
 
                 // grab game id in order to find party member
-                using (SqlConnection conn = new SqlConnection(Program._connStr))
+                using (SqlConnection conn = new SqlConnection(_connStr))
                 {
                     conn.Open();
                     using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblGameList", conn))
@@ -573,7 +604,7 @@ namespace TwitchBot
                         {
                             while (reader.Read())
                             {
-                                if (Program._strBroadcasterGame.Equals(reader["name"].ToString()))
+                                if (_strBroadcasterGame.Equals(reader["name"].ToString()))
                                 {
                                     intGameID = int.Parse(reader["id"].ToString());
                                     break;
@@ -586,16 +617,16 @@ namespace TwitchBot
                 // if the game is not found
                 // tell users this game is not part of the party up system
                 if (intGameID == 0)
-                    Program._irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
+                    _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
                 else
                 {
-                    using (SqlConnection conn = new SqlConnection(Program._connStr))
+                    using (SqlConnection conn = new SqlConnection(_connStr))
                     {
                         conn.Open();
                         using (SqlCommand cmd = new SqlCommand("SELECT partyMember FROM tblPartyUp WHERE game = @game AND broadcaster = @broadcaster ORDER BY partyMember", conn))
                         {
                             cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.HasRows)
@@ -607,12 +638,12 @@ namespace TwitchBot
                                     StringBuilder strBdrPartyList = new StringBuilder(strPartyList);
                                     strBdrPartyList.Remove(strPartyList.Length - 4, 4); // remove extra " || "
                                     strPartyList = strBdrPartyList.ToString(); // replace old party member list string with new
-                                    Program._irc.sendPublicChatMessage(strPartyList);
+                                    _irc.sendPublicChatMessage(strPartyList);
                                 }
                                 else
                                 {
                                     Console.WriteLine("No party members are set for this game");
-                                    Program._irc.sendPublicChatMessage("No party members are set for this game");
+                                    _irc.sendPublicChatMessage("No party members are set for this game");
                                 }
                             }
                         }
@@ -621,7 +652,8 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdPartyUpList()", false, "!partyuplist");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdPartyUpList()", false, "!partyuplist");
             }
         }
 
@@ -633,16 +665,17 @@ namespace TwitchBot
         {
             try
             {
-                int intBalance = Program.currencyBalance(strUserName);
+                int intBalance = currencyBalance(strUserName);
 
                 if (intBalance == -1)
-                    Program._irc.sendPublicChatMessage("You are not currently banking with us at the moment. Please talk to a moderator about acquiring " + Program._strCurrencyType);
+                    _irc.sendPublicChatMessage("You are not currently banking with us at the moment. Please talk to a moderator about acquiring " + _botConfig.CurrencyType);
                 else
-                    Program._irc.sendPublicChatMessage("@" + strUserName + " currently has " + intBalance.ToString() + " " + Program._strCurrencyType);
+                    _irc.sendPublicChatMessage("@" + strUserName + " currently has " + intBalance.ToString() + " " + _botConfig.CurrencyType);
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdCheckFunds()", false, "!myfunds");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdCheckFunds()", false, "!myfunds");
             }
         }
 
@@ -657,48 +690,49 @@ namespace TwitchBot
             {
                 int intGambledMoney = 0; // Money put into the gambling system
                 bool bolValid = int.TryParse(message.Substring(message.IndexOf(" ") + 1), out intGambledMoney);
-                int intWalletBalance = Program.currencyBalance(strUserName);
+                int intWalletBalance = currencyBalance(strUserName);
 
                 if (!bolValid || intGambledMoney < 0)
-                    Program._irc.sendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{strUserName}");
+                    _irc.sendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{strUserName}");
                 else if (intGambledMoney > intWalletBalance)
-                    Program._irc.sendPublicChatMessage($"You do not have the sufficient funds to gamble {intGambledMoney} {Program._strCurrencyType} @{strUserName}");
+                    _irc.sendPublicChatMessage($"You do not have the sufficient funds to gamble {intGambledMoney} {_botConfig.CurrencyType} @{strUserName}");
                 else
                 {
                     Random rnd = new Random(DateTime.Now.Millisecond);
                     int intDiceRoll = rnd.Next(1, 101); // between 1 and 100
                     int intNewBalance = 0;
 
-                    string strResult = $"Gambled \"{intGambledMoney} {Program._strCurrencyType}\" and the dice roll is \"{intDiceRoll}.\" Therefore, ";
+                    string strResult = $"Gambled \"{intGambledMoney} {_botConfig.CurrencyType}\" and the dice roll is \"{intDiceRoll}.\" Therefore, ";
 
                     // Check the 100-sided die roll result
                     if (intDiceRoll < 61) // lose gambled money
                     {
                         intNewBalance = intWalletBalance - intGambledMoney;
-                        Program.updateWallet(strUserName, intNewBalance);
-                        strResult += $"you lost {intGambledMoney} {Program._strCurrencyType}";
+                        updateWallet(strUserName, intNewBalance);
+                        strResult += $"you lost {intGambledMoney} {_botConfig.CurrencyType}";
                     }
                     else if (intDiceRoll >= 61 && intDiceRoll <= 98) // earn double
                     {
                         intNewBalance = intWalletBalance + (intGambledMoney * 2);
-                        Program.updateWallet(strUserName, intNewBalance);
-                        strResult += $"you won double of your earnings ({intGambledMoney} {Program._strCurrencyType})";
+                        updateWallet(strUserName, intNewBalance);
+                        strResult += $"you won double of your earnings ({intGambledMoney} {_botConfig.CurrencyType})";
                     }
                     else if (intDiceRoll == 99 || intDiceRoll == 100) // earn triple
                     {
                         intNewBalance = intWalletBalance + (intGambledMoney * 3);
-                        Program.updateWallet(strUserName, intNewBalance);
-                        strResult += $"you won triple of your earnings ({intGambledMoney} {Program._strCurrencyType})";
+                        updateWallet(strUserName, intNewBalance);
+                        strResult += $"you won triple of your earnings ({intGambledMoney} {_botConfig.CurrencyType})";
                     }
 
-                    strResult += $" and now have {intNewBalance} {Program._strCurrencyType}";
+                    strResult += $" and now have {intNewBalance} {_botConfig.CurrencyType}";
 
-                    Program._irc.sendPublicChatMessage(strResult);
+                    _irc.sendPublicChatMessage(strResult);
                 }
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdGamble(string, string)", false, "!gamble", message);
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdGamble(string, string)", false, "!gamble", message);
             }
         }
 
@@ -712,12 +746,12 @@ namespace TwitchBot
                 List<Quote> lstQuote = new List<Quote>();
 
                 // Get quotes from tblQuote and put them into a list
-                using (SqlConnection conn = new SqlConnection(Program._connStr))
+                using (SqlConnection conn = new SqlConnection(_connStr))
                 {
                     conn.Open();
                     using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblQuote WHERE broadcaster = @broadcaster", conn))
                     {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = Program._intBroadcasterID;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
@@ -737,7 +771,7 @@ namespace TwitchBot
 
                 // Check if there any quotes inside the system
                 if (lstQuote.Count == 0)
-                    Program._irc.sendPublicChatMessage("There are no quotes to be displayed at the moment");
+                    _irc.sendPublicChatMessage("There are no quotes to be displayed at the moment");
                 else
                 {
                     // Randomly pick a quote from the list to display
@@ -749,13 +783,161 @@ namespace TwitchBot
                     string strQuote = $"\"{qteResult.strMessage}\" - {qteResult.strAuthor} " +
                         $"({qteResult.dtTimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {qteResult.dtTimeCreated.Year})";
 
-                    Program._irc.sendPublicChatMessage(strQuote);
+                    _irc.sendPublicChatMessage(strQuote);
                 }
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "CmdGen", "CmdQuote()", false, "!quote");
+                //TODO: Create class for loggin
+                //Program.LogError(ex, "CmdGen", "CmdQuote()", false, "!quote");
             }
+        }
+
+        public bool reactionCmd(string message, string strOrigUser, string strRecipient, string strMsgToSelf, string strAction, string strAddlMsg = "")
+        {
+            string strRoleType = chatterValid(strOrigUser, strRecipient);
+
+            // check if user currently watching the channel
+            if (!string.IsNullOrEmpty(strRoleType))
+            {
+                if (strOrigUser.Equals(strRecipient))
+                    _irc.sendPublicChatMessage(strMsgToSelf + " @" + strOrigUser);
+                else
+                    _irc.sendPublicChatMessage(strOrigUser + " " + strAction + " @" + strRecipient + " " + strAddlMsg);
+
+                return true;
+            }
+            else
+                return false;
+        }
+
+        private string chatterValid(string strOrigUser, string strRecipient, string strSearchCriteria = "")
+        {
+            // Check if the requested user is this bot
+            if (strRecipient.Equals(_botConfig.BotName))
+                return "mod";
+
+            // Grab list of chatters (viewers, mods, etc.)
+            Chatters chatters = TaskJSON.GetChatters(_botConfig.Broadcaster).Result.chatters;
+
+            // check moderators
+            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("mod"))
+            {
+                foreach (string moderator in chatters.moderators)
+                {
+                    if (strRecipient.ToLower().Equals(moderator))
+                        return "mod";
+                }
+            }
+
+            // check viewers
+            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("viewer"))
+            {
+                foreach (string viewer in chatters.viewers)
+                {
+                    if (strRecipient.ToLower().Equals(viewer))
+                        return "viewer";
+                }
+            }
+
+            // check staff
+            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("staff"))
+            {
+                foreach (string staffMember in chatters.staff)
+                {
+                    if (strRecipient.ToLower().Equals(staffMember))
+                        return "staff";
+                }
+            }
+
+            // check admins
+            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("admin"))
+            {
+                foreach (string admin in chatters.admins)
+                {
+                    if (strRecipient.ToLower().Equals(admin))
+                        return "admin";
+                }
+            }
+
+            // check global moderators
+            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("gmod"))
+            {
+                foreach (string globalMod in chatters.global_mods)
+                {
+                    if (strRecipient.ToLower().Equals(globalMod))
+                        return "gmod";
+                }
+            }
+
+            // finished searching with no results
+            _irc.sendPublicChatMessage("@" + strOrigUser + ": I cannot find the user you wanted to interact with. Perhaps the user left us?");
+            return "";
+        }
+
+        public string Effectiveness()
+        {
+            Random rnd = new Random(DateTime.Now.Millisecond);
+            int intEffectiveLvl = rnd.Next(3); // between 0 and 2
+            string strEffectiveness = "";
+
+            if (intEffectiveLvl == 0)
+                strEffectiveness = "It's super effective!";
+            else if (intEffectiveLvl == 1)
+                strEffectiveness = "It wasn't very effective";
+            else
+                strEffectiveness = "It had no effect";
+
+            return strEffectiveness;
+        }
+
+        //TODO: Create a Wallet class for this logic
+        public void updateWallet(string strWalletOwner, int intNewWalletBalance)
+        {
+            string query = "UPDATE dbo.tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
+
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intNewWalletBalance;
+                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strWalletOwner;
+                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        //TODO: Create a Wallet class for this logic
+        public int currencyBalance(string username)
+        {
+            int intBalance = -1;
+
+            // check if user already has a bank account
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBank WHERE broadcaster = @broadcaster", conn))
+                {
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                if (username.Equals(reader["username"].ToString()))
+                                {
+                                    intBalance = int.Parse(reader["wallet"].ToString());
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return intBalance;
         }
     }
 }
