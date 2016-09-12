@@ -39,7 +39,7 @@ Set both files to copy-if-newer so that they get included in the compilation.  F
 
 ## Possible setup issues:
 - Connection string error `Configuration System Failed to Initialize`
-  - Delete old config files from:
+  - Delete old config files from these file locations and restart the debugger:
     - `C:\Users\[username]\AppData\Local\[appname]`
     - `C:\Users\[username]\AppData\Roaming\[appname]`
   - Source: http://stackoverflow.com/q/6436157/2113548
