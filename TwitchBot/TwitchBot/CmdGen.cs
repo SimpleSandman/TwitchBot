@@ -680,15 +680,17 @@ namespace TwitchBot
                     }
                     else if (intDiceRoll >= 61 && intDiceRoll <= 98) // earn double
                     {
-                        intNewBalance = intWalletBalance + (intGambledMoney * 2);
+                        intWalletBalance -= intGambledMoney; // put money into the gambling pot (remove money from wallet)
+                        intNewBalance = intWalletBalance + (intGambledMoney * 2); // recieve 2x earnings back into wallet
                         Program.updateWallet(strUserName, intNewBalance);
-                        strResult += $"you won double of your earnings ({intGambledMoney} {Program._strCurrencyType})";
+                        strResult += $"you won double of your earnings ({intGambledMoney * 2} {Program._strCurrencyType})";
                     }
                     else if (intDiceRoll == 99 || intDiceRoll == 100) // earn triple
                     {
-                        intNewBalance = intWalletBalance + (intGambledMoney * 3);
+                        intWalletBalance -= intGambledMoney; // put money into the gambling pot (remove money from wallet)
+                        intNewBalance = intWalletBalance + (intGambledMoney * 3); // recieve 3x earnings back into wallet
                         Program.updateWallet(strUserName, intNewBalance);
-                        strResult += $"you won triple of your earnings ({intGambledMoney} {Program._strCurrencyType})";
+                        strResult += $"you won triple of your earnings ({intGambledMoney * 3} {Program._strCurrencyType})";
                     }
 
                     strResult += $" and now have {intNewBalance} {Program._strCurrencyType}";
