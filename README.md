@@ -36,3 +36,10 @@ For development environment testing create 2 files in the same folder as App.con
 ```
 
 Set both files to copy-if-newer so that they get included in the compilation.  For production this files are not needed, and the bot will ask for configuration on first run
+
+## Possible setup issues:
+- Connection string error `Configuration System Failed to Initialize`
+  - Delete old config files from:
+    - `C:\Users\[username]\AppData\Local\[appname]`
+    - `C:\Users\[username]\AppData\Roaming\[appname]`
+  - Source: http://stackoverflow.com/q/6436157/2113548
