@@ -66,11 +66,11 @@ namespace TwitchBot
 
             //Bot already configured, do stuff
             //Lets get the connection string, and if it doesn't exist lets run the configuration wizard to add it to the config
-            var connectionStringSetting = appConfig.ConnectionStrings.ConnectionStrings["TwitchBotConnectionString"];
+            var connectionStringSetting = appConfig.ConnectionStrings.ConnectionStrings["TwitchBotConnStrPROD"];
             if (connectionStringSetting == null)
             {
                 connectionStringSetting = new ConnectionStringSettings();
-                TwitchBotConfigurator.ConfigureConnectionString("TwitchBotConnectionString", connectionStringSetting);
+                TwitchBotConfigurator.ConfigureConnectionString("TwitchBotConnStrPROD", connectionStringSetting);
                 appConfig.ConnectionStrings.ConnectionStrings.Add(connectionStringSetting);
                 appConfig.Save(ConfigurationSaveMode.Full);
                 ConfigurationManager.RefreshSection("connectionStrings");

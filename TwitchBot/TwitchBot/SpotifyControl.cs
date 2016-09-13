@@ -19,10 +19,11 @@ namespace TwitchBot
         private SpotifyLocalAPI _spotify;
         private bool trackChanged = false; // used to prevent a paused song to skip to the next song
                                            // from displaying both "upcoming" and "current" song stats
+        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public SpotifyControl(TwitchBotConfigurationSection _botSection)
         {
-            _botConfig = _botConfig;
+            _botConfig = _botSection;
             _spotify = new SpotifyLocalAPI();
             _spotify.OnPlayStateChange += spotify_OnPlayStateChange;
             _spotify.OnTrackChange += spotify_OnTrackChange;
@@ -30,31 +31,38 @@ namespace TwitchBot
 
         public void Connect()
         {
-            if (!SpotifyLocalAPI.IsSpotifyRunning())
+            try
             {
-                Console.WriteLine("Spotify isn't running!");
-                return;
-            }
+                if (!SpotifyLocalAPI.IsSpotifyRunning())
+                {
+                    Console.WriteLine("Spotify isn't running!");
+                    return;
+                }
 
-            if (!SpotifyLocalAPI.IsSpotifyWebHelperRunning())
-            {
-                Console.WriteLine("SpotifyWebHelper isn't running!");
-                return;
-            }
+                if (!SpotifyLocalAPI.IsSpotifyWebHelperRunning())
+                {
+                    Console.WriteLine("SpotifyWebHelper isn't running!");
+                    return;
+                }
 
-            bool successful = _spotify.Connect();
-            if (successful)
-            {
-                Console.WriteLine("Connection to Spotify successful");
-                UpdateInfos();
-                _spotify.ListenForEvents = true;
+                bool successful = _spotify.Connect();
+                if (successful)
+                {
+                    Console.WriteLine("Connection to Spotify successful");
+                    UpdateInfos();
+                    _spotify.ListenForEvents = true;
+                }
+                else
+                {
+                    Console.WriteLine("Couldn't connect to the spotify client. Retry? (Yes = 'y' and No = 'n')");
+                    Console.WriteLine("If this problem persists, try reinstalling Spotify to the latest version");
+                    if (Console.ReadLine().Equals("y"))
+                        Connect();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("Couldn't connect to the spotify client. Retry? (Yes = 'y' and No = 'n')");
-                Console.WriteLine("If this problem persists, try reinstalling Spotify to the latest version");
-                if (Console.ReadLine().Equals("y"))
-                    Connect();
+                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "RunAsync()", true);
             }
         }
 

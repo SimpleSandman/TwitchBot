@@ -27,11 +27,12 @@ namespace TwitchBot
         private bool _isSongRequestAvail;
         private bool _hasTwitterInfo;
         private SpotifyControl _spotify;
+        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig)
         {
             _appConfig = appConfig;
-            _connStr = appConfig.ConnectionStrings.ConnectionStrings["TwitchBotConnectionString"].ConnectionString;
+            _connStr = appConfig.ConnectionStrings.ConnectionStrings["TwitchBotConnStrPROD"].ConnectionString;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
             _isSongRequestAvail = false;
             _hasTwitterInfo = false;
@@ -43,12 +44,29 @@ namespace TwitchBot
         {
             try
             {
-                Console.WriteLine("<<<< WARNING: Connecting to local database (testing only) >>>>");
+                /* Check if developer attempted to set up the connection string for either production or test */
+                // Connect to production database first
+                if (_connStr.Equals("[ConnectionString]") || string.IsNullOrEmpty(_connStr))
+                {
+                    // Attempt to connect to TEST
+                    _connStr = _appConfig.ConnectionStrings.ConnectionStrings["TwitchBotConnStrTEST"].ConnectionString;
 
+                    if (!_connStr.Equals("[ConnectionString]") || !string.IsNullOrEmpty(_connStr))
+                        Console.WriteLine("<<<< WARNING: Connecting to testing database >>>>");
+                    else
+                    {
+                        Console.WriteLine("Connection string has not set. Please check the config file");
+                        Console.WriteLine();
+                        Console.WriteLine("Shutting down now...");
+                        Thread.Sleep(4000);
+                        Environment.Exit(1);
+                    }
+                }
+
+                // Attempt to connect to server
                 if (!IsServerConnected(_connStr))
                 {
-                    // clear sensitive data
-                    _connStr = null;
+                    _connStr = null; // clear sensitive data
 
                     Console.WriteLine("Datebase connection failed. Please try again");
                     Console.WriteLine();
@@ -64,15 +82,20 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 Console.WriteLine("Error Message: " + ex.Message);
+                Console.WriteLine();
+                Console.WriteLine("Please check the connection string for the right format inside the config file");
                 Console.WriteLine("Local troubleshooting needed by author of this bot");
                 Console.WriteLine();
                 Console.WriteLine("Shutting down now...");
-                Thread.Sleep(3000);
+                Thread.Sleep(5000);
                 Environment.Exit(1);
             }
 
             try
             {
+                // Configure error handler singleton class
+                ErrorHandler.Configure(_intBroadcasterID, _connStr, _irc, _botConfig);
+
                 // Get broadcaster ID so the user can only see their data from the db
                 _intBroadcasterID = getBroadcasterID(_botConfig.Broadcaster.ToLower());
 
@@ -172,7 +195,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                LogError(ex, "Program", "Main(string[])", true);
+                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "RunAsync()", true);
             }
         }
 
@@ -227,68 +250,6 @@ namespace TwitchBot
             return intBroadcasterID;
         }
 
-        public void LogError(Exception ex, string strClass, string strMethod, bool hasToExit, string strCmd = "N/A", string strUserMsg = "N/A")
-        {
-            Console.WriteLine("Error: " + ex.Message);
-
-            // if username not available grab default user to show local error after db connection
-            if (_intBroadcasterID == 0)
-                _intBroadcasterID = getBroadcasterID("n/a");
-
-            /* Get line number from error message */
-            int lineNumber = 0;
-            const string lineSearch = ":line ";
-            int index = ex.StackTrace.LastIndexOf(lineSearch);
-
-            if (index != -1)
-            {
-                string lineNumberText = ex.StackTrace.Substring(index + lineSearch.Length);
-                if (!int.TryParse(lineNumberText, out lineNumber))
-                {
-                    lineNumber = -1; // couldn't parse line number
-                }
-            }
-
-            /* Add song request to database */
-            string query = "INSERT INTO tblErrorLog (errorTime, errorLine, errorClass, errorMethod, errorMsg, broadcaster, command, userMsg) "
-                + "VALUES (@time, @lineNum, @class, @method, @msg, @broadcaster, @command, @userMsg)";
-
-            // Create connection and command
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            using (SqlCommand cmd = new SqlCommand(query, conn))
-            {
-                cmd.Parameters.Add("@time", SqlDbType.DateTime).Value = DateTime.UtcNow;
-                cmd.Parameters.Add("@lineNum", SqlDbType.Int).Value = lineNumber;
-                cmd.Parameters.Add("@class", SqlDbType.VarChar, 100).Value = strClass;
-                cmd.Parameters.Add("@method", SqlDbType.VarChar, 100).Value = strMethod;
-                cmd.Parameters.Add("@msg", SqlDbType.VarChar, 4000).Value = ex.Message;
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                cmd.Parameters.Add("@command", SqlDbType.VarChar, 100).Value = strCmd;
-                cmd.Parameters.Add("@userMsg", SqlDbType.VarChar, 500).Value = strUserMsg;
-
-                conn.Open();
-                cmd.ExecuteNonQuery();
-                conn.Close();
-            }
-
-            string strPublicErrMsg = "I ran into an unexpected internal error! "
-                + "@" + _botConfig.Broadcaster + " please look into the error log when you have time";
-
-            if (hasToExit)
-                strPublicErrMsg += " I am leaving as well. Have a great time with this stream everyone :)";
-
-            if (_irc != null)
-                _irc.sendPublicChatMessage(strPublicErrMsg);
-
-            if (hasToExit)
-            {
-                Console.WriteLine();
-                Console.WriteLine("Shutting down now...");
-                Thread.Sleep(3000);
-                Environment.Exit(1);
-            }
-        }
-
         private void setListMods()
         {
             try
@@ -319,7 +280,9 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                LogError(ex, "Program", "setListMods()", true);
+
+                //ErrorHandler err = new ErrorHandler(_intBroadcasterID, _connStr, _irc, _botConfig);
+                //err.LogError(ex, "TwitchBotApplication", "setListMods()", true);
             }
         }
 
@@ -366,7 +329,9 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                LogError(ex, "Program", "setListTimeouts()", true);
+
+                //ErrorHandler err = new ErrorHandler(_intBroadcasterID, _connStr, _irc, _botConfig);
+                //err.LogError(ex, "TwitchBotApplication", "setListTimeouts()", true);
             }
         }
 
@@ -647,7 +612,10 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                LogError(ex, "Program", "GetChatBox(SpotifyControl, bool, string, string)", true);
+                Console.WriteLine(ex.Message);
+
+                //ErrorHandler err = new ErrorHandler(_intBroadcasterID, _connStr, _irc, _botConfig);
+                //err.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, string, bool)", true);
             }
         }
 
