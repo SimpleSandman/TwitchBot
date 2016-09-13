@@ -30,8 +30,12 @@ For development environment testing create 2 files in the same folder as App.con
 
 ```xml
 <connectionStrings>
-  <add name="TwitchBotConnectionString" connectionString="[ConnectionString]"
-    providerName="" />
+  <add name="TwitchBotConnStrPROD" 
+       connectionString="[ConnectionString]"
+       providerName="" />
+  <add name="TwitchBotConnStrTEST" 
+       connectionString="[ConnectionString]"
+       providerName="" />
 </connectionStrings>
 ```
 
