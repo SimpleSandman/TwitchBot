@@ -19,7 +19,7 @@ namespace TwitchBot
         private string _connStr;
         private int _intBroadcasterID;
         private IrcClient _irc;
-        private Moderator _mod;
+        private Moderator _modInstance = Moderator.Instance;
         private Timeout _timeout;
         private CmdBrdCstr _cmdBrdCstr;
         private CmdMod _cmdMod;
@@ -36,7 +36,6 @@ namespace TwitchBot
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
             _isSongRequestAvail = false;
             _hasTwitterInfo = false;
-            _mod = new Moderator();
             _timeout = new Timeout();
         }
 
@@ -144,12 +143,13 @@ namespace TwitchBot
                 /* main server: irc.twitch.tv, 6667 */
                 _irc = new IrcClient("irc.twitch.tv", 6667, _strBotName, _botConfig.TwitchOAuth, _strBroadcasterName);
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _intBroadcasterID);
-                _cmdBrdCstr = new CmdBrdCstr(_irc, _mod, _botConfig, _connStr, _intBroadcasterID);
-                _cmdMod = new CmdMod(_irc, _mod, _timeout, _botConfig, _connStr, _intBroadcasterID);
+                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _intBroadcasterID);
+                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _intBroadcasterID);
 
-                // Update channel info
-                int _intFollowers = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.followers;
-                string _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.game;
+                // Grab channel info
+                ChannelJSON chlJSON = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result;
+                int _intFollowers = chlJSON.followers;
+                string _strBroadcasterGame = chlJSON.game;
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine("---> Extra Bot Settings <---");
@@ -164,11 +164,10 @@ namespace TwitchBot
                 DelayMsg delayMsg = new DelayMsg(_irc);
                 delayMsg.Start();
 
-                /* Get list of mods */
-                //_mod = new Moderator();
-                //setListMods();
+                /* Pull list of mods from database */
+                _modInstance.setLstMod(_connStr, _intBroadcasterID);
 
-                /* Get list of timed out users */
+                /* Get list of timed out users from database */
                 //_timeout = new Timeout();
                 //setListTimeouts();
 
@@ -247,39 +246,6 @@ namespace TwitchBot
             }
 
             return intBroadcasterID;
-        }
-
-        private void setListMods()
-        {
-            try
-            {
-                List<string> lstMod = new List<string>();
-
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblModerators WHERE broadcaster = @broadcaster", conn))
-                    {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    lstMod.Add(reader["username"].ToString());
-                                }
-                            }
-                        }
-                    }
-                }
-
-                _mod.setLstMod(lstMod);
-            }
-            catch (Exception ex)
-            {
-                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "setListMods()", true);
-            }
         }
 
         private void setListTimeouts()
@@ -469,7 +435,7 @@ namespace TwitchBot
                             /*
                              * Moderator commands (also checks if user has been timed out from using a command)
                              */
-                            if (strUserName.Equals(_botConfig.Broadcaster) || _mod.getLstMod().Contains(strUserName.ToLower()))
+                            if (strUserName.Equals(_botConfig.Broadcaster) || _modInstance.getLstMod().Contains(strUserName.ToLower()))
                             {
                                 /* Displays Discord link into chat (if available) */
                                 if (message.Equals("!discord") && !isUserTimedout(strUserName))

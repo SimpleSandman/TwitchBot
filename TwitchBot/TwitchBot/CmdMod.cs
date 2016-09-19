@@ -12,17 +12,16 @@ namespace TwitchBot
     public class CmdMod
     {
         private IrcClient _irc;
-        private Moderator _mod;
+        private Moderator _modInstance = Moderator.Instance;
         private Timeout _timeout;
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _intBroadcasterID;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CmdMod(IrcClient irc, Moderator mod, Timeout timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId)
+        public CmdMod(IrcClient irc, Timeout timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId)
         {
             _irc = irc;
-            _mod = mod;
             _timeout = timeout;
             _botConfig = botConfig;
             _intBroadcasterID = broadcasterId;
@@ -120,7 +119,7 @@ namespace TwitchBot
                 if (message.StartsWith("!deposit @"))
                     _irc.sendPublicChatMessage("Please enter a valid amount to a user @" + strUserName);
                 // Check if moderator is trying to give money to themselves
-                else if (_mod.getLstMod().Contains(strUserName.ToLower()) && strRecipient.Equals(strUserName))
+                else if (_modInstance.getLstMod().Contains(strUserName.ToLower()) && strRecipient.Equals(strUserName))
                     _irc.sendPublicChatMessage("You cannot add funds to your own account @" + strUserName);
                 else
                 {

@@ -8,18 +8,66 @@ using System.Threading.Tasks;
 
 namespace TwitchBot
 {
-    public class Moderator
+    public sealed class Moderator
     {
+        private static volatile Moderator _instance;
+        private static object _syncRoot = new Object();
+
         private List<string> lstMod = new List<string>();
+
+        private Moderator() { }
+
+        public static Moderator Instance
+        {
+            get
+            {
+                // first check
+                if (_instance == null)
+                {
+                    lock (_syncRoot)
+                    {
+                        // second check
+                        if (_instance == null)
+                            _instance = new Moderator();
+                    }
+                }
+
+                return _instance;
+            }
+        }
 
         public List<string> getLstMod()
         {
             return lstMod;
         }
 
-        public void setLstMod(List<string> value)
+        public void setLstMod(string connStr, int intBroadcasterID)
         {
-            lstMod = value;
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblModerators WHERE broadcaster = @broadcaster", conn))
+                    {
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    lstMod.Add(reader["username"].ToString());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public void addNewModToLst(string strRecipient, int intBroadcaster, string connStr)

@@ -15,16 +15,15 @@ namespace TwitchBot
     public class CmdBrdCstr
     {
         private IrcClient _irc;
-        private Moderator _mod;
+        private Moderator _modInstance = Moderator.Instance;
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _intBroadcasterID;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CmdBrdCstr(IrcClient irc, Moderator mod, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId)
+        public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId)
         {
             _irc = irc;
-            _mod = mod;
             _botConfig = botConfig;
             _connStr = connString;
             _intBroadcasterID = broadcasterId;
@@ -330,7 +329,7 @@ namespace TwitchBot
             try
             {
                 string strRecipient = message.Substring(message.IndexOf("@") + 1); // grab user from message
-                _mod.addNewModToLst(strRecipient.ToLower(), _intBroadcasterID, _connStr); // add user to mod list and add to db
+                _modInstance.addNewModToLst(strRecipient.ToLower(), _intBroadcasterID, _connStr); // add user to mod list and add to db
                 _irc.sendPublicChatMessage("@" + strRecipient + " is now able to use moderator features within " + _botConfig.BotName);
             }
             catch (Exception ex)
@@ -348,7 +347,7 @@ namespace TwitchBot
             try
             {
                 string strRecipient = message.Substring(message.IndexOf("@") + 1); // grab user from message
-                _mod.delOldModFromLst(strRecipient.ToLower(), _intBroadcasterID, _connStr); // delete user from mod list and remove from db
+                _modInstance.delOldModFromLst(strRecipient.ToLower(), _intBroadcasterID, _connStr); // delete user from mod list and remove from db
                 _irc.sendPublicChatMessage("@" + strRecipient + " is not able to use moderator features within " + _botConfig.BotName + " any longer");
             }
             catch (Exception ex)
@@ -366,13 +365,13 @@ namespace TwitchBot
             {
                 string strListModMsg = "";
 
-                if (_mod.getLstMod().Count > 0)
+                if (_modInstance.getLstMod().Count > 0)
                 {
-                    foreach (string name in _mod.getLstMod())
+                    foreach (string name in _modInstance.getLstMod())
                         strListModMsg += name + " | ";
 
                     strListModMsg = strListModMsg.Remove(strListModMsg.Length - 3); // removed extra " | "
-                    _irc.sendPublicChatMessage("List of bot moderators: " + strListModMsg);
+                    _irc.sendPublicChatMessage("List of bot moderators (separate from channel mods): " + strListModMsg);
                 }
                 else
                     _irc.sendPublicChatMessage("No one is ruling over me other than you @" + _botConfig.Broadcaster);
