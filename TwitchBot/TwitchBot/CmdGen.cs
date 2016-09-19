@@ -20,6 +20,7 @@ namespace TwitchBot
         private string _connStr;
         private int _intBroadcasterID;
         private string _strBroadcasterGame;
+        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public CmdGen(IrcClient irc, SpotifyControl spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId)
         {
@@ -41,8 +42,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdCmds()", false, "!cmds");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdCmds()", false, "!cmds");
             }
         }
 
@@ -54,8 +54,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdHello(string)", false, "!hello");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdHello(string)", false, "!hello");
             }
         }
 
@@ -67,8 +66,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdUtcTime()", false, "!utctime");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdUtcTime()", false, "!utctime");
             }
         }
 
@@ -80,8 +78,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdHostTime(string)", false, "!hosttime");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdHostTime(string)", false, "!hosttime");
             }
         }
 
@@ -90,9 +87,9 @@ namespace TwitchBot
             try
             {
                 // Check if the channel is live
-                if (TaskJSON.GetStream(_botConfig.Broadcaster).Result.stream != null)
+                if (TaskJSON.GetStream(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.stream != null)
                 {
-                    string strDuration = TaskJSON.GetStream(_botConfig.Broadcaster).Result.stream.created_at;
+                    string strDuration = TaskJSON.GetStream(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.stream.created_at;
                     TimeSpan ts = DateTime.UtcNow - DateTime.Parse(strDuration, new DateTimeFormatInfo(), DateTimeStyles.AdjustToUniversal);
                     string strResultDuration = String.Format("{0:h\\:mm\\:ss}", ts);
                     _irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
@@ -102,8 +99,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdDuration(string)", false, "!duration");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdDuration(string)", false, "!duration");
             }
         }
 
@@ -160,8 +156,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdSRList()", false, "!srlist");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdSRList()", false, "!srlist");
             }
         }
 
@@ -216,8 +211,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdSR(bool, string, string)", false, "!sr", message);
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdSR(bool, string, string)", false, "!sr", message);
             }
         }
 
@@ -240,8 +234,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdSpotifyCurr()", false, "!spotifycurr");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdSpotifyCurr()", false, "!spotifycurr");
             }
         }
 
@@ -259,8 +252,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdSlap(string, string)", false, "!slap", message);
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdSlap(string, string)", false, "!slap", message);
             }
         }
 
@@ -278,8 +270,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdStab(string, string)", false, "!stab", message);
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdStab(string, string)", false, "!stab", message);
             }
         }
 
@@ -327,8 +318,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdShoot(string, string)", false, "!shoot", message);
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdShoot(string, string)", false, "!shoot", message);
             }
         }
 
@@ -355,8 +345,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdThrow(string, string)", false, "!throw", message);
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdThrow(string, string)", false, "!throw", message);
             }
         }
 
@@ -376,7 +365,7 @@ namespace TwitchBot
                 bool isDuplicateRequestor = false;
 
                 // Get current game
-                _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster).Result.game;
+                _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.game;
 
                 // check if user entered something
                 if (message.Length < intInputIndex)
@@ -497,8 +486,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdPartyUp(string, string)", false, "!partyup", message);
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUp(string, string)", false, "!partyup", message);
             }
         }
 
@@ -513,7 +501,7 @@ namespace TwitchBot
                 int intGameID = 0;
 
                 // Get current game
-                _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster).Result.game;
+                _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.game;
 
                 // grab game id in order to find party member
                 using (SqlConnection conn = new SqlConnection(_connStr))
@@ -575,8 +563,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdPartyUpRequestList()", false, "!partyuprequestlist");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUpRequestList()", false, "!partyuprequestlist");
             }
         }
 
@@ -591,7 +578,7 @@ namespace TwitchBot
                 int intGameID = 0;
 
                 // Get current game
-                _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster).Result.game;
+                _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.game;
 
                 // grab game id in order to find party member
                 using (SqlConnection conn = new SqlConnection(_connStr))
@@ -652,8 +639,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdPartyUpList()", false, "!partyuplist");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUpList()", false, "!partyuplist");
             }
         }
 
@@ -674,8 +660,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdCheckFunds()", false, "!myfunds");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdCheckFunds()", false, "!myfunds");
             }
         }
 
@@ -731,8 +716,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdGamble(string, string)", false, "!gamble", message);
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdGamble(string, string)", false, "!gamble", message);
             }
         }
 
@@ -788,8 +772,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdGen", "CmdQuote()", false, "!quote");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdQuote()", false, "!quote");
             }
         }
 
@@ -818,7 +801,7 @@ namespace TwitchBot
                 return "mod";
 
             // Grab list of chatters (viewers, mods, etc.)
-            Chatters chatters = TaskJSON.GetChatters(_botConfig.Broadcaster).Result.chatters;
+            Chatters chatters = TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.chatters;
 
             // check moderators
             if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("mod"))

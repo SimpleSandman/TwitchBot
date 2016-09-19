@@ -32,64 +32,62 @@ namespace TwitchBot
 {
     class Program
     {
-        /*public static string _strBroadcasterName = "";
-        public static int _intBroadcasterID = 0; // associated with db
-        public static int _intStreamLatency = 12; // (in seconds)
-        public static string _strBroadcasterGame = "";
-        public static string _strBotName = "";
-        public static string _strCurrencyType = "coins";
-        public static string _connStr = ""; // connection string
-        public static int _intFollowers = 0;
-        public static string _strDiscordLink = "Link unavailable at the moment"; // provide discord server link if available
-        public static bool _isAutoPublishTweet = false; // set to auto publish tweets (disabled by default)
-        public static bool _isAutoDisplaySong = false; // set to auto song status (disabled by default)*/
         public static List<Tuple<string, DateTime>> _lstTupDelayMsg = new List<Tuple<string, DateTime>>(); // used to handle delayed msgs
 
         static void Main(string[] args)
         {
-            var appConfig = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            var twitchBotConfigurationSection = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
-
-            if (twitchBotConfigurationSection == null)
+            try
             {
-                //section not in app.config create a default, add it to the config, and save
-                twitchBotConfigurationSection = new TwitchBotConfigurationSection();
-                appConfig.Sections.Add("TwitchBotConfiguration", twitchBotConfigurationSection);
-                appConfig.Save(ConfigurationSaveMode.Full);
-                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+                var appConfig = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                var twitchBotConfigurationSection = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
 
-                //Since not previously configured, configure bot and save changes using configuration wizard
-                TwitchBotConfigurator.ConfigureBot(twitchBotConfigurationSection);
-                appConfig.Save(ConfigurationSaveMode.Full);
-                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+                if (twitchBotConfigurationSection == null)
+                {
+                    //section not in app.config create a default, add it to the config, and save
+                    twitchBotConfigurationSection = new TwitchBotConfigurationSection();
+                    appConfig.Sections.Add("TwitchBotConfiguration", twitchBotConfigurationSection);
+                    appConfig.Save(ConfigurationSaveMode.Full);
+                    ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+
+                    //Since not previously configured, configure bot and save changes using configuration wizard
+                    TwitchBotConfigurator.ConfigureBot(twitchBotConfigurationSection);
+                    appConfig.Save(ConfigurationSaveMode.Full);
+                    ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+                }
+
+                //Bot already configured, do stuff
+                //Lets get the connection string, and if it doesn't exist lets run the configuration wizard to add it to the config
+                var connectionStringSetting = appConfig.ConnectionStrings.ConnectionStrings["TwitchBotConnStrPROD"];
+                if (connectionStringSetting == null)
+                {
+                    connectionStringSetting = new ConnectionStringSettings();
+                    TwitchBotConfigurator.ConfigureConnectionString("TwitchBotConnStrPROD", connectionStringSetting);
+                    appConfig.ConnectionStrings.ConnectionStrings.Add(connectionStringSetting);
+                    appConfig.Save(ConfigurationSaveMode.Full);
+                    ConfigurationManager.RefreshSection("connectionStrings");
+                }
+
+                //Create a container builder and register all classes that will be composed for the application
+                var builder = new ContainerBuilder();
+
+                builder.RegisterInstance<System.Configuration.Configuration>(appConfig);
+                builder.RegisterType<TwitchBotApplication>();
+
+                var container = builder.Build();
+
+                //Define main lifetime scope
+                //Get an instance of TwitchBotApplication and execute main loop
+                using (var scope = container.BeginLifetimeScope())
+                {
+                    var app = scope.Resolve<TwitchBotApplication>();
+                    Task.WaitAll(app.RunAsync());
+                }
             }
-
-            //Bot already configured, do stuff
-            //Lets get the connection string, and if it doesn't exist lets run the configuration wizard to add it to the config
-            var connectionStringSetting = appConfig.ConnectionStrings.ConnectionStrings["TwitchBotConnStrPROD"];
-            if (connectionStringSetting == null)
+            catch (Exception ex)
             {
-                connectionStringSetting = new ConnectionStringSettings();
-                TwitchBotConfigurator.ConfigureConnectionString("TwitchBotConnStrPROD", connectionStringSetting);
-                appConfig.ConnectionStrings.ConnectionStrings.Add(connectionStringSetting);
-                appConfig.Save(ConfigurationSaveMode.Full);
-                ConfigurationManager.RefreshSection("connectionStrings");
-            }
-
-            //Create a container builder and register all classes that will be composed for the application
-            var builder = new ContainerBuilder();
-
-            builder.RegisterInstance<System.Configuration.Configuration>(appConfig);
-            builder.RegisterType<TwitchBotApplication>();
-
-            var container = builder.Build();
-
-            //Define main lifetime scope
-            //Get an instance of TwitchBotApplication and execute main loop
-            using (var scope = container.BeginLifetimeScope())
-            {
-                var app = scope.Resolve<TwitchBotApplication>();
-                Task.WaitAll(app.RunAsync());
+                Console.WriteLine("Local error found: " + ex.Message);
+                Thread.Sleep(3000);
+                Environment.Exit(1);
             }
         }
 

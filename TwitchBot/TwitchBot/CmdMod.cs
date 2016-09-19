@@ -17,6 +17,7 @@ namespace TwitchBot
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _intBroadcasterID;
+        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public CmdMod(IrcClient irc, Moderator mod, Timeout timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId)
         {
@@ -42,8 +43,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdMod", "CmdDiscord()", false, "!discord");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdDiscord()", false, "!discord");
             }
         }
 
@@ -101,8 +101,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdMod", "CmdCharge(string, string)", false, "!charge");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdCharge(string, string)", false, "!charge");
             }
         }
 
@@ -172,8 +171,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdMod", "CmdDeposit(string, string)", false, "!deposit");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdDeposit(string, string)", false, "!deposit");
             }
         }
 
@@ -227,8 +225,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdMod", "CmdPopSongRequest()", false, "!popsr");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopSongRequest()", false, "!popsr");
             }
         }
 
@@ -282,8 +279,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdMod", "CmdPopPartyUpRequest()", false, "!poppartyuprequest");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopPartyUpRequest()", false, "!poppartyuprequest");
             }
         }
 
@@ -323,8 +319,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdMod", "CmdAddTimeout(string, string)", false, "!addtimeout");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddTimeout(string, string)", false, "!addtimeout");
             }
         }
 
@@ -345,8 +340,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdMod", "CmdDelTimeout(string, string)", false, "!deltimeout");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdDelTimeout(string, string)", false, "!deltimeout");
             }
         }
 
@@ -376,7 +370,7 @@ namespace TwitchBot
             //}
             //catch (Exception ex)
             //{
-            //    Program.LogError(ex, "CmdMod", "CmdSetLatency(string, string)", false, "!setlatency");
+            //    _errHndlrInstance.LogError(ex, "CmdMod", "CmdSetLatency(string, string)", false, "!setlatency");
             //}
         }
 

@@ -19,6 +19,7 @@ namespace TwitchBot
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _intBroadcasterID;
+        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public CmdBrdCstr(IrcClient irc, Moderator mod, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId)
         {
@@ -42,8 +43,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdBotSettings()", false, "!botsettings");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdBotSettings()", false, "!botsettings");
             }
         }
 
@@ -59,8 +59,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdExitBot()", false, "!exitbot");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdExitBot()", false, "!exitbot");
             }
         }
 
@@ -86,7 +85,7 @@ namespace TwitchBot
             //}
             //catch (Exception ex)
             //{
-            //    Program.LogError(ex, "CmdBrdCstr", "CmdEnableTweet(bool)", false, "!sendtweet on");
+            //    _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableTweet(bool)", false, "!sendtweet on");
             //}
         }
 
@@ -112,7 +111,7 @@ namespace TwitchBot
             //}
             //catch (Exception ex)
             //{
-            //    Program.LogError(ex, "CmdBrdCstr", "CmdDisableTweet(bool)", false, "!sendtweet off");
+            //    _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableTweet(bool)", false, "!sendtweet off");
             //}
         }
 
@@ -129,8 +128,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdEnableSRMode(ref bool)", false, "!srmode on");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableSRMode(ref bool)", false, "!srmode on");
             }
         }
 
@@ -147,8 +145,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdDisableSRMode(ref bool)", false, "!srmode off");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableSRMode(ref bool)", false, "!srmode off");
             }
         }
 
@@ -199,8 +196,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdUpdateTitle(string, string, string)", false, "!updatetitle");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdUpdateTitle(string, string, string)", false, "!updatetitle");
             }
         }
 
@@ -258,8 +254,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdUpdateGame(string, string, string, bool, bool)", false, "!updategame");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdUpdateGame(string, string, string, bool, bool)", false, "!updategame");
             }
         }
 
@@ -282,8 +277,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdTweet(bool, string, string)", false, "!tweet");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdTweet(bool, string, string)", false, "!tweet");
             }
         }
 
@@ -303,7 +297,7 @@ namespace TwitchBot
             //}
             //catch (Exception ex)
             //{
-            //    Program.LogError(ex, "CmdBrdCstr", "CmdEnableDisplaySongs()", false, "!displaysongs on");
+            //    _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableDisplaySongs()", false, "!displaysongs on");
             //}
         }
 
@@ -323,7 +317,7 @@ namespace TwitchBot
             //}
             //catch (Exception ex)
             //{
-            //    Program.LogError(ex, "CmdBrdCstr", "CmdDisableDisplaySongs()", false, "!displaysongs off");
+            //    _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableDisplaySongs()", false, "!displaysongs off");
             //}
         }
 
@@ -341,8 +335,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdAddBotMod(string)", false, "!addmod");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddBotMod(string)", false, "!addmod");
             }
         }
 
@@ -360,8 +353,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdDelBotMod(string)", false, "!delmod");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDelBotMod(string)", false, "!delmod");
             }
         }
 
@@ -387,8 +379,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdListMod()", false, "!listmod");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListMod()", false, "!listmod");
             }
         }
 
@@ -427,8 +418,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdAddCountdown(string, string)", false, "!addcountdown");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddCountdown(string, string)", false, "!addcountdown");
             }
         }
 
@@ -539,8 +529,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string, string)", false, "!editcountdown");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string, string)", false, "!editcountdown");
             }
         }
 
@@ -588,8 +577,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "CmdBrdCstr", "CmdListCountdown()", false, "!listcountdown");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListCountdown()", false, "!listcountdown");
             }
         }
 

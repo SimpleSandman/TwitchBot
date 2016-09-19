@@ -20,6 +20,8 @@ namespace TwitchBot
         private StreamReader inputStream;
         private StreamWriter outputStream;
 
+        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+
         public IrcClient(string ip, int port, string userName, string password, string channel)
         {
             try
@@ -39,8 +41,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create a class for loggin
-                //Program.LogError(ex, "IrcClient", "IrcClient(string, int, string, string, string)", true);
+                _errHndlrInstance.LogError(ex, "IrcClient", "IrcClient(string, int, string, string, string)", true);
             }
         }
 
@@ -53,8 +54,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create a class for login
-                //Program.LogError(ex, "IrcClient", "sendIrcMessage", false);
+                _errHndlrInstance.LogError(ex, "IrcClient", "sendIrcMessage", false);
             }
         }
 
@@ -67,8 +67,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for Loggin
-                //Program.LogError(ex, "IrcClient", "sendPublicMessage", false);
+                _errHndlrInstance.LogError(ex, "IrcClient", "sendPublicMessage", false);
             }
         }
 

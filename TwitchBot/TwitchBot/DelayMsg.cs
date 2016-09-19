@@ -11,7 +11,9 @@ namespace TwitchBot
     {
         private Thread _msgSender;
         private IrcClient _irc;
-        
+
+        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+
         public DelayMsg(IrcClient irc)
         {
             _irc = irc;
@@ -46,8 +48,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                //TODO: Create class for loggin
-                //Program.LogError(ex, "DelayMsg", "Run()", false);
+                _errHndlrInstance.LogError(ex, "DelayMsg", "Run()", false);
             }
         }
     }

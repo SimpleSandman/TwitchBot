@@ -135,8 +135,8 @@ namespace TwitchBot
                 Console.WriteLine();
 
                 /* Make sure usernames are set to lowercase for the rest of the application */
-                var _strBotName = _botConfig.BotName.ToLower();
-                var _strBroadcasterName = _botConfig.Broadcaster.ToLower();
+                string _strBotName = _botConfig.BotName.ToLower();
+                string _strBroadcasterName = _botConfig.Broadcaster.ToLower();
 
                 // Password from www.twitchapps.com/tmi/
                 // include the "oauth:" portion
@@ -148,12 +148,8 @@ namespace TwitchBot
                 _cmdMod = new CmdMod(_irc, _mod, _timeout, _botConfig, _connStr, _intBroadcasterID);
 
                 // Update channel info
-                var _intFollowers = TaskJSON.GetChannel(_botConfig.Broadcaster).Result.followers;
-                var _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster).Result.game;
-
-                /* Make new thread to get messages */
-                Thread thdIrcClient = new Thread(() => GetChatBox(_isSongRequestAvail, _botConfig.TwitchAccessToken, _hasTwitterInfo));
-                thdIrcClient.Start();
+                int _intFollowers = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.followers;
+                string _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.game;
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine("---> Extra Bot Settings <---");
@@ -170,11 +166,11 @@ namespace TwitchBot
 
                 /* Get list of mods */
                 //_mod = new Moderator();
-                setListMods();
+                //setListMods();
 
                 /* Get list of timed out users */
                 //_timeout = new Timeout();
-                setListTimeouts();
+                //setListTimeouts();
 
                 /* Ping to twitch server to prevent auto-disconnect */
                 PingSender ping = new PingSender(_irc);
@@ -192,6 +188,9 @@ namespace TwitchBot
                         _botConfig.TwitterAccessToken, _botConfig.TwitterAccessSecret
                     );
                 }
+
+                /* Finished setup, time to start */
+                await GetChatBox(_isSongRequestAvail, _botConfig.TwitchAccessToken, _hasTwitterInfo);
             }
             catch (Exception ex)
             {
@@ -279,10 +278,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-
-                //ErrorHandler err = new ErrorHandler(_intBroadcasterID, _connStr, _irc, _botConfig);
-                //err.LogError(ex, "TwitchBotApplication", "setListMods()", true);
+                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "setListMods()", true);
             }
         }
 
@@ -328,10 +324,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-
-                //ErrorHandler err = new ErrorHandler(_intBroadcasterID, _connStr, _irc, _botConfig);
-                //err.LogError(ex, "TwitchBotApplication", "setListTimeouts()", true);
+                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "setListTimeouts()", true);
             }
         }
 
@@ -341,7 +334,7 @@ namespace TwitchBot
         /// <param name="isSongRequestAvail"></param>
         /// <param name="twitchAccessToken"></param>
         /// <param name="hasTwitterInfo"></param>
-        private void GetChatBox(bool isSongRequestAvail, string twitchAccessToken, bool hasTwitterInfo)
+        private async Task GetChatBox(bool isSongRequestAvail, string twitchAccessToken, bool hasTwitterInfo)
         {
             try
             {
