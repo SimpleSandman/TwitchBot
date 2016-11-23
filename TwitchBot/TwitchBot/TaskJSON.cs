@@ -14,7 +14,7 @@ namespace TwitchBot
         {
             using (HttpClient client = new HttpClient())
             {
-                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + Program._strBroadcasterName);
+                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + Program._strBroadcasterName + "?client_id=" + Properties.Settings.Default.twitchClientID);
                 ChannelJSON response = JsonConvert.DeserializeObject<ChannelJSON>(body);
                 return response;
             }
@@ -24,7 +24,7 @@ namespace TwitchBot
         {
             using (HttpClient client = new HttpClient())
             {
-                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/streams/" + Program._strBroadcasterName);
+                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/streams/" + Program._strBroadcasterName + "?client_id=" + Properties.Settings.Default.twitchClientID);
                 RootStreamJSON response = JsonConvert.DeserializeObject<RootStreamJSON>(body);
                 return response;
             }
@@ -34,7 +34,7 @@ namespace TwitchBot
         {
             using (HttpClient client = new HttpClient())
             {
-                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + Program._strBroadcasterName + "/follows?limit=" + Program._intFollowers);
+                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + Program._strBroadcasterName + "/follows?limit=" + Program._intFollowers + "&client_id=" + Properties.Settings.Default.twitchClientID);
                 FollowerInfo response = JsonConvert.DeserializeObject<FollowerInfo>(body);
                 return response;
             }
