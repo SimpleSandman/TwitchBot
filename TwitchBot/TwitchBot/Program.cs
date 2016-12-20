@@ -32,6 +32,7 @@ namespace TwitchBot
 {
     class Program
     {
+        public static string _connStrType = "TwitchBotConnStrPROD"; // assume prod connection string by default
         public static List<Tuple<string, DateTime>> _lstTupDelayMsg = new List<Tuple<string, DateTime>>(); // used to handle delayed msgs
 
         static void Main(string[] args)
@@ -60,11 +61,22 @@ namespace TwitchBot
                 var connectionStringSetting = appConfig.ConnectionStrings.ConnectionStrings["TwitchBotConnStrPROD"];
                 if (connectionStringSetting == null)
                 {
-                    connectionStringSetting = new ConnectionStringSettings();
-                    TwitchBotConfigurator.ConfigureConnectionString("TwitchBotConnStrPROD", connectionStringSetting);
-                    appConfig.ConnectionStrings.ConnectionStrings.Add(connectionStringSetting);
-                    appConfig.Save(ConfigurationSaveMode.Full);
-                    ConfigurationManager.RefreshSection("connectionStrings");
+                    // check if testing connection string is valid (for localized development only)
+                    connectionStringSetting = appConfig.ConnectionStrings.ConnectionStrings["TwitchBotConnStrTEST"];
+                    if (connectionStringSetting == null)
+                    {
+                        // go ahead and run the production configuration wizard
+                        connectionStringSetting = new ConnectionStringSettings();
+                        TwitchBotConfigurator.ConfigureConnectionString("TwitchBotConnStrPROD", connectionStringSetting);
+                        appConfig.ConnectionStrings.ConnectionStrings.Add(connectionStringSetting);
+                        appConfig.Save(ConfigurationSaveMode.Full);
+                        ConfigurationManager.RefreshSection("connectionStrings");
+                    }
+                    else
+                    {
+                        // found test connection string
+                        _connStrType = "TwitchBotConnStrTEST";
+                    }
                 }
 
                 //Create a container builder and register all classes that will be composed for the application

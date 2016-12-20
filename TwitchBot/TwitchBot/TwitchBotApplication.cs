@@ -32,7 +32,7 @@ namespace TwitchBot
         public TwitchBotApplication(System.Configuration.Configuration appConfig)
         {
             _appConfig = appConfig;
-            _connStr = appConfig.ConnectionStrings.ConnectionStrings["TwitchBotConnStrPROD"].ConnectionString;
+            _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program._connStrType].ConnectionString;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
             _isSongRequestAvail = false;
             _hasTwitterInfo = false;
@@ -44,23 +44,8 @@ namespace TwitchBot
             try
             {
                 /* Check if developer attempted to set up the connection string for either production or test */
-                // Connect to production database first
-                if (_connStr.Equals("[ConnectionString]") || string.IsNullOrEmpty(_connStr))
-                {
-                    // Attempt to connect to TEST
-                    _connStr = _appConfig.ConnectionStrings.ConnectionStrings["TwitchBotConnStrTEST"].ConnectionString;
-
-                    if (!_connStr.Equals("[ConnectionString]") || !string.IsNullOrEmpty(_connStr))
-                        Console.WriteLine("<<<< WARNING: Connecting to testing database >>>>");
-                    else
-                    {
-                        Console.WriteLine("Connection string has not set. Please check the config file");
-                        Console.WriteLine();
-                        Console.WriteLine("Shutting down now...");
-                        Thread.Sleep(4000);
-                        Environment.Exit(1);
-                    }
-                }
+                if (Program._connStrType.Equals("TwitchBotConnStrTEST"))
+                    Console.WriteLine("<<<< WARNING: Connecting to testing database >>>>");
 
                 // Attempt to connect to server
                 if (!IsServerConnected(_connStr))
@@ -168,8 +153,7 @@ namespace TwitchBot
                 _modInstance.setLstMod(_connStr, _intBroadcasterID);
 
                 /* Get list of timed out users from database */
-                //_timeout = new Timeout();
-                //setListTimeouts();
+                setListTimeouts();
 
                 /* Ping to twitch server to prevent auto-disconnect */
                 PingSender ping = new PingSender(_irc);
@@ -572,9 +556,7 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-
-                //ErrorHandler err = new ErrorHandler(_intBroadcasterID, _connStr, _irc, _botConfig);
-                //err.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, string, bool)", true);
+                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, string, bool)", true);
             }
         }
 
