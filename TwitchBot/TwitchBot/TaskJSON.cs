@@ -45,7 +45,7 @@ namespace TwitchBot
         {
             using (HttpClient client = new HttpClient())
             {
-                string body = await client.GetStringAsync("https://tmi.twitch.tv/group/user/" + broadcasterName + "?client_id=" + clientID + "/chatters");
+                string body = await client.GetStringAsync("https://tmi.twitch.tv/group/user/" + broadcasterName + "/chatters" + "?client_id=" + clientID);
                 ChatterInfo response = JsonConvert.DeserializeObject<ChatterInfo>(body);
                 return response;
             }
