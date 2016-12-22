@@ -13,7 +13,12 @@ namespace TwitchBot
         private static volatile Moderator _instance;
         private static object _syncRoot = new Object();
 
-        private List<string> lstMod = new List<string>();
+        private List<string> _lstMod = new List<string>();
+
+        public List<string> LstMod
+        {
+            get { return _lstMod; }
+        }
 
         private Moderator() { }
 
@@ -36,11 +41,6 @@ namespace TwitchBot
             }
         }
 
-        public List<string> getLstMod()
-        {
-            return lstMod;
-        }
-
         public void setLstMod(string connStr, int intBroadcasterID)
         {
             try
@@ -57,7 +57,7 @@ namespace TwitchBot
                             {
                                 while (reader.Read())
                                 {
-                                    lstMod.Add(reader["username"].ToString());
+                                    _lstMod.Add(reader["username"].ToString());
                                 }
                             }
                         }
@@ -88,7 +88,7 @@ namespace TwitchBot
                     conn.Close();
                 }
 
-                lstMod.Add(strRecipient);
+                _lstMod.Add(strRecipient);
             }
             catch (Exception ex)
             {
@@ -114,7 +114,7 @@ namespace TwitchBot
                     conn.Close();
                 }
 
-                lstMod.Remove(strRecipient);
+                _lstMod.Remove(strRecipient);
             }
             catch (Exception ex)
             {

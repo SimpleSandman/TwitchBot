@@ -14,8 +14,8 @@ namespace TwitchBot
 {
     public class TwitchBotApplication
     {
-        private readonly System.Configuration.Configuration _appConfig;
-        private readonly TwitchBotConfigurationSection _botConfig;
+        private System.Configuration.Configuration _appConfig;
+        private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _intBroadcasterID;
         private IrcClient _irc;
@@ -99,15 +99,15 @@ namespace TwitchBot
                     }
 
                     _intBroadcasterID = getBroadcasterID(_botConfig.Broadcaster.ToLower());
-                }
 
-                // Try looking for the broadcaster's ID again
-                if (_intBroadcasterID == 0)
-                {
-                    Console.WriteLine("Cannot find a broadcaster ID for you. "
-                        + "Please contact the author with a detailed description of the issue");
-                    Thread.Sleep(3000);
-                    Environment.Exit(1);
+                    // Try looking for the broadcaster's ID again
+                    if (_intBroadcasterID == 0)
+                    {
+                        Console.WriteLine("Cannot find a broadcaster ID for you. "
+                            + "Please contact the author with a detailed description of the issue");
+                        Thread.Sleep(3000);
+                        Environment.Exit(1);
+                    }
                 }
 
                 /* Connect to local Spotify client */
@@ -128,8 +128,8 @@ namespace TwitchBot
                 /* main server: irc.twitch.tv, 6667 */
                 _irc = new IrcClient("irc.twitch.tv", 6667, _strBotName, _botConfig.TwitchOAuth, _strBroadcasterName);
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _intBroadcasterID);
-                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _intBroadcasterID);
-                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _intBroadcasterID);
+                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _intBroadcasterID, _appConfig);
+                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _intBroadcasterID, _appConfig);
 
                 // Grab channel info
                 ChannelJSON chlJSON = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result;
@@ -419,7 +419,7 @@ namespace TwitchBot
                             /*
                              * Moderator commands (also checks if user has been timed out from using a command)
                              */
-                            if (strUserName.Equals(_botConfig.Broadcaster) || _modInstance.getLstMod().Contains(strUserName.ToLower()))
+                            if (strUserName.Equals(_botConfig.Broadcaster) || _modInstance.LstMod.Contains(strUserName.ToLower()))
                             {
                                 /* Displays Discord link into chat (if available) */
                                 if (message.Equals("!discord") && !isUserTimedout(strUserName))

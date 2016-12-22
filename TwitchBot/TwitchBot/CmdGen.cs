@@ -35,9 +35,9 @@ namespace TwitchBot
         {
             try
             {
-                _irc.sendPublicChatMessage("---> !hello | !slap @[username] | !stab @[username] | !throw [item] @[username] | !shoot @[username] "
-                    + "| !spotifycurr | !srlist | !sr [artist] - [song title] | !utctime | !hosttime | !partyup [party member name] | !gamble [money] "
-                    + "| !quote <---"
+                _irc.sendPublicChatMessage("---> !hello >< !slap @[username] >< !stab @[username] >< !throw [item] @[username] >< !shoot @[username] "
+                    + ">< !spotifycurr >< !srlist >< !sr [artist] - [song title] >< !utctime >< !hosttime >< !partyup [party member name] >< !gamble [money] "
+                    + ">< !quote >< !myfunds <---"
                     + " Link to full list of commands: http://bit.ly/2bXLlEe");
             }
             catch (Exception ex)
@@ -137,11 +137,11 @@ namespace TwitchBot
                                     {
                                         newRow[col.ColumnName] = reader[col.ColumnName];
                                         Console.WriteLine(newRow[col.ColumnName].ToString());
-                                        songList = songList + newRow[col.ColumnName].ToString() + " || ";
+                                        songList = songList + newRow[col.ColumnName].ToString() + " >< ";
                                     }
                                 }
                                 StringBuilder strBdrSongList = new StringBuilder(songList);
-                                strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " || "
+                                strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " >< "
                                 songList = strBdrSongList.ToString(); // replace old song list string with new
                                 _irc.sendPublicChatMessage("Current List of Requested Songs: " + songList);
                             }
@@ -226,8 +226,8 @@ namespace TwitchBot
                 if (status != null)
                 {
                     _irc.sendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
-                        + " || Artist: " + status.Track.ArtistResource.Name
-                        + " || Album: " + status.Track.AlbumResource.Name);
+                        + " >< Artist: " + status.Track.ArtistResource.Name
+                        + " >< Album: " + status.Track.AlbumResource.Name);
                 }
                 else
                     _irc.sendPublicChatMessage("The broadcaster is not playing a song at the moment");
@@ -544,10 +544,10 @@ namespace TwitchBot
                                 {
                                     while (reader.Read())
                                     {
-                                        strPartyList += reader["partyMember"].ToString() + " <-- " + reader["username"].ToString() + " || ";
+                                        strPartyList += reader["partyMember"].ToString() + " <-- " + reader["username"].ToString() + " // ";
                                     }
                                     StringBuilder strBdrPartyList = new StringBuilder(strPartyList);
-                                    strBdrPartyList.Remove(strPartyList.Length - 4, 4); // remove extra " || "
+                                    strBdrPartyList.Remove(strPartyList.Length - 4, 4); // remove extra " // "
                                     strPartyList = strBdrPartyList.ToString(); // replace old party member list string with new
                                     _irc.sendPublicChatMessage(strPartyList);
                                 }
@@ -620,10 +620,10 @@ namespace TwitchBot
                                 {
                                     while (reader.Read())
                                     {
-                                        strPartyList += reader["partyMember"].ToString() + " || ";
+                                        strPartyList += reader["partyMember"].ToString() + " >< ";
                                     }
                                     StringBuilder strBdrPartyList = new StringBuilder(strPartyList);
-                                    strBdrPartyList.Remove(strPartyList.Length - 4, 4); // remove extra " || "
+                                    strBdrPartyList.Remove(strPartyList.Length - 4, 4); // remove extra " >< "
                                     strPartyList = strBdrPartyList.ToString(); // replace old party member list string with new
                                     _irc.sendPublicChatMessage(strPartyList);
                                 }

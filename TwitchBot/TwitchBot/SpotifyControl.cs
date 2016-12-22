@@ -12,7 +12,6 @@ namespace TwitchBot
 {
     /* Example Code for Local Spotify API */
     // https://github.com/JohnnyCrazy/SpotifyAPI-NET/blob/master/SpotifyAPI.Example/LocalControl.cs
-
     public class SpotifyControl
     {
         private TwitchBotConfigurationSection _botConfig;
@@ -145,8 +144,8 @@ namespace TwitchBot
             if (isDisplayed)
             {
                 pendingMessage = "Current Song: " + track.TrackResource.Name
-                    + " || Artist: " + track.ArtistResource.Name
-                    + " || Album: " + track.AlbumResource.Name;
+                    + " >< Artist: " + track.ArtistResource.Name
+                    + " >< Album: " + track.AlbumResource.Name;
 
                 Program._lstTupDelayMsg.Add(new Tuple<string, DateTime>(
                         pendingMessage,

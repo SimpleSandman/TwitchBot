@@ -16,17 +16,19 @@ namespace TwitchBot
     {
         private IrcClient _irc;
         private Moderator _modInstance = Moderator.Instance;
+        private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _intBroadcasterID;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId)
+        public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, System.Configuration.Configuration appConfig)
         {
             _irc = irc;
             _botConfig = botConfig;
             _connStr = connString;
             _intBroadcasterID = broadcasterId;
+            _appConfig = appConfig;
         }
 
         /// <summary>
@@ -37,8 +39,9 @@ namespace TwitchBot
             try
             {
                 _irc.sendPublicChatMessage("Auto tweets set to \"" + _botConfig.EnableTweets + "\" "
-                    + "|| Auto display songs set to \"" + _botConfig.EnableDisplaySong + "\" "
-                    + "|| Currency set to \"" + _botConfig.CurrencyType + "\"");
+                    + ">< Auto display songs set to \"" + _botConfig.EnableDisplaySong + "\" "
+                    + ">< Currency set to \"" + _botConfig.CurrencyType + "\" "
+                    + ">< Stream Latency set to \"" + _botConfig.StreamLatency + " second(s)\"");
             }
             catch (Exception ex)
             {
@@ -71,15 +74,15 @@ namespace TwitchBot
             //try
             //{
             //    if (!bolHasTwitterInfo)
-            //        Program._irc.sendPublicChatMessage("You are missing twitter info @" + Program._strBroadcasterName);
+            //        _irc.sendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
             //    else
             //    {
-            //        Program._isAutoPublishTweet = true;
-            //        Properties.Settings.Default.enableTweet = Program._isAutoPublishTweet;
-            //        Properties.Settings.Default.Save();
+            //        _botConfig.EnableTweets = true;
+            //        //Properties.Settings.Default.enableTweet = _botConfig.EnableTweets;
+            //        //Properties.Settings.Default.Save();
 
-            //        Console.WriteLine("Auto publish tweets is set to [" + Program._isAutoPublishTweet + "]");
-            //        Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic tweets is set to \"" + Program._isAutoPublishTweet + "\"");
+            //        Console.WriteLine("Auto publish tweets is set to [" + _botConfig.EnableTweets + "]");
+            //        _irc.sendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
             //    }
             //}
             //catch (Exception ex)
@@ -178,7 +181,7 @@ namespace TwitchBot
                     if (statResponse.Contains("OK"))
                     {
                         _irc.sendPublicChatMessage("Twitch channel title updated to \"" + title +
-                            "\" || Refresh your browser [F5] or twitch app to see the change");
+                            "\" >< Refresh your browser [F5] or twitch app to see the change");
                     }
                     else
                         Console.WriteLine(response.ErrorMessage);
@@ -230,7 +233,7 @@ namespace TwitchBot
                     if (statResponse.Contains("OK"))
                     {
                         _irc.sendPublicChatMessage("Twitch channel game status updated to \"" + game +
-                            "\" || Restart your connection to the stream or twitch app to see the change");
+                            "\" >< Restart your connection to the stream or twitch app to see the change");
                         if (_botConfig.EnableTweets && bolHasTwitterInfo)
                         {
                             SendTweet("Watch me stream " + game + " on Twitch" + Environment.NewLine
@@ -285,19 +288,18 @@ namespace TwitchBot
         /// </summary>
         public void CmdEnableDisplaySongs()
         {
-            //try
-            //{
-            //    Program._isAutoDisplaySong = true;
-            //    Properties.Settings.Default.enableDisplaySong = Program._isAutoDisplaySong;
-            //    Properties.Settings.Default.Save();
+            try
+            {
+                _botConfig.EnableDisplaySong = true;
+                _appConfig.Save();
 
-            //    Console.WriteLine("Auto display songs is set to [" + Program._isAutoDisplaySong + "]");
-            //    Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic display songs is set to \"" + Program._isAutoDisplaySong + "\"");
-            //}
-            //catch (Exception ex)
-            //{
-            //    _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableDisplaySongs()", false, "!displaysongs on");
-            //}
+                Console.WriteLine("Auto display songs is set to [" + _botConfig.EnableDisplaySong + "]");
+                _irc.sendPublicChatMessage(_botConfig.Broadcaster + ": Automatic display Spotify songs is set to \"" + _botConfig.EnableDisplaySong + "\"");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableDisplaySongs()", false, "!displaysongs on");
+            }
         }
 
         /// <summary>
@@ -305,19 +307,18 @@ namespace TwitchBot
         /// </summary>
         public void CmdDisableDisplaySongs()
         {
-            //try
-            //{
-            //    Program._isAutoDisplaySong = false;
-            //    Properties.Settings.Default.enableDisplaySong = Program._isAutoDisplaySong;
-            //    Properties.Settings.Default.Save();
+            try
+            {
+                _botConfig.EnableDisplaySong = false;
+                _appConfig.Save();
 
-            //    Console.WriteLine("Auto display songs is set to [" + Program._isAutoDisplaySong + "]");
-            //    Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic display songs is set to \"" + Program._isAutoDisplaySong + "\"");
-            //}
-            //catch (Exception ex)
-            //{
-            //    _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableDisplaySongs()", false, "!displaysongs off");
-            //}
+                Console.WriteLine("Auto display songs is set to [" + _botConfig.EnableDisplaySong + "]");
+                _irc.sendPublicChatMessage(_botConfig.Broadcaster + ": Automatic display Spotify songs is set to \"" + _botConfig.EnableDisplaySong + "\"");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableDisplaySongs()", false, "!displaysongs off");
+            }
         }
 
         /// <summary>
@@ -365,12 +366,12 @@ namespace TwitchBot
             {
                 string strListModMsg = "";
 
-                if (_modInstance.getLstMod().Count > 0)
+                if (_modInstance.LstMod.Count > 0)
                 {
-                    foreach (string name in _modInstance.getLstMod())
-                        strListModMsg += name + " | ";
+                    foreach (string name in _modInstance.LstMod)
+                        strListModMsg += name + " >< ";
 
-                    strListModMsg = strListModMsg.Remove(strListModMsg.Length - 3); // removed extra " | "
+                    strListModMsg = strListModMsg.Remove(strListModMsg.Length - 3); // removed extra " >< "
                     _irc.sendPublicChatMessage("List of bot moderators (separate from channel mods): " + strListModMsg);
                 }
                 else
@@ -558,10 +559,10 @@ namespace TwitchBot
                                     strCountdownList += "ID: " + reader["Id"].ToString()
                                         + " Message: \"" + reader["message"].ToString()
                                         + "\" Time: \"" + reader["dueDate"].ToString()
-                                        + "\" || ";
+                                        + "\" // ";
                                 }
                                 StringBuilder strBdrPartyList = new StringBuilder(strCountdownList);
-                                strBdrPartyList.Remove(strCountdownList.Length - 4, 4); // remove extra " || "
+                                strBdrPartyList.Remove(strCountdownList.Length - 4, 4); // remove extra " >< "
                                 strCountdownList = strBdrPartyList.ToString(); // replace old countdown list string with new
                                 _irc.sendPublicChatMessage(strCountdownList);
                             }

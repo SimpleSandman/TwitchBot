@@ -14,18 +14,20 @@ namespace TwitchBot
         private IrcClient _irc;
         private Moderator _modInstance = Moderator.Instance;
         private Timeout _timeout;
+        private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _intBroadcasterID;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CmdMod(IrcClient irc, Timeout timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId)
+        public CmdMod(IrcClient irc, Timeout timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, System.Configuration.Configuration appConfig)
         {
             _irc = irc;
             _timeout = timeout;
             _botConfig = botConfig;
             _intBroadcasterID = broadcasterId;
             _connStr = connString;
+            _appConfig = appConfig;
         }
 
         /// <summary>
@@ -119,7 +121,7 @@ namespace TwitchBot
                 if (message.StartsWith("!deposit @"))
                     _irc.sendPublicChatMessage("Please enter a valid amount to a user @" + strUserName);
                 // Check if moderator is trying to give money to themselves
-                else if (_modInstance.getLstMod().Contains(strUserName.ToLower()) && strRecipient.Equals(strUserName))
+                else if (_modInstance.LstMod.Contains(strUserName.ToLower()) && strRecipient.Equals(strUserName))
                     _irc.sendPublicChatMessage("You cannot add funds to your own account @" + strUserName);
                 else
                 {
@@ -350,27 +352,26 @@ namespace TwitchBot
         /// <param name="strUserName">User that sent the message</param>
         public void CmdSetLatency(string message, string strUserName)
         {
-            //try
-            //{
-            //    int intLatency = -1;
-            //    bool validInput = int.TryParse(message.Substring(12), out intLatency);
-            //    if (!validInput || intLatency < 0)
-            //        Program._irc.sendPublicChatMessage("Please insert a valid positive alloted amount of time (in seconds)");
-            //    else
-            //    {
-            //        // set and save latency
-            //        Program._intStreamLatency = intLatency;
-            //        Properties.Settings.Default.streamLatency = Program._intStreamLatency;
-            //        Properties.Settings.Default.Save();
+            try
+            {
+                int intLatency = -1;
+                bool validInput = int.TryParse(message.Substring(12), out intLatency);
+                if (!validInput || intLatency < 0)
+                    _irc.sendPublicChatMessage("Please insert a valid positive alloted amount of time (in seconds)");
+                else
+                {
+                    // set and save latency
+                    _botConfig.StreamLatency = intLatency;
+                    _appConfig.Save();
 
-            //        Console.WriteLine("Stream latency set to " + Program._intStreamLatency + " second(s)");
-            //        Program._irc.sendPublicChatMessage("Bot settings for stream latency set to " + Program._intStreamLatency + " second(s) @" + strUserName);
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    _errHndlrInstance.LogError(ex, "CmdMod", "CmdSetLatency(string, string)", false, "!setlatency");
-            //}
+                    Console.WriteLine("Stream latency set to " + _botConfig.StreamLatency + " second(s)");
+                    _irc.sendPublicChatMessage("Bot settings for stream latency set to " + _botConfig.StreamLatency + " second(s) @" + strUserName);
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdSetLatency(string, string)", false, "!setlatency");
+            }
         }
 
         /// <summary>
