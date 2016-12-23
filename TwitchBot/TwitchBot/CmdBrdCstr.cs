@@ -71,24 +71,23 @@ namespace TwitchBot
         /// <param name="bolHasTwitterInfo">Check for Twitter credentials</param>
         public void CmdEnableTweet(bool bolHasTwitterInfo)
         {
-            //try
-            //{
-            //    if (!bolHasTwitterInfo)
-            //        _irc.sendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
-            //    else
-            //    {
-            //        _botConfig.EnableTweets = true;
-            //        //Properties.Settings.Default.enableTweet = _botConfig.EnableTweets;
-            //        //Properties.Settings.Default.Save();
+            try
+            {
+                if (!bolHasTwitterInfo)
+                    _irc.sendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
+                else
+                {
+                    _botConfig.EnableTweets = true;
+                    _appConfig.Save();
 
-            //        Console.WriteLine("Auto publish tweets is set to [" + _botConfig.EnableTweets + "]");
-            //        _irc.sendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableTweet(bool)", false, "!sendtweet on");
-            //}
+                    Console.WriteLine("Auto publish tweets is set to [" + _botConfig.EnableTweets + "]");
+                    _irc.sendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableTweet(bool)", false, "!sendtweet on");
+            }
         }
 
         /// <summary>
@@ -97,24 +96,23 @@ namespace TwitchBot
         /// <param name="bolHasTwitterInfo">Check for Twitter credentials</param>
         public void CmdDisableTweet(bool bolHasTwitterInfo)
         {
-            //try
-            //{
-            //    if (!bolHasTwitterInfo)
-            //        Program._irc.sendPublicChatMessage("You are missing twitter info @" + Program._strBroadcasterName);
-            //    else
-            //    {
-            //        Program._isAutoPublishTweet = false;
-            //        Properties.Settings.Default.enableTweet = Program._isAutoPublishTweet;
-            //        Properties.Settings.Default.Save();
+            try
+            {
+                if (!bolHasTwitterInfo)
+                    _irc.sendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
+                else
+                {
+                    _botConfig.EnableTweets = false;
+                    _appConfig.Save();
 
-            //        Console.WriteLine("Auto publish tweets is set to [" + Program._isAutoPublishTweet + "]");
-            //        Program._irc.sendPublicChatMessage(Program._strBroadcasterName + ": Automatic tweets is set to \"" + Program._isAutoPublishTweet + "\"");
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableTweet(bool)", false, "!sendtweet off");
-            //}
+                    Console.WriteLine("Auto publish tweets is set to [" + _botConfig.EnableTweets + "]");
+                    _irc.sendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableTweet(bool)", false, "!sendtweet off");
+            }
         }
 
         /// <summary>

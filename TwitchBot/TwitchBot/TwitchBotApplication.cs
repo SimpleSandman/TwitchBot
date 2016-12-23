@@ -164,12 +164,17 @@ namespace TwitchBot
                 preRmd.Start();
 
                 /* Authenticate to Twitter if possible */
-                if (_hasTwitterInfo)
+                if (!string.IsNullOrEmpty(_botConfig.TwitterConsumerKey) 
+                    && !string.IsNullOrEmpty(_botConfig.TwitterConsumerSecret) 
+                    && !string.IsNullOrEmpty(_botConfig.TwitterAccessToken) 
+                    && !string.IsNullOrEmpty(_botConfig.TwitterAccessSecret))
                 {
                     Auth.ApplicationCredentials = new TwitterCredentials(
                         _botConfig.TwitterConsumerKey, _botConfig.TwitterConsumerSecret,
                         _botConfig.TwitterAccessToken, _botConfig.TwitterAccessSecret
                     );
+
+                    _hasTwitterInfo = true;
                 }
 
                 /* Finished setup, time to start */
