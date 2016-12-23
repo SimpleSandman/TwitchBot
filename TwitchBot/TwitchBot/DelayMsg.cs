@@ -10,9 +10,13 @@ namespace TwitchBot
     public class DelayMsg
     {
         private Thread _msgSender;
-        
-        public DelayMsg()
+        private IrcClient _irc;
+
+        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+
+        public DelayMsg(IrcClient irc)
         {
+            _irc = irc;
             _msgSender = new Thread(new ThreadStart(this.Run));
         }
 
@@ -35,7 +39,7 @@ namespace TwitchBot
                         Tuple<string, DateTime> tupFirstMsg = Program._lstTupDelayMsg.First();
                         if (tupFirstMsg.Item2 < DateTime.Now)
                         {
-                            Program._irc.sendPublicChatMessage(tupFirstMsg.Item1);
+                            _irc.sendPublicChatMessage(tupFirstMsg.Item1);
                             Console.WriteLine("Delayed message sent: " + tupFirstMsg.Item1);
                             Program._lstTupDelayMsg.Remove(tupFirstMsg); // remove sent message from list
                         }
@@ -44,7 +48,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Program.LogError(ex, "DelayMsg", "Run()", false);
+                _errHndlrInstance.LogError(ex, "DelayMsg", "Run()", false);
             }
         }
     }

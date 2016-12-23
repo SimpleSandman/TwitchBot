@@ -8,18 +8,66 @@ using System.Threading.Tasks;
 
 namespace TwitchBot
 {
-    public class Moderator
+    public sealed class Moderator
     {
-        private List<string> lstMod = new List<string>();
+        private static volatile Moderator _instance;
+        private static object _syncRoot = new Object();
 
-        public List<string> getLstMod()
+        private List<string> _lstMod = new List<string>();
+
+        public List<string> LstMod
         {
-            return lstMod;
+            get { return _lstMod; }
         }
 
-        public void setLstMod(List<string> value)
+        private Moderator() { }
+
+        public static Moderator Instance
         {
-            lstMod = value;
+            get
+            {
+                // first check
+                if (_instance == null)
+                {
+                    lock (_syncRoot)
+                    {
+                        // second check
+                        if (_instance == null)
+                            _instance = new Moderator();
+                    }
+                }
+
+                return _instance;
+            }
+        }
+
+        public void setLstMod(string connStr, int intBroadcasterID)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblModerators WHERE broadcaster = @broadcaster", conn))
+                    {
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _lstMod.Add(reader["username"].ToString());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public void addNewModToLst(string strRecipient, int intBroadcaster, string connStr)
@@ -40,7 +88,7 @@ namespace TwitchBot
                     conn.Close();
                 }
 
-                lstMod.Add(strRecipient);
+                _lstMod.Add(strRecipient);
             }
             catch (Exception ex)
             {
@@ -66,7 +114,7 @@ namespace TwitchBot
                     conn.Close();
                 }
 
-                lstMod.Remove(strRecipient);
+                _lstMod.Remove(strRecipient);
             }
             catch (Exception ex)
             {
