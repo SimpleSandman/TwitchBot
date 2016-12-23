@@ -35,7 +35,7 @@ namespace TwitchBot
         {
             using (HttpClient client = new HttpClient())
             {
-                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + broadcasterName + "?client_id=" + clientID + "/follows?limit=" + followers);
+                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + broadcasterName + "/follows?limit=" + followers + "&client_id=" + clientID);
                 FollowerInfo response = JsonConvert.DeserializeObject<FollowerInfo>(body);
                 return response;
             }
