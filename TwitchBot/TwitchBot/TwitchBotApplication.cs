@@ -549,7 +549,7 @@ namespace TwitchBot
                             else if (message.StartsWith("!gamble ") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdGamble(message, strUserName);
 
-                            /* Display random mod/broadcaster quote */
+                            /* Display random broadcaster quote */
                             else if (message.Equals("!quote") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdQuote();
 
