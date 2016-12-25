@@ -723,7 +723,7 @@ namespace TwitchBot
         }
 
         /// <summary>
-        /// Display random mod/broadcaster quote
+        /// Display random broadcaster quote
         /// </summary>
         public void CmdQuote()
         {
@@ -766,7 +766,7 @@ namespace TwitchBot
 
                     Quote qteResult = new Quote();
                     qteResult = lstQuote.ElementAt(intIndex); // grab random quote from list of quotes
-                    string strQuote = $"\"{qteResult.strMessage}\" - {qteResult.strAuthor} " +
+                    string strQuote = $"\"{qteResult.strMessage}\" - {_botConfig.Broadcaster} " +
                         $"({qteResult.dtTimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {qteResult.dtTimeCreated.Year})";
 
                     _irc.sendPublicChatMessage(strQuote);

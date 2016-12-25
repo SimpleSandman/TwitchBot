@@ -463,7 +463,7 @@ namespace TwitchBot
                                 else if (message.StartsWith("!setlatency ") && !isUserTimedout(strUserName))
                                     _cmdMod.CmdSetLatency(message, strUserName);
 
-                                /* Add a mod/broadcaster quote */
+                                /* Add a broadcaster quote */
                                 // Usage: !addquote [quote]
                                 else if (message.StartsWith("!addquote ") && !isUserTimedout(strUserName))
                                     _cmdMod.CmdAddQuote(message, strUserName);
