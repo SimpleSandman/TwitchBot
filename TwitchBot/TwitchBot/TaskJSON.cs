@@ -31,13 +31,13 @@ namespace TwitchBot
             }
         }
 
-        public static async Task<FollowerInfo> GetFollowerInfo(string broadcasterName, string clientID, int followers)
+        public static async Task<HttpResponseMessage> GetFollowingSince(string broadcasterName, string clientID, string chatterName)
         {
+            string apiUriCall = "https://api.twitch.tv/kraken/users/" + chatterName + "/follows/channels/" + broadcasterName + "?client_id=" + clientID;
+
             using (HttpClient client = new HttpClient())
             {
-                string body = await client.GetStringAsync("https://api.twitch.tv/kraken/channels/" + broadcasterName + "/follows?limit=" + followers + "&client_id=" + clientID);
-                FollowerInfo response = JsonConvert.DeserializeObject<FollowerInfo>(body);
-                return response;
+                return await client.GetAsync(apiUriCall);
             }
         }
 
@@ -45,7 +45,7 @@ namespace TwitchBot
         {
             using (HttpClient client = new HttpClient())
             {
-                string body = await client.GetStringAsync("https://tmi.twitch.tv/group/user/" + broadcasterName + "/chatters" + "?client_id=" + clientID);
+                string body = await client.GetStringAsync("https://tmi.twitch.tv/group/user/" + broadcasterName + "/chatters?client_id=" + clientID);
                 ChatterInfo response = JsonConvert.DeserializeObject<ChatterInfo>(body);
                 return response;
             }

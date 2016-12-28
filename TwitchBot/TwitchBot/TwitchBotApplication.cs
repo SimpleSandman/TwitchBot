@@ -553,6 +553,10 @@ namespace TwitchBot
                             else if (message.Equals("!quote") && !isUserTimedout(strUserName))
                                 _cmdGen.CmdQuote();
 
+                            /* Display how long a user has been following the broadcaster */
+                            else if (message.Equals("!followsince") && !isUserTimedout(strUserName))
+                                _cmdGen.CmdFollowSince(strUserName);
+
                             /* add more general commands here */
                         }
                     }

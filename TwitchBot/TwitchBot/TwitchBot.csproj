@@ -142,8 +142,9 @@
     <Compile Include="Configuration\TwitchBotConfigurationSection.cs" />
     <Compile Include="Configuration\TwitchBotConfigurator.cs" />
     <Compile Include="DelayMsg.cs" />
+    <Compile Include="ErrMsgJSON.cs" />
     <Compile Include="ErrorHandler.cs" />
-    <Compile Include="FollowerInfo.cs" />
+    <Compile Include="FollowingSinceJSON.cs" />
     <Compile Include="IrcClient.cs" />
     <Compile Include="Moderator.cs" />
     <Compile Include="PingSender.cs" />

@@ -9,6 +9,8 @@ using System.Data;
 using System.Text.RegularExpressions;
 using SpotifyAPI.Local.Models;
 using TwitchBot.Configuration;
+using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace TwitchBot
 {
@@ -775,6 +777,33 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdQuote()", false, "!quote");
+            }
+        }
+
+        /// <summary>
+        /// Tell the user how long they have been following the broadcaster
+        /// </summary>
+        /// <param name="strUserName"></param>
+        public async void CmdFollowSince(string strUserName)
+        {
+            HttpResponseMessage message = TaskJSON.GetFollowingSince(_botConfig.Broadcaster.ToLower(), _botConfig.TwitchClientId, strUserName).Result;
+            
+            using (HttpContent content = message.Content)
+            {
+                if (message.IsSuccessStatusCode)
+                {
+                    string body = await content.ReadAsStringAsync();
+                    FollowingSinceJSON response = JsonConvert.DeserializeObject<FollowingSinceJSON>(body);
+                    DateTime startedFollowing = Convert.ToDateTime(response.created_at);
+                    TimeSpan howLong = DateTime.Now - startedFollowing;
+                    _irc.sendPublicChatMessage("Following since: " + howLong.ToString());
+                }
+                else
+                {
+                    string body = await content.ReadAsStringAsync();
+                    ErrMsgJSON response = JsonConvert.DeserializeObject<ErrMsgJSON>(body);
+                    _irc.sendPublicChatMessage(response.message);
+                }
             }
         }
 
