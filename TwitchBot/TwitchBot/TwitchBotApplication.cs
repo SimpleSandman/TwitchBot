@@ -160,8 +160,8 @@ namespace TwitchBot
                 ping.Start();
 
                 /* Remind viewers of bot's existance */
-                PresenceReminder preRmd = new PresenceReminder(_irc);
-                preRmd.Start();
+                //PresenceReminder preRmd = new PresenceReminder(_irc);
+                //preRmd.Start();
 
                 /* Authenticate to Twitter if possible */
                 if (!string.IsNullOrEmpty(_botConfig.TwitterConsumerKey) 
@@ -421,143 +421,146 @@ namespace TwitchBot
                                 /* insert more broadcaster commands here */
                             }
 
-                            /*
-                             * Moderator commands (also checks if user has been timed out from using a command)
-                             */
-                            if (strUserName.Equals(_botConfig.Broadcaster) || _modInstance.LstMod.Contains(strUserName.ToLower()))
+                            if (!isUserTimedout(strUserName))
                             {
-                                /* Displays Discord link into chat (if available) */
-                                if (message.Equals("!discord") && !isUserTimedout(strUserName))
-                                    _cmdMod.CmdDiscord();
+                                /*
+                                 * Moderator commands (also checks if user has been timed out from using a command)
+                                 */
+                                if (strUserName.Equals(_botConfig.Broadcaster) || _modInstance.LstMod.Contains(strUserName.ToLower()))
+                                {
+                                    /* Displays Discord link into chat (if available) */
+                                    if (message.Equals("!discord"))
+                                        _cmdMod.CmdDiscord();
 
-                                /* Takes money away from a user */
-                                // Usage: !charge [-amount] @[username]
-                                else if (message.StartsWith("!charge ") && message.Contains("@") && !isUserTimedout(strUserName))
-                                    _cmdMod.CmdCharge(message, strUserName);
+                                    /* Takes money away from a user */
+                                    // Usage: !charge [-amount] @[username]
+                                    else if (message.StartsWith("!charge ") && message.Contains("@"))
+                                        _cmdMod.CmdCharge(message, strUserName);
 
-                                /* Gives money to user */
-                                // Usage: !deposit [amount] @[username]
-                                else if (message.StartsWith("!deposit ") && message.Contains("@") && !isUserTimedout(strUserName))
-                                    _cmdMod.CmdDeposit(message, strUserName);
+                                    /* Gives money to user */
+                                    // Usage: !deposit [amount] @[username]
+                                    else if (message.StartsWith("!deposit ") && message.Contains("@"))
+                                        _cmdMod.CmdDeposit(message, strUserName);
 
-                                /* Removes the first song in the queue of song requests */
-                                else if (message.Equals("!popsr") && !isUserTimedout(strUserName))
-                                    _cmdMod.CmdPopSongRequest();
+                                    /* Removes the first song in the queue of song requests */
+                                    else if (message.Equals("!popsr"))
+                                        _cmdMod.CmdPopSongRequest();
 
-                                /* Removes first party memeber in queue of party up requests */
-                                else if (message.Equals("!poppartyuprequest") && !isUserTimedout(strUserName))
-                                    _cmdMod.CmdPopPartyUpRequest();
+                                    /* Removes first party memeber in queue of party up requests */
+                                    else if (message.Equals("!poppartyuprequest"))
+                                        _cmdMod.CmdPopPartyUpRequest();
 
-                                /* Bot-specific timeout on a user for a set amount of time */
-                                // Usage: !addtimeout [seconds] @[username]
-                                else if (message.StartsWith("!addtimeout ") && message.Contains("@") && !isUserTimedout(strUserName))
-                                    _cmdMod.CmdAddTimeout(message, strUserName);
+                                    /* Bot-specific timeout on a user for a set amount of time */
+                                    // Usage: !addtimeout [seconds] @[username]
+                                    else if (message.StartsWith("!addtimeout ") && message.Contains("@"))
+                                        _cmdMod.CmdAddTimeout(message, strUserName);
 
-                                /* Remove bot-specific timeout on a user for a set amount of time */
-                                // Usage: !deltimeout @[username]
-                                else if (message.StartsWith("!deltimeout @") && !isUserTimedout(strUserName))
-                                    _cmdMod.CmdDelTimeout(message, strUserName);
+                                    /* Remove bot-specific timeout on a user for a set amount of time */
+                                    // Usage: !deltimeout @[username]
+                                    else if (message.StartsWith("!deltimeout @"))
+                                        _cmdMod.CmdDelTimeout(message, strUserName);
 
-                                /* Set delay for messages based on the latency of the stream */
-                                // Usage: !setlatency [seconds]
-                                else if (message.StartsWith("!setlatency ") && !isUserTimedout(strUserName))
-                                    _cmdMod.CmdSetLatency(message, strUserName);
+                                    /* Set delay for messages based on the latency of the stream */
+                                    // Usage: !setlatency [seconds]
+                                    else if (message.StartsWith("!setlatency "))
+                                        _cmdMod.CmdSetLatency(message, strUserName);
 
-                                /* Add a broadcaster quote */
-                                // Usage: !addquote [quote]
-                                else if (message.StartsWith("!addquote ") && !isUserTimedout(strUserName))
-                                    _cmdMod.CmdAddQuote(message, strUserName);
+                                    /* Add a broadcaster quote */
+                                    // Usage: !addquote [quote]
+                                    else if (message.StartsWith("!addquote "))
+                                        _cmdMod.CmdAddQuote(message, strUserName);
 
-                                /* insert moderator commands here */
+                                    /* insert moderator commands here */
+                                }
+
+                                /* 
+                                 * General commands 
+                                 */
+                                /* Display some viewer commands a link to command documentation */
+                                if (message.Equals("!cmds"))
+                                    _cmdGen.CmdCmds();
+
+                                /* Display a static greeting */
+                                else if (message.Equals("!hello"))
+                                    _cmdGen.CmdHello(strUserName);
+
+                                /* Display the current time in UTC (Coordinated Universal Time) */
+                                else if (message.Equals("!utctime"))
+                                    _cmdGen.CmdUtcTime();
+
+                                /* Display the current time in the time zone the host is located */
+                                else if (message.Equals("!hosttime"))
+                                    _cmdGen.CmdHostTime(_botConfig.Broadcaster);
+
+                                /* Shows how long the broadcaster has been streaming */
+                                else if (message.Equals("!duration"))
+                                    _cmdGen.CmdDuration();
+
+                                /* Display list of requested songs */
+                                else if (message.Equals("!srlist"))
+                                    _cmdGen.CmdListSR();
+
+                                /* Request a song for the host to play */
+                                // Usage: !sr [artist] - [song title]
+                                else if (message.StartsWith("!sr "))
+                                    _cmdGen.CmdSR(isSongRequestAvail, message, strUserName);
+
+                                /* Displays the current song being played from Spotify */
+                                else if (message.Equals("!spotifycurr"))
+                                    _cmdGen.CmdSpotifyCurr();
+
+                                /* Slaps a user and rates its effectiveness */
+                                // Usage: !slap @[username]
+                                else if (message.StartsWith("!slap @"))
+                                    _cmdGen.CmdSlap(message, strUserName);
+
+                                /* Stabs a user and rates its effectiveness */
+                                // Usage: !stab @[username]
+                                else if (message.StartsWith("!stab @"))
+                                    _cmdGen.CmdStab(message, strUserName);
+
+                                /* Shoots a viewer's random body part */
+                                // Usage !shoot @[username]
+                                else if (message.StartsWith("!shoot @"))
+                                    _cmdGen.CmdShoot(message, strUserName);
+
+                                /* Throws an item at a viewer and rates its effectiveness against the victim */
+                                // Usage: !throw [item] @username
+                                else if (message.StartsWith("!throw ") && message.Contains("@"))
+                                    _cmdGen.CmdThrow(message, strUserName);
+
+                                /* Request party member if game and character exists in party up system */
+                                // Usage: !partyup [party member name]
+                                else if (message.StartsWith("!partyup "))
+                                    _cmdGen.CmdPartyUp(message, strUserName);
+
+                                /* Check what other user's have requested */
+                                else if (message.Equals("!partyuprequestlist"))
+                                    _cmdGen.CmdPartyUpRequestList();
+
+                                /* Check what party members are available (if game is part of the party up system) */
+                                else if (message.Equals("!partyuplist"))
+                                    _cmdGen.CmdPartyUpList();
+
+                                /* Check user's account balance */
+                                else if (message.Equals("!myfunds"))
+                                    _cmdGen.CmdCheckFunds(strUserName);
+
+                                /* Gamble money away */
+                                // Usage: !gamble [money]
+                                else if (message.StartsWith("!gamble "))
+                                    _cmdGen.CmdGamble(message, strUserName);
+
+                                /* Display random broadcaster quote */
+                                else if (message.Equals("!quote"))
+                                    _cmdGen.CmdQuote();
+
+                                /* Display how long a user has been following the broadcaster */
+                                else if (message.Equals("!followsince"))
+                                    _cmdGen.CmdFollowSince(strUserName);
+
+                                /* add more general commands here */
                             }
-
-                            /* 
-                             * General commands 
-                             */
-                            /* Display some viewer commands a link to command documentation */
-                            if (message.Equals("!cmds") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdCmds();
-
-                            /* Display a static greeting */
-                            else if (message.Equals("!hello") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdHello(strUserName);
-
-                            /* Display the current time in UTC (Coordinated Universal Time) */
-                            else if (message.Equals("!utctime") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdUtcTime();
-
-                            /* Display the current time in the time zone the host is located */
-                            else if (message.Equals("!hosttime") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdHostTime(_botConfig.Broadcaster);
-
-                            /* Shows how long the broadcaster has been streaming */
-                            else if (message.Equals("!duration") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdDuration();
-
-                            /* Display list of requested songs */
-                            else if (message.Equals("!srlist") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdListSR();
-
-                            /* Request a song for the host to play */
-                            // Usage: !sr [artist] - [song title]
-                            else if (message.StartsWith("!sr ") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdSR(isSongRequestAvail, message, strUserName);
-
-                            /* Displays the current song being played from Spotify */
-                            else if (message.Equals("!spotifycurr") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdSpotifyCurr();
-
-                            /* Slaps a user and rates its effectiveness */
-                            // Usage: !slap @[username]
-                            else if (message.StartsWith("!slap @") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdSlap(message, strUserName);
-
-                            /* Stabs a user and rates its effectiveness */
-                            // Usage: !stab @[username]
-                            else if (message.StartsWith("!stab @") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdStab(message, strUserName);
-
-                            /* Shoots a viewer's random body part */
-                            // Usage !shoot @[username]
-                            else if (message.StartsWith("!shoot @") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdShoot(message, strUserName);
-
-                            /* Throws an item at a viewer and rates its effectiveness against the victim */
-                            // Usage: !throw [item] @username
-                            else if (message.StartsWith("!throw ") && message.Contains("@") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdThrow(message, strUserName);
-
-                            /* Request party member if game and character exists in party up system */
-                            // Usage: !partyup [party member name]
-                            else if (message.StartsWith("!partyup ") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdPartyUp(message, strUserName);
-
-                            /* Check what other user's have requested */
-                            else if (message.Equals("!partyuprequestlist") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdPartyUpRequestList();
-
-                            /* Check what party members are available (if game is part of the party up system) */
-                            else if (message.Equals("!partyuplist") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdPartyUpList();
-
-                            /* Check user's account balance */
-                            else if (message.Equals("!myfunds") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdCheckFunds(strUserName);
-
-                            /* Gamble money away */
-                            // Usage: !gamble [money]
-                            else if (message.StartsWith("!gamble ") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdGamble(message, strUserName);
-
-                            /* Display random broadcaster quote */
-                            else if (message.Equals("!quote") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdQuote();
-
-                            /* Display how long a user has been following the broadcaster */
-                            else if (message.Equals("!followsince") && !isUserTimedout(strUserName))
-                                _cmdGen.CmdFollowSince(strUserName);
-
-                            /* add more general commands here */
                         }
                     }
                 } // end master while loop
