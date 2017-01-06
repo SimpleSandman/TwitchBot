@@ -784,27 +784,149 @@ namespace TwitchBot
         /// Tell the user how long they have been following the broadcaster
         /// </summary>
         /// <param name="strUserName"></param>
-        public async void CmdFollowSince(string strUserName)
+        public async Task CmdFollowSince(string strUserName)
         {
-            HttpResponseMessage message = TaskJSON.GetFollowingSince(_botConfig.Broadcaster.ToLower(), _botConfig.TwitchClientId, strUserName).Result;
-            
-            using (HttpContent content = message.Content)
+            using (HttpResponseMessage message = await checkFollowerStatus(strUserName))
             {
                 if (message.IsSuccessStatusCode)
                 {
-                    string body = await content.ReadAsStringAsync();
+                    string body = await message.Content.ReadAsStringAsync();
                     FollowingSinceJSON response = JsonConvert.DeserializeObject<FollowingSinceJSON>(body);
                     DateTime startedFollowing = Convert.ToDateTime(response.created_at);
-                    TimeSpan howLong = DateTime.Now - startedFollowing;
-                    _irc.sendPublicChatMessage("Following since: " + howLong.ToString());
+                    //TimeSpan howLong = DateTime.Now - startedFollowing;
+                    _irc.sendPublicChatMessage($"@{strUserName} has been following since {startedFollowing.ToLongDateString()}");
                 }
                 else
                 {
-                    string body = await content.ReadAsStringAsync();
+                    string body = await message.Content.ReadAsStringAsync();
                     ErrMsgJSON response = JsonConvert.DeserializeObject<ErrMsgJSON>(body);
                     _irc.sendPublicChatMessage(response.message);
                 }
             }
+        }
+
+        /// <summary>
+        /// Display the follower's stream rank
+        /// </summary>
+        /// <param name="strUserName"></param>
+        /// <returns></returns>
+        public async Task CmdViewRank(string strUserName)
+        {
+            using (HttpResponseMessage message = await checkFollowerStatus(strUserName))
+            {
+                if (message.IsSuccessStatusCode)
+                {
+                    int currExp = 0;
+
+                    // find existing follower's rank (if available)
+                    using (SqlConnection conn = new SqlConnection(_connStr))
+                    {
+                        conn.Open();
+                        using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblRankFollowers WHERE broadcaster = @broadcaster", conn))
+                        {
+                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                if (reader.HasRows)
+                                {
+                                    while (reader.Read())
+                                    {
+                                        if (strUserName.Equals(reader["username"].ToString()))
+                                        {
+                                            currExp = int.Parse(reader["exp"].ToString());
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Grab the follower's associated rank
+                    if (currExp > 0)
+                    {
+                        List<Rank> lstRanks = new List<Rank>();
+                        Rank currFollowerRank = new Rank();
+
+                        // get list of ranks currently for the specific broadcaster
+                        using (SqlConnection conn = new SqlConnection(_connStr))
+                        {
+                            conn.Open();
+                            using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblRank WHERE broadcaster = @broadcaster", conn))
+                            {
+                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                using (SqlDataReader reader = cmd.ExecuteReader())
+                                {
+                                    if (reader.HasRows)
+                                    {
+                                        while (reader.Read())
+                                        {
+                                            Rank rank = new Rank()
+                                            {
+                                                Name = reader["rank"].ToString(),
+                                                ExpCap = int.Parse(reader["expCap"].ToString())
+                                            };
+                                            lstRanks.Add(rank);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // find the user's current rank by experience cap
+                        foreach (var followerRank in lstRanks.OrderBy(r => r.ExpCap))
+                        {
+                            // search until current experience < experience cap
+                            if (currExp > followerRank.ExpCap)
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                currFollowerRank.Name = followerRank.Name;
+                                currFollowerRank.ExpCap = followerRank.ExpCap;
+                            }
+                        }
+
+                        _irc.sendPublicChatMessage($"Your rank is {currFollowerRank.Name} (with {currExp} of {currFollowerRank.ExpCap} EXP)");
+                    }
+                    else
+                    {
+                        // Add follower to the ranks (mainly for existing followers without a rank)
+                        string query = "INSERT INTO tblRankFollowers (username, exp, broadcaster) "
+                                + "VALUES (@username, @exp, @broadcaster)";
+
+                        using (SqlConnection conn = new SqlConnection(_connStr))
+                        using (SqlCommand cmd = new SqlCommand(query, conn))
+                        {
+                            cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strUserName;
+                            cmd.Parameters.Add("@exp", SqlDbType.Int).Value = 1; // initial experience
+                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+
+                            conn.Open();
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        _irc.sendPublicChatMessage($"Welcome to the army @{strUserName}. View your new rank using !rank");
+                    }
+                }
+                else
+                {
+                    string body = await message.Content.ReadAsStringAsync();
+                    ErrMsgJSON response = JsonConvert.DeserializeObject<ErrMsgJSON>(body);
+                    _irc.sendPublicChatMessage(response.message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Check if viewer is a follower via HttpResponseMessage
+        /// </summary>
+        /// <param name="strUserName"></param>
+        /// <returns></returns>
+        public async Task<HttpResponseMessage> checkFollowerStatus(string strUserName)
+        {
+            return await TaskJSON.GetFollowerStatus(_botConfig.Broadcaster.ToLower(), _botConfig.TwitchClientId, strUserName);
         }
 
         public bool reactionCmd(string message, string strOrigUser, string strRecipient, string strMsgToSelf, string strAction, string strAddlMsg = "")

@@ -114,10 +114,6 @@ namespace TwitchBot
                 _spotify = new SpotifyControl(_botConfig);
                 _spotify.Connect();
 
-                Console.WriteLine();
-                Console.WriteLine("Time to get to work!");
-                Console.WriteLine();
-
                 /* Make sure usernames are set to lowercase for the rest of the application */
                 string _strBotName = _botConfig.BotName.ToLower();
                 string _strBroadcasterName = _botConfig.Broadcaster.ToLower();
@@ -137,6 +133,7 @@ namespace TwitchBot
                 string _strBroadcasterGame = chlJSON.game;
 
                 /* Whisper broadcaster bot settings */
+                Console.WriteLine();
                 Console.WriteLine("---> Extra Bot Settings <---");
                 Console.WriteLine("Discord link: " + _botConfig.DiscordLink);
                 Console.WriteLine("Currency type: " + _botConfig.CurrencyType);
@@ -160,8 +157,8 @@ namespace TwitchBot
                 ping.Start();
 
                 /* Remind viewers of bot's existance */
-                //PresenceReminder preRmd = new PresenceReminder(_irc);
-                //preRmd.Start();
+                PresenceReminder preRmd = new PresenceReminder(_irc);
+                preRmd.Start();
 
                 /* Authenticate to Twitter if possible */
                 if (!string.IsNullOrEmpty(_botConfig.TwitterConsumerKey) 
@@ -176,6 +173,9 @@ namespace TwitchBot
 
                     _hasTwitterInfo = true;
                 }
+
+                Console.WriteLine("=== Time to get to work! ===");
+                Console.WriteLine();
 
                 /* Finished setup, time to start */
                 await GetChatBox(_isSongRequestAvail, _botConfig.TwitchAccessToken, _hasTwitterInfo);
@@ -557,9 +557,26 @@ namespace TwitchBot
 
                                 /* Display how long a user has been following the broadcaster */
                                 else if (message.Equals("!followsince"))
-                                    _cmdGen.CmdFollowSince(strUserName);
+                                    await _cmdGen.CmdFollowSince(strUserName);
+
+                                /* Display follower's stream rank */
+                                else if (message.Equals("!rank"))
+                                    await _cmdGen.CmdViewRank(strUserName);
 
                                 /* add more general commands here */
+                            }
+                        }
+                        else if (message.Contains("NOTICE"))
+                        {
+                            if (message.Contains("Error logging in"))
+                            {
+                                Console.WriteLine("\n------------> URGENT <------------");
+                                Console.WriteLine("Please check your credentials and try again.");
+                                Console.WriteLine("If this error persists, please check if you can access your channel's chat.");
+                                Console.WriteLine("If not, then contact Twitch support.");
+                                Console.WriteLine("Exiting bot application now...");
+                                Thread.Sleep(7500);
+                                Environment.Exit(0);
                             }
                         }
                     }

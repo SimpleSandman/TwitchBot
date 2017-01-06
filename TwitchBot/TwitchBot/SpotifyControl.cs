@@ -122,7 +122,7 @@ namespace TwitchBot
             // Basic Spotify Infos
             UpdatePlayingStatus(status.Playing);
             Console.WriteLine("Client Version: " + status.ClientVersion);
-            Console.WriteLine("Version: " + status.Version.ToString() + "\n");
+            Console.WriteLine("Version: " + status.Version.ToString());
 
             if (status.Track != null && status.Playing) // Update track infos
                 ShowUpdatedTrack(status.Track, _botConfig.EnableDisplaySong);
@@ -136,9 +136,9 @@ namespace TwitchBot
                 return; // Don't process further, maybe null values
 
             // display track
-            Console.WriteLine("Song: " + track.TrackResource.Name);
+            Console.WriteLine("\nSong: " + track.TrackResource.Name);
             Console.WriteLine("Artist: " + track.ArtistResource.Name);
-            Console.WriteLine("Album: " + track.AlbumResource.Name + "\n");
+            Console.WriteLine("Album: " + track.AlbumResource.Name);
 
             // if song is allowed to be displayed to the chat
             if (isDisplayed)

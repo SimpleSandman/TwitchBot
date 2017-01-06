@@ -31,7 +31,7 @@ namespace TwitchBot
             }
         }
 
-        public static async Task<HttpResponseMessage> GetFollowingSince(string broadcasterName, string clientID, string chatterName)
+        public static async Task<HttpResponseMessage> GetFollowerStatus(string broadcasterName, string clientID, string chatterName)
         {
             string apiUriCall = "https://api.twitch.tv/kraken/users/" + chatterName + "/follows/channels/" + broadcasterName + "?client_id=" + clientID;
 

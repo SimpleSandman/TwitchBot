@@ -10,37 +10,21 @@ using TwitchBot.Configuration;
 
 namespace TwitchBot
 {
-    // References: http://multithreads.blogspot.com/2007/08/multithreaded-singleton-double-check.html
-    // Singleton (global instance) with a touch of Factory (parameters) design patterns
+    // Using Singleton design pattern
     public sealed class ErrorHandler
     {
-        private static volatile ErrorHandler _instance;
-        private static object _syncRoot = new Object();
+        private static ErrorHandler _instance;
 
         private static int _intBroadcasterID;
         private static string _connStr;
         private static IrcClient _irc;
         private static TwitchBotConfigurationSection _botConfig;
 
-        private ErrorHandler() { }
+        static ErrorHandler() { _instance = new ErrorHandler(); }
 
         public static ErrorHandler Instance
         {
-            get
-            {
-                // first check
-                if (_instance == null)
-                {
-                    lock (_syncRoot)
-                    {
-                        // second check
-                        if (_instance == null)
-                            _instance = new ErrorHandler();
-                    }
-                }
-
-                return _instance;
-            }
+            get { return _instance; }
         }
 
         /// <summary>
