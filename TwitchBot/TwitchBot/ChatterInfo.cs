@@ -9,10 +9,10 @@ namespace TwitchBot
     public class Chatters
     {
         public List<string> moderators { get; set; }
-        public List<object> staff { get; set; }
-        public List<object> admins { get; set; }
-        public List<object> global_mods { get; set; }
-        public List<object> viewers { get; set; }
+        public List<string> staff { get; set; }
+        public List<string> admins { get; set; }
+        public List<string> global_mods { get; set; }
+        public List<string> viewers { get; set; }
     }
 
     public class ChatterInfo

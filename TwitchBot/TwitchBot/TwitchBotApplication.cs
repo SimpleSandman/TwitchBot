@@ -149,6 +149,10 @@ namespace TwitchBot
                 /* Pull list of mods from database */
                 _modInstance.setLstMod(_connStr, _intBroadcasterID);
 
+                /* Pull list of followers and check experience points for stream leveling */
+                FollowerListener followerListener = new FollowerListener(_irc, _botConfig, _connStr, _intBroadcasterID);
+                followerListener.Start();
+
                 /* Get list of timed out users from database */
                 setListTimeouts();
 

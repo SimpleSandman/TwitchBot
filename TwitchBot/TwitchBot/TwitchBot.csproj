@@ -144,6 +144,7 @@
     <Compile Include="DelayMsg.cs" />
     <Compile Include="ErrMsgJSON.cs" />
     <Compile Include="ErrorHandler.cs" />
+    <Compile Include="FollowerListener.cs" />
     <Compile Include="FollowingSinceJSON.cs" />
     <Compile Include="IrcClient.cs" />
     <Compile Include="Moderator.cs" />
