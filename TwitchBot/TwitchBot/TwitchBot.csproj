@@ -194,6 +194,8 @@
     <Content Include="SQLTables\dbo.tblPartyUp.sql" />
     <Content Include="SQLTables\dbo.tblPartyUpRequests.sql" />
     <Content Include="SQLTables\dbo.tblQuote.sql" />
+    <Content Include="SQLTables\dbo.tblRank.sql" />
+    <Content Include="SQLTables\dbo.tblRankFollowers.sql" />
     <Content Include="SQLTables\dbo.tblSongRequests.sql" />
     <Content Include="SQLTables\dbo.tblTimeout.sql" />
   </ItemGroup>
