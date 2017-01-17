@@ -103,7 +103,7 @@ namespace TwitchBot
                                     using (SqlConnection conn = new SqlConnection(_connStr))
                                     using (SqlCommand cmd = new SqlCommand(query, conn))
                                     {
-                                        cmd.Parameters.Add("@exp", SqlDbType.Int).Value = currExp++; // add 1 experience every iteration
+                                        cmd.Parameters.Add("@exp", SqlDbType.Int).Value = ++currExp; // add 1 experience every iteration
                                         cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = chatter;
                                         cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
