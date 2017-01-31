@@ -192,6 +192,7 @@
     <Content Include="SQLTables\dbo.tblCountdown.sql" />
     <Content Include="SQLTables\dbo.tblErrorLog.sql" />
     <Content Include="SQLTables\dbo.tblGameList.sql" />
+    <Content Include="SQLTables\dbo.tblGiveaway.sql" />
     <Content Include="SQLTables\dbo.tblModerators.sql" />
     <Content Include="SQLTables\dbo.tblPartyUp.sql" />
     <Content Include="SQLTables\dbo.tblPartyUpRequests.sql" />
