@@ -136,9 +136,9 @@
   <ItemGroup>
     <Compile Include="ChannelJSON.cs" />
     <Compile Include="ChatterInfo.cs" />
-    <Compile Include="CmdBrdCstr.cs" />
-    <Compile Include="CmdGen.cs" />
-    <Compile Include="CmdMod.cs" />
+    <Compile Include="Commands\CmdBrdCstr.cs" />
+    <Compile Include="Commands\CmdGen.cs" />
+    <Compile Include="Commands\CmdMod.cs" />
     <Compile Include="Configuration\TwitchBotConfigurationSection.cs" />
     <Compile Include="Configuration\TwitchBotConfigurator.cs" />
     <Compile Include="DelayMsg.cs" />
