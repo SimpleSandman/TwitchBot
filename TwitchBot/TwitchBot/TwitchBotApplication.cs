@@ -422,6 +422,17 @@ namespace TwitchBot
                                 else if (message.Equals("!listcountdown"))
                                     _cmdBrdCstr.CmdListCountdown(strUserName);
 
+                                /* Add giveaway */
+                                // Usage: !addgiveaway [MM-DD-YY] [hh:mm:ss] [AM/PM] [message]
+                                else if (message.StartsWith("!addgiveaway "))
+                                    _cmdBrdCstr.CmdAddGiveaway(message, strUserName);
+
+                                /* Edit giveaway details (for either date and time or message) */
+                                // Usage (message): !editgiveawayMSG [giveaway id] [message]
+                                // Usage (date and time): !editgiveawayDTE [giveaway id] [MM-DD-YY] [hh:mm:ss] [AM/PM]
+                                //else if (message.StartsWith("!editgiveaway"))
+                                //    _cmdBrdCstr.CmdEditGiveaway(message, strUserName);
+
                                 /* insert more broadcaster commands here */
                             }
 

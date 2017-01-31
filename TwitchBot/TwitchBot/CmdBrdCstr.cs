@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Tweetinvi;
 using TwitchBot.Configuration;
@@ -578,6 +579,201 @@ namespace TwitchBot
                 _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListCountdown()", false, "!listcountdown");
             }
         }
+
+        /// <summary>
+        /// Add a giveaway for a user to post in the chat
+        /// </summary>
+        /// <param name="message">Chat message from the user</param>
+        /// <param name="strUserName">User that sent the message</param>
+        public void CmdAddGiveaway(string message, string strUserName)
+        {
+            try
+            {
+                // get due date of giveaway
+                string strGiveawayDT = message.Substring(13, 20); // MM-DD-YY hh:mm:ss [AM/PM]
+                DateTime dtGiveaway = Convert.ToDateTime(strGiveawayDT);
+
+                // get eligibility parameters for user types (using boolean bits)
+                string strGiveawayElg = message.Substring(34, 7); // [mods] [regulars] [subscribers] [users]
+                if (strGiveawayElg.Replace(" ", "").IsInt()
+                    && strGiveawayElg.Replace(" ", "").Length == 4
+                    && !Regex.IsMatch(strGiveawayElg, @"[2-9]"))
+                {
+                    int[] strArrElg =
+                    {
+                        int.Parse(message.Substring(34, 1)),
+                        int.Parse(message.Substring(36, 1)),
+                        int.Parse(message.Substring(38, 1)),
+                        int.Parse(message.Substring(40, 1))
+                    };
+
+                    // get giveaway type (1 = Keyword, 2 = Random Number)
+                    int intGiveawayType = int.Parse(message.Substring(42, 1));
+
+                    // get parameter of new giveaway (1 = [keyword], 2 = [min]-[max])
+                    int intParamMsgIndex = Program.GetNthIndex(message, ' ', 10); // get the index of the space separating the message and the parameter
+                    string strGiveawayParam = message.Substring(44, intParamMsgIndex - 44);
+
+                    // get message of new giveaway
+                    string strGiveawayMsg = message.Substring(intParamMsgIndex + 1);
+
+                    // log new giveaway into db
+                    string query = "INSERT INTO tblGiveaway (dueDate, message, broadcaster, elgMod, elgReg, elgSub, elgUsr, giveType, giveParam1, giveParam2) " +
+                                   "VALUES (@dueDate, @message, @broadcaster, @elgMod, @elgReg, @elgSub, @elgUsr, @giveType, @giveParam1, @giveParam2)";
+
+                    using (SqlConnection conn = new SqlConnection(_connStr))
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = dtGiveaway;
+                        cmd.Parameters.Add("@message", SqlDbType.VarChar, 75).Value = strGiveawayMsg;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                        cmd.Parameters.Add("@elgMod", SqlDbType.Bit).Value = strArrElg[0];
+                        cmd.Parameters.Add("@elgReg", SqlDbType.Bit).Value = strArrElg[1];
+                        cmd.Parameters.Add("@elgSub", SqlDbType.Bit).Value = strArrElg[2];
+                        cmd.Parameters.Add("@elgUsr", SqlDbType.Bit).Value = strArrElg[3];
+                        cmd.Parameters.Add("@giveType", SqlDbType.Int).Value = intGiveawayType;
+
+                        if (intGiveawayType == 1) // keyword
+                        {
+                            cmd.Parameters.Add("@giveParam1", SqlDbType.VarChar, 50).Value = strGiveawayParam;
+                            cmd.Parameters.Add("@giveParam2", SqlDbType.VarChar, 50).Value = DBNull.Value;
+                        }
+                        else if (intGiveawayType == 2) // random number
+                        {
+                            int intDashIndex = strGiveawayParam.IndexOf('-');
+
+                            cmd.Parameters.Add("@giveParam1", SqlDbType.VarChar, 50).Value = strGiveawayParam.Substring(0, intDashIndex); // min
+                            cmd.Parameters.Add("@giveParam2", SqlDbType.VarChar, 50).Value = strGiveawayParam.Substring(intDashIndex + 1); // max
+                        }
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    Console.WriteLine("Giveaway started!");
+                    _irc.sendPublicChatMessage($"Giveaway \"{strGiveawayMsg}\" has started @{strUserName}");
+                }
+                else
+                {
+                    _irc.sendPublicChatMessage($"Eligibility parameters were not given correctly @{strUserName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddGiveaway(string, string)", false, "!addgiveaway");
+            }
+        }
+
+        /// <summary>
+        /// Edit giveaway details (for either date and time or message)
+        /// </summary>
+        /// <param name="message">Chat message from the user</param>
+        /// <param name="strUserName">User that sent the message</param>
+        //public void CmdEditGiveaway(string message, string strUserName)
+        //{
+        //    try
+        //    {
+        //        int intReqCountdownID = -1;
+        //        string strReqCountdownID = message.Substring(18, Program.GetNthIndex(message, ' ', 2) - Program.GetNthIndex(message, ' ', 1) - 1);
+        //        bool bolValidCountdownID = int.TryParse(strReqCountdownID, out intReqCountdownID);
+
+        //        // validate requested countdown ID
+        //        if (!bolValidCountdownID || intReqCountdownID < 0)
+        //            _irc.sendPublicChatMessage("Please use a positive whole number to find your countdown ID");
+        //        else
+        //        {
+        //            // check if countdown ID exists
+        //            int intCountdownID = -1;
+        //            using (SqlConnection conn = new SqlConnection(_connStr))
+        //            {
+        //                conn.Open();
+        //                using (SqlCommand cmd = new SqlCommand("SELECT id, broadcaster FROM tblCountdown "
+        //                    + "WHERE broadcaster = @broadcaster", conn))
+        //                {
+        //                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+        //                    using (SqlDataReader reader = cmd.ExecuteReader())
+        //                    {
+        //                        if (reader.HasRows)
+        //                        {
+        //                            while (reader.Read())
+        //                            {
+        //                                if (intReqCountdownID.ToString().Equals(reader["id"].ToString()))
+        //                                {
+        //                                    intCountdownID = int.Parse(reader["id"].ToString());
+        //                                    break;
+        //                                }
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+
+        //            // check if countdown ID was retrieved
+        //            if (intCountdownID == -1)
+        //                _irc.sendPublicChatMessage($"Cannot find the countdown ID: {intReqCountdownID}");
+        //            else
+        //            {
+        //                int intInputType = -1; // check if input is in the correct format
+        //                DateTime dtCountdown = new DateTime();
+        //                string strCountdownInput = message.Substring(Program.GetNthIndex(message, ' ', 2) + 1);
+
+        //                /* Check if user wants to edit the date and time or message */
+        //                if (message.StartsWith("!editgiveawayDTE"))
+        //                {
+        //                    // get new due date of countdown
+        //                    bool bolValidCountdownDT = DateTime.TryParse(strCountdownInput, out dtCountdown);
+
+        //                    if (!bolValidCountdownDT)
+        //                        _irc.sendPublicChatMessage("Please enter a valid date and time @" + strUserName);
+        //                    else
+        //                        intInputType = 1;
+        //                }
+        //                else if (message.StartsWith("!editgiveawayMSG"))
+        //                {
+        //                    // get new message of countdown
+        //                    if (string.IsNullOrWhiteSpace(strCountdownInput))
+        //                        _irc.sendPublicChatMessage("Please enter a valid message @" + strUserName);
+        //                    else
+        //                        intInputType = 2;
+        //                }
+
+        //                // if input is correct update db
+        //                if (intInputType > 0)
+        //                {
+        //                    string strQuery = "";
+
+        //                    if (intInputType == 1)
+        //                        strQuery = "UPDATE dbo.tblCountdown SET dueDate = @dueDate WHERE (Id = @id AND broadcaster = @broadcaster)";
+        //                    else if (intInputType == 2)
+        //                        strQuery = "UPDATE dbo.tblCountdown SET message = @message WHERE (Id = @id AND broadcaster = @broadcaster)";
+
+        //                    using (SqlConnection conn = new SqlConnection(_connStr))
+        //                    using (SqlCommand cmd = new SqlCommand(strQuery, conn))
+        //                    {
+        //                        // append proper parameter
+        //                        if (intInputType == 1)
+        //                            cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = dtCountdown;
+        //                        else if (intInputType == 2)
+        //                            cmd.Parameters.Add("@message", SqlDbType.VarChar, 50).Value = strCountdownInput;
+
+        //                        cmd.Parameters.Add("@id", SqlDbType.Int).Value = intCountdownID;
+        //                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+
+        //                        conn.Open();
+        //                        cmd.ExecuteNonQuery();
+        //                    }
+
+        //                    Console.WriteLine($"Changes to countdown ID: {intReqCountdownID} have been made @{strUserName}");
+        //                    _irc.sendPublicChatMessage($"Changes to countdown ID: {intReqCountdownID} have been made @{strUserName}");
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string, string)", false, "!editcountdown");
+        //    }
+        //}
 
         public void SendTweet(string pendingMessage, string command)
         {

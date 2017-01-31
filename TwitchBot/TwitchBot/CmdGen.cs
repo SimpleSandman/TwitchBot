@@ -898,7 +898,7 @@ namespace TwitchBot
                                 }
                             }
 
-                            decimal hoursWatched = Math.Round(Convert.ToDecimal(currExp) / (decimal)5.0, 2);
+                            decimal hoursWatched = Math.Round(Convert.ToDecimal(currExp) / (decimal)12.0, 2);
 
                             _irc.sendPublicChatMessage($"@{strUserName}: \"{currFollowerRank.Name}\" {currExp}/{currFollowerRank.ExpCap} EXP ({hoursWatched} hours)");
                         }

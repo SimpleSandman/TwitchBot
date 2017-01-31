@@ -157,6 +157,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="SpotifyControl.cs" />
     <Compile Include="StreamJSON.cs" />
+    <Compile Include="StringExtensions.cs" />
     <Compile Include="TaskJSON.cs" />
     <Compile Include="Timeout.cs" />
     <Compile Include="TwitchBotApplication.cs" />

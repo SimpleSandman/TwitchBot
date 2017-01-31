@@ -43,94 +43,106 @@ namespace TwitchBot
         {
             while (true)
             {
-                // Grab list of chatters (viewers, mods, etc.)
-                Chatters chatters = TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.chatters;
-
-                // Get list of available chatters by chatter type
-                List<List<string>> lstAvailChatterType = new List<List<string>>();
-                if (chatters.viewers.Count() > 0)
-                    lstAvailChatterType.Add(chatters.viewers);
-                if (chatters.moderators.Count() > 0)
-                    lstAvailChatterType.Add(chatters.moderators);
-                if (chatters.global_mods.Count() > 0)
-                    lstAvailChatterType.Add(chatters.global_mods);
-                if (chatters.admins.Count() > 0)
-                    lstAvailChatterType.Add(chatters.admins);
-                if (chatters.staff.Count() > 0)
-                    lstAvailChatterType.Add(chatters.staff);
-
-                // Check for existing or new followers
-                for (int i = 0; i < lstAvailChatterType.Count(); i++)
+                try
                 {
-                    foreach (string chatter in lstAvailChatterType[i])
-                    {
-                        using (HttpResponseMessage message = checkFollowerStatus(chatter))
-                        {
-                            // check if chatter is a follower
-                            if (message.IsSuccessStatusCode)
-                            {
-                                int currExp = -1;
+                    // Grab user's chatter info (viewers, mods, etc.)
+                    ChatterInfo chatterInfo = TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result;
 
-                                // check if chatter has experience
-                                using (SqlConnection conn = new SqlConnection(_connStr))
+                    if (chatterInfo.chatter_count > 0)
+                    {
+                        Chatters chatters = chatterInfo.chatters; // get list of chatters
+
+                        // Make list of available chatters by chatter type
+                        List<List<string>> lstAvailChatterType = new List<List<string>>();
+                        if (chatters.viewers.Count() > 0)
+                            lstAvailChatterType.Add(chatters.viewers);
+                        if (chatters.moderators.Count() > 0)
+                            lstAvailChatterType.Add(chatters.moderators);
+                        if (chatters.global_mods.Count() > 0)
+                            lstAvailChatterType.Add(chatters.global_mods);
+                        if (chatters.admins.Count() > 0)
+                            lstAvailChatterType.Add(chatters.admins);
+                        if (chatters.staff.Count() > 0)
+                            lstAvailChatterType.Add(chatters.staff);
+
+                        // Check for existing or new followers
+                        for (int i = 0; i < lstAvailChatterType.Count(); i++)
+                        {
+                            foreach (string chatter in lstAvailChatterType[i])
+                            {
+                                using (HttpResponseMessage message = checkFollowerStatus(chatter))
                                 {
-                                    conn.Open();
-                                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblRankFollowers WHERE broadcaster = @broadcaster", conn))
+                                    // check if chatter is a follower
+                                    if (message.IsSuccessStatusCode)
                                     {
-                                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                                        using (SqlDataReader reader = cmd.ExecuteReader())
+                                        int currExp = -1;
+
+                                        // check if chatter has experience
+                                        using (SqlConnection conn = new SqlConnection(_connStr))
                                         {
-                                            if (reader.HasRows)
+                                            conn.Open();
+                                            using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblRankFollowers WHERE broadcaster = @broadcaster", conn))
                                             {
-                                                while (reader.Read())
+                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                                using (SqlDataReader reader = cmd.ExecuteReader())
                                                 {
-                                                    if (chatter.Equals(reader["username"].ToString()))
+                                                    if (reader.HasRows)
                                                     {
-                                                        currExp = int.Parse(reader["exp"].ToString());
-                                                        break;
+                                                        while (reader.Read())
+                                                        {
+                                                            if (chatter.Equals(reader["username"].ToString()))
+                                                            {
+                                                                currExp = int.Parse(reader["exp"].ToString());
+                                                                break;
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
-                                    }
-                                }
 
-                                if (currExp > -1)
-                                {
-                                    // Give follower experience for watching
-                                    string query = "UPDATE tblRankFollowers SET exp = @exp WHERE (username = @username AND broadcaster = @broadcaster)";
+                                        if (currExp > -1)
+                                        {
+                                            // Give follower experience for watching
+                                            string query = "UPDATE tblRankFollowers SET exp = @exp WHERE (username = @username AND broadcaster = @broadcaster)";
 
-                                    using (SqlConnection conn = new SqlConnection(_connStr))
-                                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                                    {
-                                        cmd.Parameters.Add("@exp", SqlDbType.Int).Value = ++currExp; // add 1 experience every iteration
-                                        cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = chatter;
-                                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                            using (SqlConnection conn = new SqlConnection(_connStr))
+                                            using (SqlCommand cmd = new SqlCommand(query, conn))
+                                            {
+                                                cmd.Parameters.Add("@exp", SqlDbType.Int).Value = ++currExp; // add 1 experience every iteration
+                                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = chatter;
+                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
-                                        conn.Open();
-                                        cmd.ExecuteNonQuery();
-                                    }
-                                }
-                                else
-                                {
-                                    // Add new follower to the ranks
-                                    string query = "INSERT INTO tblRankFollowers (username, exp, broadcaster) "
-                                        + "VALUES (@username, @exp, @broadcaster)";
+                                                conn.Open();
+                                                cmd.ExecuteNonQuery();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Add new follower to the ranks
+                                            string query = "INSERT INTO tblRankFollowers (username, exp, broadcaster) "
+                                                + "VALUES (@username, @exp, @broadcaster)";
 
-                                    using (SqlConnection conn = new SqlConnection(_connStr))
-                                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                                    {
-                                        cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = chatter;
-                                        cmd.Parameters.Add("@exp", SqlDbType.Int).Value = 0; // initial experience
-                                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                            using (SqlConnection conn = new SqlConnection(_connStr))
+                                            using (SqlCommand cmd = new SqlCommand(query, conn))
+                                            {
+                                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = chatter;
+                                                cmd.Parameters.Add("@exp", SqlDbType.Int).Value = 0; // initial experience
+                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
 
-                                        conn.Open();
-                                        cmd.ExecuteNonQuery();
+                                                conn.Open();
+                                                cmd.ExecuteNonQuery();
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error inside FollowerListener Run(): " + ex.Message);
                 }
 
                 Thread.Sleep(300000); // 5 minutes
