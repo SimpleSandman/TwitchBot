@@ -103,29 +103,29 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChannelJSON.cs" />
-    <Compile Include="ChatterInfo.cs" />
+    <Compile Include="Models\JSON\ChannelJSON.cs" />
+    <Compile Include="Models\JSON\ChatterInfo.cs" />
     <Compile Include="Commands\CmdBrdCstr.cs" />
     <Compile Include="Commands\CmdGen.cs" />
     <Compile Include="Commands\CmdMod.cs" />
     <Compile Include="Configuration\TwitchBotConfigurationSection.cs" />
     <Compile Include="Configuration\TwitchBotConfigurator.cs" />
     <Compile Include="DelayMsg.cs" />
-    <Compile Include="ErrMsgJSON.cs" />
+    <Compile Include="Models\JSON\ErrMsgJSON.cs" />
     <Compile Include="ErrorHandler.cs" />
     <Compile Include="FollowerListener.cs" />
-    <Compile Include="FollowingSinceJSON.cs" />
+    <Compile Include="Models\JSON\FollowingSinceJSON.cs" />
     <Compile Include="IrcClient.cs" />
     <Compile Include="Moderator.cs" />
     <Compile Include="PingSender.cs" />
     <Compile Include="PresenceReminder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Quote.cs" />
-    <Compile Include="Rank.cs" />
+    <Compile Include="Models\Quote.cs" />
+    <Compile Include="Models\Rank.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="SpotifyControl.cs" />
-    <Compile Include="StreamJSON.cs" />
+    <Compile Include="Models\JSON\StreamJSON.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="TaskJSON.cs" />
     <Compile Include="Timeout.cs" />
