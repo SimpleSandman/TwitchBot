@@ -11,8 +11,10 @@
     <AssemblyName>TwitchBot</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>f8810056</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -25,7 +27,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -96,40 +97,8 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Tweetinvi, Version=0.9.10.0, Culture=neutral, PublicKeyToken=7247f14397bf67b9, processorArchitecture=MSIL">
-      <HintPath>..\packages\TweetinviAPI.0.9.10.0\lib\net45\Tweetinvi.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Tweetinvi.Controllers, Version=0.9.10.0, Culture=neutral, PublicKeyToken=7247f14397bf67b9, processorArchitecture=MSIL">
-      <HintPath>..\packages\TweetinviAPI.0.9.10.0\lib\net45\Tweetinvi.Controllers.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Tweetinvi.Core, Version=0.9.10.0, Culture=neutral, PublicKeyToken=7247f14397bf67b9, processorArchitecture=MSIL">
-      <HintPath>..\packages\TweetinviAPI.0.9.10.0\lib\net45\Tweetinvi.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Tweetinvi.Credentials, Version=0.9.10.0, Culture=neutral, PublicKeyToken=7247f14397bf67b9, processorArchitecture=MSIL">
-      <HintPath>..\packages\TweetinviAPI.0.9.10.0\lib\net45\Tweetinvi.Credentials.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Tweetinvi.Factories, Version=0.9.10.0, Culture=neutral, PublicKeyToken=7247f14397bf67b9, processorArchitecture=MSIL">
-      <HintPath>..\packages\TweetinviAPI.0.9.10.0\lib\net45\Tweetinvi.Factories.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Tweetinvi.Logic, Version=0.9.10.0, Culture=neutral, PublicKeyToken=7247f14397bf67b9, processorArchitecture=MSIL">
-      <HintPath>..\packages\TweetinviAPI.0.9.10.0\lib\net45\Tweetinvi.Logic.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Tweetinvi.Security, Version=0.9.10.0, Culture=neutral, PublicKeyToken=7247f14397bf67b9, processorArchitecture=MSIL">
-      <HintPath>..\packages\TweetinviAPI.0.9.10.0\lib\net45\Tweetinvi.Security.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Tweetinvi.Streams, Version=0.9.10.0, Culture=neutral, PublicKeyToken=7247f14397bf67b9, processorArchitecture=MSIL">
-      <HintPath>..\packages\TweetinviAPI.0.9.10.0\lib\net45\Tweetinvi.Streams.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Tweetinvi.WebLogic, Version=0.9.10.0, Culture=neutral, PublicKeyToken=7247f14397bf67b9, processorArchitecture=MSIL">
-      <HintPath>..\packages\TweetinviAPI.0.9.10.0\lib\net45\Tweetinvi.WebLogic.dll</HintPath>
+    <Reference Include="Tweetinvi, Version=0.9.10.2, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TweetinviAPI.0.9.10.2\lib\net45\Tweetinvi.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -206,7 +175,7 @@
   <Import Project="..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
   </Target>
