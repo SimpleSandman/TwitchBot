@@ -1,13 +1,14 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using TwitchBot.Configuration;
+using Newtonsoft.Json;
 
-namespace TwitchBot
+using TwitchBot.Models.JSON;
+
+namespace TwitchBot.Libraries
 {
     public class TaskJSON
     {

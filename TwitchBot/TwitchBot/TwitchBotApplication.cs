@@ -7,7 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tweetinvi;
 using Tweetinvi.Models;
+
 using TwitchBot.Configuration;
+using TwitchBot.Libraries;
+using TwitchBot.Models.JSON;
+using TwitchBot.Services;
+using TwitchBot.Services.Commands;
+using TwitchBot.Threads;
+
 
 namespace TwitchBot
 {
@@ -19,7 +26,7 @@ namespace TwitchBot
         private int _intBroadcasterID;
         private IrcClient _irc;
         private Moderator _modInstance = Moderator.Instance;
-        private Timeout _timeout;
+        private TimeoutCmd _timeout;
         private CmdBrdCstr _cmdBrdCstr;
         private CmdMod _cmdMod;
         private CmdGen _cmdGen;
@@ -35,7 +42,7 @@ namespace TwitchBot
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
             _isSongRequestAvail = false;
             _hasTwitterInfo = false;
-            _timeout = new Timeout();
+            _timeout = new TimeoutCmd();
         }
 
         public async Task RunAsync()

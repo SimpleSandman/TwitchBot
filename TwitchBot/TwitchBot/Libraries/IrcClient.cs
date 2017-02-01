@@ -8,7 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 
-namespace TwitchBot
+namespace TwitchBot.Libraries
 {
     // Reference: https://www.youtube.com/watch?v=Ss-OzV9aUZg
     public class IrcClient

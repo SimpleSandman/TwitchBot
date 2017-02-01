@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TwitchBot
+namespace TwitchBot.Libraries
 {
-    public class Timeout
+    public class TimeoutCmd
     {
         private Dictionary<string, DateTime> _dictTimeout = new Dictionary<string, DateTime>();
 

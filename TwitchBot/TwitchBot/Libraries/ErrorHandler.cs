@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TwitchBot.Configuration;
 
-namespace TwitchBot
+namespace TwitchBot.Libraries
 {
     // Using Singleton design pattern
     public sealed class ErrorHandler

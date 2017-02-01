@@ -8,11 +8,15 @@ using System.Data.SqlClient;
 using System.Data;
 using System.Text.RegularExpressions;
 using SpotifyAPI.Local.Models;
-using TwitchBot.Configuration;
 using System.Net.Http;
 using Newtonsoft.Json;
 
-namespace TwitchBot
+using TwitchBot.Configuration;
+using TwitchBot.Libraries;
+using TwitchBot.Models;
+using TwitchBot.Models.JSON;
+
+namespace TwitchBot.Services.Commands
 {
     public class CmdGen
     {

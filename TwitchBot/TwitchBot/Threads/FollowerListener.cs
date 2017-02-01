@@ -7,9 +7,12 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using TwitchBot.Configuration;
 
-namespace TwitchBot
+using TwitchBot.Configuration;
+using TwitchBot.Libraries;
+using TwitchBot.Models.JSON;
+
+namespace TwitchBot.Threads
 {
     public class FollowerListener
     {

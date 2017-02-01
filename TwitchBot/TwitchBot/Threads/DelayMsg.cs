@@ -5,7 +5,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TwitchBot
+using TwitchBot.Libraries;
+
+namespace TwitchBot.Threads
 {
     public class DelayMsg
     {

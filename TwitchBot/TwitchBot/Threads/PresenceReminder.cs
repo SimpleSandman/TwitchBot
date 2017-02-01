@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace TwitchBot
+using TwitchBot.Libraries;
+
+namespace TwitchBot.Threads
 {
     class PresenceReminder
     {

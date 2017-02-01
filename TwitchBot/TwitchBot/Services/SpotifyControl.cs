@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using SpotifyAPI.Local;
 using SpotifyAPI.Local.Enums;
 using SpotifyAPI.Local.Models;
-using TwitchBot.Configuration;
 
-namespace TwitchBot
+using TwitchBot.Configuration;
+using TwitchBot.Libraries;
+
+namespace TwitchBot.Services
 {
     /* Example Code for Local Spotify API */
     // https://github.com/JohnnyCrazy/SpotifyAPI-NET/blob/master/SpotifyAPI.Example/LocalControl.cs

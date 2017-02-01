@@ -5,22 +5,24 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TwitchBot.Configuration;
 
-namespace TwitchBot
+using TwitchBot.Configuration;
+using TwitchBot.Libraries;
+
+namespace TwitchBot.Services.Commands
 {
     public class CmdMod
     {
         private IrcClient _irc;
         private Moderator _modInstance = Moderator.Instance;
-        private Timeout _timeout;
+        private TimeoutCmd _timeout;
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _intBroadcasterID;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CmdMod(IrcClient irc, Timeout timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, System.Configuration.Configuration appConfig)
+        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, System.Configuration.Configuration appConfig)
         {
             _irc = irc;
             _timeout = timeout;

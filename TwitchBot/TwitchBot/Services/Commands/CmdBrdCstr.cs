@@ -1,5 +1,4 @@
-﻿using RestSharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -9,9 +8,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Tweetinvi;
-using TwitchBot.Configuration;
+using RestSharp;
 
-namespace TwitchBot
+using TwitchBot.Configuration;
+using TwitchBot.Extensions;
+using TwitchBot.Libraries;
+
+namespace TwitchBot.Services.Commands
 {
     public class CmdBrdCstr
     {
