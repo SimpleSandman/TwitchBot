@@ -127,7 +127,7 @@
     <Compile Include="Models\JSON\StreamJSON.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Libraries\TaskJSON.cs" />
-    <Compile Include="Libraries\Timeout.cs" />
+    <Compile Include="Libraries\TimeoutCmd.cs" />
     <Compile Include="TwitchBotApplication.cs" />
   </ItemGroup>
   <ItemGroup>

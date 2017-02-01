@@ -300,7 +300,7 @@ namespace TwitchBot.Services.Commands
                 else if (message.ToLower().Contains(_botConfig.Broadcaster.ToLower()))
                     _irc.sendPublicChatMessage("I cannot betray @" + _botConfig.Broadcaster + " by not allowing him to communicate with me @" + strUserName);
                 else if (message.ToLower().Contains(_botConfig.BotName.ToLower()))
-                    _irc.sendPublicChatMessage("You can't time me out from my own commands @" + strUserName);
+                    _irc.sendPublicChatMessage("You can't time me out @" + strUserName);
                 else
                 {
                     int intIndexAction = 12;
