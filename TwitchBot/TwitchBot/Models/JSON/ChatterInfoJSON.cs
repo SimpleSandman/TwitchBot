@@ -15,7 +15,7 @@ namespace TwitchBot
         public List<string> viewers { get; set; }
     }
 
-    public class ChatterInfo
+    public class ChatterInfoJSON
     {
         public int chatter_count { get; set; }
         public Chatters chatters { get; set; }

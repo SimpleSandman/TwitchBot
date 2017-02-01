@@ -41,21 +41,21 @@ namespace TwitchBot
             }
         }
 
-        public static async Task<ChatterInfo> GetChatters(string broadcasterName, string clientID)
+        public static async Task<ChatterInfoJSON> GetChatters(string broadcasterName, string clientID)
         {
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
                     string body = await client.GetStringAsync("https://tmi.twitch.tv/group/user/" + broadcasterName + "/chatters?client_id=" + clientID);
-                    ChatterInfo response = JsonConvert.DeserializeObject<ChatterInfo>(body);
+                    ChatterInfoJSON response = JsonConvert.DeserializeObject<ChatterInfoJSON>(body);
                     return response;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return new ChatterInfo
+                return new ChatterInfoJSON
                 {
                     chatters = new Chatters
                     {

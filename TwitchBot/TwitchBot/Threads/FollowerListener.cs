@@ -46,7 +46,7 @@ namespace TwitchBot
                 try
                 {
                     // Grab user's chatter info (viewers, mods, etc.)
-                    ChatterInfo chatterInfo = TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result;
+                    ChatterInfoJSON chatterInfo = TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result;
 
                     if (chatterInfo.chatter_count > 0)
                     {
