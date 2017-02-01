@@ -311,15 +311,21 @@ namespace TwitchBot.Services.Commands
                 else // found largest random value
                     strBodyPart = " but missed";
 
-                reactionCmd(message, strUserName, strRecipient, "You just shot your " + strBodyPart.Replace("'s ", ""), "shoots", strBodyPart);
-
-                // bot responds if targeted
-                if (strRecipient.Equals(_botConfig.BotName.ToLower()))
+                if (strBodyPart.Equals(" but missed"))
                 {
-                    if (strBodyPart.Equals(" but missed"))
-                        _irc.sendPublicChatMessage("Ha! You missed @" + strUserName);
-                    else
+                    _irc.sendPublicChatMessage("Ha! You missed @" + strUserName);
+                }
+                else
+                {
+                    // bot responds if targeted
+                    if (strRecipient.Equals(_botConfig.BotName.ToLower()))
+                    {
                         _irc.sendPublicChatMessage("You think shooting me in the " + strBodyPart.Replace("'s ", "") + " would hurt me? I am a bot!");
+                    }
+                    else // viewer is the target
+                    {
+                        reactionCmd(message, strUserName, strRecipient, "You just shot your " + strBodyPart.Replace("'s ", ""), "shoots", strBodyPart);
+                    }
                 }
             }
             catch (Exception ex)
