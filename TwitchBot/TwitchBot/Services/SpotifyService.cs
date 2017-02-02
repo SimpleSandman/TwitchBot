@@ -14,7 +14,7 @@ namespace TwitchBot.Services
 {
     /* Example Code for Local Spotify API */
     // https://github.com/JohnnyCrazy/SpotifyAPI-NET/blob/master/SpotifyAPI.Example/LocalControl.cs
-    public class SpotifyControl
+    public class SpotifyService
     {
         private TwitchBotConfigurationSection _botConfig;
         private SpotifyLocalAPI _spotify;
@@ -22,7 +22,7 @@ namespace TwitchBot.Services
                                            // from displaying both "upcoming" and "current" song stats
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public SpotifyControl(TwitchBotConfigurationSection _botSection)
+        public SpotifyService(TwitchBotConfigurationSection _botSection)
         {
             _botConfig = _botSection;
             _spotify = new SpotifyLocalAPI();
