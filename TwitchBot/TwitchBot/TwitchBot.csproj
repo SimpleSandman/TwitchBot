@@ -110,6 +110,7 @@
     <Compile Include="Services\Commands\CmdMod.cs" />
     <Compile Include="Configuration\TwitchBotConfigurationSection.cs" />
     <Compile Include="Configuration\TwitchBotConfigurator.cs" />
+    <Compile Include="Services\TwitchInfoService.cs" />
     <Compile Include="Threads\DelayMsg.cs" />
     <Compile Include="Models\JSON\ErrMsgJSON.cs" />
     <Compile Include="Libraries\ErrorHandler.cs" />

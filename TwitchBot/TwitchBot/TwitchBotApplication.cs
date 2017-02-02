@@ -33,6 +33,7 @@ namespace TwitchBot
         private bool _isSongRequestAvail;
         private bool _hasTwitterInfo;
         private SpotifyControl _spotify;
+        private TwitchInfoService _twitchInfo;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig)
@@ -43,6 +44,7 @@ namespace TwitchBot
             _isSongRequestAvail = false;
             _hasTwitterInfo = false;
             _timeout = new TimeoutCmd();
+            _twitchInfo = new TwitchInfoService(_botConfig);
         }
 
         public async Task RunAsync()
@@ -129,7 +131,7 @@ namespace TwitchBot
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
                 _irc = new IrcClient("irc.twitch.tv", 6667, _strBotName, _botConfig.TwitchOAuth, _strBroadcasterName);
-                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _intBroadcasterID);
+                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _intBroadcasterID, _twitchInfo);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _intBroadcasterID, _appConfig);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _intBroadcasterID, _appConfig);
 
@@ -156,7 +158,7 @@ namespace TwitchBot
                 _modInstance.setLstMod(_connStr, _intBroadcasterID);
 
                 /* Pull list of followers and check experience points for stream leveling */
-                FollowerListener followerListener = new FollowerListener(_irc, _botConfig, _connStr, _intBroadcasterID);
+                FollowerListener followerListener = new FollowerListener(_irc, _botConfig, _connStr, _intBroadcasterID, _twitchInfo);
                 followerListener.Start();
 
                 /* Get list of timed out users from database */

@@ -25,16 +25,18 @@ namespace TwitchBot.Services.Commands
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _intBroadcasterID;
+        private TwitchInfoService _twitchInfo;
         private string _strBroadcasterGame;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CmdGen(IrcClient irc, SpotifyControl spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId)
+        public CmdGen(IrcClient irc, SpotifyControl spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, TwitchInfoService twitchInfo)
         {
             _irc = irc;
             _spotify = spotify;
             _botConfig = botConfig;
             _connStr = connString;
             _intBroadcasterID = broadcasterId;
+            _twitchInfo = twitchInfo;
         }
 
         public void CmdCmds()
@@ -798,7 +800,7 @@ namespace TwitchBot.Services.Commands
         {
             try
             {
-            using (HttpResponseMessage message = await checkFollowerStatus(strUserName))
+                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(strUserName))
                 {
                     if (message.IsSuccessStatusCode)
                     {
@@ -831,7 +833,7 @@ namespace TwitchBot.Services.Commands
         {
             try
             {
-                using (HttpResponseMessage message = await checkFollowerStatus(strUserName))
+                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(strUserName))
                 {
                     if (message.IsSuccessStatusCode)
                     {
@@ -946,17 +948,7 @@ namespace TwitchBot.Services.Commands
             }
         }
 
-        /// <summary>
-        /// Check if viewer is a follower via HttpResponseMessage
-        /// </summary>
-        /// <param name="strUserName"></param>
-        /// <returns></returns>
-        public async Task<HttpResponseMessage> checkFollowerStatus(string strUserName)
-        {
-            return await TaskJSON.GetFollowerStatus(_botConfig.Broadcaster.ToLower(), _botConfig.TwitchClientId, strUserName);
-        }
-
-        public async Task<bool> reactionCmd(string strOrigUser, string strRecipient, string strMsgToSelf, string strAction, string strAddlMsg = "")
+        private async Task<bool> reactionCmd(string strOrigUser, string strRecipient, string strMsgToSelf, string strAction, string strAddlMsg = "")
         {
             // check if user is trying to use a command on themselves
             if (strOrigUser.Equals(strRecipient))
@@ -982,25 +974,9 @@ namespace TwitchBot.Services.Commands
                 return true;
 
             // Grab user's chatter info (viewers, mods, etc.)
-            ChatterInfoJSON chatterInfo = await TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId);
-
-            if (chatterInfo.chatter_count > 0)
+            List<List<string>> lstAvailChatterType = await _twitchInfo.GetChatterListByType();
+            if (lstAvailChatterType.Count > 0)
             {
-                Chatters chatters = chatterInfo.chatters; // get list of chatters
-
-                // Make list of available chatters by chatter type
-                List<List<string>> lstAvailChatterType = new List<List<string>>();
-                if (chatters.viewers.Count() > 0)
-                    lstAvailChatterType.Add(chatters.viewers);
-                if (chatters.moderators.Count() > 0)
-                    lstAvailChatterType.Add(chatters.moderators);
-                if (chatters.global_mods.Count() > 0)
-                    lstAvailChatterType.Add(chatters.global_mods);
-                if (chatters.admins.Count() > 0)
-                    lstAvailChatterType.Add(chatters.admins);
-                if (chatters.staff.Count() > 0)
-                    lstAvailChatterType.Add(chatters.staff);
-
                 // Search for user
                 for (int i = 0; i < lstAvailChatterType.Count(); i++)
                 {
@@ -1017,7 +993,7 @@ namespace TwitchBot.Services.Commands
             return false;
         }
 
-        public string Effectiveness()
+        private string Effectiveness()
         {
             Random rnd = new Random(DateTime.Now.Millisecond);
             int intEffectiveLvl = rnd.Next(3); // between 0 and 2
