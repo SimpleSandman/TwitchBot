@@ -249,12 +249,12 @@ namespace TwitchBot.Services.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="strUserName">User that sent the message</param>
-        public void CmdSlap(string message, string strUserName)
+        public async Task CmdSlap(string message, string strUserName)
         {
             try
             {
                 string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                reactionCmd(message, strUserName, strRecipient, "Stop smacking yourself", "slaps", Effectiveness());
+                await reactionCmd(strUserName, strRecipient, "Stop smacking yourself", "slaps", Effectiveness());
             }
             catch (Exception ex)
             {
@@ -267,12 +267,12 @@ namespace TwitchBot.Services.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="strUserName">User that sent the message</param>
-        public void CmdStab(string message, string strUserName)
+        public async Task CmdStab(string message, string strUserName)
         {
             try
             {
                 string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                reactionCmd(message, strUserName, strRecipient, "Stop stabbing yourself", "stabs", Effectiveness());
+                await reactionCmd(strUserName, strRecipient, "Stop stabbing yourself! You'll bleed out", "stabs", Effectiveness());
             }
             catch (Exception ex)
             {
@@ -285,7 +285,7 @@ namespace TwitchBot.Services.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="strUserName">User that sent the message</param>
-        public void CmdShoot(string message, string strUserName)
+        public async Task CmdShoot(string message, string strUserName)
         {
             try
             {
@@ -317,14 +317,14 @@ namespace TwitchBot.Services.Commands
                 }
                 else
                 {
-                    // bot responds if targeted
+                    // bot makes a special response if shot at
                     if (strRecipient.Equals(_botConfig.BotName.ToLower()))
                     {
                         _irc.sendPublicChatMessage("You think shooting me in the " + strBodyPart.Replace("'s ", "") + " would hurt me? I am a bot!");
                     }
                     else // viewer is the target
                     {
-                        reactionCmd(message, strUserName, strRecipient, "You just shot your " + strBodyPart.Replace("'s ", ""), "shoots", strBodyPart);
+                        await reactionCmd(strUserName, strRecipient, "You just shot your " + strBodyPart.Replace("'s ", ""), "shoots", strBodyPart);
                     }
                 }
             }
@@ -339,7 +339,7 @@ namespace TwitchBot.Services.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="strUserName">User that sent the message</param>
-        public void CmdThrow(string message, string strUserName)
+        public async Task CmdThrow(string message, string strUserName)
         {
             try
             {
@@ -352,7 +352,7 @@ namespace TwitchBot.Services.Commands
                     string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
                     string item = message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1);
 
-                    reactionCmd(message, strUserName, strRecipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + Effectiveness());
+                    await reactionCmd(strUserName, strRecipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + Effectiveness());
                 }
             }
             catch (Exception ex)
@@ -956,86 +956,65 @@ namespace TwitchBot.Services.Commands
             return await TaskJSON.GetFollowerStatus(_botConfig.Broadcaster.ToLower(), _botConfig.TwitchClientId, strUserName);
         }
 
-        public bool reactionCmd(string message, string strOrigUser, string strRecipient, string strMsgToSelf, string strAction, string strAddlMsg = "")
+        public async Task<bool> reactionCmd(string strOrigUser, string strRecipient, string strMsgToSelf, string strAction, string strAddlMsg = "")
         {
-            string strRoleType = chatterValid(strOrigUser, strRecipient);
+            // check if user is trying to use a command on themselves
+            if (strOrigUser.Equals(strRecipient))
+            {
+                _irc.sendPublicChatMessage(strMsgToSelf + " @" + strOrigUser);
+                return true;
+            }
 
             // check if user currently watching the channel
-            if (!string.IsNullOrEmpty(strRoleType))
+            if (await chatterValid(strOrigUser, strRecipient))
             {
-                if (strOrigUser.Equals(strRecipient))
-                    _irc.sendPublicChatMessage(strMsgToSelf + " @" + strOrigUser);
-                else
-                    _irc.sendPublicChatMessage(strOrigUser + " " + strAction + " @" + strRecipient + " " + strAddlMsg);
-
+                _irc.sendPublicChatMessage(strOrigUser + " " + strAction + " @" + strRecipient + " " + strAddlMsg);
                 return true;
             }
             else
                 return false;
         }
 
-        private string chatterValid(string strOrigUser, string strRecipient, string strSearchCriteria = "")
+        private async Task<bool> chatterValid(string strOrigUser, string strRecipient)
         {
             // Check if the requested user is this bot
-            if (strRecipient.Equals(_botConfig.BotName))
-                return "mod";
+            if (strRecipient.Equals(_botConfig.BotName.ToLower()))
+                return true;
 
-            // Grab list of chatters (viewers, mods, etc.)
-            Chatters chatters = TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.chatters;
+            // Grab user's chatter info (viewers, mods, etc.)
+            ChatterInfoJSON chatterInfo = await TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId);
 
-            // check moderators
-            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("mod"))
+            if (chatterInfo.chatter_count > 0)
             {
-                foreach (string moderator in chatters.moderators)
-                {
-                    if (strRecipient.ToLower().Equals(moderator))
-                        return "mod";
-                }
-            }
+                Chatters chatters = chatterInfo.chatters; // get list of chatters
 
-            // check viewers
-            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("viewer"))
-            {
-                foreach (string viewer in chatters.viewers)
-                {
-                    if (strRecipient.ToLower().Equals(viewer))
-                        return "viewer";
-                }
-            }
+                // Make list of available chatters by chatter type
+                List<List<string>> lstAvailChatterType = new List<List<string>>();
+                if (chatters.viewers.Count() > 0)
+                    lstAvailChatterType.Add(chatters.viewers);
+                if (chatters.moderators.Count() > 0)
+                    lstAvailChatterType.Add(chatters.moderators);
+                if (chatters.global_mods.Count() > 0)
+                    lstAvailChatterType.Add(chatters.global_mods);
+                if (chatters.admins.Count() > 0)
+                    lstAvailChatterType.Add(chatters.admins);
+                if (chatters.staff.Count() > 0)
+                    lstAvailChatterType.Add(chatters.staff);
 
-            // check staff
-            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("staff"))
-            {
-                foreach (string staffMember in chatters.staff)
+                // Search for user
+                for (int i = 0; i < lstAvailChatterType.Count(); i++)
                 {
-                    if (strRecipient.ToLower().Equals(staffMember))
-                        return "staff";
-                }
-            }
-
-            // check admins
-            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("admin"))
-            {
-                foreach (string admin in chatters.admins)
-                {
-                    if (strRecipient.ToLower().Equals(admin))
-                        return "admin";
-                }
-            }
-
-            // check global moderators
-            if (strSearchCriteria.Equals("") || strSearchCriteria.Equals("gmod"))
-            {
-                foreach (string globalMod in chatters.global_mods)
-                {
-                    if (strRecipient.ToLower().Equals(globalMod))
-                        return "gmod";
+                    foreach (string chatter in lstAvailChatterType[i])
+                    {
+                        if (chatter.Equals(strRecipient.ToLower()))
+                            return true;
+                    }
                 }
             }
 
             // finished searching with no results
             _irc.sendPublicChatMessage("@" + strOrigUser + ": I cannot find the user you wanted to interact with. Perhaps the user left us?");
-            return "";
+            return false;
         }
 
         public string Effectiveness()

@@ -533,22 +533,22 @@ namespace TwitchBot
                                 /* Slaps a user and rates its effectiveness */
                                 // Usage: !slap @[username]
                                 else if (message.StartsWith("!slap @"))
-                                    _cmdGen.CmdSlap(message, strUserName);
+                                    await _cmdGen.CmdSlap(message, strUserName);
 
                                 /* Stabs a user and rates its effectiveness */
                                 // Usage: !stab @[username]
                                 else if (message.StartsWith("!stab @"))
-                                    _cmdGen.CmdStab(message, strUserName);
+                                    await _cmdGen.CmdStab(message, strUserName);
 
                                 /* Shoots a viewer's random body part */
                                 // Usage !shoot @[username]
                                 else if (message.StartsWith("!shoot @"))
-                                    _cmdGen.CmdShoot(message, strUserName);
+                                    await _cmdGen.CmdShoot(message, strUserName);
 
                                 /* Throws an item at a viewer and rates its effectiveness against the victim */
                                 // Usage: !throw [item] @username
                                 else if (message.StartsWith("!throw ") && message.Contains("@"))
-                                    _cmdGen.CmdThrow(message, strUserName);
+                                    await _cmdGen.CmdThrow(message, strUserName);
 
                                 /* Request party member if game and character exists in party up system */
                                 // Usage: !partyup [party member name]
