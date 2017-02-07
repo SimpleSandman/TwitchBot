@@ -32,7 +32,7 @@ namespace TwitchBot
         private CmdGen _cmdGen;
         private bool _isSongRequestAvail;
         private bool _hasTwitterInfo;
-        private SpotifyService _spotify;
+        private LocalSpotifyClient _spotify;
         private TwitchInfoService _twitchInfo;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
@@ -119,7 +119,7 @@ namespace TwitchBot
                 }
 
                 /* Connect to local Spotify client */
-                _spotify = new SpotifyService(_botConfig);
+                _spotify = new LocalSpotifyClient(_botConfig);
                 _spotify.Connect();
 
                 /* Make sure usernames are set to lowercase for the rest of the application */

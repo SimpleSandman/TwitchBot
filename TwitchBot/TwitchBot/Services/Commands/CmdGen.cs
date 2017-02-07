@@ -21,7 +21,7 @@ namespace TwitchBot.Services.Commands
     public class CmdGen
     {
         private IrcClient _irc;
-        private SpotifyService _spotify;
+        private LocalSpotifyClient _spotify;
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _intBroadcasterID;
@@ -29,7 +29,7 @@ namespace TwitchBot.Services.Commands
         private string _strBroadcasterGame;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CmdGen(IrcClient irc, SpotifyService spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, TwitchInfoService twitchInfo)
+        public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, TwitchInfoService twitchInfo)
         {
             _irc = irc;
             _spotify = spotify;

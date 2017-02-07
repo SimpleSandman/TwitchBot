@@ -8,26 +8,26 @@ using SpotifyAPI.Local.Enums;
 using SpotifyAPI.Local.Models;
 
 using TwitchBot.Configuration;
-using TwitchBot.Libraries;
 
-namespace TwitchBot.Services
+namespace TwitchBot.Libraries
 {
     /* Example Code for Local Spotify API */
     // https://github.com/JohnnyCrazy/SpotifyAPI-NET/blob/master/SpotifyAPI.Example/LocalControl.cs
-    public class SpotifyService
+    public class LocalSpotifyClient
     {
         private TwitchBotConfigurationSection _botConfig;
         private SpotifyLocalAPI _spotify;
-        private bool trackChanged = false; // used to prevent a paused song to skip to the next song
-                                           // from displaying both "upcoming" and "current" song stats
+        private bool _trackChanged; // used to prevent a paused song to skip to the next song
+                                    // from displaying both "upcoming" and "current" song stats
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public SpotifyService(TwitchBotConfigurationSection _botSection)
+        public LocalSpotifyClient(TwitchBotConfigurationSection _botSection)
         {
             _botConfig = _botSection;
             _spotify = new SpotifyLocalAPI();
             _spotify.OnPlayStateChange += spotify_OnPlayStateChange;
             _spotify.OnTrackChange += spotify_OnTrackChange;
+            _trackChanged = false;
         }
 
         public void Connect()
@@ -46,8 +46,7 @@ namespace TwitchBot.Services
                     return;
                 }
 
-                bool successful = _spotify.Connect();
-                if (successful)
+                if (_spotify.Connect())
                 {
                     Console.WriteLine("Connection to Spotify successful");
                     UpdateInfos();
@@ -57,8 +56,9 @@ namespace TwitchBot.Services
                 {
                     Console.WriteLine("Couldn't connect to the spotify client. Retry? (Yes = 'y' and No = 'n')");
                     Console.WriteLine("If this problem persists, try reinstalling Spotify to the latest version");
+
                     if (Console.ReadLine().Equals("y"))
-                        Connect();
+                        Connect(); // attempt to connect again
                 }
             }
             catch (Exception ex)
@@ -101,7 +101,7 @@ namespace TwitchBot.Services
         private void spotify_OnTrackChange(object sender, TrackChangeEventArgs e)
         {
             ShowUpdatedTrack(e.NewTrack, _botConfig.EnableDisplaySong);
-            trackChanged = true;
+            _trackChanged = true;
         }
 
         private void spotify_OnPlayStateChange(object sender, PlayStateEventArgs e)
@@ -109,10 +109,10 @@ namespace TwitchBot.Services
             UpdatePlayingStatus(e.Playing);
 
             StatusResponse status = _spotify.GetStatus();
-            if (status.Track != null && status.Playing && !trackChanged) // Update track infos
+            if (status.Track != null && status.Playing && !_trackChanged) // Update track infos
                 ShowUpdatedTrack(status.Track, _botConfig.EnableDisplaySong);
 
-            trackChanged = false;
+            _trackChanged = false;
         }
 
         public void UpdateInfos()
