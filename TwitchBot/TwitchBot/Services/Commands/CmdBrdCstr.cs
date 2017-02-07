@@ -590,75 +590,121 @@ namespace TwitchBot.Services.Commands
         /// <param name="strUserName">User that sent the message</param>
         public void CmdAddGiveaway(string message, string strUserName)
         {
+            int intGiveawayType = -1;
+            DateTime dtGiveaway;
+            string strMinRandNum = "-1";
+            string strMaxRandNum = "0";
+            bool isValidated = true; // used for nested "if" validation
+
             try
             {
                 // get due date of giveaway
-                string strGiveawayDT = message.Substring(13, 20); // MM-DD-YY hh:mm:ss [AM/PM]
-                DateTime dtGiveaway = Convert.ToDateTime(strGiveawayDT);
-
-                // get eligibility parameters for user types (using boolean bits)
-                string strGiveawayElg = message.Substring(34, 7); // [mods] [regulars] [subscribers] [users]
-                if (strGiveawayElg.Replace(" ", "").IsInt()
-                    && strGiveawayElg.Replace(" ", "").Length == 4
-                    && !Regex.IsMatch(strGiveawayElg, @"[2-9]"))
+                string strGiveawayDT = message.Substring(13, Program.GetNthIndex(message, ' ', 4) - 13); // MM-DD-YY hh:mm:ss [AM/PM]
+                if (DateTime.TryParse(strGiveawayDT, out dtGiveaway))
                 {
-                    int[] strArrElg =
+                    // get eligibility parameters for user types (using boolean bits)
+                    string strGiveawayElg = message.Substring(34, 7); // [mods] [regulars] [subscribers] [users]
+                    if (strGiveawayElg.Replace(" ", "").IsInt()
+                        && strGiveawayElg.Replace(" ", "").Length == 4
+                        && !Regex.IsMatch(strGiveawayElg, @"[2-9]"))
                     {
-                        int.Parse(message.Substring(34, 1)),
-                        int.Parse(message.Substring(36, 1)),
-                        int.Parse(message.Substring(38, 1)),
-                        int.Parse(message.Substring(40, 1))
-                    };
-
-                    // get giveaway type (1 = Keyword, 2 = Random Number)
-                    int intGiveawayType = int.Parse(message.Substring(42, 1));
-
-                    // get parameter of new giveaway (1 = [keyword], 2 = [min]-[max])
-                    int intParamMsgIndex = Program.GetNthIndex(message, ' ', 10); // get the index of the space separating the message and the parameter
-                    string strGiveawayParam = message.Substring(44, intParamMsgIndex - 44);
-
-                    // get message of new giveaway
-                    string strGiveawayMsg = message.Substring(intParamMsgIndex + 1);
-
-                    // log new giveaway into db
-                    string query = "INSERT INTO tblGiveaway (dueDate, message, broadcaster, elgMod, elgReg, elgSub, elgUsr, giveType, giveParam1, giveParam2) " +
-                                   "VALUES (@dueDate, @message, @broadcaster, @elgMod, @elgReg, @elgSub, @elgUsr, @giveType, @giveParam1, @giveParam2)";
-
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = dtGiveaway;
-                        cmd.Parameters.Add("@message", SqlDbType.VarChar, 75).Value = strGiveawayMsg;
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                        cmd.Parameters.Add("@elgMod", SqlDbType.Bit).Value = strArrElg[0];
-                        cmd.Parameters.Add("@elgReg", SqlDbType.Bit).Value = strArrElg[1];
-                        cmd.Parameters.Add("@elgSub", SqlDbType.Bit).Value = strArrElg[2];
-                        cmd.Parameters.Add("@elgUsr", SqlDbType.Bit).Value = strArrElg[3];
-                        cmd.Parameters.Add("@giveType", SqlDbType.Int).Value = intGiveawayType;
-
-                        if (intGiveawayType == 1) // keyword
+                        int[] strArrElg =
                         {
-                            cmd.Parameters.Add("@giveParam1", SqlDbType.VarChar, 50).Value = strGiveawayParam;
-                            cmd.Parameters.Add("@giveParam2", SqlDbType.VarChar, 50).Value = DBNull.Value;
-                        }
-                        else if (intGiveawayType == 2) // random number
+                            int.Parse(message.Substring(34, 1)),
+                            int.Parse(message.Substring(36, 1)),
+                            int.Parse(message.Substring(38, 1)),
+                            int.Parse(message.Substring(40, 1))
+                        };
+
+                        // get giveaway type (1 = Keyword, 2 = Random Number)
+                        if (int.TryParse(message.Substring(42, 1), out intGiveawayType))
                         {
-                            int intDashIndex = strGiveawayParam.IndexOf('-');
+                            // get parameter of new giveaway (1 = [keyword], 2 = [min]-[max])
+                            int intParamMsgIndex = Program.GetNthIndex(message, ' ', 10); // get the index of the space separating the message and the parameter
+                            if (intParamMsgIndex > 0)
+                            {
+                                string strGiveawayParam = message.Substring(44, intParamMsgIndex - 44);
+                                
+                                if (intGiveawayType == 2)
+                                {
+                                    // check if min-max range can be validated
+                                    if (Regex.IsMatch(strGiveawayParam, @"^\d{1,4}-\d{1,4}"))
+                                    {
+                                        int intDashIndex = strGiveawayParam.IndexOf('-');
 
-                            cmd.Parameters.Add("@giveParam1", SqlDbType.VarChar, 50).Value = strGiveawayParam.Substring(0, intDashIndex); // min
-                            cmd.Parameters.Add("@giveParam2", SqlDbType.VarChar, 50).Value = strGiveawayParam.Substring(intDashIndex + 1); // max
+                                        strMinRandNum = strGiveawayParam.Substring(0, intDashIndex); // min
+                                        strMaxRandNum = strGiveawayParam.Substring(intDashIndex + 1); // max
+                                    }
+                                    else
+                                    {
+                                        isValidated = false;
+                                    }
+                                }
+
+                                if (isValidated)
+                                {
+                                    // get message of new giveaway
+                                    string strGiveawayMsg = message.Substring(intParamMsgIndex + 1);
+
+                                    // log new giveaway into db
+                                    string query = "INSERT INTO tblGiveaway (dueDate, message, broadcaster, elgMod, elgReg, elgSub, elgUsr, giveType, giveParam1, giveParam2) " +
+                                                    "VALUES (@dueDate, @message, @broadcaster, @elgMod, @elgReg, @elgSub, @elgUsr, @giveType, @giveParam1, @giveParam2)";
+
+                                    using (SqlConnection conn = new SqlConnection(_connStr))
+                                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                                    {
+                                        cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = dtGiveaway;
+                                        cmd.Parameters.Add("@message", SqlDbType.VarChar, 75).Value = strGiveawayMsg;
+                                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                        cmd.Parameters.Add("@elgMod", SqlDbType.Bit).Value = strArrElg[0];
+                                        cmd.Parameters.Add("@elgReg", SqlDbType.Bit).Value = strArrElg[1];
+                                        cmd.Parameters.Add("@elgSub", SqlDbType.Bit).Value = strArrElg[2];
+                                        cmd.Parameters.Add("@elgUsr", SqlDbType.Bit).Value = strArrElg[3];
+                                        cmd.Parameters.Add("@giveType", SqlDbType.Int).Value = intGiveawayType;
+
+                                        if (intGiveawayType == 1) // keyword
+                                        {
+                                            cmd.Parameters.Add("@giveParam1", SqlDbType.VarChar, 50).Value = strGiveawayParam;
+                                            cmd.Parameters.Add("@giveParam2", SqlDbType.VarChar, 50).Value = DBNull.Value;
+                                        }
+                                        else if (intGiveawayType == 2) // random number
+                                        {
+                                            cmd.Parameters.Add("@giveParam1", SqlDbType.VarChar, 50).Value = strMinRandNum;
+                                            cmd.Parameters.Add("@giveParam2", SqlDbType.VarChar, 50).Value = strMaxRandNum;
+                                        }
+
+                                        conn.Open();
+                                        cmd.ExecuteNonQuery();
+                                    }
+
+                                    Console.WriteLine("Giveaway started!");
+                                    _irc.sendPublicChatMessage($"Giveaway \"{strGiveawayMsg}\" has started @{strUserName}");
+                                }
+                                else
+                                {
+                                    if (int.Parse(strMinRandNum) < int.Parse(strMaxRandNum))
+                                        _irc.sendPublicChatMessage($"Giveaway random number range parameter numbers were flipped @{strUserName}");
+                                    else
+                                        _irc.sendPublicChatMessage($"Giveaway random number range parameter [min-max] was not given correctly @{strUserName}");
+                                }
+                            }
                         }
-
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
+                        else
+                        {
+                            if (intGiveawayType == -1)
+                                _irc.sendPublicChatMessage($"Giveaway type parameter was not given correctly @{strUserName}");
+                            else if (intGiveawayType != 1 || intGiveawayType != 2)
+                                _irc.sendPublicChatMessage($"Please use giveaway type (1 = Keyword or 2 = Random Number) @{strUserName}");
+                        }
                     }
-
-                    Console.WriteLine("Giveaway started!");
-                    _irc.sendPublicChatMessage($"Giveaway \"{strGiveawayMsg}\" has started @{strUserName}");
+                    else
+                    {
+                        _irc.sendPublicChatMessage($"Eligibility parameters were not given correctly @{strUserName}");
+                    }
                 }
                 else
                 {
-                    _irc.sendPublicChatMessage($"Eligibility parameters were not given correctly @{strUserName}");
+                    _irc.sendPublicChatMessage($"Date and time parameters were not given correctly @{strUserName}");
                 }
             }
             catch (Exception ex)

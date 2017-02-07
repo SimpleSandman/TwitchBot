@@ -431,7 +431,8 @@ namespace TwitchBot
                                     _cmdBrdCstr.CmdListCountdown(strUserName);
 
                                 /* Add giveaway */
-                                // Usage: !addgiveaway [MM-DD-YY] [hh:mm:ss] [AM/PM] [message]
+                                // Usage (Keyword = 1): !addgiveaway [MM-DD-YY] [hh:mm:ss] [AM/PM] [mods] [regulars] [subscribers] [users] [giveawaytype] [keyword] [message]
+                                // Usage (Random Number = 2): !addgiveaway [MM-DD-YY] [hh:mm:ss] [AM/PM] [mods] [regulars] [subscribers] [users] [giveawaytype] [min]-[max] [message]
                                 else if (message.StartsWith("!addgiveaway "))
                                     _cmdBrdCstr.CmdAddGiveaway(message, strUserName);
 
