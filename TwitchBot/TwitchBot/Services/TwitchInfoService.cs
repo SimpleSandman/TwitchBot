@@ -30,6 +30,7 @@ namespace TwitchBot.Services
             ChatterInfoJSON chatterInfo = await TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId);
 
             // Make list of available chatters by chatter type
+            // ToDo: Categorize each list with username and chatter type
             List<List<string>> lstAvailChatterType = new List<List<string>>();
 
             if (chatterInfo.chatter_count > 0)

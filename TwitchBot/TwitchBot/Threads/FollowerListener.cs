@@ -133,6 +133,10 @@ namespace TwitchBot.Threads
                 catch (Exception ex)
                 {
                     Console.WriteLine("Error inside FollowerListener Run(): " + ex.Message);
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                    }
                 }
 
                 Thread.Sleep(300000); // 5 minutes
