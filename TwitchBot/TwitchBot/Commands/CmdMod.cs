@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
+using TwitchBot.Services;
 
 namespace TwitchBot.Commands
 {
@@ -20,9 +21,10 @@ namespace TwitchBot.Commands
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _intBroadcasterID;
+        private BankService _bank;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, System.Configuration.Configuration appConfig)
+        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, System.Configuration.Configuration appConfig, BankService bank)
         {
             _irc = irc;
             _timeout = timeout;
@@ -30,6 +32,7 @@ namespace TwitchBot.Commands
             _intBroadcasterID = broadcasterId;
             _connStr = connString;
             _appConfig = appConfig;
+            _bank = bank;
         }
 
         /// <summary>
@@ -67,7 +70,7 @@ namespace TwitchBot.Commands
                     int intFee = -1;
                     bool validFee = int.TryParse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1), out intFee);
                     string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                    int intWallet = currencyBalance(strRecipient);
+                    int intWallet = _bank.CheckBalance(strRecipient, _intBroadcasterID);
 
                     // Check user's bank account
                     if (intWallet == -1)
@@ -76,13 +79,11 @@ namespace TwitchBot.Commands
                         _irc.sendPublicChatMessage("'" + strRecipient + "' is out of " + _botConfig.CurrencyType + " @" + strUserName);
                     // Check if fee can be accepted
                     else if (intFee > 0)
-                    {
                         _irc.sendPublicChatMessage("Please insert a negative whole amount (no decimal numbers) "
-                            + " or use the !deposit command to add " + _botConfig.CurrencyType + " to a user");
-                    }
+                            + " or use the !deposit command to add " + _botConfig.CurrencyType + " to a user's account");
                     else if (!validFee)
                         _irc.sendPublicChatMessage("The fee wasn't accepted. Please try again with negative whole amount (no decimals)");
-                    else /* Insert fee from wallet */
+                    else /* Deduct funds from wallet */
                     {
                         intWallet += intFee;
 
@@ -90,7 +91,7 @@ namespace TwitchBot.Commands
                         if (intWallet < 0)
                             intWallet = 0;
 
-                        updateWallet(strRecipient, intWallet);
+                        _bank.UpdateFunds(strRecipient, _intBroadcasterID, intWallet);
 
                         // Prompt user's balance
                         if (intWallet == 0)
@@ -130,7 +131,7 @@ namespace TwitchBot.Commands
                     int intIndexAction = 9;
                     int intDeposit = -1;
                     bool validDeposit = int.TryParse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1), out intDeposit);
-                    int intWallet = currencyBalance(strRecipient);
+                    int intWallet = _bank.CheckBalance(strRecipient, _intBroadcasterID);
 
                     // Check if deposit amount is valid
                     if (intDeposit < 0)
@@ -143,18 +144,7 @@ namespace TwitchBot.Commands
                         // Check if user has a bank account
                         if (intWallet == -1)
                         {
-                            string query = "INSERT INTO tblBank (username, wallet, broadcaster) VALUES (@username, @wallet, @broadcaster)";
-
-                            using (SqlConnection conn = new SqlConnection(_connStr))
-                            using (SqlCommand cmd = new SqlCommand(query, conn))
-                            {
-                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intDeposit;
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
-                                conn.Open();
-                                cmd.ExecuteNonQuery();
-                            }
+                            _bank.CreateAccount(strRecipient, _intBroadcasterID, intDeposit);
 
                             _irc.sendPublicChatMessage(strUserName + " has created a new account for @" + strRecipient
                                 + " with " + intDeposit + " " + _botConfig.CurrencyType + " to spend");
@@ -163,7 +153,7 @@ namespace TwitchBot.Commands
                         {
                             intWallet += intDeposit;
 
-                            updateWallet(strRecipient, intWallet);
+                            _bank.UpdateFunds(strRecipient, _intBroadcasterID, intWallet);
 
                             // Prompt user's balance
                             _irc.sendPublicChatMessage("Deposited " + intDeposit.ToString() + " " + _botConfig.CurrencyType + " to @" + strRecipient
@@ -383,72 +373,62 @@ namespace TwitchBot.Commands
         /// <param name="strUserName">User that sent the message</param>
         public void CmdAddQuote(string message, string strUserName)
         {
-            string strQuote = message.Substring(message.IndexOf(" ") + 1);
-
-            string query = "INSERT INTO tblQuote (userQuote, username, timeCreated, broadcaster) VALUES (@userQuote, @username, @timeCreated, @broadcaster)";
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            using (SqlCommand cmd = new SqlCommand(query, conn))
+            try
             {
-                cmd.Parameters.Add("@userQuote", SqlDbType.VarChar, 500).Value = strQuote;
-                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strUserName;
-                cmd.Parameters.Add("@timeCreated", SqlDbType.DateTime).Value = DateTime.Now;
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                string strQuote = message.Substring(message.IndexOf(" ") + 1);
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
-            }
+                string query = "INSERT INTO tblQuote (userQuote, username, timeCreated, broadcaster) VALUES (@userQuote, @username, @timeCreated, @broadcaster)";
 
-            _irc.sendPublicChatMessage($"Quote has been created @{strUserName}");
-        }
-
-        //TODO: Create a Wallet class for this logic
-        public void updateWallet(string strWalletOwner, int intNewWalletBalance)
-        {
-            string query = "UPDATE dbo.tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            using (SqlCommand cmd = new SqlCommand(query, conn))
-            {
-                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intNewWalletBalance;
-                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strWalletOwner;
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
-                conn.Open();
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        //TODO: Create a Wallet class for this logic
-        public int currencyBalance(string username)
-        {
-            int intBalance = -1;
-
-            // check if user already has a bank account
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBank WHERE broadcaster = @broadcaster", conn))
+                using (SqlConnection conn = new SqlConnection(_connStr))
+                using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
+                    cmd.Parameters.Add("@userQuote", SqlDbType.VarChar, 500).Value = strQuote;
+                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strUserName;
+                    cmd.Parameters.Add("@timeCreated", SqlDbType.DateTime).Value = DateTime.Now;
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            while (reader.Read())
-                            {
-                                if (username.Equals(reader["username"].ToString()))
-                                {
-                                    intBalance = int.Parse(reader["wallet"].ToString());
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
 
-            return intBalance;
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+
+                _irc.sendPublicChatMessage($"Quote has been created @{strUserName}");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddQuote(string, string)", false, "!addquote");
+            }
+        }
+
+        /// <summary>
+        /// Tell the stream the specified moderator will be AFK
+        /// </summary>
+        /// <param name="strUserName">User that sent the message</param>
+        public void CmdModAfk(string strUserName)
+        {
+            try
+            {
+                _irc.sendPublicChatMessage($"@{strUserName} is going AFK!");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdModAfk(string)", false, "!modafk");
+            }
+        }
+
+        /// <summary>
+        /// Tell the stream the specified moderator is back
+        /// </summary>
+        /// <param name="strUserName">User that sent the message</param>
+        public void CmdModBack(string strUserName)
+        {
+            try
+            {
+                _irc.sendPublicChatMessage($"@{strUserName} is back!");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdModBack(string)", false, "!modback");
+            }
         }
 
     }

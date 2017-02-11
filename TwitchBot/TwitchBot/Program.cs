@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Configuration;
 using System.Threading;
+using System.Net.Http;
 using Autofac;
 
 using TwitchBot.Configuration;
-using TwitchBot.Repositories;
-using TwitchBot.Services;
+using TwitchBot.Modules;
 
 namespace TwitchBot
 {
     class Program
     {
-        public static string _connStrType = "TwitchBotConnStrPROD"; // assume prod connection string by default
-        public static List<Tuple<string, DateTime>> _lstTupDelayMsg = new List<Tuple<string, DateTime>>(); // used to handle delayed msgs
+        public static string ConnStrType = "TwitchBotConnStrPROD"; // assume prod connection string by default
+        public static List<Tuple<string, DateTime>> LstTupDelayMsg = new List<Tuple<string, DateTime>>(); // used to handle delayed msgs
+        public static readonly HttpClient HttpClient = new HttpClient();
 
         static void Main(string[] args)
         {
@@ -56,24 +57,19 @@ namespace TwitchBot
                     else
                     {
                         // found test connection string
-                        _connStrType = "TwitchBotConnStrTEST";
+                        ConnStrType = "TwitchBotConnStrTEST";
                     }
                 }
 
                 //Create a container builder and register all classes that will be composed for the application
                 var builder = new ContainerBuilder();
 
-                builder.RegisterInstance(appConfig);
-                builder.RegisterInstance(twitchBotConfigurationSection);
-
-                builder.RegisterType<TwitchBotApplication>();
-
-                // repositories
-                builder.RegisterType<FollowerRepository>().WithParameter(new TypedParameter(typeof(string), connectionStringSetting.ConnectionString));
-
-                // services
-                builder.RegisterType<FollowerService>();
-                builder.RegisterType<TwitchInfoService>();               
+                builder.RegisterModule(new TwitchBotModule()
+                {
+                    AppConfig = appConfig,
+                    ParamConnStr = new NamedParameter("connStr", connectionStringSetting.ConnectionString),
+                    TwitchBotConfigurationSection = twitchBotConfigurationSection
+                });
 
                 var container = builder.Build();
 

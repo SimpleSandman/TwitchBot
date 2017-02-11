@@ -27,10 +27,11 @@ namespace TwitchBot.Commands
         private string _connStr;
         private int _intBroadcasterID;
         private TwitchInfoService _twitchInfo;
+        private BankService _bank;
         private string _strBroadcasterGame;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, TwitchInfoService twitchInfo)
+        public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, TwitchInfoService twitchInfo, BankService bank)
         {
             _irc = irc;
             _spotify = spotify;
@@ -38,6 +39,7 @@ namespace TwitchBot.Commands
             _connStr = connString;
             _intBroadcasterID = broadcasterId;
             _twitchInfo = twitchInfo;
+            _bank = bank;
         }
 
         public void CmdCmds()
@@ -666,7 +668,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                int intBalance = currencyBalance(strUserName);
+                int intBalance = _bank.CheckBalance(strUserName, _intBroadcasterID);
 
                 if (intBalance == -1)
                     _irc.sendPublicChatMessage("You are not currently banking with us at the moment. Please talk to a moderator about acquiring " + _botConfig.CurrencyType);
@@ -690,9 +692,9 @@ namespace TwitchBot.Commands
             {
                 int intGambledMoney = 0; // Money put into the gambling system
                 bool bolValid = int.TryParse(message.Substring(message.IndexOf(" ") + 1), out intGambledMoney);
-                int intWalletBalance = currencyBalance(strUserName);
+                int intWalletBalance = _bank.CheckBalance(strUserName, _intBroadcasterID);
 
-                if (!bolValid || intGambledMoney < 0)
+                if (!bolValid || intGambledMoney < 1)
                     _irc.sendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{strUserName}");
                 else if (intGambledMoney > intWalletBalance)
                     _irc.sendPublicChatMessage($"You do not have the sufficient funds to gamble {intGambledMoney} {_botConfig.CurrencyType} @{strUserName}");
@@ -702,31 +704,31 @@ namespace TwitchBot.Commands
                     int intDiceRoll = rnd.Next(1, 101); // between 1 and 100
                     int intNewBalance = 0;
 
-                    string strResult = $"Gambled \"{intGambledMoney} {_botConfig.CurrencyType}\" and the dice roll is \"{intDiceRoll}.\" Therefore, ";
+                    string strResult = $"Gambled {intGambledMoney} {_botConfig.CurrencyType} and the dice roll was {intDiceRoll}. @{strUserName} ";
 
                     // Check the 100-sided die roll result
                     if (intDiceRoll < 61) // lose gambled money
                     {
                         intNewBalance = intWalletBalance - intGambledMoney;
-                        updateWallet(strUserName, intNewBalance);
-                        strResult += $"you lost {intGambledMoney} {_botConfig.CurrencyType}";
+                        _bank.UpdateFunds(strUserName, _intBroadcasterID, intNewBalance);
+                        strResult += $"lost {intGambledMoney} {_botConfig.CurrencyType}";
                     }
                     else if (intDiceRoll >= 61 && intDiceRoll <= 98) // earn double
                     {
                         intWalletBalance -= intGambledMoney; // put money into the gambling pot (remove money from wallet)
                         intNewBalance = intWalletBalance + (intGambledMoney * 2); // recieve 2x earnings back into wallet
-                        updateWallet(strUserName, intNewBalance);
-                        strResult += $"you won double of your earnings ({intGambledMoney * 2} {_botConfig.CurrencyType})";
+                        _bank.UpdateFunds(strUserName, _intBroadcasterID, intNewBalance);
+                        strResult += $"won {intGambledMoney * 2} {_botConfig.CurrencyType}";
                     }
                     else if (intDiceRoll == 99 || intDiceRoll == 100) // earn triple
                     {
                         intWalletBalance -= intGambledMoney; // put money into the gambling pot (remove money from wallet)
                         intNewBalance = intWalletBalance + (intGambledMoney * 3); // recieve 3x earnings back into wallet
-                        updateWallet(strUserName, intNewBalance);
-                        strResult += $"you won triple of your earnings ({intGambledMoney * 3} {_botConfig.CurrencyType})";
+                        _bank.UpdateFunds(strUserName, _intBroadcasterID, intNewBalance);
+                        strResult += $"won {intGambledMoney * 3} {_botConfig.CurrencyType}";
                     }
 
-                    strResult += $" and now have {intNewBalance} {_botConfig.CurrencyType}";
+                    strResult += $" and now has {intNewBalance} {_botConfig.CurrencyType}";
 
                     _irc.sendPublicChatMessage(strResult);
                 }
@@ -1008,55 +1010,6 @@ namespace TwitchBot.Commands
                 strEffectiveness = "It had no effect";
 
             return strEffectiveness;
-        }
-
-        //TODO: Create a Wallet class for this logic
-        public void updateWallet(string strWalletOwner, int intNewWalletBalance)
-        {
-            string query = "UPDATE dbo.tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            using (SqlCommand cmd = new SqlCommand(query, conn))
-            {
-                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intNewWalletBalance;
-                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strWalletOwner;
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
-                conn.Open();
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        //TODO: Create a Wallet class for this logic
-        public int currencyBalance(string username)
-        {
-            int intBalance = -1;
-
-            // check if user already has a bank account
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBank WHERE broadcaster = @broadcaster", conn))
-                {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            while (reader.Read())
-                            {
-                                if (username.Equals(reader["username"].ToString()))
-                                {
-                                    intBalance = int.Parse(reader["wallet"].ToString());
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return intBalance;
         }
     }
 }

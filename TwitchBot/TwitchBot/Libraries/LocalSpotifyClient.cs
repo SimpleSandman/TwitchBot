@@ -149,7 +149,7 @@ namespace TwitchBot.Libraries
                     + " >< Artist: " + track.ArtistResource.Name
                     + " >< Album: " + track.AlbumResource.Name;
 
-                Program._lstTupDelayMsg.Add(new Tuple<string, DateTime>(
+                Program.LstTupDelayMsg.Add(new Tuple<string, DateTime>(
                         pendingMessage,
                         DateTime.Now.AddSeconds(_botConfig.StreamLatency)
                     )

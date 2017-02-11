@@ -9,37 +9,35 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
-using TwitchBot.Libraries;
-using TwitchBot.Repositories;
 using TwitchBot.Services;
 
 namespace TwitchBot.Threads
 {
     public class FollowerListener
     {
-        private IrcClient _irc;
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _intBroadcasterID;
         private Thread _followerListener;
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
+        private BankService _bank;
 
         // Empty constructor makes instance of Thread
-        public FollowerListener(IrcClient irc, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, TwitchInfoService twitchInfo, FollowerService follower)
+        public FollowerListener(TwitchBotConfigurationSection botConfig, string connStr, TwitchInfoService twitchInfo, FollowerService follower, BankService bank)
         {
-            _irc = irc;
             _botConfig = botConfig;
-            _connStr = connString;
-            _intBroadcasterID = broadcasterId;
+            _connStr = connStr;
             _followerListener = new Thread(new ThreadStart(this.Run));
             _twitchInfo = twitchInfo;
             _follower = follower;
+            _bank = bank;
         }
 
         // Starts the thread
-        public void Start()
+        public void Start(int intBroadcasterID)
         {
+            _intBroadcasterID = intBroadcasterID;
             _followerListener.IsBackground = true;
             _followerListener.Start();
         }
@@ -51,74 +49,69 @@ namespace TwitchBot.Threads
         {
             while (true)
             {
-                try
+                CheckFollowers().Wait();
+
+                Thread.Sleep(300000); // 5 minutes
+            }
+        }
+
+        public async Task CheckFollowers()
+        {
+            try
+            {
+                // Grab user's chatter info (viewers, mods, etc.)
+                List<List<string>> lstAvailChatterType = await _twitchInfo.GetChatterListByType();
+                if (lstAvailChatterType.Count == 0)
                 {
-                    // Grab user's chatter info (viewers, mods, etc.)
-                    List<List<string>> lstAvailChatterType = _twitchInfo.GetChatterListByType().Result;
-                    if (lstAvailChatterType.Count > 0)
+                    return;
+                }
+
+                // Check for existing or new followers
+                for (int i = 0; i < lstAvailChatterType.Count; i++)
+                {
+                    foreach (string strChatter in lstAvailChatterType[i])
                     {
-                        // Check for existing or new followers
-                        for (int i = 0; i < lstAvailChatterType.Count(); i++)
+                        // skip bot and broadcaster
+                        if (string.Equals(strChatter, _botConfig.BotName, StringComparison.CurrentCultureIgnoreCase)
+                            || string.Equals(strChatter, _botConfig.Broadcaster, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            foreach (string chatter in lstAvailChatterType[i])
+                            continue;
+                        }
+
+                        using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(strChatter))
+                        {
+                            // check if chatter is a follower
+                            if (!message.IsSuccessStatusCode)
                             {
-                                using (HttpResponseMessage message = _twitchInfo.CheckFollowerStatus(chatter).Result)
-                                {
-                                    // check if chatter is a follower
-                                    if (message.IsSuccessStatusCode)
-                                    {
-                                        int currExp = _follower.CurrExp(chatter, _intBroadcasterID);
-
-                                        // check if chatter has experience
-                                        if (currExp > -1)
-                                        {
-                                            // Give follower experience for watching
-                                            string query = "UPDATE tblRankFollowers SET exp = @exp WHERE (username = @username AND broadcaster = @broadcaster)";
-
-                                            using (SqlConnection conn = new SqlConnection(_connStr))
-                                            using (SqlCommand cmd = new SqlCommand(query, conn))
-                                            {
-                                                cmd.Parameters.Add("@exp", SqlDbType.Int).Value = ++currExp; // add 1 experience every iteration
-                                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = chatter;
-                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
-                                                conn.Open();
-                                                cmd.ExecuteNonQuery();
-                                            }
-                                        }
-                                        else
-                                        {
-                                            // Add new follower to the ranks
-                                            string query = "INSERT INTO tblRankFollowers (username, exp, broadcaster) "
-                                                + "VALUES (@username, @exp, @broadcaster)";
-
-                                            using (SqlConnection conn = new SqlConnection(_connStr))
-                                            using (SqlCommand cmd = new SqlCommand(query, conn))
-                                            {
-                                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = chatter;
-                                                cmd.Parameters.Add("@exp", SqlDbType.Int).Value = 0; // initial experience
-                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
-                                                conn.Open();
-                                                cmd.ExecuteNonQuery();
-                                            }
-                                        }
-                                    }
-                                }
+                                continue;
                             }
+
+                            // check if follower has experience
+                            int intCurrExp = _follower.CurrExp(strChatter, _intBroadcasterID);
+
+                            if (intCurrExp > -1)
+                                _follower.UpdateExp(strChatter, _intBroadcasterID, intCurrExp);
+                            else
+                                _follower.EnlistRecruit(strChatter, _intBroadcasterID);
+
+                            // check if follower has a stream currency account
+                            int intFunds = _bank.CheckBalance(strChatter, _intBroadcasterID);
+
+                            if (intFunds > -1)
+                                _bank.UpdateFunds(strChatter, _intBroadcasterID, ++intFunds);
+                            else // ToDo: Make currency auto-increment setting
+                                _bank.CreateAccount(strChatter, _intBroadcasterID, 5);
                         }
                     }
                 }
-                catch (Exception ex)
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error inside FollowerListener Run(): " + ex.Message);
+                if (ex.InnerException != null)
                 {
-                    Console.WriteLine("Error inside FollowerListener Run(): " + ex.Message);
-                    if (ex.InnerException != null)
-                    {
-                        Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                    }
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
                 }
-
-                Thread.Sleep(300000); // 5 minutes
             }
         }
     }

@@ -21,5 +21,15 @@ namespace TwitchBot.Services
         {
             return _followerDB.CurrExp(chatter, intBroadcasterID);
         }
+
+        public void UpdateExp(string strChatter, int intBroadcasterID, int intCurrExp)
+        {
+            _followerDB.UpdateExp(strChatter, intBroadcasterID, intCurrExp);
+        }
+
+        public void EnlistRecruit(string strChatter, int intBroadcasterID)
+        {
+            _followerDB.EnlistRecruit(strChatter, intBroadcasterID);
+        }
     }
 }

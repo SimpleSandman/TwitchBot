@@ -35,15 +35,15 @@ namespace TwitchBot.Threads
                 while (true)
                 {
                     /* Make sure to send messages at the proper time */
-                    if (Program._lstTupDelayMsg.Count > 0)
+                    if (Program.LstTupDelayMsg.Count > 0)
                     {
                         /* Send the first element from the list of delayed messages */
-                        Tuple<string, DateTime> tupFirstMsg = Program._lstTupDelayMsg.First();
+                        Tuple<string, DateTime> tupFirstMsg = Program.LstTupDelayMsg.First();
                         if (tupFirstMsg.Item2 < DateTime.Now)
                         {
                             _irc.sendPublicChatMessage(tupFirstMsg.Item1);
                             Console.WriteLine("Delayed message sent: " + tupFirstMsg.Item1);
-                            Program._lstTupDelayMsg.Remove(tupFirstMsg); // remove sent message from list
+                            Program.LstTupDelayMsg.Remove(tupFirstMsg); // remove sent message from list
                         }
                     }
                 }

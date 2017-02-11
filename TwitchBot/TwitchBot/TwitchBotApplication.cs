@@ -35,18 +35,22 @@ namespace TwitchBot
         private LocalSpotifyClient _spotify;
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
+        private FollowerListener _followerListener;
+        private BankService _bank;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, FollowerService follower)
+        public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, FollowerService follower, BankService bank, FollowerListener followerListener)
         {
             _appConfig = appConfig;
-            _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program._connStrType].ConnectionString;
+            _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program.ConnStrType].ConnectionString;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
             _isSongRequestAvail = false;
             _hasTwitterInfo = false;
             _timeout = new TimeoutCmd();
             _twitchInfo = twitchInfo;
             _follower = follower;
+            _followerListener = followerListener;
+            _bank = bank;
         }
 
         public async Task RunAsync()
@@ -54,7 +58,7 @@ namespace TwitchBot
             try
             {
                 /* Check if developer attempted to set up the connection string for either production or test */
-                if (Program._connStrType.Equals("TwitchBotConnStrTEST"))
+                if (Program.ConnStrType.Equals("TwitchBotConnStrTEST"))
                     Console.WriteLine("<<<< WARNING: Connecting to testing database >>>>");
 
                 // Attempt to connect to server
@@ -133,9 +137,9 @@ namespace TwitchBot
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
                 _irc = new IrcClient("irc.twitch.tv", 6667, _strBotName, _botConfig.TwitchOAuth, _strBroadcasterName);
-                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _intBroadcasterID, _twitchInfo);
+                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _intBroadcasterID, _twitchInfo, _bank);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _intBroadcasterID, _appConfig);
-                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _intBroadcasterID, _appConfig);
+                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _intBroadcasterID, _appConfig, _bank);
 
                 // Grab channel info
                 ChannelJSON chlJSON = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result;
@@ -160,8 +164,7 @@ namespace TwitchBot
                 _modInstance.setLstMod(_connStr, _intBroadcasterID);
 
                 /* Pull list of followers and check experience points for stream leveling */
-                FollowerListener followerListener = new FollowerListener(_irc, _botConfig, _connStr, _intBroadcasterID, _twitchInfo, _follower);
-                followerListener.Start();
+                _followerListener.Start(_intBroadcasterID);
 
                 /* Get list of timed out users from database */
                 setListTimeouts();
@@ -171,8 +174,8 @@ namespace TwitchBot
                 ping.Start();
 
                 /* Remind viewers of bot's existance */
-                PresenceReminder preRmd = new PresenceReminder(_irc);
-                preRmd.Start();
+                //PresenceReminder preRmd = new PresenceReminder(_irc);
+                //preRmd.Start();
 
                 /* Authenticate to Twitter if possible */
                 if (!string.IsNullOrEmpty(_botConfig.TwitterConsumerKey) 
@@ -497,6 +500,14 @@ namespace TwitchBot
                                     // Usage: !addquote [quote]
                                     else if (message.StartsWith("!addquote "))
                                         _cmdMod.CmdAddQuote(message, strUserName);
+
+                                    /* Tell the stream the specified moderator will be AFK */
+                                    else if (message.Equals("!modafk"))
+                                        _cmdMod.CmdModAfk(strUserName);
+
+                                    /* Tell the stream the specified moderator will be AFK */
+                                    else if (message.Equals("!modback"))
+                                        _cmdMod.CmdModBack(strUserName);
 
                                     /* insert moderator commands here */
                                 }
