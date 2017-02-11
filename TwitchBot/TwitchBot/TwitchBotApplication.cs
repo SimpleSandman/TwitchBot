@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using Tweetinvi;
 using Tweetinvi.Models;
 
+using TwitchBot.Commands;
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
-using TwitchBot.Services.Commands;
 using TwitchBot.Threads;
 
 
@@ -34,9 +34,10 @@ namespace TwitchBot
         private bool _hasTwitterInfo;
         private LocalSpotifyClient _spotify;
         private TwitchInfoService _twitchInfo;
+        private FollowerService _follower;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public TwitchBotApplication(System.Configuration.Configuration appConfig)
+        public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, FollowerService follower)
         {
             _appConfig = appConfig;
             _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program._connStrType].ConnectionString;
@@ -44,7 +45,8 @@ namespace TwitchBot
             _isSongRequestAvail = false;
             _hasTwitterInfo = false;
             _timeout = new TimeoutCmd();
-            _twitchInfo = new TwitchInfoService(_botConfig);
+            _twitchInfo = twitchInfo;
+            _follower = follower;
         }
 
         public async Task RunAsync()
@@ -158,7 +160,7 @@ namespace TwitchBot
                 _modInstance.setLstMod(_connStr, _intBroadcasterID);
 
                 /* Pull list of followers and check experience points for stream leveling */
-                FollowerListener followerListener = new FollowerListener(_irc, _botConfig, _connStr, _intBroadcasterID, _twitchInfo);
+                FollowerListener followerListener = new FollowerListener(_irc, _botConfig, _connStr, _intBroadcasterID, _twitchInfo, _follower);
                 followerListener.Start();
 
                 /* Get list of timed out users from database */

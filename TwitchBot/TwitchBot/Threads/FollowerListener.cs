@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
-using TwitchBot.Models.JSON;
+using TwitchBot.Repositories;
 using TwitchBot.Services;
 
 namespace TwitchBot.Threads
@@ -23,9 +23,10 @@ namespace TwitchBot.Threads
         private int _intBroadcasterID;
         private Thread _followerListener;
         private TwitchInfoService _twitchInfo;
+        private FollowerService _follower;
 
         // Empty constructor makes instance of Thread
-        public FollowerListener(IrcClient irc, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, TwitchInfoService twitchInfo)
+        public FollowerListener(IrcClient irc, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, TwitchInfoService twitchInfo, FollowerService follower)
         {
             _irc = irc;
             _botConfig = botConfig;
@@ -33,6 +34,7 @@ namespace TwitchBot.Threads
             _intBroadcasterID = broadcasterId;
             _followerListener = new Thread(new ThreadStart(this.Run));
             _twitchInfo = twitchInfo;
+            _follower = follower;
         }
 
         // Starts the thread
@@ -65,32 +67,9 @@ namespace TwitchBot.Threads
                                     // check if chatter is a follower
                                     if (message.IsSuccessStatusCode)
                                     {
-                                        int currExp = -1;
+                                        int currExp = _follower.CurrExp(chatter, _intBroadcasterID);
 
                                         // check if chatter has experience
-                                        using (SqlConnection conn = new SqlConnection(_connStr))
-                                        {
-                                            conn.Open();
-                                            using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblRankFollowers WHERE broadcaster = @broadcaster", conn))
-                                            {
-                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                                                using (SqlDataReader reader = cmd.ExecuteReader())
-                                                {
-                                                    if (reader.HasRows)
-                                                    {
-                                                        while (reader.Read())
-                                                        {
-                                                            if (chatter.Equals(reader["username"].ToString()))
-                                                            {
-                                                                currExp = int.Parse(reader["exp"].ToString());
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-
                                         if (currExp > -1)
                                         {
                                             // Give follower experience for watching

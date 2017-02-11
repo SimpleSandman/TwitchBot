@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 
-namespace TwitchBot.Services.Commands
+namespace TwitchBot.Commands
 {
     public class CmdMod
     {

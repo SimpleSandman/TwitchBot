@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Configuration;
 using System.Threading;
-using TwitchBot.Configuration;
 using Autofac;
+
+using TwitchBot.Configuration;
+using TwitchBot.Repositories;
+using TwitchBot.Services;
 
 namespace TwitchBot
 {
@@ -60,8 +63,17 @@ namespace TwitchBot
                 //Create a container builder and register all classes that will be composed for the application
                 var builder = new ContainerBuilder();
 
-                builder.RegisterInstance<System.Configuration.Configuration>(appConfig);
+                builder.RegisterInstance(appConfig);
+                builder.RegisterInstance(twitchBotConfigurationSection);
+
                 builder.RegisterType<TwitchBotApplication>();
+
+                // repositories
+                builder.RegisterType<FollowerRepository>().WithParameter(new TypedParameter(typeof(string), connectionStringSetting.ConnectionString));
+
+                // services
+                builder.RegisterType<FollowerService>();
+                builder.RegisterType<TwitchInfoService>();               
 
                 var container = builder.Build();
 

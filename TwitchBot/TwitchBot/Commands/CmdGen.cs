@@ -15,8 +15,9 @@ using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
+using TwitchBot.Services;
 
-namespace TwitchBot.Services.Commands
+namespace TwitchBot.Commands
 {
     public class CmdGen
     {
