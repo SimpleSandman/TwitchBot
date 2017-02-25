@@ -50,7 +50,6 @@ namespace TwitchBot.Threads
             while (true)
             {
                 CheckFollowers().Wait();
-
                 Thread.Sleep(300000); // 5 minutes
             }
         }
@@ -98,7 +97,10 @@ namespace TwitchBot.Threads
                             int intFunds = _bank.CheckBalance(strChatter, _intBroadcasterID);
 
                             if (intFunds > -1)
-                                _bank.UpdateFunds(strChatter, _intBroadcasterID, ++intFunds);
+                            {
+                                intFunds += 5; // deposit 5 stream currency for each iteration
+                                _bank.UpdateFunds(strChatter, _intBroadcasterID, intFunds);
+                            }
                             else // ToDo: Make currency auto-increment setting
                                 _bank.CreateAccount(strChatter, _intBroadcasterID, 5);
                         }

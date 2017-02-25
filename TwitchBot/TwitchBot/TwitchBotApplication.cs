@@ -174,8 +174,8 @@ namespace TwitchBot
                 ping.Start();
 
                 /* Remind viewers of bot's existance */
-                //PresenceReminder preRmd = new PresenceReminder(_irc);
-                //preRmd.Start();
+                PresenceReminder preRmd = new PresenceReminder(_irc);
+                preRmd.Start();
 
                 /* Authenticate to Twitter if possible */
                 if (!string.IsNullOrEmpty(_botConfig.TwitterConsumerKey) 
