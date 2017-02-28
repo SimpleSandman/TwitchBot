@@ -163,21 +163,24 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SQLTables\dbo.tblBank.sql" />
-    <Content Include="SQLTables\dbo.tblBroadcasters.sql" />
-    <Content Include="SQLTables\dbo.tblCountdown.sql" />
-    <Content Include="SQLTables\dbo.tblErrorLog.sql" />
-    <Content Include="SQLTables\dbo.tblGameList.sql" />
-    <Content Include="SQLTables\dbo.tblGiveaway.sql" />
-    <Content Include="SQLTables\dbo.tblModerators.sql" />
-    <Content Include="SQLTables\dbo.tblPartyUp.sql" />
-    <Content Include="SQLTables\dbo.tblPartyUpRequests.sql" />
-    <Content Include="SQLTables\dbo.tblQuote.sql" />
-    <Content Include="SQLTables\dbo.tblRank.sql" />
-    <Content Include="SQLTables\dbo.tblRankFollowers.sql" />
-    <Content Include="SQLTables\dbo.tblSongRequests.sql" />
-    <Content Include="SQLTables\dbo.tblTimeout.sql" />
+    <Content Include="SqlScripts\StoredProcedures\dbo.uspBonusAll.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblBank.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblBroadcasters.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblCountdown.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblErrorLog.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblGameList.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblGiveaway.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblModerators.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblPartyUp.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblPartyUpRequests.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblQuote.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblRank.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblRankFollowers.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblSongRequests.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblTimeout.sql" />
+    <Content Include="SqlScripts\UserTableTypes\dbo.tblBonusAll.sql" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
