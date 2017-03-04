@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,6 +26,14 @@ namespace TwitchBot.Services
         public void UpdateFunds(string strWalletOwner, int intBroadcasterID, int intNewWalletBalance)
         {
             _bank.UpdateFunds(strWalletOwner, intBroadcasterID, intNewWalletBalance);
+        }
+
+        public List<string> UpdateCreateBalance(List<string> lstUsernames, int intBroadcasterID, int intDeposit)
+        {
+            return _bank.UpdateCreateAccount(lstUsernames, intBroadcasterID, intDeposit)
+                .AsEnumerable()
+                .Select(x => x[0].ToString())
+                .ToList();
         }
 
         public int CheckBalance(string username, int intBroadcasterID)

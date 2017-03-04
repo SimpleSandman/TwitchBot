@@ -53,6 +53,37 @@ namespace TwitchBot.Services
         }
 
         /// <summary>
+        /// Get a full list of chatters broken up by each type
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<string>> GetChatterList()
+        {
+            // Grab user's chatter info (viewers, mods, etc.)
+            ChatterInfoJSON chatterInfo = await TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId);
+
+            // Make list of available chatters
+            List<string> lstAvailChatter = new List<string>();
+
+            if (chatterInfo.chatter_count > 0)
+            {
+                Chatters chatters = chatterInfo.chatters; // get list of chatters
+
+                if (chatters.viewers.Count() > 0)
+                    lstAvailChatter.AddRange(chatters.viewers);
+                if (chatters.moderators.Count() > 0)
+                    lstAvailChatter.AddRange(chatters.moderators);
+                if (chatters.global_mods.Count() > 0)
+                    lstAvailChatter.AddRange(chatters.global_mods);
+                if (chatters.admins.Count() > 0)
+                    lstAvailChatter.AddRange(chatters.admins);
+                if (chatters.staff.Count() > 0)
+                    lstAvailChatter.AddRange(chatters.staff);
+            }
+
+            return lstAvailChatter;
+        }
+
+        /// <summary>
         /// Check if viewer is a follower via HttpResponseMessage
         /// </summary>
         /// <param name="strUserName"></param>

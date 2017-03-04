@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TwitchBot.Extensions;
 
 namespace TwitchBot.Repositories
 {
@@ -47,6 +48,29 @@ namespace TwitchBot.Repositories
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
+        }
+
+        public DataTable UpdateCreateAccount(List<string> lstUsernames, int intBroadcasterID, int intDeposit)
+        {
+            DataTable tblUsernames = lstUsernames.ToDataTable();
+            DataTable tblResult = new DataTable();
+
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            using (SqlCommand cmd = new SqlCommand("uspUpdateCreateBalance", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.Add(new SqlParameter("@tvpUsernames", SqlDbType.Structured)).Value = tblUsernames;
+                cmd.Parameters.Add("@intBroadcasterID", SqlDbType.Int).Value = intBroadcasterID;
+                cmd.Parameters.Add("@intDeposit", SqlDbType.Int).Value = intDeposit;
+
+                using (SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd))
+                {
+                    dataAdapter.Fill(tblResult);
+                }
+            }
+
+            return tblResult;
         }
 
         public int CheckBalance(string username, int intBroadcasterID)

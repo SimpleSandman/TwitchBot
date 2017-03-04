@@ -139,7 +139,7 @@ namespace TwitchBot
                 _irc = new IrcClient("irc.twitch.tv", 6667, _strBotName, _botConfig.TwitchOAuth, _strBroadcasterName);
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _intBroadcasterID, _twitchInfo, _bank);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _intBroadcasterID, _appConfig);
-                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _intBroadcasterID, _appConfig, _bank);
+                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _intBroadcasterID, _appConfig, _bank, _twitchInfo);
 
                 // Grab channel info
                 ChannelJSON chlJSON = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result;
@@ -509,6 +509,9 @@ namespace TwitchBot
                                     else if (message.Equals("!modback"))
                                         _cmdMod.CmdModBack(strUserName);
 
+                                    /* Gives every viewer a set amount of currency */
+                                    else if (message.StartsWith("!bonusall "))
+                                        await _cmdMod.CmdBonusAll(message, strUserName);
                                     /* insert moderator commands here */
                                 }
 

@@ -23,8 +23,9 @@ namespace TwitchBot.Commands
         private int _intBroadcasterID;
         private BankService _bank;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+        private TwitchInfoService _twitchInfo;
 
-        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, System.Configuration.Configuration appConfig, BankService bank)
+        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo)
         {
             _irc = irc;
             _timeout = timeout;
@@ -33,6 +34,7 @@ namespace TwitchBot.Commands
             _connStr = connString;
             _appConfig = appConfig;
             _bank = bank;
+            _twitchInfo = twitchInfo;
         }
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace TwitchBot.Commands
                     string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
                     int intWallet = _bank.CheckBalance(strRecipient, _intBroadcasterID);
 
-                    // Check user's bank account
+                    // Check user's bank account exist or has currency
                     if (intWallet == -1)
                         _irc.sendPublicChatMessage("The user '" + strRecipient + "' is not currently banking with us @" + strUserName);
                     else if (intWallet == 0)
@@ -165,6 +167,53 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdMod", "CmdDeposit(string, string)", false, "!deposit");
+            }
+        }
+
+        /// <summary>
+        /// Gives every viewer a set amount of currency
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="strUserName"></param>
+        public async Task CmdBonusAll(string message, string strUserName)
+        {
+            try
+            {
+                // Check for valid command
+                if (message.StartsWith("!bonusall @"))
+                    _irc.sendPublicChatMessage("Please enter a valid amount to a user @" + strUserName);
+                else
+                {
+                    int intIndexAction = 10;
+                    int intDeposit = -1;
+                    bool validDeposit = int.TryParse(message.Substring(intIndexAction), out intDeposit);
+
+                    // Check if deposit amount is valid
+                    if (intDeposit < 0)
+                        _irc.sendPublicChatMessage("Please insert a positive whole amount (no decimals) "
+                            + " or use the !charge command to remove " + _botConfig.CurrencyType + " from a user");
+                    else if (!validDeposit)
+                        _irc.sendPublicChatMessage("The bulk deposit wasn't accepted. Please try again with positive whole amount (no decimals)");
+                    else
+                    {
+                        List<string> chatterList = await _twitchInfo.GetChatterList();
+                        chatterList = chatterList.Where(t => t != _botConfig.Broadcaster.ToLower() && t != _botConfig.BotName.ToLower()).ToList();
+
+                        if (chatterList != null && chatterList.Count > 0)
+                        {
+                            _bank.UpdateCreateBalance(chatterList, _intBroadcasterID, intDeposit);
+                            _irc.sendPublicChatMessage($"{intDeposit.ToString()} {_botConfig.CurrencyType} for everyone!");
+                        }
+                        else
+                        {
+                            _irc.sendPublicChatMessage($"There are no chatters to deposit {_botConfig.CurrencyType} @{strUserName}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdBonusAll(string, string)", false, "!bonusall");
             }
         }
 
