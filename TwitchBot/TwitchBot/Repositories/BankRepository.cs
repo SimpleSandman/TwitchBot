@@ -50,7 +50,7 @@ namespace TwitchBot.Repositories
             }
         }
 
-        public DataTable UpdateCreateAccount(List<string> lstUsernames, int intBroadcasterID, int intDeposit)
+        public DataTable UpdateCreateBalance(List<string> lstUsernames, int intBroadcasterID, int intDeposit)
         {
             DataTable tblUsernames = lstUsernames.ToDataTable();
             DataTable tblResult = new DataTable();

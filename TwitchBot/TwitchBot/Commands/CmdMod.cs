@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
+using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Services;
 
@@ -112,7 +113,7 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
-        /// Gives money to user
+        /// Gives a set amount of stream currency to user
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="strUserName">User that sent the message</param>
@@ -120,20 +121,28 @@ namespace TwitchBot.Commands
         {
             try
             {
-                string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                List<string> userList = new List<string>();
+
+                foreach (int index in message.AllIndexesOf("@"))
+                {
+                    int lengthUsername = message.IndexOf(" ", index) - index - 1;
+                    if (lengthUsername < 0)
+                        userList.Add(message.Substring(index + 1).ToLower());
+                    else
+                        userList.Add(message.Substring(index + 1, lengthUsername).ToLower());
+                }
 
                 // Check for valid command
                 if (message.StartsWith("!deposit @"))
                     _irc.sendPublicChatMessage("Please enter a valid amount to a user @" + strUserName);
                 // Check if moderator is trying to give money to themselves
-                else if (_modInstance.LstMod.Contains(strUserName.ToLower()) && strRecipient.Equals(strUserName))
-                    _irc.sendPublicChatMessage("You cannot add funds to your own account @" + strUserName);
+                else if (_modInstance.LstMod.Contains(strUserName.ToLower()) && userList.Contains(strUserName.ToLower()))
+                    _irc.sendPublicChatMessage($"Entire deposit voided. You cannot add funds to your own account @{strUserName}");
                 else
                 {
                     int intIndexAction = 9;
                     int intDeposit = -1;
                     bool validDeposit = int.TryParse(message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1), out intDeposit);
-                    int intWallet = _bank.CheckBalance(strRecipient, _intBroadcasterID);
 
                     // Check if deposit amount is valid
                     if (intDeposit < 0)
@@ -143,23 +152,19 @@ namespace TwitchBot.Commands
                         _irc.sendPublicChatMessage("The deposit wasn't accepted. Please try again with positive whole amount (no decimals)");
                     else
                     {
-                        // Check if user has a bank account
-                        if (intWallet == -1)
+                        if (userList.Count > 0)
                         {
-                            _bank.CreateAccount(strRecipient, _intBroadcasterID, intDeposit);
+                            _bank.UpdateCreateBalance(userList, _intBroadcasterID, intDeposit);
 
-                            _irc.sendPublicChatMessage(strUserName + " has created a new account for @" + strRecipient
-                                + " with " + intDeposit + " " + _botConfig.CurrencyType + " to spend");
+                            string responseMsg = $"Added {intDeposit.ToString()} {_botConfig.CurrencyType} to ";
+                            foreach (string user in userList)
+                                responseMsg += "@" + user + " ";
+
+                            _irc.sendPublicChatMessage(responseMsg);
                         }
-                        else // Deposit money into wallet
+                        else
                         {
-                            intWallet += intDeposit;
-
-                            _bank.UpdateFunds(strRecipient, _intBroadcasterID, intWallet);
-
-                            // Prompt user's balance
-                            _irc.sendPublicChatMessage("Deposited " + intDeposit.ToString() + " " + _botConfig.CurrencyType + " to @" + strRecipient
-                                + "'s account! They now have " + intWallet + " " + _botConfig.CurrencyType + " to spend");
+                            _irc.sendPublicChatMessage($"There are no chatters to deposit {_botConfig.CurrencyType} @{strUserName}");
                         }
                     }
                 }
@@ -171,7 +176,7 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
-        /// Gives every viewer a set amount of currency
+        /// Gives every viewer currently watching a set amount of currency
         /// </summary>
         /// <param name="message"></param>
         /// <param name="strUserName"></param>

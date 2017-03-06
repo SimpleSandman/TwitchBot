@@ -30,7 +30,7 @@ namespace TwitchBot.Services
 
         public List<string> UpdateCreateBalance(List<string> lstUsernames, int intBroadcasterID, int intDeposit)
         {
-            return _bank.UpdateCreateAccount(lstUsernames, intBroadcasterID, intDeposit)
+            return _bank.UpdateCreateBalance(lstUsernames, intBroadcasterID, intDeposit)
                 .AsEnumerable()
                 .Select(x => x[0].ToString())
                 .ToList();

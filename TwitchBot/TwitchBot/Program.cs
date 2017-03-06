@@ -88,30 +88,5 @@ namespace TwitchBot
                 Environment.Exit(1);
             }
         }
-
-        /// <summary>
-        /// Find the Nth index of a character
-        /// </summary>
-        /// <param name="s"></param>
-        /// <param name="findChar"></param>
-        /// <param name="n"></param>
-        /// <returns></returns>
-        public static int GetNthIndex(string s, char findChar, int n)
-        {
-            int count = 0;
-
-            for (int i = 0; i < s.Length; i++)
-            {
-                if (s[i] == findChar)
-                {
-                    count++;
-                    if (count == n)
-                    {
-                        return i;
-                    }
-                }
-            }
-            return -1;
-        }
     }
 }

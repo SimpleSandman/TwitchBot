@@ -434,7 +434,7 @@ namespace TwitchBot.Commands
             try
             {
                 int intReqCountdownID = -1;
-                string strReqCountdownID = message.Substring(18, Program.GetNthIndex(message, ' ', 2) - Program.GetNthIndex(message, ' ', 1) - 1);
+                string strReqCountdownID = message.Substring(18, message.GetNthCharIndex(' ', 2) - message.GetNthCharIndex(' ', 1) - 1);
                 bool bolValidCountdownID = int.TryParse(strReqCountdownID, out intReqCountdownID);
 
                 // validate requested countdown ID
@@ -475,7 +475,7 @@ namespace TwitchBot.Commands
                     {
                         int intInputType = -1; // check if input is in the correct format
                         DateTime dtCountdown = new DateTime();
-                        string strCountdownInput = message.Substring(Program.GetNthIndex(message, ' ', 2) + 1);
+                        string strCountdownInput = message.Substring(message.GetNthCharIndex(' ', 2) + 1);
 
                         /* Check if user wants to edit the date and time or message */
                         if (message.StartsWith("!editcountdownDTE"))
@@ -599,7 +599,7 @@ namespace TwitchBot.Commands
             try
             {
                 // get due date of giveaway
-                int intDteMsgIndex = Program.GetNthIndex(message, ' ', 4);
+                int intDteMsgIndex = message.GetNthCharIndex(' ', 4);
                 if (intDteMsgIndex > 0)
                 {
                     string strGiveawayDT = message.Substring(13, intDteMsgIndex - 13); // MM-DD-YY hh:mm:ss [AM/PM]
@@ -609,14 +609,14 @@ namespace TwitchBot.Commands
                         int intElgMsgIndex = -1; // get the index of the space separating the message and the parameter
                         for (int i = 5; i < 8; i++)
                         {
-                            intElgMsgIndex = Program.GetNthIndex(message, ' ', i);
+                            intElgMsgIndex = message.GetNthCharIndex(' ', i);
                             if (intElgMsgIndex == -1)
                                 break;
                         }
 
                         if (intElgMsgIndex > 0)
                         {
-                            string strGiveawayElg = message.Substring(Program.GetNthIndex(message, ' ', 4) + 1, 7); // [mods] [regulars] [subscribers] [users]
+                            string strGiveawayElg = message.Substring(message.GetNthCharIndex(' ', 4) + 1, 7); // [mods] [regulars] [subscribers] [users]
                             if (strGiveawayElg.Replace(" ", "").IsInt()
                                 && strGiveawayElg.Replace(" ", "").Length == 4
                                 && !Regex.IsMatch(strGiveawayElg, @"[2-9]"))
@@ -630,10 +630,10 @@ namespace TwitchBot.Commands
                                 };
 
                                 // get giveaway type (1 = Keyword, 2 = Random Number)
-                                if (int.TryParse(message.Substring(Program.GetNthIndex(message, ' ', 8) + 1, 1), out intGiveawayType))
+                                if (int.TryParse(message.Substring(message.GetNthCharIndex(' ', 8) + 1, 1), out intGiveawayType))
                                 {
                                     // get parameter of new giveaway (1 = [keyword], 2 = [min]-[max])
-                                    int intParamMsgIndex = Program.GetNthIndex(message, ' ', 10); // get the index of the space separating the message and the parameter
+                                    int intParamMsgIndex = message.GetNthCharIndex(' ', 10); // get the index of the space separating the message and the parameter
                                     if (intParamMsgIndex > 0)
                                     {
                                         string strGiveawayParam = message.Substring(44, intParamMsgIndex - 44);
@@ -756,7 +756,7 @@ namespace TwitchBot.Commands
             try
             {
                 int intReqGiveawayID = -1;
-                string strReqGiveawayID = message.Substring(18, Program.GetNthIndex(message, ' ', 2) - Program.GetNthIndex(message, ' ', 1) - 1);
+                string strReqGiveawayID = message.Substring(18, message.GetNthCharIndex(' ', 2) - message.GetNthCharIndex(' ', 1) - 1);
                 bool bolValidGiveawayID = int.TryParse(strReqGiveawayID, out intReqGiveawayID);
 
                 // validate requested giveaway ID
@@ -799,7 +799,7 @@ namespace TwitchBot.Commands
                         DateTime dtGiveaway = new DateTime();
                         int[] intArrElg = { };
 
-                        string strGiveawayInput = message.Substring(Program.GetNthIndex(message, ' ', 2) + 1);
+                        string strGiveawayInput = message.Substring(message.GetNthCharIndex(' ', 2) + 1);
 
                         /* Check if user wants to edit the date/time, message, giveaway type, or eligibility */
                         if (message.StartsWith("!editgiveawayDTE"))
@@ -822,7 +822,7 @@ namespace TwitchBot.Commands
                         {
                             // ToDo: Test edit eligibility edit
                             // get new eligibility list for giveaway
-                            string strGiveawayElg = message.Substring(Program.GetNthIndex(message, ' ', 1) + 1, 7); // [mods] [regulars] [subscribers] [users]
+                            string strGiveawayElg = message.Substring(message.GetNthCharIndex(' ', 1) + 1, 7); // [mods] [regulars] [subscribers] [users]
                             if (strGiveawayElg.Replace(" ", "").IsInt()
                                 && strGiveawayElg.Replace(" ", "").Length == 4
                                 && !Regex.IsMatch(strGiveawayElg, @"[2-9]"))
