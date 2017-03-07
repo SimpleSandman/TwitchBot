@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using TwitchBot.Configuration;
 using TwitchBot.Extensions;
 using TwitchBot.Libraries;
+using TwitchBot.Models;
 using TwitchBot.Services;
 
 namespace TwitchBot.Commands
@@ -154,11 +155,19 @@ namespace TwitchBot.Commands
                     {
                         if (userList.Count > 0)
                         {
-                            _bank.UpdateCreateBalance(userList, _intBroadcasterID, intDeposit);
+                            List<BalanceResult> lstBalRes = _bank.UpdateCreateBalance(userList, _intBroadcasterID, intDeposit, true);
 
-                            string responseMsg = $"Added {intDeposit.ToString()} {_botConfig.CurrencyType} to ";
-                            foreach (string user in userList)
-                                responseMsg += "@" + user + " ";
+                            string responseMsg = $"Gave {intDeposit.ToString()} {_botConfig.CurrencyType} to ";
+
+                            if (lstBalRes.Count > 1)
+                            {
+                                foreach (BalanceResult userResult in lstBalRes)
+                                    responseMsg += "@" + userResult.username + " ";
+                            }
+                            else if (lstBalRes.Count == 1)
+                                responseMsg += $"@{lstBalRes[0].username} and now has {lstBalRes[0].wallet} {_botConfig.CurrencyType}";
+                            else
+                                responseMsg = $"Unknown error has occurred in retrieving results. Please check your recipient's {_botConfig.CurrencyType}";
 
                             _irc.sendPublicChatMessage(responseMsg);
                         }

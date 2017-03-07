@@ -535,7 +535,7 @@ namespace TwitchBot
                                     _cmdGen.CmdHostTime(_botConfig.Broadcaster);
 
                                 /* Shows how long the broadcaster has been streaming */
-                                else if (message.Equals("!duration"))
+                                else if (message.Equals("!duration") || message.Equals("!uptime"))
                                     _cmdGen.CmdDuration();
 
                                 /* Display list of requested songs */
@@ -585,7 +585,7 @@ namespace TwitchBot
                                     _cmdGen.CmdPartyUpList();
 
                                 /* Check user's account balance */
-                                else if (message.Equals("!myfunds"))
+                                else if (message.Equals($"!{_botConfig.CurrencyType.ToLower()}"))
                                     _cmdGen.CmdCheckFunds(strUserName);
 
                                 /* Gamble money away */

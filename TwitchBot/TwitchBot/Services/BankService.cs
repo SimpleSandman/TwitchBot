@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using TwitchBot.Models;
 using TwitchBot.Repositories;
 
 namespace TwitchBot.Services
@@ -28,12 +29,29 @@ namespace TwitchBot.Services
             _bank.UpdateFunds(strWalletOwner, intBroadcasterID, intNewWalletBalance);
         }
 
-        public List<string> UpdateCreateBalance(List<string> lstUsernames, int intBroadcasterID, int intDeposit)
+        public List<BalanceResult> UpdateCreateBalance(List<string> lstUsernames, int intBroadcasterID, int intDeposit, bool showOutput = false)
         {
-            return _bank.UpdateCreateBalance(lstUsernames, intBroadcasterID, intDeposit)
-                .AsEnumerable()
-                .Select(x => x[0].ToString())
-                .ToList();
+            DataTable dt = _bank.UpdateCreateBalance(lstUsernames, intBroadcasterID, intDeposit, showOutput);
+            if (dt.Rows.Count == 0)
+            {
+                return new List<BalanceResult>();
+            }
+
+            List<BalanceResult> lstUpdatedBalances = new List<BalanceResult>(dt.Rows.Count);
+
+            foreach (DataRow row in dt.Rows)
+            {
+                var values = row.ItemArray;
+                BalanceResult br = new BalanceResult()
+                {
+                    actionType = values[0].ToString(),
+                    username = values[1].ToString(),
+                    wallet = Convert.ToInt32(values[2])
+                };
+                lstUpdatedBalances.Add(br);
+            }
+
+            return lstUpdatedBalances;
         }
 
         public int CheckBalance(string username, int intBroadcasterID)

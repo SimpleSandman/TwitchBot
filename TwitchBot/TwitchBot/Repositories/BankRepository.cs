@@ -50,7 +50,7 @@ namespace TwitchBot.Repositories
             }
         }
 
-        public DataTable UpdateCreateBalance(List<string> lstUsernames, int intBroadcasterID, int intDeposit)
+        public DataTable UpdateCreateBalance(List<string> lstUsernames, int intBroadcasterID, int intDeposit, bool showOutput = false)
         {
             DataTable tblUsernames = lstUsernames.ToDataTable();
             DataTable tblResult = new DataTable();
@@ -63,6 +63,7 @@ namespace TwitchBot.Repositories
                 cmd.Parameters.Add(new SqlParameter("@tvpUsernames", SqlDbType.Structured)).Value = tblUsernames;
                 cmd.Parameters.Add("@intBroadcasterID", SqlDbType.Int).Value = intBroadcasterID;
                 cmd.Parameters.Add("@intDeposit", SqlDbType.Int).Value = intDeposit;
+                cmd.Parameters.Add("@bitShowOutput", SqlDbType.Bit).Value = showOutput;
 
                 using (SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd))
                 {
