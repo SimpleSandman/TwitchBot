@@ -223,7 +223,8 @@ namespace TwitchBot.Commands
                         if (chatterList != null && chatterList.Count > 0)
                         {
                             _bank.UpdateCreateBalance(chatterList, _intBroadcasterID, intDeposit);
-                            _irc.sendPublicChatMessage($"{intDeposit.ToString()} {_botConfig.CurrencyType} for everyone!");
+                            _irc.sendPublicChatMessage($"{intDeposit.ToString()} {_botConfig.CurrencyType} for everyone! "
+                                + $"Check your stream bank account with !{_botConfig.CurrencyType.ToLower()}");
                         }
                         else
                         {
