@@ -259,7 +259,7 @@ namespace TwitchBot.Commands
             try
             {
                 string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                await reactionCmd(strUserName, strRecipient, "Stop smacking yourself", "slaps", Effectiveness());
+                await ReactionCmd(strUserName, strRecipient, "Stop smacking yourself", "slaps", Effectiveness());
             }
             catch (Exception ex)
             {
@@ -277,7 +277,7 @@ namespace TwitchBot.Commands
             try
             {
                 string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                await reactionCmd(strUserName, strRecipient, "Stop stabbing yourself! You'll bleed out", "stabs", Effectiveness());
+                await ReactionCmd(strUserName, strRecipient, "Stop stabbing yourself! You'll bleed out", "stabs", Effectiveness());
             }
             catch (Exception ex)
             {
@@ -329,7 +329,7 @@ namespace TwitchBot.Commands
                     }
                     else // viewer is the target
                     {
-                        await reactionCmd(strUserName, strRecipient, "You just shot your " + strBodyPart.Replace("'s ", ""), "shoots", strBodyPart);
+                        await ReactionCmd(strUserName, strRecipient, "You just shot your " + strBodyPart.Replace("'s ", ""), "shoots", strBodyPart);
                     }
                 }
             }
@@ -357,7 +357,7 @@ namespace TwitchBot.Commands
                     string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
                     string item = message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1);
 
-                    await reactionCmd(strUserName, strRecipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + Effectiveness());
+                    await ReactionCmd(strUserName, strRecipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + Effectiveness());
                 }
             }
             catch (Exception ex)
@@ -951,7 +951,7 @@ namespace TwitchBot.Commands
             }
         }
 
-        private async Task<bool> reactionCmd(string strOrigUser, string strRecipient, string strMsgToSelf, string strAction, string strAddlMsg = "")
+        private async Task<bool> ReactionCmd(string strOrigUser, string strRecipient, string strMsgToSelf, string strAction, string strAddlMsg = "")
         {
             // check if user is trying to use a command on themselves
             if (strOrigUser.Equals(strRecipient))
@@ -960,17 +960,17 @@ namespace TwitchBot.Commands
                 return true;
             }
 
-            // check if user currently watching the channel
-            if (await chatterValid(strOrigUser, strRecipient))
+            // check if recipient is the broadcaster before checking the viewer channel
+            if (strRecipient.Equals(_botConfig.Broadcaster.ToLower()) || await ChatterValid(strOrigUser, strRecipient))
             {
                 _irc.sendPublicChatMessage(strOrigUser + " " + strAction + " @" + strRecipient + " " + strAddlMsg);
                 return true;
             }
-            else
-                return false;
+
+            return false;
         }
 
-        private async Task<bool> chatterValid(string strOrigUser, string strRecipient)
+        private async Task<bool> ChatterValid(string strOrigUser, string strRecipient)
         {
             // Check if the requested user is this bot
             if (strRecipient.Equals(_botConfig.BotName.ToLower()))

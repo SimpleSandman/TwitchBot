@@ -25,7 +25,6 @@ namespace TwitchBot
         private string _connStr;
         private int _intBroadcasterID;
         private IrcClient _irc;
-        private Moderator _modInstance = Moderator.Instance;
         private TimeoutCmd _timeout;
         private CmdBrdCstr _cmdBrdCstr;
         private CmdMod _cmdMod;
@@ -38,6 +37,7 @@ namespace TwitchBot
         private FollowerListener _followerListener;
         private BankService _bank;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+        private Moderator _modInstance = Moderator.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, FollowerService follower, BankService bank, FollowerListener followerListener)
         {
@@ -459,13 +459,9 @@ namespace TwitchBot
                                  */
                                 if (strUserName.Equals(_botConfig.Broadcaster) || _modInstance.LstMod.Contains(strUserName.ToLower()))
                                 {
-                                    /* Displays Discord link into chat (if available) */
-                                    if (message.Equals("!discord"))
-                                        _cmdMod.CmdDiscord();
-
                                     /* Takes money away from a user */
                                     // Usage: !charge [-amount] @[username]
-                                    else if (message.StartsWith("!charge ") && message.Contains("@"))
+                                    if (message.StartsWith("!charge ") && message.Contains("@"))
                                         _cmdMod.CmdCharge(message, strUserName);
 
                                     /* Gives money to user */
@@ -525,6 +521,10 @@ namespace TwitchBot
                                 /* Display a static greeting */
                                 else if (message.Equals("!hello"))
                                     _cmdGen.CmdHello(strUserName);
+
+                                /* Displays Discord link into chat (if available) */
+                                else if (message.Equals("!discord"))
+                                    _cmdMod.CmdDiscord();
 
                                 /* Display the current time in UTC (Coordinated Universal Time) */
                                 else if (message.Equals("!utctime"))
