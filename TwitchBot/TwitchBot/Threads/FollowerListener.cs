@@ -98,11 +98,11 @@ namespace TwitchBot.Threads
 
                             if (intFunds > -1)
                             {
-                                intFunds += 5; // deposit 5 stream currency for each iteration
+                                intFunds += 10; // deposit 10 stream currency for each iteration
                                 _bank.UpdateFunds(strChatter, _intBroadcasterID, intFunds);
                             }
                             else // ToDo: Make currency auto-increment setting
-                                _bank.CreateAccount(strChatter, _intBroadcasterID, 5);
+                                _bank.CreateAccount(strChatter, _intBroadcasterID, 10);
                         }
                     }
                 }
