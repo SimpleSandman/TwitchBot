@@ -123,7 +123,7 @@ namespace TwitchBot.Commands
         /// Enable song request mode
         /// </summary>
         /// <param name="isSongRequestAvail">Set song request mode</param>
-        public void CmdEnableSRMode(ref bool isSongRequestAvail)
+        public void CmdEnableManualSrMode(ref bool isSongRequestAvail)
         {
             try
             {
@@ -132,7 +132,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableSRMode(ref bool)", false, "!srmode on");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableManualSrMode(ref bool)", false, "!rbsrmode on");
             }
         }
 
@@ -140,7 +140,7 @@ namespace TwitchBot.Commands
         /// Disable song request mode
         /// </summary>
         /// <param name="isSongRequestAvail">Set song request mode</param>
-        public void CmdDisableSRMode(ref bool isSongRequestAvail)
+        public void CmdDisableManualSrMode(ref bool isSongRequestAvail)
         {
             try
             {
@@ -149,7 +149,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableSRMode(ref bool)", false, "!srmode off");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableSRMode(ref bool)", false, "!rbsrmode off");
             }
         }
 

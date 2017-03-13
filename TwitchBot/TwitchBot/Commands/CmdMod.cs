@@ -242,7 +242,7 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Removes the first song in the queue of song requests
         /// </summary>
-        public void CmdPopSongRequest()
+        public void CmdPopManualSr()
         {
             string strRemovedSong = "";
 
@@ -289,7 +289,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopSongRequest()", false, "!popsr");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopManualSr()", false, "!popsr");
             }
         }
 

@@ -382,12 +382,12 @@ namespace TwitchBot
                                     _cmdBrdCstr.CmdDisableTweet(hasTwitterInfo);
 
                                 /* Enables viewers to request songs (default off) */
-                                else if (message.Equals("!srmode on"))
-                                    _cmdBrdCstr.CmdEnableSRMode(ref isSongRequestAvail);
+                                else if (message.Equals("!rbsrmode on"))
+                                    _cmdBrdCstr.CmdEnableManualSrMode(ref isSongRequestAvail);
 
                                 /* Disables viewers to request songs (default off) */
-                                else if (message.Equals("!srmode off"))
-                                    _cmdBrdCstr.CmdDisableSRMode(ref isSongRequestAvail);
+                                else if (message.Equals("!rbsrmode off"))
+                                    _cmdBrdCstr.CmdDisableManualSrMode(ref isSongRequestAvail);
 
                                 /* Updates the title of the Twitch channel */
                                 // Usage: !updatetitle [title]
@@ -476,8 +476,8 @@ namespace TwitchBot
                                         _cmdMod.CmdDeposit(message, strUserName);
 
                                     /* Removes the first song in the queue of song requests */
-                                    else if (message.Equals("!popsr"))
-                                        _cmdMod.CmdPopSongRequest();
+                                    else if (message.Equals("!poprbsr"))
+                                        _cmdMod.CmdPopManualSr();
 
                                     /* Removes first party memeber in queue of party up requests */
                                     else if (message.Equals("!poppartyuprequest"))
@@ -545,13 +545,13 @@ namespace TwitchBot
                                     _cmdGen.CmdDuration();
 
                                 /* Display list of requested songs */
-                                else if (message.Equals("!srlist"))
-                                    _cmdGen.CmdListSR();
+                                else if (message.Equals("!rbsrlist"))
+                                    _cmdGen.CmdListManualSr();
 
                                 /* Request a song for the host to play */
                                 // Usage: !sr [artist] - [song title]
-                                else if (message.StartsWith("!sr "))
-                                    _cmdGen.CmdSR(isSongRequestAvail, message, strUserName);
+                                else if (message.StartsWith("!rbsr "))
+                                    _cmdGen.CmdManualSr(isSongRequestAvail, message, strUserName);
 
                                 /* Displays the current song being played from Spotify */
                                 else if (message.Equals("!spotifycurr"))

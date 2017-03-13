@@ -117,7 +117,7 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Display list of requested songs
         /// </summary>
-        public void CmdListSR()
+        public void CmdListManualSr()
         {
             try
             {
@@ -167,7 +167,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdSRList()", false, "!srlist");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdListManualSr()", false, "!srlist");
             }
         }
 
@@ -177,7 +177,7 @@ namespace TwitchBot.Commands
         /// <param name="isSongRequestAvail">Check if song request system is enabled</param>
         /// <param name="message">Chat message from the user</param>
         /// <param name="strUserName">User that sent the message</param>
-        public void CmdSR(bool isSongRequestAvail, string message, string strUserName)
+        public void CmdManualSr(bool isSongRequestAvail, string message, string strUserName)
         {
             try
             {
@@ -185,16 +185,15 @@ namespace TwitchBot.Commands
                 if (isSongRequestAvail)
                 {
                     // Grab the song name from the request
-                    int index = message.IndexOf("!sr");
-                    string songRequest = message.Substring(index, message.Length - index);
-                    songRequest = songRequest.Replace("!sr ", "");
+                    int index = message.IndexOf(" ");
+                    string songRequest = message.Substring(index + 1);
                     Console.WriteLine("New song request: " + songRequest);
 
-                    // Check if song request has more than letters, numbers, and hyphens
-                    if (!Regex.IsMatch(songRequest, @"^[a-zA-Z0-9 \-\(\)\'\?]+$"))
+                    // Check if song request has more than allowed symbols
+                    if (!Regex.IsMatch(songRequest, @"^[a-zA-Z0-9 \-\(\)\'\?\,\/\""]+$"))
                     {
-                        _irc.sendPublicChatMessage("Only letters, numbers, hyphens (-), parentheses (), "
-                            + "apostrophes ('), and question marks (?) are allowed. Please try again. "
+                        _irc.sendPublicChatMessage("Only letters, numbers, commas, hyphens, parentheses, "
+                            + "apostrophes, forward-slash, and question marks are allowed. Please try again. "
                             + "If the problem persists, please contact my creator");
                     }
                     else
@@ -222,7 +221,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdSR(bool, string, string)", false, "!sr", message);
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSr(bool, string, string)", false, "!sr", message);
             }
         }
 
