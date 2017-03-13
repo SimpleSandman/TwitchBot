@@ -47,7 +47,7 @@ namespace TwitchBot.Commands
             try
             {
                 _irc.sendPublicChatMessage("---> !hello >< !slap @[username] >< !stab @[username] >< !throw [item] @[username] >< !shoot @[username] "
-                    + ">< !srlist >< !sr [artist] - [song title] >< !partyup [party member name] >< !gamble [money] "
+                    + ">< !rbsrlist >< !rbsr [artist] - [song title] >< !partyup [party member name] >< !gamble [money] "
                     + ">< !quote >< !" + _botConfig.CurrencyType.ToLower() + " (check stream currency) <---"
                     + " Link to full list of commands: http://bit.ly/2bXLlEe");
             }
