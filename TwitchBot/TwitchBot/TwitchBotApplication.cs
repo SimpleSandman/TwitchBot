@@ -6,6 +6,7 @@ using System.Text;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Tweetinvi;
 using Tweetinvi.Models;
 
@@ -16,7 +17,6 @@ using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 using TwitchBot.Threads;
-
 
 namespace TwitchBot
 {
