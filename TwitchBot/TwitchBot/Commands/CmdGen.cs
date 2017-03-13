@@ -762,9 +762,9 @@ namespace TwitchBot.Commands
                                 while (reader.Read())
                                 {
                                     Quote qte = new Quote();
-                                    qte.strMessage = reader["userQuote"].ToString();
-                                    qte.strAuthor = reader["username"].ToString();
-                                    qte.dtTimeCreated = Convert.ToDateTime(reader["timeCreated"]);
+                                    qte.Message = reader["userQuote"].ToString();
+                                    qte.Author = reader["username"].ToString();
+                                    qte.TimeCreated = Convert.ToDateTime(reader["timeCreated"]);
                                     lstQuote.Add(qte);
                                 }
                             }
@@ -783,8 +783,8 @@ namespace TwitchBot.Commands
 
                     Quote qteResult = new Quote();
                     qteResult = lstQuote.ElementAt(intIndex); // grab random quote from list of quotes
-                    string strQuote = $"\"{qteResult.strMessage}\" - {_botConfig.Broadcaster} " +
-                        $"({qteResult.dtTimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {qteResult.dtTimeCreated.Year})";
+                    string strQuote = $"\"{qteResult.Message}\" - {_botConfig.Broadcaster} " +
+                        $"({qteResult.TimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {qteResult.TimeCreated.Year})";
 
                     _irc.sendPublicChatMessage(strQuote);
                 }

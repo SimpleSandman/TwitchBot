@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Tweetinvi;
@@ -11,6 +12,7 @@ using Tweetinvi.Models;
 using TwitchBot.Commands;
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
+using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 using TwitchBot.Threads;
@@ -31,6 +33,8 @@ namespace TwitchBot
         private CmdGen _cmdGen;
         private bool _isSongRequestAvail;
         private bool _hasTwitterInfo;
+        private double _defaultCooldownLimit;
+        private List<CooldownUser> _cooldownUsers;
         private LocalSpotifyClient _spotify;
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
@@ -47,6 +51,8 @@ namespace TwitchBot
             _isSongRequestAvail = false;
             _hasTwitterInfo = false;
             _timeout = new TimeoutCmd();
+            _cooldownUsers = new List<CooldownUser>();
+            _defaultCooldownLimit = 20.0; // ToDo: Grab seconds from configuration
             _twitchInfo = twitchInfo;
             _follower = follower;
             _followerListener = followerListener;
@@ -553,23 +559,59 @@ namespace TwitchBot
 
                                 /* Slaps a user and rates its effectiveness */
                                 // Usage: !slap @[username]
-                                else if (message.StartsWith("!slap @"))
+                                else if (message.StartsWith("!slap @") && !isUserOnCooldown(strUserName, "!slap"))
+                                {
                                     await _cmdGen.CmdSlap(message, strUserName);
+                                    _cooldownUsers.Add(new CooldownUser
+                                    {
+                                        Username = strUserName,
+                                        Cooldown = DateTime.Now.AddSeconds(_defaultCooldownLimit),
+                                        Cmd = "!slap",
+                                        Warned = false
+                                    });
+                                }
 
                                 /* Stabs a user and rates its effectiveness */
                                 // Usage: !stab @[username]
-                                else if (message.StartsWith("!stab @"))
+                                else if (message.StartsWith("!stab @") && !isUserOnCooldown(strUserName, "!stab"))
+                                {
                                     await _cmdGen.CmdStab(message, strUserName);
+                                    _cooldownUsers.Add(new CooldownUser
+                                    {
+                                        Username = strUserName,
+                                        Cooldown = DateTime.Now.AddSeconds(_defaultCooldownLimit),
+                                        Cmd = "!stab",
+                                        Warned = false
+                                    });
+                                }
 
                                 /* Shoots a viewer's random body part */
                                 // Usage !shoot @[username]
-                                else if (message.StartsWith("!shoot @"))
+                                else if (message.StartsWith("!shoot @") && !isUserOnCooldown(strUserName, "!shoot"))
+                                {
                                     await _cmdGen.CmdShoot(message, strUserName);
+                                    _cooldownUsers.Add(new CooldownUser
+                                    {
+                                        Username = strUserName,
+                                        Cooldown = DateTime.Now.AddSeconds(_defaultCooldownLimit),
+                                        Cmd = "!shoot",
+                                        Warned = false
+                                    });
+                                }
 
                                 /* Throws an item at a viewer and rates its effectiveness against the victim */
                                 // Usage: !throw [item] @username
-                                else if (message.StartsWith("!throw ") && message.Contains("@"))
+                                else if (message.StartsWith("!throw ") && message.Contains("@") && !isUserOnCooldown(strUserName, "!throw"))
+                                {
                                     await _cmdGen.CmdThrow(message, strUserName);
+                                    _cooldownUsers.Add(new CooldownUser
+                                    {
+                                        Username = strUserName,
+                                        Cooldown = DateTime.Now.AddSeconds(_defaultCooldownLimit),
+                                        Cmd = "!throw",
+                                        Warned = false
+                                    });
+                                }
 
                                 /* Request party member if game and character exists in party up system */
                                 // Usage: !partyup [party member name]
@@ -590,8 +632,17 @@ namespace TwitchBot
 
                                 /* Gamble money away */
                                 // Usage: !gamble [money]
-                                else if (message.StartsWith("!gamble "))
+                                else if (message.StartsWith("!gamble ") && !isUserOnCooldown(strUserName, "!gamble"))
+                                {
                                     _cmdGen.CmdGamble(message, strUserName);
+                                    _cooldownUsers.Add(new CooldownUser
+                                    {
+                                        Username = strUserName,
+                                        Cooldown = DateTime.Now.AddSeconds(_defaultCooldownLimit),
+                                        Cmd = "!gamble",
+                                        Warned = false
+                                    });
+                                }
 
                                 /* Display random broadcaster quote */
                                 else if (message.Equals("!quote"))
@@ -647,6 +698,33 @@ namespace TwitchBot
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Checks if a user is on a cooldown from a particular command
+        /// </summary>
+        /// <param name="strUserName"></param>
+        /// <param name="cmd"></param>
+        /// <returns></returns>
+        private bool isUserOnCooldown(string strUserName, string cmd)
+        {
+            CooldownUser user = _cooldownUsers.FirstOrDefault(u => u.Username.Equals(strUserName) && u.Cmd.Equals(cmd));
+
+            if (user == null) return false;
+            else if (user.Cooldown < DateTime.Now)
+            {
+                _cooldownUsers.Remove(user);
+                return false;
+            }
+
+            if (!user.Warned)
+            {
+                user.Warned = true; // prevent spamming cooldown message
+                TimeSpan ts = user.Cooldown - DateTime.Now;
+                _irc.sendPublicChatMessage($"The {cmd} command is currently on cooldown @{strUserName} for {ts.Seconds} seconds");
+            }
+
+            return true;
         }
 
     }

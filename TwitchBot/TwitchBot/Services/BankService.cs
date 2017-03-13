@@ -44,9 +44,9 @@ namespace TwitchBot.Services
                 var values = row.ItemArray;
                 BalanceResult br = new BalanceResult()
                 {
-                    actionType = values[0].ToString(),
-                    username = values[1].ToString(),
-                    wallet = Convert.ToInt32(values[2])
+                    ActionType = values[0].ToString(),
+                    Username = values[1].ToString(),
+                    Wallet = Convert.ToInt32(values[2])
                 };
                 lstUpdatedBalances.Add(br);
             }

@@ -162,15 +162,15 @@ namespace TwitchBot.Commands
                             if (lstBalRes.Count > 1)
                             {
                                 foreach (BalanceResult userResult in lstBalRes)
-                                    responseMsg += $"@{userResult.username} ";
+                                    responseMsg += $"@{userResult.Username} ";
                             }
                             else if (lstBalRes.Count == 1)
                             {
-                                responseMsg += $"@{lstBalRes[0].username} ";
+                                responseMsg += $"@{lstBalRes[0].Username} ";
 
-                                if (lstBalRes[0].actionType.Equals("UPDATE"))
-                                    responseMsg += $"and now has {lstBalRes[0].wallet} {_botConfig.CurrencyType}!";
-                                else if (lstBalRes[0].actionType.Equals("INSERT"))
+                                if (lstBalRes[0].ActionType.Equals("UPDATE"))
+                                    responseMsg += $"and now has {lstBalRes[0].Wallet} {_botConfig.CurrencyType}!";
+                                else if (lstBalRes[0].ActionType.Equals("INSERT"))
                                     responseMsg += $"and can now gamble it all away! Kappa";
                             }
                             else

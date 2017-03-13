@@ -8,8 +8,8 @@ namespace TwitchBot.Models
 {
     public class Quote
     {
-        public string strMessage { get; set; }
-        public string strAuthor { get; set; }
-        public DateTime dtTimeCreated { get; set; }
+        public string Message { get; set; }
+        public string Author { get; set; }
+        public DateTime TimeCreated { get; set; }
     }
 }

@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace TwitchBot.Models
 {
-    public class BalanceResult
+    public class CooldownUser
     {
-        public string ActionType { get; set; }
         public string Username { get; set; }
-        public int Wallet { get; set; }
+        public DateTime Cooldown { get; set; }
+        public string Cmd { get; set; }
+        public bool Warned { get; set; }
     }
 }
