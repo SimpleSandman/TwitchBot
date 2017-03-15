@@ -42,6 +42,7 @@ namespace TwitchBot
         private BankService _bank;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
+        private YoutubeClient _youtubeInstance = YoutubeClient.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, FollowerService follower, BankService bank, FollowerListener followerListener)
         {
@@ -157,22 +158,8 @@ namespace TwitchBot
                 Console.WriteLine("Stream latency: " + _botConfig.StreamLatency + " second(s)");
                 Console.WriteLine();
 
-                /* Check if bot doesn't already have YouTube account permission */
-                if (!string.IsNullOrEmpty(_botConfig.YouTubeAccessToken))
-                    Console.WriteLine("YouTube access token found!");
-                else
-                {
-                    if (string.IsNullOrEmpty(_botConfig.YouTubeCode))
-                    {
-                        Console.WriteLine("Warning: YouTube account permission code not found. " 
-                            + "Please grant this bot permission to use your YouTube account");
-                    }
-                    else
-                    {
-                        YouTubeClient youTube = new YouTubeClient(_botConfig, _appConfig);
-                        youTube.RetrieveTokens();
-                    }
-                }
+                /* Pull YouTube tokens from user's account */
+                await _youtubeInstance.RetrieveTokens(_botConfig, _appConfig);
 
                 /* Start listening for delayed messages */
                 DelayMsg delayMsg = new DelayMsg(_irc);

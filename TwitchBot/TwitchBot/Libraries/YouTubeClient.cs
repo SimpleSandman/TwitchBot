@@ -1,11 +1,7 @@
-﻿using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-
-using Newtonsoft.Json;
+﻿using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
@@ -14,75 +10,93 @@ using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
 
-using TwitchBot.Models.JSON;
 using TwitchBot.Configuration;
+using TwitchBot.Extensions;
 
 namespace TwitchBot.Libraries
 {
-    public class YouTubeClient
+    public sealed class YoutubeClient
     {
-        private TwitchBotConfigurationSection _botConfig;
-        private System.Configuration.Configuration _appConfig;
+        private static volatile YoutubeClient _instance;
+        private static object _syncRoot = new Object();
+
+        private YouTubeService _youtubeService;
+
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public YouTubeClient(TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig)
+        public YouTubeService YoutubeService
         {
-            _botConfig = botConfig;
-            _appConfig = appConfig;
+            get { return _youtubeService; }
+        }
+
+        public YoutubeClient() { }
+
+        public static YoutubeClient Instance
+        {
+            get
+            {
+                // first check
+                if (_instance == null)
+                {
+                    lock (_syncRoot)
+                    {
+                        // second check
+                        if (_instance == null)
+                            _instance = new YoutubeClient();
+                    }
+                }
+
+                return _instance;
+            }
         }
 
         /// <summary>
         /// Get access and refresh tokens from user's account
         /// </summary>
-        public void RetrieveTokens()
+        public async Task RetrieveTokens(TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig)
         {
             try
             {
-                RestClient client = new RestClient("https://accounts.google.com/o/oauth2/token");
-                RestRequest request = new RestRequest(Method.POST);
-                request.AddHeader("cache-control", "no-cache");
-                request.AddHeader("content-type", "application/x-www-form-urlencoded");
-                request.AddHeader("host", "accounts.google.com");
-                request.AddParameter(
-                    "application/x-www-form-urlencoded",
-                    $"code={_botConfig.YouTubeCode}"
-                        + $"&client_id={_botConfig.YouTubeClientId}" // ToDo: Store away from user config (debugging only)
-                        + $"&client_secret={_botConfig.YouTubeClientSecret}" // ToDo: Store away from user config (debugging only)
-                        + "&redirect_uri=http://localhost"
-                        + "&grant_type=authorization_code", 
-                    ParameterType.RequestBody);
+                // ToDo: Move YouTube client secrets away from bot config
+                string clientSecrets = @"{ 'installed': {'client_id': '" + botConfig.YouTubeClientId + "', 'client_secret': '" + botConfig.YouTubeClientSecret + "'} }";
 
-                IRestResponse response = null;
-                try
+                UserCredential credential;
+                using (Stream stream = clientSecrets.ToStream())
                 {
-                    response = client.Execute(request);
-                    string statResponse = response.StatusCode.ToString();
-                    if (statResponse.Contains("OK"))
-                    {
-                        YouTubeAuthJSON auth = JsonConvert.DeserializeObject<YouTubeAuthJSON>(response.Content);
-                        _botConfig.YouTubeAccessToken = auth.access_token;
-                        _botConfig.YouTubeRefreshToken = auth.refresh_token;
-                        _appConfig.Save();
+                    credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                        GoogleClientSecrets.Load(stream).Secrets,
+                        new[] { YouTubeService.Scope.Youtube },
+                        "user",
+                        CancellationToken.None,
+                        new FileDataStore("Twitch Bot")
+                    );
+                }
 
-                        Console.WriteLine("YouTube account permission granted");
-                    }
-                    else
-                        Console.WriteLine(response.ErrorMessage);
-                }
-                catch (WebException ex)
+                _youtubeService = new YouTubeService(new BaseClientService.Initializer()
                 {
-                    if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.BadRequest)
-                    {
-                        Console.WriteLine("Error 400 detected!!");
-                    }
-                    response = (IRestResponse)ex.Response;
-                    Console.WriteLine("Error: " + response);
-                }
+                    HttpClientInitializer = credential,
+                    ApplicationName = "Twitch Bot"
+                });
+
+                botConfig.YouTubeAccessToken = credential.Token.AccessToken;
+                botConfig.YouTubeRefreshToken = credential.Token.RefreshToken;
+                appConfig.Save();
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "YouTube", "Connect(string)", false);
+                _errHndlrInstance.LogError(ex, "YouTubeClient", "RetrieveTokens()", false);
             }
+        }
+
+        public async Task CreatePlaylist(string title, string desc, string privacyStatus = "public")
+        {
+            var newPlaylist = new Playlist();
+            newPlaylist.Snippet = new PlaylistSnippet();
+            newPlaylist.Snippet.Title = title;
+            newPlaylist.Snippet.Description = desc;
+            newPlaylist.Status = new PlaylistStatus();
+            newPlaylist.Status.PrivacyStatus = privacyStatus;
+            newPlaylist = await _youtubeService.Playlists.Insert(newPlaylist, "snippet,status").ExecuteAsync();
         }
     }
 }
