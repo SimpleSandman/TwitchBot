@@ -135,22 +135,17 @@ namespace TwitchBot
                 _spotify.Connect();
 
                 /* Make sure usernames are set to lowercase for the rest of the application */
-                string _strBotName = _botConfig.BotName.ToLower();
-                string _strBroadcasterName = _botConfig.Broadcaster.ToLower();
+                string strBotName = _botConfig.BotName.ToLower();
+                string strBroadcasterName = _botConfig.Broadcaster.ToLower();
 
                 // Password from www.twitchapps.com/tmi/
                 // include the "oauth:" portion
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
-                _irc = new IrcClient("irc.twitch.tv", 6667, _strBotName, _botConfig.TwitchOAuth, _strBroadcasterName);
+                _irc = new IrcClient("irc.twitch.tv", 6667, strBotName, _botConfig.TwitchOAuth, strBroadcasterName);
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _intBroadcasterID, _twitchInfo, _bank);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _intBroadcasterID, _appConfig);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _intBroadcasterID, _appConfig, _bank, _twitchInfo);
-
-                // Grab channel info
-                ChannelJSON chlJSON = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result;
-                int _intFollowers = chlJSON.followers;
-                string _strBroadcasterGame = chlJSON.game;
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine();
@@ -161,6 +156,23 @@ namespace TwitchBot
                 Console.WriteLine("Enable Auto Display Songs: " + _botConfig.EnableDisplaySong);
                 Console.WriteLine("Stream latency: " + _botConfig.StreamLatency + " second(s)");
                 Console.WriteLine();
+
+                /* Check if bot doesn't already have YouTube account permission */
+                if (!string.IsNullOrEmpty(_botConfig.YouTubeAccessToken))
+                    Console.WriteLine("YouTube access token found!");
+                else
+                {
+                    if (string.IsNullOrEmpty(_botConfig.YouTubeCode))
+                    {
+                        Console.WriteLine("Warning: YouTube account permission code not found. " 
+                            + "Please grant this bot permission to use your YouTube account");
+                    }
+                    else
+                    {
+                        YouTubeClient youTube = new YouTubeClient(_botConfig, _appConfig);
+                        youTube.RetrieveTokens();
+                    }
+                }
 
                 /* Start listening for delayed messages */
                 DelayMsg delayMsg = new DelayMsg(_irc);

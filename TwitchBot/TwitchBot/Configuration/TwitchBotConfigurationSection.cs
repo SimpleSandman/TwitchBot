@@ -54,6 +54,21 @@ namespace TwitchBot.Configuration
         private static readonly ConfigurationProperty _streamLatency =
             new ConfigurationProperty("streamLatency", typeof(int), 12, ConfigurationPropertyOptions.None);
 
+        private static readonly ConfigurationProperty _youTubeClientId =
+            new ConfigurationProperty("youTubeClientId", typeof(string), "", ConfigurationPropertyOptions.None);
+
+        private static readonly ConfigurationProperty _youTubeClientSecret =
+            new ConfigurationProperty("youTubeClientSecret", typeof(string), "", ConfigurationPropertyOptions.None);
+
+        private static readonly ConfigurationProperty _youTubeCode =
+            new ConfigurationProperty("youTubeCode", typeof(string), "", ConfigurationPropertyOptions.None);
+
+        private static readonly ConfigurationProperty _youTubeAccessToken =
+            new ConfigurationProperty("youTubeAccessToken", typeof(string), "", ConfigurationPropertyOptions.None);
+
+        private static readonly ConfigurationProperty _youTubeRefreshToken =
+            new ConfigurationProperty("youTubeRefreshToken", typeof(string), "", ConfigurationPropertyOptions.None);
+
         public TwitchBotConfigurationSection()
         {
             _properties = new ConfigurationPropertyCollection();
@@ -72,6 +87,11 @@ namespace TwitchBot.Configuration
             _properties.Add(_enableTweet);
             _properties.Add(_enableDisplaySong);
             _properties.Add(_streamLatency);
+            _properties.Add(_youTubeClientId);
+            _properties.Add(_youTubeClientSecret);
+            _properties.Add(_youTubeCode);
+            _properties.Add(_youTubeAccessToken);
+            _properties.Add(_youTubeRefreshToken);
         }
 
         protected override ConfigurationPropertyCollection Properties
@@ -252,6 +272,56 @@ namespace TwitchBot.Configuration
             {
                 ThrowIfReadOnly("StreamLatency");
                 this["streamLatency"] = value;
+            }
+        }
+
+        public string YouTubeClientId
+        {
+            get { return (string)this["youTubeClientId"]; }
+            set
+            {
+                ThrowIfReadOnly("YouTubeClientId");
+                this["youTubeClientId"] = value;
+            }
+        }
+
+        public string YouTubeClientSecret
+        {
+            get { return (string)this["youTubeClientSecret"]; }
+            set
+            {
+                ThrowIfReadOnly("YouTubeClientSecret");
+                this["youTubeClientSecret"] = value;
+            }
+        }
+
+        public string YouTubeCode
+        {
+            get { return (string)this["youTubeCode"]; }
+            set
+            {
+                ThrowIfReadOnly("YouTubeCode");
+                this["youTubeCode"] = value;
+            }
+        }
+
+        public string YouTubeAccessToken
+        {
+            get { return (string)this["youTubeAccessToken"]; }
+            set
+            {
+                ThrowIfReadOnly("YouTubeAccessToken");
+                this["youTubeAccessToken"] = value;
+            }
+        }
+
+        public string YouTubeRefreshToken
+        {
+            get { return (string)this["youTubeRefreshToken"]; }
+            set
+            {
+                ThrowIfReadOnly("YouTubeRefreshToken");
+                this["youTubeRefreshToken"] = value;
             }
         }
 

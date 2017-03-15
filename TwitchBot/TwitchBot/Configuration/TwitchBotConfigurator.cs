@@ -66,6 +66,11 @@ namespace TwitchBot.Configuration
 
         }
 
+        public static void ConfigureYouTube(TwitchBotConfigurationSection config)
+        {
+
+        }
+
         public static void ConfigureConnectionString(string connectionName, ConnectionStringSettings connectionStringSettings)
         {
             //TODO: There has to be a better way :)
