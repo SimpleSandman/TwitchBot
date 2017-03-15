@@ -77,10 +77,6 @@ namespace TwitchBot.Libraries
                     HttpClientInitializer = credential,
                     ApplicationName = "Twitch Bot"
                 });
-
-                botConfig.YouTubeAccessToken = credential.Token.AccessToken;
-                botConfig.YouTubeRefreshToken = credential.Token.RefreshToken;
-                appConfig.Save();
             }
             catch (Exception ex)
             {
