@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Google.Apis.YouTube.v3.Data;
+
 using Tweetinvi;
 using Tweetinvi.Models;
 
@@ -14,7 +16,6 @@ using TwitchBot.Commands;
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
-using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 using TwitchBot.Threads;
 
@@ -158,7 +159,7 @@ namespace TwitchBot
                 Console.WriteLine("Stream latency: " + _botConfig.StreamLatency + " second(s)");
                 Console.WriteLine();
 
-                /* Pull YouTube tokens from user's account */
+                /* Pull YouTube tokens from user's account (request permission if needed) */
                 await _youtubeInstance.RetrieveTokens(_botConfig, _appConfig);
 
                 /* Start listening for delayed messages */

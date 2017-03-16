@@ -98,7 +98,7 @@ namespace TwitchBot.Libraries
             Console.WriteLine($"New YouTube playlist '{title}' has been created with playlist ID: '{newPlaylist.Id}'");
         }
 
-        public async Task AddVideoToPlaylist(string videoId, string playlistId)
+        public async Task AddVideoToPlaylist(string videoId, string playlistId, long position = -1)
         {
             var newPlaylistItem = new PlaylistItem();
             newPlaylistItem.Snippet = new PlaylistItemSnippet();
@@ -106,6 +106,8 @@ namespace TwitchBot.Libraries
             newPlaylistItem.Snippet.ResourceId = new ResourceId();
             newPlaylistItem.Snippet.ResourceId.Kind = "youtube#video";
             newPlaylistItem.Snippet.ResourceId.VideoId = videoId;
+            if (position > -1)
+                newPlaylistItem.Snippet.Position = position;
             newPlaylistItem = await _youtubeService.PlaylistItems.Insert(newPlaylistItem, "snippet").ExecuteAsync();
 
             Console.WriteLine($"YouTube video has been added to playlist");
@@ -134,7 +136,25 @@ namespace TwitchBot.Libraries
             return new YouTubeVideoSearchResult(); // couldn't find requested video
         }
 
-        public async Task<YouTubeVideoSearchResult> GetBroadcasterPlaylist(string playlistTitle)
+        public async Task<Video> SearchVideoById(string videoId)
+        {
+            var videoListRequest = _youtubeService.Videos.List("snippet,id");
+            videoListRequest.Id = videoId;
+
+            var videoListResponse = await videoListRequest.ExecuteAsync();
+
+            foreach (var video in videoListResponse.Items)
+            {
+                if (video.Id.Equals(videoId))
+                {
+                    return video;
+                }
+            }
+
+            return new Video(); // couldn't find requested video
+        }
+
+        public async Task<Playlist> GetBroadcasterPlaylistByKeyword(string playlistTitle)
         {
             var userPlaylistRequest = _youtubeService.Playlists.List("snippet");
             userPlaylistRequest.Mine = true;
@@ -145,15 +165,29 @@ namespace TwitchBot.Libraries
             {
                 if (playlist.Snippet.Title.Equals(playlistTitle))
                 {
-                    return new YouTubeVideoSearchResult
-                    {
-                        Id = playlist.Id,
-                        Title = playlist.Snippet.Title
-                    };
+                    return playlist;
                 }
             }
 
-            return new YouTubeVideoSearchResult(); // couldn't find requested playlist
+            return new Playlist(); // couldn't find requested playlist
+        }
+
+        public async Task<Playlist> GetBroadcasterPlaylistById(string playlistId)
+        {
+            var userPlaylistRequest = _youtubeService.Playlists.List("snippet,id");
+            userPlaylistRequest.Mine = true;
+
+            var userPlaylistListResponse = await userPlaylistRequest.ExecuteAsync();
+
+            foreach (var playlist in userPlaylistListResponse.Items)
+            {
+                if (playlist.Id.Equals(playlistId))
+                {
+                    return playlist;
+                }
+            }
+
+            return new Playlist(); // couldn't find requested playlist
         }
     }
 }
