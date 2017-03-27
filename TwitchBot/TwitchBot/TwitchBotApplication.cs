@@ -84,6 +84,21 @@ namespace TwitchBot
                     Thread.Sleep(5000);
                     Environment.Exit(1);
                 }
+
+                // Check for tables needed to start this application
+                // ToDo: Add more table names
+                List<string> dbTables = GetTables(_connStr);
+                if (!dbTables.Contains("tblBroadcasters")
+                    || !dbTables.Contains("tblModerators")
+                    || !dbTables.Contains("tblTimeout")
+                    || !dbTables.Contains("tblErrorLog"))
+                {
+                    Console.WriteLine("Error: Couldn't find necessary database tables");
+                    Console.WriteLine();
+                    Console.WriteLine("Shutting down now...");
+                    Thread.Sleep(5000);
+                    Environment.Exit(1);
+                }
             }
             catch (Exception ex)
             {
@@ -99,9 +114,6 @@ namespace TwitchBot
 
             try
             {
-                // Configure error handler singleton class
-                ErrorHandler.Configure(_intBroadcasterID, _connStr, _irc, _botConfig);
-
                 // Get broadcaster ID so the user can only see their data from the db
                 _intBroadcasterID = getBroadcasterID(_botConfig.Broadcaster.ToLower());
 
@@ -131,6 +143,9 @@ namespace TwitchBot
                         Environment.Exit(1);
                     }
                 }
+
+                // Configure error handler singleton class
+                ErrorHandler.Configure(_intBroadcasterID, _connStr, _irc, _botConfig);
 
                 /* Connect to local Spotify client */
                 _spotify = new LocalSpotifyClient(_botConfig);
@@ -227,6 +242,21 @@ namespace TwitchBot
                 {
                     return false;
                 }
+            }
+        }
+
+        private List<string> GetTables(string connectionString)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                DataTable schema = connection.GetSchema("Tables");
+                List<string> TableNames = new List<string>();
+                foreach (DataRow row in schema.Rows)
+                {
+                    TableNames.Add(row[2].ToString());
+                }
+                return TableNames;
             }
         }
 
