@@ -43,7 +43,7 @@ namespace TwitchBot
         private BankService _bank;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
-        private YoutubeClient _youtubeInstance = YoutubeClient.Instance;
+        private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, FollowerService follower, BankService bank, FollowerListener followerListener)
         {
@@ -88,10 +88,15 @@ namespace TwitchBot
                 // Check for tables needed to start this application
                 // ToDo: Add more table names
                 List<string> dbTables = GetTables(_connStr);
-                if (!dbTables.Contains("tblBroadcasters")
-                    || !dbTables.Contains("tblModerators")
-                    || !dbTables.Contains("tblTimeout")
-                    || !dbTables.Contains("tblErrorLog"))
+                if (dbTables.Contains("tblBroadcasters")
+                    && dbTables.Contains("tblModerators")
+                    && dbTables.Contains("tblTimeout")
+                    && dbTables.Contains("tblErrorLog"))
+                {
+                    Console.WriteLine("Found database tables");
+                    Console.WriteLine();
+                }
+                else
                 {
                     Console.WriteLine("Error: Couldn't find necessary database tables");
                     Console.WriteLine();
@@ -151,15 +156,11 @@ namespace TwitchBot
                 _spotify = new LocalSpotifyClient(_botConfig);
                 _spotify.Connect();
 
-                /* Make sure usernames are set to lowercase for the rest of the application */
-                string strBotName = _botConfig.BotName.ToLower();
-                string strBroadcasterName = _botConfig.Broadcaster.ToLower();
-
                 // Password from www.twitchapps.com/tmi/
                 // include the "oauth:" portion
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
-                _irc = new IrcClient("irc.twitch.tv", 6667, strBotName, _botConfig.TwitchOAuth, strBroadcasterName);
+                _irc = new IrcClient("irc.twitch.tv", 6667, _botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _intBroadcasterID, _twitchInfo, _bank);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _intBroadcasterID, _appConfig);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _intBroadcasterID, _appConfig, _bank, _twitchInfo);
@@ -175,7 +176,13 @@ namespace TwitchBot
                 Console.WriteLine();
 
                 /* Pull YouTube tokens from user's account (request permission if needed) */
-                await _youtubeInstance.RetrieveTokens(_botConfig, _appConfig);
+                await _youTubeClientInstance.GetAuth(_botConfig);
+                if (string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
+                {
+                    Playlist playlist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(_botConfig.YouTubeBroadcasterPlaylistName);
+                    _botConfig.YouTubeBroadcasterPlaylistId = playlist.Id;
+                    _appConfig.Save();
+                }
 
                 /* Start listening for delayed messages */
                 DelayMsg delayMsg = new DelayMsg(_irc);
@@ -222,119 +229,7 @@ namespace TwitchBot
             {
                 _errHndlrInstance.LogError(ex, "TwitchBotApplication", "RunAsync()", true);
             }
-        }
-
-        /// <summary>
-        /// Test that the server is connected
-        /// </summary>
-        /// <param name="connectionString">The connection string</param>
-        /// <returns>true if the connection is opened</returns>
-        private bool IsServerConnected(string connectionString)
-        {
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    return true;
-                }
-                catch (SqlException)
-                {
-                    return false;
-                }
-            }
-        }
-
-        private List<string> GetTables(string connectionString)
-        {
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                connection.Open();
-                DataTable schema = connection.GetSchema("Tables");
-                List<string> TableNames = new List<string>();
-                foreach (DataRow row in schema.Rows)
-                {
-                    TableNames.Add(row[2].ToString());
-                }
-                return TableNames;
-            }
-        }
-
-        private int getBroadcasterID(string strBroadcaster)
-        {
-            int intBroadcasterID = 0;
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBroadcasters WHERE username = @username", conn))
-                {
-                    cmd.Parameters.AddWithValue("@username", strBroadcaster);
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            while (reader.Read())
-                            {
-                                if (strBroadcaster.Equals(reader["username"].ToString().ToLower()))
-                                {
-                                    intBroadcasterID = int.Parse(reader["id"].ToString());
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return intBroadcasterID;
-        }
-
-        private void setListTimeouts()
-        {
-            try
-            {
-                string query = "DELETE FROM tblTimeout WHERE broadcaster = @broadcaster AND timeout < GETDATE()";
-
-                // Create connection and command
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                    conn.Close();
-                }
-
-                Dictionary<string, DateTime> dicTimeout = new Dictionary<string, DateTime>();
-
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblTimeout WHERE broadcaster = @broadcaster", conn))
-                    {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    dicTimeout.Add(reader["username"].ToString(), Convert.ToDateTime(reader["timeout"]));
-                                }
-                            }
-                        }
-                    }
-                }
-
-                _timeout.setLstTimeout(dicTimeout);
-            }
-            catch (Exception ex)
-            {
-                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "setListTimeouts()", true);
-            }
-        }
+        }        
 
         /// <summary>
         /// Monitor chat box for commands
@@ -686,6 +581,10 @@ namespace TwitchBot
                                 else if (message.Equals("!rank"))
                                     await _cmdGen.CmdViewRank(strUserName);
 
+                                /* Add song request to YouTube playlist */
+                                else if (message.StartsWith("!sr "))
+                                    await _cmdGen.CmdYouTubeSongRequest(message, strUserName);
+
                                 /* add more general commands here */
                             }
                         }
@@ -757,5 +656,116 @@ namespace TwitchBot
             return true;
         }
 
+        /// <summary>
+        /// Test that the server is connected
+        /// </summary>
+        /// <param name="connectionString">The connection string</param>
+        /// <returns>true if the connection is opened</returns>
+        private bool IsServerConnected(string connectionString)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    return true;
+                }
+                catch (SqlException)
+                {
+                    return false;
+                }
+            }
+        }
+
+        private List<string> GetTables(string connectionString)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                DataTable schema = connection.GetSchema("Tables");
+                List<string> TableNames = new List<string>();
+                foreach (DataRow row in schema.Rows)
+                {
+                    TableNames.Add(row[2].ToString());
+                }
+                return TableNames;
+            }
+        }
+
+        private int getBroadcasterID(string strBroadcaster)
+        {
+            int intBroadcasterID = 0;
+
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBroadcasters WHERE username = @username", conn))
+                {
+                    cmd.Parameters.AddWithValue("@username", strBroadcaster);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                if (strBroadcaster.Equals(reader["username"].ToString().ToLower()))
+                                {
+                                    intBroadcasterID = int.Parse(reader["id"].ToString());
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return intBroadcasterID;
+        }
+
+        private void setListTimeouts()
+        {
+            try
+            {
+                string query = "DELETE FROM tblTimeout WHERE broadcaster = @broadcaster AND timeout < GETDATE()";
+
+                // Create connection and command
+                using (SqlConnection conn = new SqlConnection(_connStr))
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                    conn.Close();
+                }
+
+                Dictionary<string, DateTime> dicTimeout = new Dictionary<string, DateTime>();
+
+                using (SqlConnection conn = new SqlConnection(_connStr))
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblTimeout WHERE broadcaster = @broadcaster", conn))
+                    {
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    dicTimeout.Add(reader["username"].ToString(), Convert.ToDateTime(reader["timeout"]));
+                                }
+                            }
+                        }
+                    }
+                }
+
+                _timeout.setLstTimeout(dicTimeout);
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "setListTimeouts()", true);
+            }
+        }
     }
 }

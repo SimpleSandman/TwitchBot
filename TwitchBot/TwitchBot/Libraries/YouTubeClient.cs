@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
-using Google.Apis.Upload;
 using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
@@ -24,11 +23,6 @@ namespace TwitchBot.Libraries
         private YouTubeService _youtubeService;
 
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
-
-        public YouTubeService YoutubeService
-        {
-            get { return _youtubeService; }
-        }
 
         public YoutubeClient() { }
 
@@ -54,7 +48,7 @@ namespace TwitchBot.Libraries
         /// <summary>
         /// Get access and refresh tokens from user's account
         /// </summary>
-        public async Task RetrieveTokens(TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig)
+        public async Task GetAuth(TwitchBotConfigurationSection botConfig)
         {
             try
             {
@@ -117,28 +111,26 @@ namespace TwitchBot.Libraries
         {
             var searchListRequest = _youtubeService.Search.List("snippet");
             searchListRequest.Q = searchQuery;
-            searchListRequest.MaxResults = 10;
+            searchListRequest.Type = "video";
+            searchListRequest.MaxResults = 1;
 
             var searchListResponse = await searchListRequest.ExecuteAsync();
 
             foreach (var searchResult in searchListResponse.Items)
             {
-                if (searchResult.Id.Kind.Equals("youtube#video"))
+                return new YouTubeVideoSearchResult
                 {
-                    return new YouTubeVideoSearchResult
-                    {
-                        Id = searchResult.Id.VideoId,
-                        Title = searchResult.Snippet.Title
-                    };
-                }
+                    Id = searchResult.Id.VideoId,
+                    Title = searchResult.Snippet.Title
+                };
             }
 
             return new YouTubeVideoSearchResult(); // couldn't find requested video
         }
 
-        public async Task<Video> SearchVideoById(string videoId)
+        public async Task<Video> GetVideoById(string videoId)
         {
-            var videoListRequest = _youtubeService.Videos.List("snippet,id");
+            var videoListRequest = _youtubeService.Videos.List("snippet,contentDetails");
             videoListRequest.Id = videoId;
 
             var videoListResponse = await videoListRequest.ExecuteAsync();

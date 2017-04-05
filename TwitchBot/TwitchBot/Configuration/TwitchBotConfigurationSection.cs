@@ -60,6 +60,12 @@ namespace TwitchBot.Configuration
         private static readonly ConfigurationProperty _youTubeClientSecret =
             new ConfigurationProperty("youTubeClientSecret", typeof(string), "", ConfigurationPropertyOptions.None);
 
+        private static readonly ConfigurationProperty _youTubeBroadcasterPlaylistId =
+            new ConfigurationProperty("youTubeBroadcasterPlaylistId", typeof(string), "", ConfigurationPropertyOptions.None);
+
+        private static readonly ConfigurationProperty _youTubeBroadcasterPlaylistName =
+            new ConfigurationProperty("youTubeBroadcasterPlaylistName", typeof(string), "", ConfigurationPropertyOptions.None);
+
         public TwitchBotConfigurationSection()
         {
             _properties = new ConfigurationPropertyCollection();
@@ -80,6 +86,8 @@ namespace TwitchBot.Configuration
             _properties.Add(_streamLatency);
             _properties.Add(_youTubeClientId);
             _properties.Add(_youTubeClientSecret);
+            _properties.Add(_youTubeBroadcasterPlaylistId);
+            _properties.Add(_youTubeBroadcasterPlaylistName);
         }
 
         protected override ConfigurationPropertyCollection Properties
@@ -280,6 +288,26 @@ namespace TwitchBot.Configuration
             {
                 ThrowIfReadOnly("YouTubeClientSecret");
                 this["youTubeClientSecret"] = value;
+            }
+        }
+
+        public string YouTubeBroadcasterPlaylistId
+        {
+            get { return (string)this["youTubeBroadcasterPlaylistId"]; }
+            set
+            {
+                ThrowIfReadOnly("YouTubeBroadcasterPlaylistId");
+                this["youTubeBroadcasterPlaylistId"] = value;
+            }
+        }
+
+        public string YouTubeBroadcasterPlaylistName
+        {
+            get { return (string)this["youTubeBroadcasterPlaylistName"]; }
+            set
+            {
+                ThrowIfReadOnly("YouTubeBroadcasterPlaylistName");
+                this["youTubeBroadcasterPlaylistName"] = value;
             }
         }
 

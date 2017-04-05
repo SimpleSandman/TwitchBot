@@ -9,13 +9,17 @@ using System.Data;
 using System.Text.RegularExpressions;
 using SpotifyAPI.Local.Models;
 using System.Net.Http;
+
 using Newtonsoft.Json;
+
+using Google.Apis.YouTube.v3.Data;
 
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
+
 
 namespace TwitchBot.Commands
 {
@@ -30,6 +34,7 @@ namespace TwitchBot.Commands
         private BankService _bank;
         private string _strBroadcasterGame;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+        private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
         public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, TwitchInfoService twitchInfo, BankService bank)
         {
@@ -947,6 +952,92 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdViewRank()", false, "!rank");
+            }
+        }
+
+        public async Task CmdYouTubeSongRequest(string message, string strUserName)
+        {
+            try
+            {
+                string videoId = "";
+
+                // Parse video ID based on different types of requests
+                if (message.Contains("youtube.com/watch?v="))
+                {
+                    int videoIdIndex = message.IndexOf("?v=") + 3;
+                    int addParam = message.IndexOf("&", videoIdIndex);
+
+                    if (addParam == -1)
+                        videoId = message.Substring(videoIdIndex);
+                    else
+                        videoId = message.Substring(videoIdIndex, addParam - videoIdIndex);
+                }
+                else if (message.Contains("youtu.be/"))
+                {
+                    int videoIdIndex = message.IndexOf("youtu.be/") + 9;
+                    int addParam = message.IndexOf("?", videoIdIndex);
+
+                    if (addParam == -1)
+                        videoId = message.Substring(videoIdIndex);
+                    else
+                        videoId = message.Substring(videoIdIndex, addParam - videoIdIndex);
+                }
+                else // search by keyword
+                {
+                    string videoKeyword = message.Substring(4);
+
+                    YouTubeVideoSearchResult result = await _youTubeClientInstance.SearchVideoByKeyword(videoKeyword);
+                    videoId = result.Id;
+                }
+
+                if (string.IsNullOrEmpty(videoId))
+                {
+                    _irc.sendPublicChatMessage($"Couldn't find video ID for song request @{strUserName}");
+                }
+                else
+                {
+                    Video video = await _youTubeClientInstance.GetVideoById(videoId);
+                    string videoDuration = video.ContentDetails.Duration;
+
+                    // Check if time limit has been reached
+                    // ToDo: Make bot setting for duration limit based on minutes (if set)
+                    if (!videoDuration.Contains("PT") || videoDuration.Contains("H"))
+                    {
+                        _irc.sendPublicChatMessage($"Either couldn't find video duration or way too long for the stream @{strUserName}");
+                    }
+                    else
+                    {
+                        int timeIndex = videoDuration.IndexOf("T") + 1;
+                        string parsedDuration = videoDuration.Substring(timeIndex).TrimEnd('S');
+                        int minIndex = parsedDuration.IndexOf("M");
+
+                        string videoMin = "0";
+                        string videoSec = "0";
+                        int videoMinLimit = 10;
+                        int videoSecLimit = 0;
+
+                        if (minIndex > 0)
+                            videoMin = parsedDuration.Substring(0, minIndex);
+
+                        videoSec = parsedDuration.Substring(minIndex + 1);
+
+                        if (Convert.ToInt32(videoMin) >= videoMinLimit && Convert.ToInt32(videoSec) >= videoSecLimit)
+                        {
+                            _irc.sendPublicChatMessage($"Song request is longer than or equal to {videoMinLimit} minute(s) and {videoSecLimit} second(s)");
+                        }
+                        else
+                        {
+                            await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId);
+
+                            _irc.sendPublicChatMessage($"\"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested");
+                        }
+                    }
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest", false, "!sr");
             }
         }
 
