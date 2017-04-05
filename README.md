@@ -9,7 +9,7 @@ Check out the wiki for the full list of commands by [clicking here](https://gith
 
 The bot itself is an account on Twitch that I have made in order to have a custom bot name.
 
-For development environment testing, create 2 files in the same folder as App.config. If you have any issues setting up this bot, please look further below for possible solutions.
+For development environment (testing), create 2 files in the same folder as App.config. If you have any issues setting up this bot, please look further below for possible solutions.
 
 ## AppConfigSecrets.config
 
@@ -20,7 +20,9 @@ For development environment testing, create 2 files in the same folder as App.co
     twitterConsumerSecret="[ConsumerSecret]"
     twitterAccessToken="[AccessToken]" twitterAccessSecret="[AccessSecret]" discordLink="[DiscordLink]"
     currencyType="[CurrencyName] (optional)" enableTweets="false" enableDisplaySong="false"
-    streamLatency="12" />
+    streamLatency="[Latency] (in seconds)" youTubeClientId="[YouTubeClientId]" 
+    youTubeClientSecret="[YouTubeClientSecret]" youTubeBroadcasterPlaylistId="[YouTubeBroadcasterPlaylistId]"
+    youTubeBroadcasterPlaylistName="[YouTubeBroadcasterPlaylistName]" />
 ```
 
 ## ConnectionStringsSecrets.config
@@ -36,7 +38,7 @@ For development environment testing, create 2 files in the same folder as App.co
 </connectionStrings>
 ```
 
-Set both files to copy-if-newer so that they get included in the compilation.  For production this files are not needed, and the bot will ask for configuration on first run
+Set both files to copy-if-newer so that they get included in the compilation. For production this files are not needed, and the bot will ask for configuration on first run
 
 ## Possible setup issues:
 - Connection string error `Configuration System Failed to Initialize`
