@@ -52,7 +52,7 @@ namespace TwitchBot.Commands
             try
             {
                 _irc.sendPublicChatMessage("---> !hello >< !slap @[username] >< !stab @[username] >< !throw [item] @[username] >< !shoot @[username] "
-                    + ">< !rbsrlist >< !rbsr [artist] - [song title] >< !partyup [party member name] >< !gamble [money] "
+                    + ">< !sr [youtube link/search] >< !sl >< !partyup [party member name] >< !gamble [money] "
                     + ">< !quote >< !" + _botConfig.CurrencyType.ToLower() + " (check stream currency) <---"
                     + " Link to full list of commands: http://bit.ly/2bXLlEe");
             }
@@ -985,9 +985,7 @@ namespace TwitchBot.Commands
                 else // search by keyword
                 {
                     string videoKeyword = message.Substring(4);
-
-                    YouTubeVideoSearchResult result = await _youTubeClientInstance.SearchVideoByKeyword(videoKeyword);
-                    videoId = result.Id;
+                    videoId = await _youTubeClientInstance.SearchVideoByKeyword(videoKeyword, 3);
                 }
 
                 if (string.IsNullOrEmpty(videoId))
@@ -996,7 +994,7 @@ namespace TwitchBot.Commands
                 }
                 else
                 {
-                    Video video = await _youTubeClientInstance.GetVideoById(videoId);
+                    Video video = await _youTubeClientInstance.GetVideoById(videoId, 2);
                     string videoDuration = video.ContentDetails.Duration;
 
                     // Check if time limit has been reached
@@ -1025,19 +1023,37 @@ namespace TwitchBot.Commands
                         {
                             _irc.sendPublicChatMessage($"Song request is longer than or equal to {videoMinLimit} minute(s) and {videoSecLimit} second(s)");
                         }
+                        else if (await _youTubeClientInstance.HasDuplicatePlaylistItem(_botConfig.YouTubeBroadcasterPlaylistId, videoId))
+                        {
+                            _irc.sendPublicChatMessage($"Song has already been requested @{strUserName}");
+                        }
                         else
                         {
-                            await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId);
+                            await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, strUserName);
+                            Playlist broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId, 1);
 
-                            _irc.sendPublicChatMessage($"\"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested");
+                            _irc.sendPublicChatMessage($"@{strUserName} -> \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested " + 
+                                $"at position #{broadcasterPlaylist.ContentDetails.ItemCount}");
                         }
                     }
                 }
-                
             }
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest", false, "!sr");
+            }
+        }
+
+        public void CmdYouTubeSongRequestList()
+        {
+            if (!string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
+            {
+                _irc.sendPublicChatMessage($"{_botConfig.Broadcaster.ToLower()}'s song request list is at " +
+                    "https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);
+            }
+            else
+            {
+                _irc.sendPublicChatMessage("There is no song request list at this time");
             }
         }
 

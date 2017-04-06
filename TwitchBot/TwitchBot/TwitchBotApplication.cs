@@ -179,8 +179,8 @@ namespace TwitchBot
                 await _youTubeClientInstance.GetAuth(_botConfig);
                 if (string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                 {
-                    Playlist playlist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(_botConfig.YouTubeBroadcasterPlaylistName);
-                    _botConfig.YouTubeBroadcasterPlaylistId = playlist.Id;
+                    Playlist broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(_botConfig.YouTubeBroadcasterPlaylistName);
+                    _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
                     _appConfig.Save();
                 }
 
@@ -584,6 +584,10 @@ namespace TwitchBot
                                 /* Add song request to YouTube playlist */
                                 else if (message.StartsWith("!sr "))
                                     await _cmdGen.CmdYouTubeSongRequest(message, strUserName);
+
+                                /* Display YouTube link to song request playlist */
+                                else if (message.Equals("!sl"))
+                                    _cmdGen.CmdYouTubeSongRequestList();
 
                                 /* add more general commands here */
                             }
