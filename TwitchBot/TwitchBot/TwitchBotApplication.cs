@@ -34,6 +34,7 @@ namespace TwitchBot
         private CmdGen _cmdGen;
         private bool _isSongRequestAvail;
         private bool _hasTwitterInfo;
+        private bool _hasYouTubeAuth;
         private double _defaultCooldownLimit;
         private List<CooldownUser> _cooldownUsers;
         private LocalSpotifyClient _spotify;
@@ -52,6 +53,7 @@ namespace TwitchBot
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
             _isSongRequestAvail = false;
             _hasTwitterInfo = false;
+            _hasYouTubeAuth = false;
             _timeout = new TimeoutCmd();
             _cooldownUsers = new List<CooldownUser>();
             _defaultCooldownLimit = 20.0; // ToDo: Grab seconds from configuration
@@ -175,9 +177,9 @@ namespace TwitchBot
                 Console.WriteLine("Stream latency: " + _botConfig.StreamLatency + " second(s)");
                 Console.WriteLine();
 
-                /* Pull YouTube tokens from user's account (request permission if needed) */
-                await _youTubeClientInstance.GetAuth(_botConfig);
-                if (string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
+                /* Pull YouTube response tokens from user's account (request permission if needed) */
+                _hasYouTubeAuth = await _youTubeClientInstance.GetAuth(_botConfig);
+                if (_hasYouTubeAuth && string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                 {
                     Playlist broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(_botConfig.YouTubeBroadcasterPlaylistName);
                     _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
@@ -223,7 +225,7 @@ namespace TwitchBot
                 Console.WriteLine();
 
                 /* Finished setup, time to start */
-                await GetChatBox(_isSongRequestAvail, _botConfig.TwitchAccessToken, _hasTwitterInfo);
+                await GetChatBox(_isSongRequestAvail, _botConfig.TwitchAccessToken, _hasTwitterInfo, _hasYouTubeAuth);
             }
             catch (Exception ex)
             {
@@ -237,7 +239,7 @@ namespace TwitchBot
         /// <param name="isSongRequestAvail"></param>
         /// <param name="twitchAccessToken"></param>
         /// <param name="hasTwitterInfo"></param>
-        private async Task GetChatBox(bool isSongRequestAvail, string twitchAccessToken, bool hasTwitterInfo)
+        private async Task GetChatBox(bool isSongRequestAvail, string twitchAccessToken, bool hasTwitterInfo, bool hasYouTubeAuth)
         {
             try
             {
@@ -583,11 +585,11 @@ namespace TwitchBot
 
                                 /* Add song request to YouTube playlist */
                                 else if (message.StartsWith("!sr "))
-                                    await _cmdGen.CmdYouTubeSongRequest(message, strUserName);
+                                    await _cmdGen.CmdYouTubeSongRequest(message, strUserName, hasYouTubeAuth);
 
                                 /* Display YouTube link to song request playlist */
                                 else if (message.Equals("!sl"))
-                                    _cmdGen.CmdYouTubeSongRequestList();
+                                    _cmdGen.CmdYouTubeSongRequestList(hasYouTubeAuth);
 
                                 /* add more general commands here */
                             }

@@ -48,7 +48,7 @@ namespace TwitchBot.Libraries
         /// <summary>
         /// Get access and refresh tokens from user's account
         /// </summary>
-        public async Task GetAuth(TwitchBotConfigurationSection botConfig)
+        public async Task<bool> GetAuth(TwitchBotConfigurationSection botConfig)
         {
             try
             {
@@ -72,10 +72,15 @@ namespace TwitchBot.Libraries
                     HttpClientInitializer = credential,
                     ApplicationName = "Twitch Bot"
                 });
+
+                return true;
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "YouTubeClient", "RetrieveTokens()", false);
+                if (!ex.Message.Contains("access_denied")) // record unknown error
+                    _errHndlrInstance.LogError(ex, "YouTubeClient", "GetAuth()", false);
+
+                return false;
             }
         }
 
