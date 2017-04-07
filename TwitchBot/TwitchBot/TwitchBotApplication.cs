@@ -32,7 +32,8 @@ namespace TwitchBot
         private CmdBrdCstr _cmdBrdCstr;
         private CmdMod _cmdMod;
         private CmdGen _cmdGen;
-        private bool _isSongRequestAvail;
+        private bool _isManualSongRequestAvail;
+        private bool _isYouTubeSongRequestAvail;
         private bool _hasTwitterInfo;
         private bool _hasYouTubeAuth;
         private double _defaultCooldownLimit;
@@ -51,7 +52,8 @@ namespace TwitchBot
             _appConfig = appConfig;
             _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program.ConnStrType].ConnectionString;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
-            _isSongRequestAvail = false;
+            _isManualSongRequestAvail = false;
+            _isYouTubeSongRequestAvail = false;
             _hasTwitterInfo = false;
             _hasYouTubeAuth = false;
             _timeout = new TimeoutCmd();
@@ -225,7 +227,7 @@ namespace TwitchBot
                 Console.WriteLine();
 
                 /* Finished setup, time to start */
-                await GetChatBox(_isSongRequestAvail, _botConfig.TwitchAccessToken, _hasTwitterInfo, _hasYouTubeAuth);
+                await GetChatBox(_isManualSongRequestAvail, _isYouTubeSongRequestAvail, _botConfig.TwitchAccessToken, _hasTwitterInfo, _hasYouTubeAuth);
             }
             catch (Exception ex)
             {
@@ -236,10 +238,12 @@ namespace TwitchBot
         /// <summary>
         /// Monitor chat box for commands
         /// </summary>
-        /// <param name="isSongRequestAvail"></param>
+        /// <param name="isManualSongRequestAvail"></param>
+        /// <param name="isYouTubeSongRequestAvail"></param>
         /// <param name="twitchAccessToken"></param>
         /// <param name="hasTwitterInfo"></param>
-        private async Task GetChatBox(bool isSongRequestAvail, string twitchAccessToken, bool hasTwitterInfo, bool hasYouTubeAuth)
+        /// <param name="hasYouTubeAuth"></param>
+        private async Task GetChatBox(bool isManualSongRequestAvail, bool isYouTubeSongRequestAvail, string twitchAccessToken, bool hasTwitterInfo, bool hasYouTubeAuth)
         {
             try
             {
@@ -310,11 +314,19 @@ namespace TwitchBot
 
                                 /* Enables viewers to request songs (default off) */
                                 else if (message.Equals("!rbsrmode on"))
-                                    _cmdBrdCstr.CmdEnableManualSrMode(ref isSongRequestAvail);
+                                    _cmdBrdCstr.CmdEnableManualSrMode(ref isManualSongRequestAvail);
 
                                 /* Disables viewers to request songs (default off) */
                                 else if (message.Equals("!rbsrmode off"))
-                                    _cmdBrdCstr.CmdDisableManualSrMode(ref isSongRequestAvail);
+                                    _cmdBrdCstr.CmdDisableManualSrMode(ref isManualSongRequestAvail);
+
+                                /* Enables viewers to request songs (default off) */
+                                else if (message.Equals("!ytsrmode on"))
+                                    _cmdBrdCstr.CmdEnableYouTubeSrMode(ref isYouTubeSongRequestAvail);
+
+                                /* Disables viewers to request songs (default off) */
+                                else if (message.Equals("!ytsrmode off"))
+                                    _cmdBrdCstr.CmdDisableYouTubeSrMode(ref isYouTubeSongRequestAvail);
 
                                 /* Updates the title of the Twitch channel */
                                 // Usage: !updatetitle [title]
@@ -478,7 +490,7 @@ namespace TwitchBot
                                 /* Request a song for the host to play */
                                 // Usage: !sr [artist] - [song title]
                                 else if (message.StartsWith("!rbsr "))
-                                    _cmdGen.CmdManualSr(isSongRequestAvail, message, strUserName);
+                                    _cmdGen.CmdManualSr(isManualSongRequestAvail, message, strUserName);
 
                                 /* Displays the current song being played from Spotify */
                                 else if (message.Equals("!spotifycurr"))
@@ -585,11 +597,11 @@ namespace TwitchBot
 
                                 /* Add song request to YouTube playlist */
                                 else if (message.StartsWith("!sr "))
-                                    await _cmdGen.CmdYouTubeSongRequest(message, strUserName, hasYouTubeAuth);
+                                    await _cmdGen.CmdYouTubeSongRequest(message, strUserName, hasYouTubeAuth, isYouTubeSongRequestAvail);
 
                                 /* Display YouTube link to song request playlist */
                                 else if (message.Equals("!sl"))
-                                    _cmdGen.CmdYouTubeSongRequestList(hasYouTubeAuth);
+                                    _cmdGen.CmdYouTubeSongRequestList(hasYouTubeAuth, isYouTubeSongRequestAvail);
 
                                 /* add more general commands here */
                             }

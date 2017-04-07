@@ -120,7 +120,7 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
-        /// Enable song request mode
+        /// Enable manual song request mode
         /// </summary>
         /// <param name="isSongRequestAvail">Set song request mode</param>
         public void CmdEnableManualSrMode(ref bool isSongRequestAvail)
@@ -137,7 +137,7 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
-        /// Disable song request mode
+        /// Disable manual song request mode
         /// </summary>
         /// <param name="isSongRequestAvail">Set song request mode</param>
         public void CmdDisableManualSrMode(ref bool isSongRequestAvail)
@@ -150,6 +150,40 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableSRMode(ref bool)", false, "!rbsrmode off");
+            }
+        }
+
+        /// <summary>
+        /// Enable manual song request mode
+        /// </summary>
+        /// <param name="isSongRequestAvail">Set song request mode</param>
+        public void CmdEnableYouTubeSrMode(ref bool isSongRequestAvail)
+        {
+            try
+            {
+                isSongRequestAvail = true;
+                _irc.sendPublicChatMessage("YouTube song requests enabled");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableYouTubeSrMode(ref bool)", false, "!ytsrmode on");
+            }
+        }
+
+        /// <summary>
+        /// Disable manual song request mode
+        /// </summary>
+        /// <param name="isSongRequestAvail">Set song request mode</param>
+        public void CmdDisableYouTubeSrMode(ref bool isSongRequestAvail)
+        {
+            try
+            {
+                isSongRequestAvail = false;
+                _irc.sendPublicChatMessage("YouTube song requests disabled");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableYouTubeSrMode(ref bool)", false, "!ytsrmode off");
             }
         }
 

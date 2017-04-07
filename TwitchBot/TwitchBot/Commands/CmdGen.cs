@@ -955,13 +955,17 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async Task CmdYouTubeSongRequest(string message, string strUserName, bool hasYouTubeAuth)
+        public async Task CmdYouTubeSongRequest(string message, string strUserName, bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
         {
             try
             {
                 if (!hasYouTubeAuth)
                 {
-                    _irc.sendPublicChatMessage($"YouTube song requests have not been set up");
+                    _irc.sendPublicChatMessage("YouTube song requests have not been set up");
+                }
+                else if (!isYouTubeSongRequestAvail)
+                {
+                    _irc.sendPublicChatMessage("YouTube song requests are not turned on");
                 }
                 else
                 { 
@@ -1051,9 +1055,9 @@ namespace TwitchBot.Commands
             }
         }
 
-        public void CmdYouTubeSongRequestList(bool hasYouTubeAuth)
+        public void CmdYouTubeSongRequestList(bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
         {
-            if (hasYouTubeAuth && !string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
+            if (hasYouTubeAuth && isYouTubeSongRequestAvail && !string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
             {
                 _irc.sendPublicChatMessage($"{_botConfig.Broadcaster.ToLower()}'s song request list is at " +
                     "https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);
