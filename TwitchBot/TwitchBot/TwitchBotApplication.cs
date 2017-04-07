@@ -180,10 +180,25 @@ namespace TwitchBot
                 Console.WriteLine();
 
                 /* Pull YouTube response tokens from user's account (request permission if needed) */
-                _hasYouTubeAuth = await _youTubeClientInstance.GetAuth(_botConfig);
+                // ToDo: Move YouTube client secrets away from bot config
+                _hasYouTubeAuth = await _youTubeClientInstance.GetAuth(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret);
                 if (_hasYouTubeAuth && string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                 {
-                    Playlist broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(_botConfig.YouTubeBroadcasterPlaylistName);
+                    // Check if user has a song request playlist, else create one
+                    string playlistName = _botConfig.YouTubeBroadcasterPlaylistName;
+                    string defaultPlaylistName = "Twitch Song Requests";
+
+                    if (string.IsNullOrEmpty(playlistName))
+                    {
+                        playlistName = defaultPlaylistName;
+                        _botConfig.YouTubeBroadcasterPlaylistName = playlistName;
+                    }
+
+                    Playlist broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(playlistName);
+
+                    if (broadcasterPlaylist.Id == null)
+                        broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylist(defaultPlaylistName, "Songs requested from Twitch chatters");
+
                     _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
                     _appConfig.Save();
                 }

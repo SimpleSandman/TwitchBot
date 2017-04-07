@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,9 +10,7 @@ using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
 
-using TwitchBot.Configuration;
 using TwitchBot.Extensions;
-using System.Linq;
 
 namespace TwitchBot.Libraries
 {
@@ -48,12 +47,13 @@ namespace TwitchBot.Libraries
         /// <summary>
         /// Get access and refresh tokens from user's account
         /// </summary>
-        public async Task<bool> GetAuth(TwitchBotConfigurationSection botConfig)
+        /// <param name="youTubeClientId"></param>
+        /// <param name="youTubeClientSecret"></param>
+        public async Task<bool> GetAuth(string youTubeClientId, string youTubeClientSecret)
         {
             try
             {
-                // ToDo: Move YouTube client secrets away from bot config
-                string clientSecrets = @"{ 'installed': {'client_id': '" + botConfig.YouTubeClientId + "', 'client_secret': '" + botConfig.YouTubeClientSecret + "'} }";
+                string clientSecrets = @"{ 'installed': {'client_id': '" + youTubeClientId + "', 'client_secret': '" + youTubeClientSecret + "'} }";
 
                 UserCredential credential;
                 using (Stream stream = clientSecrets.ToStream())
@@ -78,13 +78,13 @@ namespace TwitchBot.Libraries
             catch (Exception ex)
             {
                 if (!ex.Message.Contains("access_denied")) // record unknown error
-                    _errHndlrInstance.LogError(ex, "YouTubeClient", "GetAuth()", false);
+                    _errHndlrInstance.LogError(ex, "YouTubeClient", "GetAuth(string, string)", false);
 
                 return false;
             }
         }
 
-        public async Task CreatePlaylist(string title, string desc, string privacyStatus = "public")
+        public async Task<Playlist> CreatePlaylist(string title, string desc, string privacyStatus = "public")
         {
             var newPlaylist = new Playlist();
             newPlaylist.Snippet = new PlaylistSnippet();
@@ -92,9 +92,7 @@ namespace TwitchBot.Libraries
             newPlaylist.Snippet.Description = desc;
             newPlaylist.Status = new PlaylistStatus();
             newPlaylist.Status.PrivacyStatus = privacyStatus;
-            newPlaylist = await _youtubeService.Playlists.Insert(newPlaylist, "snippet,status").ExecuteAsync();
-
-            Console.WriteLine($"New YouTube playlist '{title}' has been created with playlist ID: '{newPlaylist.Id}'");
+            return await _youtubeService.Playlists.Insert(newPlaylist, "snippet,status").ExecuteAsync();
         }
 
         public async Task AddVideoToPlaylist(string videoId, string playlistId, string username, long position = -1)
