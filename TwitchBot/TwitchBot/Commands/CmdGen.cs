@@ -1040,6 +1040,7 @@ namespace TwitchBot.Commands
                             else
                             {
                                 await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, strUserName);
+                                await Task.Delay(1250); // wait before attempting to get item count from playlist
                                 Playlist broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId, 1);
 
                                 _irc.sendPublicChatMessage($"@{strUserName} -> \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested " +
