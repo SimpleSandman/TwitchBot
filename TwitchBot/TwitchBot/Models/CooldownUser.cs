@@ -10,7 +10,7 @@ namespace TwitchBot.Models
     {
         public string Username { get; set; }
         public DateTime Cooldown { get; set; }
-        public string Cmd { get; set; }
+        public string Command { get; set; }
         public bool Warned { get; set; }
     }
 }

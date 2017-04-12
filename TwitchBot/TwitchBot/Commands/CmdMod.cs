@@ -137,7 +137,7 @@ namespace TwitchBot.Commands
                 if (message.StartsWith("!deposit @"))
                     _irc.sendPublicChatMessage("Please enter a valid amount to a user @" + strUserName);
                 // Check if moderator is trying to give money to themselves
-                else if (_modInstance.LstMod.Contains(strUserName.ToLower()) && userList.Contains(strUserName.ToLower()))
+                else if (_modInstance.ListMods.Contains(strUserName.ToLower()) && userList.Contains(strUserName.ToLower()))
                     _irc.sendPublicChatMessage($"Entire deposit voided. You cannot add funds to your own account @{strUserName}");
                 else
                 {
@@ -375,7 +375,7 @@ namespace TwitchBot.Commands
                         _irc.sendPublicChatMessage("The duration needs to be at least 15 seconds long. Please try again");
                     else
                     {
-                        _timeout.addTimeoutToLst(strRecipient, _intBroadcasterID, dblSec, _connStr);
+                        _timeout.AddTimeoutToList(strRecipient, _intBroadcasterID, dblSec, _connStr);
 
                         _irc.sendPublicChatMessage("I am told not to talk to you for " + dblSec + " seconds @" + strRecipient);
                     }
@@ -398,7 +398,7 @@ namespace TwitchBot.Commands
             {
                 string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
 
-                _timeout.delTimeoutFromLst(strRecipient, _intBroadcasterID, _connStr);
+                _timeout.DeleteTimeoutFromList(strRecipient, _intBroadcasterID, _connStr);
 
                 _irc.sendPublicChatMessage(strRecipient + " can now interact with me again because of @" + strUserName);
             }

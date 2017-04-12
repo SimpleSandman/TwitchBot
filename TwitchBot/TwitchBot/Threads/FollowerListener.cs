@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,7 +13,7 @@ namespace TwitchBot.Threads
     {
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
-        private int _intBroadcasterID;
+        private int _broadcasterId;
         private Thread _followerListener;
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
@@ -35,9 +31,9 @@ namespace TwitchBot.Threads
         }
 
         // Starts the thread
-        public void Start(int intBroadcasterID)
+        public void Start(int broadcasterId)
         {
-            _intBroadcasterID = intBroadcasterID;
+            _broadcasterId = broadcasterId;
             _followerListener.IsBackground = true;
             _followerListener.Start();
         }
@@ -68,16 +64,16 @@ namespace TwitchBot.Threads
                 // Check for existing or new followers
                 for (int i = 0; i < lstAvailChatterType.Count; i++)
                 {
-                    foreach (string strChatter in lstAvailChatterType[i])
+                    foreach (string chatter in lstAvailChatterType[i])
                     {
                         // skip bot and broadcaster
-                        if (string.Equals(strChatter, _botConfig.BotName, StringComparison.CurrentCultureIgnoreCase)
-                            || string.Equals(strChatter, _botConfig.Broadcaster, StringComparison.CurrentCultureIgnoreCase))
+                        if (string.Equals(chatter, _botConfig.BotName, StringComparison.CurrentCultureIgnoreCase)
+                            || string.Equals(chatter, _botConfig.Broadcaster, StringComparison.CurrentCultureIgnoreCase))
                         {
                             continue;
                         }
 
-                        using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(strChatter))
+                        using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(chatter))
                         {
                             // check if chatter is a follower
                             if (!message.IsSuccessStatusCode)
@@ -86,23 +82,23 @@ namespace TwitchBot.Threads
                             }
 
                             // check if follower has experience
-                            int intCurrExp = _follower.CurrExp(strChatter, _intBroadcasterID);
+                            int intCurrExp = _follower.CurrExp(chatter, _broadcasterId);
 
                             if (intCurrExp > -1)
-                                _follower.UpdateExp(strChatter, _intBroadcasterID, intCurrExp);
+                                _follower.UpdateExp(chatter, _broadcasterId, intCurrExp);
                             else
-                                _follower.EnlistRecruit(strChatter, _intBroadcasterID);
+                                _follower.EnlistRecruit(chatter, _broadcasterId);
 
                             // check if follower has a stream currency account
-                            int intFunds = _bank.CheckBalance(strChatter, _intBroadcasterID);
+                            int intFunds = _bank.CheckBalance(chatter, _broadcasterId);
 
                             if (intFunds > -1)
                             {
                                 intFunds += 10; // deposit 10 stream currency for each iteration
-                                _bank.UpdateFunds(strChatter, _intBroadcasterID, intFunds);
+                                _bank.UpdateFunds(chatter, _broadcasterId, intFunds);
                             }
                             else // ToDo: Make currency auto-increment setting
-                                _bank.CreateAccount(strChatter, _intBroadcasterID, 10);
+                                _bank.CreateAccount(chatter, _broadcasterId, 10);
                         }
                     }
                 }

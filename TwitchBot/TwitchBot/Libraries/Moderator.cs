@@ -13,11 +13,11 @@ namespace TwitchBot.Libraries
         private static volatile Moderator _instance;
         private static object _syncRoot = new Object();
 
-        private List<string> _lstMod = new List<string>();
+        private List<string> _listMods = new List<string>();
 
-        public List<string> LstMod
+        public List<string> ListMods
         {
-            get { return _lstMod; }
+            get { return _listMods; }
         }
 
         private Moderator() { }
@@ -41,7 +41,7 @@ namespace TwitchBot.Libraries
             }
         }
 
-        public void setLstMod(string connStr, int intBroadcasterID)
+        public void SetModeratorList(string connStr, int broadcasterId)
         {
             try
             {
@@ -50,14 +50,14 @@ namespace TwitchBot.Libraries
                     conn.Open();
                     using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblModerators WHERE broadcaster = @broadcaster", conn))
                     {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
                             {
                                 while (reader.Read())
                                 {
-                                    _lstMod.Add(reader["username"].ToString());
+                                    _listMods.Add(reader["username"].ToString());
                                 }
                             }
                         }
@@ -70,7 +70,7 @@ namespace TwitchBot.Libraries
             }
         }
 
-        public void addNewModToLst(string strRecipient, int intBroadcaster, string connStr)
+        public void AddNewModToList(string recipient, int broadcasterId, string connStr)
         {
             try
             {
@@ -80,15 +80,15 @@ namespace TwitchBot.Libraries
                 using (SqlConnection conn = new SqlConnection(connStr))
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcaster;
+                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = recipient;
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
                     conn.Close();
                 }
 
-                _lstMod.Add(strRecipient);
+                _listMods.Add(recipient);
             }
             catch (Exception ex)
             {
@@ -96,7 +96,7 @@ namespace TwitchBot.Libraries
             }
         }
 
-        public void delOldModFromLst(string strRecipient, int intBroadcaster, string connStr)
+        public void DeleteOldModFromList(string recipient, int broadcasterId, string connStr)
         {
             try
             {
@@ -106,15 +106,15 @@ namespace TwitchBot.Libraries
                 using (SqlConnection conn = new SqlConnection(connStr))
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcaster;
+                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = recipient;
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
                     conn.Close();
                 }
 
-                _lstMod.Remove(strRecipient);
+                _listMods.Remove(recipient);
             }
             catch (Exception ex)
             {

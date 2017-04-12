@@ -2,48 +2,41 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TwitchBot.Libraries
 {
     public class TimeoutCmd
     {
-        private Dictionary<string, DateTime> _dictTimeout = new Dictionary<string, DateTime>();
+        private Dictionary<string, DateTime> _timeoutKeyValues = new Dictionary<string, DateTime>();
 
-        public Dictionary<string, DateTime> getLstTimeout()
+        public Dictionary<string, DateTime> TimeoutKeyValues
         {
-            return _dictTimeout;
+            get { return _timeoutKeyValues; }
+            set { _timeoutKeyValues = value; }
         }
 
-        public void setLstTimeout(Dictionary<string, DateTime> value)
-        {
-            _dictTimeout = value;
-        }
-
-        public void addTimeoutToLst(string strRecipient, int intBroadcasterID, double dblSec, string connStr)
+        public void AddTimeoutToList(string recipient, int broadcasterId, double seconds, string connStr)
         {
             try
             {
                 string query = "INSERT INTO tblTimeout (username, broadcaster, timeout) VALUES (@username, @broadcaster, @timeout)";
-                DateTime dtTimeout = new DateTime();
-                dtTimeout = DateTime.UtcNow.AddSeconds(dblSec);
+                DateTime timeoutDuration = new DateTime();
+                timeoutDuration = DateTime.UtcNow.AddSeconds(seconds);
 
                 // Create connection and command
                 using (SqlConnection conn = new SqlConnection(connStr))
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
-                    cmd.Parameters.Add("@timeout", SqlDbType.DateTime).Value = dtTimeout;
+                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = recipient;
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+                    cmd.Parameters.Add("@timeout", SqlDbType.DateTime).Value = timeoutDuration;
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
                     conn.Close();
                 }
 
-                _dictTimeout.Add(strRecipient, dtTimeout);
+                _timeoutKeyValues.Add(recipient, timeoutDuration);
             }
             catch (Exception ex)
             {
@@ -51,7 +44,7 @@ namespace TwitchBot.Libraries
             }
         }
 
-        public void delTimeoutFromLst(string strRecipient, int intBroadcasterID, string connStr)
+        public void DeleteTimeoutFromList(string recipient, int broadcasterId, string connStr)
         {
             try
             {
@@ -61,15 +54,15 @@ namespace TwitchBot.Libraries
                 using (SqlConnection conn = new SqlConnection(connStr))
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
+                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = recipient;
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
                     conn.Close();
                 }
 
-                _dictTimeout.Remove(strRecipient);
+                _timeoutKeyValues.Remove(recipient);
             }
             catch (Exception ex)
             {
@@ -77,19 +70,19 @@ namespace TwitchBot.Libraries
             }
         }
 
-        public string getTimoutFromUser(string strRecipient, int intBroadcasterID, string connStr)
+        public string GetTimeoutFromUser(string recipient, int broadcasterId, string connStr)
         {
             try
             {
-                if (_dictTimeout.ContainsKey(strRecipient))
+                if (_timeoutKeyValues.ContainsKey(recipient))
                 {
-                    if (_dictTimeout[strRecipient] < DateTime.UtcNow)
+                    if (_timeoutKeyValues[recipient] < DateTime.UtcNow)
                     {
-                        delTimeoutFromLst(strRecipient, intBroadcasterID, connStr);
+                        DeleteTimeoutFromList(recipient, broadcasterId, connStr);
                     }
                     else
                     {
-                        TimeSpan timeout = _dictTimeout[strRecipient] - DateTime.UtcNow;
+                        TimeSpan timeout = _timeoutKeyValues[recipient] - DateTime.UtcNow;
                         return timeout.ToString(@"hh\:mm\:ss");
                     }
                 }
