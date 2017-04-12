@@ -996,15 +996,26 @@ namespace TwitchBot.Commands
                         else
                             videoId = message.Substring(videoIdIndex, addParam - videoIdIndex);
                     }
+                    else if (message.Replace("!sr ", "").Length == 11 
+                        && message.Replace("!sr ", "").IndexOf(" ") == -1
+                        && Regex.Match(message, @"[\w\-]").Success) // assume only video ID
+                    {
+                        videoId = message.Replace("!sr ", "");
+                    }
                     else // search by keyword
                     {
                         string videoKeyword = message.Substring(4);
                         videoId = await _youTubeClientInstance.SearchVideoByKeyword(videoKeyword, 3);
                     }
 
+                    // Confirm if video ID has been found and is a new song request
                     if (string.IsNullOrEmpty(videoId))
                     {
                         _irc.SendPublicChatMessage($"Couldn't find video ID for song request @{username}");
+                    }
+                    else if (await _youTubeClientInstance.HasDuplicatePlaylistItem(_botConfig.YouTubeBroadcasterPlaylistId, videoId))
+                    {
+                        _irc.SendPublicChatMessage($"Song has already been requested @{username}");
                     }
                     else
                     {
@@ -1036,10 +1047,6 @@ namespace TwitchBot.Commands
                             if (Convert.ToInt32(videoMin) >= videoMinLimit && Convert.ToInt32(videoSec) >= videoSecLimit)
                             {
                                 _irc.SendPublicChatMessage($"Song request is longer than or equal to {videoMinLimit} minute(s) and {videoSecLimit} second(s)");
-                            }
-                            else if (await _youTubeClientInstance.HasDuplicatePlaylistItem(_botConfig.YouTubeBroadcasterPlaylistId, videoId))
-                            {
-                                _irc.SendPublicChatMessage($"Song has already been requested @{username}");
                             }
                             else
                             {
