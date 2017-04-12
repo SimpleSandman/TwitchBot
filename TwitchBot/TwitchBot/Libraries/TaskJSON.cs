@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
@@ -12,9 +10,9 @@ namespace TwitchBot.Libraries
 {
     public class TaskJSON
     {
-        public static async Task<ChannelJSON> GetChannel(string broadcasterName, string clientID)
+        public static async Task<ChannelJSON> GetChannel(string broadcasterName, string clientId)
         {
-            string body = await Program.HttpClient.GetStringAsync("https://api.twitch.tv/kraken/channels/" + broadcasterName + "?client_id=" + clientID);
+            string body = await Program.HttpClient.GetStringAsync("https://api.twitch.tv/kraken/channels/" + broadcasterName + "?client_id=" + clientId);
             ChannelJSON response = JsonConvert.DeserializeObject<ChannelJSON>(body);
             return response;
         }

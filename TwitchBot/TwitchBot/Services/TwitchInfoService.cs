@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
@@ -31,25 +29,25 @@ namespace TwitchBot.Services
 
             // Make list of available chatters by chatter type
             // ToDo: Categorize each list with username and chatter type
-            List<List<string>> lstAvailChatterType = new List<List<string>>();
+            List<List<string>> availChatterTypeList = new List<List<string>>();
 
             if (chatterInfo.chatter_count > 0)
             {
                 Chatters chatters = chatterInfo.chatters; // get list of chatters
 
                 if (chatters.viewers.Count() > 0)
-                    lstAvailChatterType.Add(chatters.viewers);
+                    availChatterTypeList.Add(chatters.viewers);
                 if (chatters.moderators.Count() > 0)
-                    lstAvailChatterType.Add(chatters.moderators);
+                    availChatterTypeList.Add(chatters.moderators);
                 if (chatters.global_mods.Count() > 0)
-                    lstAvailChatterType.Add(chatters.global_mods);
+                    availChatterTypeList.Add(chatters.global_mods);
                 if (chatters.admins.Count() > 0)
-                    lstAvailChatterType.Add(chatters.admins);
+                    availChatterTypeList.Add(chatters.admins);
                 if (chatters.staff.Count() > 0)
-                    lstAvailChatterType.Add(chatters.staff);
+                    availChatterTypeList.Add(chatters.staff);
             }
 
-            return lstAvailChatterType;
+            return availChatterTypeList;
         }
 
         /// <summary>
@@ -62,35 +60,35 @@ namespace TwitchBot.Services
             ChatterInfoJSON chatterInfo = await TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId);
 
             // Make list of available chatters
-            List<string> lstAvailChatter = new List<string>();
+            List<string> availChatterList = new List<string>();
 
             if (chatterInfo.chatter_count > 0)
             {
                 Chatters chatters = chatterInfo.chatters; // get list of chatters
 
                 if (chatters.viewers.Count() > 0)
-                    lstAvailChatter.AddRange(chatters.viewers);
+                    availChatterList.AddRange(chatters.viewers);
                 if (chatters.moderators.Count() > 0)
-                    lstAvailChatter.AddRange(chatters.moderators);
+                    availChatterList.AddRange(chatters.moderators);
                 if (chatters.global_mods.Count() > 0)
-                    lstAvailChatter.AddRange(chatters.global_mods);
+                    availChatterList.AddRange(chatters.global_mods);
                 if (chatters.admins.Count() > 0)
-                    lstAvailChatter.AddRange(chatters.admins);
+                    availChatterList.AddRange(chatters.admins);
                 if (chatters.staff.Count() > 0)
-                    lstAvailChatter.AddRange(chatters.staff);
+                    availChatterList.AddRange(chatters.staff);
             }
 
-            return lstAvailChatter;
+            return availChatterList;
         }
 
         /// <summary>
         /// Check if viewer is a follower via HttpResponseMessage
         /// </summary>
-        /// <param name="strUserName"></param>
+        /// <param name="username"></param>
         /// <returns></returns>
-        public async Task<HttpResponseMessage> CheckFollowerStatus(string strUserName)
+        public async Task<HttpResponseMessage> CheckFollowerStatus(string username)
         {
-            return await TaskJSON.GetFollowerStatus(_botConfig.Broadcaster.ToLower(), _botConfig.TwitchClientId, strUserName);
+            return await TaskJSON.GetFollowerStatus(_botConfig.Broadcaster.ToLower(), _botConfig.TwitchClientId, username);
         }
     }
 }

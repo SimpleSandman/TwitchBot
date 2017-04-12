@@ -32,7 +32,7 @@ namespace TwitchBot.Threads
         {
             while (true)
             {
-                _irc.sendPublicChatMessage("Friendly reminder: Type !cmds to see my commands");
+                _irc.SendPublicChatMessage("Friendly reminder: Type !cmds to see my commands");
                 Thread.Sleep(1200000); // 20 minutes
             }
         }

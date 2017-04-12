@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using TwitchBot.Repositories;
+﻿using TwitchBot.Repositories;
 
 namespace TwitchBot.Services
 {
@@ -17,19 +11,19 @@ namespace TwitchBot.Services
             _followerDB = followerDB;
         }
 
-        public int CurrExp(string chatter, int intBroadcasterID)
+        public int CurrExp(string chatter, int broadcasterId)
         {
-            return _followerDB.CurrExp(chatter, intBroadcasterID);
+            return _followerDB.CurrExp(chatter, broadcasterId);
         }
 
-        public void UpdateExp(string strChatter, int intBroadcasterID, int intCurrExp)
+        public void UpdateExp(string chatter, int broadcasterId, int currExp)
         {
-            _followerDB.UpdateExp(strChatter, intBroadcasterID, intCurrExp);
+            _followerDB.UpdateExp(chatter, broadcasterId, currExp);
         }
 
-        public void EnlistRecruit(string strChatter, int intBroadcasterID)
+        public void EnlistRecruit(string chatter, int broadcasterId)
         {
-            _followerDB.EnlistRecruit(strChatter, intBroadcasterID);
+            _followerDB.EnlistRecruit(chatter, broadcasterId);
         }
     }
 }

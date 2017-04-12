@@ -85,7 +85,6 @@ namespace TwitchBot.Libraries
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
-                    conn.Close();
                 }
 
                 _listMods.Add(recipient);
@@ -111,7 +110,6 @@ namespace TwitchBot.Libraries
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
-                    conn.Close();
                 }
 
                 _listMods.Remove(recipient);

@@ -63,7 +63,7 @@ namespace TwitchBot.Libraries
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "RunAsync()", true);
+                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "Connect()", true);
             }
         }
 
@@ -149,7 +149,7 @@ namespace TwitchBot.Libraries
                     + " >< Artist: " + track.ArtistResource.Name
                     + " >< Album: " + track.AlbumResource.Name;
 
-                Program.LstTupDelayMsg.Add(new Tuple<string, DateTime>(
+                Program.DelayMsgTupleList.Add(new Tuple<string, DateTime>(
                         pendingMessage,
                         DateTime.Now.AddSeconds(_botConfig.StreamLatency)
                     )

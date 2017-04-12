@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 using TwitchBot.Libraries;
 
@@ -35,15 +32,15 @@ namespace TwitchBot.Threads
                 while (true)
                 {
                     /* Make sure to send messages at the proper time */
-                    if (Program.LstTupDelayMsg.Count > 0)
+                    if (Program.DelayMsgTupleList.Count > 0)
                     {
                         /* Send the first element from the list of delayed messages */
-                        Tuple<string, DateTime> tupFirstMsg = Program.LstTupDelayMsg.First();
-                        if (tupFirstMsg.Item2 < DateTime.Now)
+                        Tuple<string, DateTime> firstMsg = Program.DelayMsgTupleList.First();
+                        if (firstMsg.Item2 < DateTime.Now)
                         {
-                            _irc.sendPublicChatMessage(tupFirstMsg.Item1);
-                            Console.WriteLine("Delayed message sent: " + tupFirstMsg.Item1);
-                            Program.LstTupDelayMsg.Remove(tupFirstMsg); // remove sent message from list
+                            _irc.SendPublicChatMessage(firstMsg.Item1);
+                            Console.WriteLine("Delayed message sent: " + firstMsg.Item1);
+                            Program.DelayMsgTupleList.Remove(firstMsg); // remove sent message from list
                         }
                     }
                 }

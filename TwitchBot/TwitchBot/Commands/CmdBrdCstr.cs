@@ -41,7 +41,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.sendPublicChatMessage("Auto tweets set to \"" + _botConfig.EnableTweets + "\" "
+                _irc.SendPublicChatMessage("Auto tweets set to \"" + _botConfig.EnableTweets + "\" "
                     + ">< Auto display songs set to \"" + _botConfig.EnableDisplaySong + "\" "
                     + ">< Currency set to \"" + _botConfig.CurrencyType + "\" "
                     + ">< Stream Latency set to \"" + _botConfig.StreamLatency + " second(s)\"");
@@ -59,7 +59,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.sendPublicChatMessage("Bye! Have a beautiful time!");
+                _irc.SendPublicChatMessage("Bye! Have a beautiful time!");
                 Environment.Exit(0); // exit program
             }
             catch (Exception ex)
@@ -77,14 +77,14 @@ namespace TwitchBot.Commands
             try
             {
                 if (!hasTwitterInfo)
-                    _irc.sendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
+                    _irc.SendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
                 else
                 {
                     _botConfig.EnableTweets = true;
                     _appConfig.Save();
 
                     Console.WriteLine("Auto publish tweets is set to [" + _botConfig.EnableTweets + "]");
-                    _irc.sendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
+                    _irc.SendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
                 }
             }
             catch (Exception ex)
@@ -102,14 +102,14 @@ namespace TwitchBot.Commands
             try
             {
                 if (!hasTwitterInfo)
-                    _irc.sendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
+                    _irc.SendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
                 else
                 {
                     _botConfig.EnableTweets = false;
                     _appConfig.Save();
 
                     Console.WriteLine("Auto publish tweets is set to [" + _botConfig.EnableTweets + "]");
-                    _irc.sendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
+                    _irc.SendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
                 }
             }
             catch (Exception ex)
@@ -127,7 +127,7 @@ namespace TwitchBot.Commands
             try
             {
                 isSongRequestAvail = true;
-                _irc.sendPublicChatMessage("Song requests enabled");
+                _irc.SendPublicChatMessage("Song requests enabled");
             }
             catch (Exception ex)
             {
@@ -144,7 +144,7 @@ namespace TwitchBot.Commands
             try
             {
                 isSongRequestAvail = false;
-                _irc.sendPublicChatMessage("Song requests disabled");
+                _irc.SendPublicChatMessage("Song requests disabled");
             }
             catch (Exception ex)
             {
@@ -161,7 +161,7 @@ namespace TwitchBot.Commands
             try
             {
                 isSongRequestAvail = true;
-                _irc.sendPublicChatMessage("YouTube song requests enabled");
+                _irc.SendPublicChatMessage("YouTube song requests enabled");
             }
             catch (Exception ex)
             {
@@ -178,7 +178,7 @@ namespace TwitchBot.Commands
             try
             {
                 isSongRequestAvail = false;
-                _irc.sendPublicChatMessage("YouTube song requests disabled");
+                _irc.SendPublicChatMessage("YouTube song requests disabled");
             }
             catch (Exception ex)
             {
@@ -215,7 +215,7 @@ namespace TwitchBot.Commands
                     string statResponse = response.StatusCode.ToString();
                     if (statResponse.Contains("OK"))
                     {
-                        _irc.sendPublicChatMessage("Twitch channel title updated to \"" + title +
+                        _irc.SendPublicChatMessage("Twitch channel title updated to \"" + title +
                             "\" >< Refresh your browser [F5] or twitch app to see the change");
                     }
                     else
@@ -267,7 +267,7 @@ namespace TwitchBot.Commands
                     string statResponse = response.StatusCode.ToString();
                     if (statResponse.Contains("OK"))
                     {
-                        _irc.sendPublicChatMessage("Twitch channel game status updated to \"" + game +
+                        _irc.SendPublicChatMessage("Twitch channel game status updated to \"" + game +
                             "\" >< Restart your connection to the stream or twitch app to see the change");
                         if (_botConfig.EnableTweets && hasTwitterInfo)
                         {
@@ -305,7 +305,7 @@ namespace TwitchBot.Commands
             try
             {
                 if (!bolHasTwitterInfo)
-                    _irc.sendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
+                    _irc.SendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
                 else
                 {
                     string command = message;
@@ -329,7 +329,7 @@ namespace TwitchBot.Commands
                 _appConfig.Save();
 
                 Console.WriteLine("Auto display songs is set to [" + _botConfig.EnableDisplaySong + "]");
-                _irc.sendPublicChatMessage(_botConfig.Broadcaster + ": Automatic display Spotify songs is set to \"" + _botConfig.EnableDisplaySong + "\"");
+                _irc.SendPublicChatMessage(_botConfig.Broadcaster + ": Automatic display Spotify songs is set to \"" + _botConfig.EnableDisplaySong + "\"");
             }
             catch (Exception ex)
             {
@@ -348,7 +348,7 @@ namespace TwitchBot.Commands
                 _appConfig.Save();
 
                 Console.WriteLine("Auto display songs is set to [" + _botConfig.EnableDisplaySong + "]");
-                _irc.sendPublicChatMessage(_botConfig.Broadcaster + ": Automatic display Spotify songs is set to \"" + _botConfig.EnableDisplaySong + "\"");
+                _irc.SendPublicChatMessage(_botConfig.Broadcaster + ": Automatic display Spotify songs is set to \"" + _botConfig.EnableDisplaySong + "\"");
             }
             catch (Exception ex)
             {
@@ -366,7 +366,7 @@ namespace TwitchBot.Commands
             {
                 string recipient = message.Substring(message.IndexOf("@") + 1); // grab user from message
                 _modInstance.AddNewModToList(recipient.ToLower(), _broadcasterId, _connStr); // add user to mod list and add to db
-                _irc.sendPublicChatMessage("@" + recipient + " is now able to use moderator features within " + _botConfig.BotName);
+                _irc.SendPublicChatMessage("@" + recipient + " is now able to use moderator features within " + _botConfig.BotName);
             }
             catch (Exception ex)
             {
@@ -384,7 +384,7 @@ namespace TwitchBot.Commands
             {
                 string recipient = message.Substring(message.IndexOf("@") + 1); // grab user from message
                 _modInstance.DeleteOldModFromList(recipient.ToLower(), _broadcasterId, _connStr); // delete user from mod list and remove from db
-                _irc.sendPublicChatMessage("@" + recipient + " is not able to use moderator features within " + _botConfig.BotName + " any longer");
+                _irc.SendPublicChatMessage("@" + recipient + " is not able to use moderator features within " + _botConfig.BotName + " any longer");
             }
             catch (Exception ex)
             {
@@ -407,10 +407,10 @@ namespace TwitchBot.Commands
                         listModMsg += name + " >< ";
 
                     listModMsg = listModMsg.Remove(listModMsg.Length - 3); // removed extra " >< "
-                    _irc.sendPublicChatMessage("List of bot moderators (separate from channel mods): " + listModMsg);
+                    _irc.SendPublicChatMessage("List of bot moderators (separate from channel mods): " + listModMsg);
                 }
                 else
-                    _irc.sendPublicChatMessage("No one is ruling over me other than you @" + _botConfig.Broadcaster);
+                    _irc.SendPublicChatMessage("No one is ruling over me other than you @" + _botConfig.Broadcaster);
             }
             catch (Exception ex)
             {
@@ -449,7 +449,7 @@ namespace TwitchBot.Commands
                 }
 
                 Console.WriteLine("Countdown added!");
-                _irc.sendPublicChatMessage($"Countdown added @{username}");
+                _irc.SendPublicChatMessage($"Countdown added @{username}");
             }
             catch (Exception ex)
             {
@@ -472,7 +472,7 @@ namespace TwitchBot.Commands
 
                 // validate requested countdown ID
                 if (!isValidCountdownId || reqCountdownId < 0)
-                    _irc.sendPublicChatMessage("Please use a positive whole number to find your countdown ID");
+                    _irc.SendPublicChatMessage("Please use a positive whole number to find your countdown ID");
                 else
                 {
                     // check if countdown ID exists
@@ -503,7 +503,7 @@ namespace TwitchBot.Commands
 
                     // check if countdown ID was retrieved
                     if (responseCountdownId == -1)
-                        _irc.sendPublicChatMessage($"Cannot find the countdown ID: {reqCountdownId}");
+                        _irc.SendPublicChatMessage($"Cannot find the countdown ID: {reqCountdownId}");
                     else
                     {
                         int inputType = -1; // check if input is in the correct format
@@ -517,7 +517,7 @@ namespace TwitchBot.Commands
                             bool hasValidCountdownDuration = DateTime.TryParse(countdownInput, out countdownDuration);
 
                             if (!hasValidCountdownDuration)
-                                _irc.sendPublicChatMessage("Please enter a valid date and time @" + username);
+                                _irc.SendPublicChatMessage("Please enter a valid date and time @" + username);
                             else
                                 inputType = 1;
                         }
@@ -525,7 +525,7 @@ namespace TwitchBot.Commands
                         {
                             // get new message of countdown
                             if (string.IsNullOrWhiteSpace(countdownInput))
-                                _irc.sendPublicChatMessage("Please enter a valid message @" + username);
+                                _irc.SendPublicChatMessage("Please enter a valid message @" + username);
                             else
                                 inputType = 2;
                         }
@@ -557,7 +557,7 @@ namespace TwitchBot.Commands
                             }
 
                             Console.WriteLine($"Changes to countdown ID: {reqCountdownId} have been made @{username}");
-                            _irc.sendPublicChatMessage($"Changes to countdown ID: {reqCountdownId} have been made @{username}");
+                            _irc.SendPublicChatMessage($"Changes to countdown ID: {reqCountdownId} have been made @{username}");
                         }
                     }
                 }
@@ -599,12 +599,12 @@ namespace TwitchBot.Commands
                                 StringBuilder modCountdownListMsg = new StringBuilder(countdownListMsg);
                                 modCountdownListMsg.Remove(countdownListMsg.Length - 4, 4); // remove extra " >< "
                                 countdownListMsg = modCountdownListMsg.ToString(); // replace old countdown list string with new
-                                _irc.sendPublicChatMessage(countdownListMsg);
+                                _irc.SendPublicChatMessage(countdownListMsg);
                             }
                             else
                             {
                                 Console.WriteLine("No countdown messages are set at the moment");
-                                _irc.sendPublicChatMessage("No countdown messages are set at the moment @" + username);
+                                _irc.SendPublicChatMessage("No countdown messages are set at the moment @" + username);
                             }
                         }
                     }
@@ -727,50 +727,50 @@ namespace TwitchBot.Commands
                                             }
 
                                             Console.WriteLine("Giveaway started!");
-                                            _irc.sendPublicChatMessage($"Giveaway \"{giveawayText}\" has started @{username}");
+                                            _irc.SendPublicChatMessage($"Giveaway \"{giveawayText}\" has started @{username}");
                                         }
                                         else
                                         {
                                             if (int.Parse(minRandNum) > int.Parse(maxRandNum))
-                                                _irc.sendPublicChatMessage($"Giveaway random number parameter values were flipped @{username}");
+                                                _irc.SendPublicChatMessage($"Giveaway random number parameter values were flipped @{username}");
                                             else
-                                                _irc.sendPublicChatMessage($"Giveaway random number parameter [min-max] was not given correctly @{username}");
+                                                _irc.SendPublicChatMessage($"Giveaway random number parameter [min-max] was not given correctly @{username}");
                                         }
                                     }
                                     else
                                     {
                                         if (giveawayType == 1)
-                                            _irc.sendPublicChatMessage($"Giveaway keyword parameter was not given @{username}");
+                                            _irc.SendPublicChatMessage($"Giveaway keyword parameter was not given @{username}");
                                         else if (giveawayType == 2)
-                                            _irc.sendPublicChatMessage($"Giveaway random number parameter was not given @{username}");
+                                            _irc.SendPublicChatMessage($"Giveaway random number parameter was not given @{username}");
                                     }
                                 }
                                 else
                                 {
                                     if (giveawayType == -1)
-                                        _irc.sendPublicChatMessage($"Giveaway type was not given correctly @{username}");
+                                        _irc.SendPublicChatMessage($"Giveaway type was not given correctly @{username}");
                                     else if (giveawayType != 1 || giveawayType != 2)
-                                        _irc.sendPublicChatMessage($"Please use giveaway type (1 = Keyword or 2 = Random Number) @{username}");
+                                        _irc.SendPublicChatMessage($"Please use giveaway type (1 = Keyword or 2 = Random Number) @{username}");
                                 }
                             }
                             else
                             {
-                                _irc.sendPublicChatMessage($"Eligibility parameters were not given correctly @{username}");
+                                _irc.SendPublicChatMessage($"Eligibility parameters were not given correctly @{username}");
                             }
                         }
                         else
                         {
-                            _irc.sendPublicChatMessage($"Couldn't find space between eligibility parameters @{username}");
+                            _irc.SendPublicChatMessage($"Couldn't find space between eligibility parameters @{username}");
                         }
                     }
                     else
                     {
-                        _irc.sendPublicChatMessage($"Date and time parameters were not given correctly @{username}");
+                        _irc.SendPublicChatMessage($"Date and time parameters were not given correctly @{username}");
                     }
                 }
                 else
                 {
-                    _irc.sendPublicChatMessage($"Couldn't find eligibility parameters @{username}");
+                    _irc.SendPublicChatMessage($"Couldn't find eligibility parameters @{username}");
                 }
             }
             catch (Exception ex)
@@ -794,7 +794,7 @@ namespace TwitchBot.Commands
 
                 // validate requested giveaway ID
                 if (!isValidGiveawayId || reqGiveawayId < 0)
-                    _irc.sendPublicChatMessage("Please use a positive whole number to find your giveaway ID");
+                    _irc.SendPublicChatMessage("Please use a positive whole number to find your giveaway ID");
                 else
                 {
                     // check if giveaway ID exists
@@ -825,7 +825,7 @@ namespace TwitchBot.Commands
 
                     // check if giveaway ID was retrieved
                     if (giveawayId == -1)
-                        _irc.sendPublicChatMessage($"Cannot find the giveaway ID: {reqGiveawayId}");
+                        _irc.SendPublicChatMessage($"Cannot find the giveaway ID: {reqGiveawayId}");
                     else
                     {
                         int inputType = -1; // check if input is in the correct format
@@ -839,7 +839,7 @@ namespace TwitchBot.Commands
                         {
                             // get new due date of giveaway
                             if (!DateTime.TryParse(giveawayInput, out giveawayDate))
-                                _irc.sendPublicChatMessage("Please enter a valid date and time @" + username);
+                                _irc.SendPublicChatMessage("Please enter a valid date and time @" + username);
                             else
                                 inputType = 1;
                         }
@@ -847,7 +847,7 @@ namespace TwitchBot.Commands
                         {
                             // get new message for giveaway
                             if (string.IsNullOrWhiteSpace(giveawayInput))
-                                _irc.sendPublicChatMessage("Please enter a valid message @" + username);
+                                _irc.SendPublicChatMessage("Please enter a valid message @" + username);
                             else
                                 inputType = 2;
                         }
@@ -872,7 +872,7 @@ namespace TwitchBot.Commands
                             }
                             else
                             {
-                                _irc.sendPublicChatMessage("Please enter a valid message @" + username);
+                                _irc.SendPublicChatMessage("Please enter a valid message @" + username);
                             }
                         }
                         else if (message.StartsWith("!editgiveawayTYP"))
@@ -880,7 +880,7 @@ namespace TwitchBot.Commands
                             // ToDo: Implement giveaway type/param(s) change
                             // get new giveaway type for giveaway
                             if (string.IsNullOrWhiteSpace(giveawayInput))
-                                _irc.sendPublicChatMessage("Please enter a valid message @" + username);
+                                _irc.SendPublicChatMessage("Please enter a valid message @" + username);
                             else
                                 inputType = 4;
                         }
@@ -913,11 +913,11 @@ namespace TwitchBot.Commands
                             }
 
                             Console.WriteLine($"Changes to giveaway ID: {reqGiveawayId} have been made @{username}");
-                            _irc.sendPublicChatMessage($"Changes to giveaway ID: {reqGiveawayId} have been made @{username}");
+                            _irc.SendPublicChatMessage($"Changes to giveaway ID: {reqGiveawayId} have been made @{username}");
                         }
                         else
                         {
-                            _irc.sendPublicChatMessage($"Please specify an option to edit a giveaway @{username}");
+                            _irc.SendPublicChatMessage($"Please specify an option to edit a giveaway @{username}");
                         }
                     }
                 }
@@ -937,7 +937,7 @@ namespace TwitchBot.Commands
                 resultMessage = "Please use at least two quotation marks (\") before sending a tweet. " +
                     "Quotations are used to find the start and end of a message wanting to be sent";
                 Console.WriteLine(resultMessage);
-                _irc.sendPublicChatMessage(resultMessage);
+                _irc.SendPublicChatMessage(resultMessage);
                 return;
             }
 
@@ -957,7 +957,7 @@ namespace TwitchBot.Commands
                 basicTweet = Tweet.PublishTweet(tweetMessage);
                 resultMessage = "Tweet successfully published!";
                 Console.WriteLine(resultMessage);
-                _irc.sendPublicChatMessage(resultMessage);
+                _irc.SendPublicChatMessage(resultMessage);
             }
             else
             {
@@ -965,7 +965,7 @@ namespace TwitchBot.Commands
                 resultMessage = "The message you attempted to tweet had " + overCharLimit +
                     " characters more than the 140 character limit. Please shorten your message and try again";
                 Console.WriteLine(resultMessage);
-                _irc.sendPublicChatMessage(resultMessage);
+                _irc.SendPublicChatMessage(resultMessage);
             }
         }
     }

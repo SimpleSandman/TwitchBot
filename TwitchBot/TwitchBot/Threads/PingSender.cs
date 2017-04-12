@@ -36,7 +36,7 @@ namespace TwitchBot.Threads
         {
             while (true)
             {
-                _irc.sendIrcMessage(PING + "irc.twitch.tv");
+                _irc.SendIrcMessage(PING + "irc.twitch.tv");
                 Thread.Sleep(300000); // 5 minutes
             }
         }

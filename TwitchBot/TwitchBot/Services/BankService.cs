@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using TwitchBot.Models;
 using TwitchBot.Repositories;
@@ -19,25 +16,25 @@ namespace TwitchBot.Services
             _bank = bank;
         }
 
-        public void CreateAccount(string strRecipient, int intBroadcasterID, int intDeposit)
+        public void CreateAccount(string recipient, int broadcasterId, int deposit)
         {
-            _bank.CreateAccount(strRecipient, intBroadcasterID, intDeposit);
+            _bank.CreateAccount(recipient, broadcasterId, deposit);
         }
 
-        public void UpdateFunds(string strWalletOwner, int intBroadcasterID, int intNewWalletBalance)
+        public void UpdateFunds(string walletOwner, int broadcasterId, int newWalletBalance)
         {
-            _bank.UpdateFunds(strWalletOwner, intBroadcasterID, intNewWalletBalance);
+            _bank.UpdateFunds(walletOwner, broadcasterId, newWalletBalance);
         }
 
-        public List<BalanceResult> UpdateCreateBalance(List<string> lstUsernames, int intBroadcasterID, int intDeposit, bool showOutput = false)
+        public List<BalanceResult> UpdateCreateBalance(List<string> usernameList, int broadcasterId, int deposit, bool showOutput = false)
         {
-            DataTable dt = _bank.UpdateCreateBalance(lstUsernames, intBroadcasterID, intDeposit, showOutput);
+            DataTable dt = _bank.UpdateCreateBalance(usernameList, broadcasterId, deposit, showOutput);
             if (dt.Rows.Count == 0)
             {
                 return new List<BalanceResult>();
             }
 
-            List<BalanceResult> lstUpdatedBalances = new List<BalanceResult>(dt.Rows.Count);
+            List<BalanceResult> updatedBalanceList = new List<BalanceResult>(dt.Rows.Count);
 
             foreach (DataRow row in dt.Rows)
             {
@@ -48,15 +45,15 @@ namespace TwitchBot.Services
                     Username = values[1].ToString(),
                     Wallet = Convert.ToInt32(values[2])
                 };
-                lstUpdatedBalances.Add(br);
+                updatedBalanceList.Add(br);
             }
 
-            return lstUpdatedBalances;
+            return updatedBalanceList;
         }
 
-        public int CheckBalance(string username, int intBroadcasterID)
+        public int CheckBalance(string username, int broadcasterId)
         {
-            return _bank.CheckBalance(username, intBroadcasterID);
+            return _bank.CheckBalance(username, broadcasterId);
         }
     }
 }

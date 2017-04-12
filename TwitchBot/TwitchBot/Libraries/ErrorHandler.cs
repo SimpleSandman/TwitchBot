@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+
 using TwitchBot.Configuration;
 
 namespace TwitchBot.Libraries
@@ -15,7 +12,7 @@ namespace TwitchBot.Libraries
     {
         private static ErrorHandler _instance;
 
-        private static int _intBroadcasterID;
+        private static int _broadcasterId;
         private static string _connStr;
         private static IrcClient _irc;
         private static TwitchBotConfigurationSection _botConfig;
@@ -30,22 +27,22 @@ namespace TwitchBot.Libraries
         /// <summary>
         /// Used first chance that error logging can be possible
         /// </summary>
-        public static void Configure(int intBroadcasterID, string connStr, IrcClient irc, TwitchBotConfigurationSection botConfig)
+        public static void Configure(int broadcasterId, string connStr, IrcClient irc, TwitchBotConfigurationSection botConfig)
         {
-            _intBroadcasterID = intBroadcasterID;
+            _broadcasterId = broadcasterId;
             _connStr = connStr;
             _irc = irc;
             _botConfig = botConfig;
         }
 
-        public void LogError(Exception ex, string strClass, string strMethod, bool hasToExit, string strCmd = "N/A", string strUserMsg = "N/A")
+        public void LogError(Exception ex, string className, string methodName, bool hasToExit, string botCmd = "N/A", string userMsg = "N/A")
         {
             Console.WriteLine("Error: " + ex.Message);
 
             try
             {
                 /* If username not available, grab default user to show local error after db connection */
-                if (_intBroadcasterID == 0)
+                if (_broadcasterId == 0)
                 {
                     string strBroadcaster = "n/a";
                     using (SqlConnection conn = new SqlConnection(_connStr))
@@ -62,7 +59,7 @@ namespace TwitchBot.Libraries
                                     {
                                         if (strBroadcaster.Equals(reader["username"].ToString().ToLower()))
                                         {
-                                            _intBroadcasterID = int.Parse(reader["id"].ToString());
+                                            _broadcasterId = int.Parse(reader["id"].ToString());
                                             break;
                                         }
                                     }
@@ -96,25 +93,25 @@ namespace TwitchBot.Libraries
                 {
                     cmd.Parameters.Add("@time", SqlDbType.DateTime).Value = DateTime.UtcNow;
                     cmd.Parameters.Add("@lineNum", SqlDbType.Int).Value = lineNumber;
-                    cmd.Parameters.Add("@class", SqlDbType.VarChar, 100).Value = strClass;
-                    cmd.Parameters.Add("@method", SqlDbType.VarChar, 100).Value = strMethod;
+                    cmd.Parameters.Add("@class", SqlDbType.VarChar, 100).Value = className;
+                    cmd.Parameters.Add("@method", SqlDbType.VarChar, 100).Value = methodName;
                     cmd.Parameters.Add("@msg", SqlDbType.VarChar, 4000).Value = ex.Message;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                    cmd.Parameters.Add("@command", SqlDbType.VarChar, 100).Value = strCmd;
-                    cmd.Parameters.Add("@userMsg", SqlDbType.VarChar, 500).Value = strUserMsg;
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
+                    cmd.Parameters.Add("@command", SqlDbType.VarChar, 100).Value = botCmd;
+                    cmd.Parameters.Add("@userMsg", SqlDbType.VarChar, 500).Value = userMsg;
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
                 }
 
-                string strPublicErrMsg = "I ran into an unexpected internal error! "
+                string publicErrMsg = "I ran into an unexpected internal error! "
                     + "@" + _botConfig.Broadcaster + " please look into the error log when you have time";
 
                 if (hasToExit)
-                    strPublicErrMsg += " I am leaving as well. Have a great time with this stream everyone :)";
+                    publicErrMsg += " I am leaving as well. Have a great time with this stream everyone :)";
 
                 if (_irc != null)
-                    _irc.sendPublicChatMessage(strPublicErrMsg);
+                    _irc.SendPublicChatMessage(publicErrMsg);
 
                 if (hasToExit)
                 {

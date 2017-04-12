@@ -266,7 +266,7 @@ namespace TwitchBot
                 while (true)
                 {
                     // Read any message inside the chat room
-                    string message = _irc.readMessage();
+                    string message = _irc.ReadMessage();
                     Console.WriteLine(message); // Print raw irc message
 
                     if (!string.IsNullOrEmpty(message))
@@ -651,10 +651,10 @@ namespace TwitchBot
                 string timeout = _timeout.GetTimeoutFromUser(username, _broadcasterId, _connStr);
 
                 if (timeout.Equals("0 seconds"))
-                    _irc.sendPublicChatMessage("You are now allowed to talk to me again @" + username
+                    _irc.SendPublicChatMessage("You are now allowed to talk to me again @" + username
                         + ". Please try the requested command once more");
                 else
-                    _irc.sendPublicChatMessage("I am not allowed to talk to you for " + timeout);
+                    _irc.SendPublicChatMessage("I am not allowed to talk to you for " + timeout);
 
                 return true;
             }
@@ -683,7 +683,7 @@ namespace TwitchBot
             {
                 user.Warned = true; // prevent spamming cooldown message
                 TimeSpan ts = user.Cooldown - DateTime.Now;
-                _irc.sendPublicChatMessage($"The {cmd} command is currently on cooldown @{username} for {ts.Seconds} seconds");
+                _irc.SendPublicChatMessage($"The {cmd} command is currently on cooldown @{username} for {ts.Seconds} seconds");
             }
 
             return true;

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using TwitchBot.Extensions;
 
 namespace TwitchBot.Repositories
@@ -18,70 +15,70 @@ namespace TwitchBot.Repositories
             _connStr = connStr;
         }
 
-        public void CreateAccount(string strRecipient, int intBroadcasterID, int intDeposit)
+        public void CreateAccount(string recipient, int broadcasterId, int deposit)
         {
             string query = "INSERT INTO tblBank (username, wallet, broadcaster) VALUES (@username, @wallet, @broadcaster)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
             {
-                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strRecipient;
-                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intDeposit;
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
+                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = recipient;
+                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = deposit;
+                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
 
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
         }
 
-        public void UpdateFunds(string strWalletOwner, int intBroadcasterID, int intNewWalletBalance)
+        public void UpdateFunds(string walletOwner, int broadcasterId, int newWalletBalance)
         {
             string query = "UPDATE tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
             {
-                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = intNewWalletBalance;
-                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strWalletOwner;
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
+                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = newWalletBalance;
+                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = walletOwner;
+                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
 
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
         }
 
-        public DataTable UpdateCreateBalance(List<string> lstUsernames, int intBroadcasterID, int intDeposit, bool showOutput = false)
+        public DataTable UpdateCreateBalance(List<string> usernameList, int broadcasterId, int deposit, bool showOutput = false)
         {
-            DataTable tblUsernames = lstUsernames.ToDataTable();
-            DataTable tblResult = new DataTable();
+            DataTable usernamesTable = usernameList.ToDataTable();
+            DataTable resultTable = new DataTable();
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand("uspUpdateCreateBalance", conn))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
 
-                cmd.Parameters.Add(new SqlParameter("@tvpUsernames", SqlDbType.Structured)).Value = tblUsernames;
-                cmd.Parameters.Add("@intBroadcasterID", SqlDbType.Int).Value = intBroadcasterID;
-                cmd.Parameters.Add("@intDeposit", SqlDbType.Int).Value = intDeposit;
+                cmd.Parameters.Add(new SqlParameter("@tvpUsernames", SqlDbType.Structured)).Value = usernamesTable;
+                cmd.Parameters.Add("@intBroadcasterID", SqlDbType.Int).Value = broadcasterId;
+                cmd.Parameters.Add("@intDeposit", SqlDbType.Int).Value = deposit;
                 cmd.Parameters.Add("@bitShowOutput", SqlDbType.Bit).Value = showOutput;
 
                 using (SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd))
                 {
-                    dataAdapter.Fill(tblResult);
+                    dataAdapter.Fill(resultTable);
                 }
             }
 
-            return tblResult;
+            return resultTable;
         }
 
-        public int CheckBalance(string username, int intBroadcasterID)
+        public int CheckBalance(string username, int broadcasterId)
         {
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
                 using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBank WHERE broadcaster = @broadcaster", conn))
                 {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.HasRows)

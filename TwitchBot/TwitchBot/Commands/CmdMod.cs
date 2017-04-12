@@ -46,9 +46,9 @@ namespace TwitchBot.Commands
             try
             {
                 if (string.IsNullOrEmpty(_botConfig.DiscordLink) || _botConfig.DiscordLink.Equals("Link unavailable at the moment"))
-                    _irc.sendPublicChatMessage("Discord link unavailable at the moment");
+                    _irc.SendPublicChatMessage("Discord link unavailable at the moment");
                 else
-                    _irc.sendPublicChatMessage("Join me on a wonderful discord server I am proud to be a part of! " + _botConfig.DiscordLink);
+                    _irc.SendPublicChatMessage("Join me on a wonderful discord server I am proud to be a part of! " + _botConfig.DiscordLink);
             }
             catch (Exception ex)
             {
@@ -66,7 +66,7 @@ namespace TwitchBot.Commands
             try
             {
                 if (message.StartsWith("!charge @"))
-                    _irc.sendPublicChatMessage("Please enter a valid amount to a user @" + username);
+                    _irc.SendPublicChatMessage("Please enter a valid amount to a user @" + username);
                 else
                 {
                     int indexAction = 8;
@@ -77,15 +77,15 @@ namespace TwitchBot.Commands
 
                     // Check user's bank account exist or has currency
                     if (wallet == -1)
-                        _irc.sendPublicChatMessage("The user '" + recipient + "' is not currently banking with us @" + username);
+                        _irc.SendPublicChatMessage("The user '" + recipient + "' is not currently banking with us @" + username);
                     else if (wallet == 0)
-                        _irc.sendPublicChatMessage("'" + recipient + "' is out of " + _botConfig.CurrencyType + " @" + username);
+                        _irc.SendPublicChatMessage("'" + recipient + "' is out of " + _botConfig.CurrencyType + " @" + username);
                     // Check if fee can be accepted
                     else if (fee > 0)
-                        _irc.sendPublicChatMessage("Please insert a negative whole amount (no decimal numbers) "
+                        _irc.SendPublicChatMessage("Please insert a negative whole amount (no decimal numbers) "
                             + " or use the !deposit command to add " + _botConfig.CurrencyType + " to a user's account");
                     else if (!isValidFee)
-                        _irc.sendPublicChatMessage("The fee wasn't accepted. Please try again with negative whole amount (no decimals)");
+                        _irc.SendPublicChatMessage("The fee wasn't accepted. Please try again with negative whole amount (no decimals)");
                     else /* Deduct funds from wallet */
                     {
                         wallet += fee;
@@ -98,10 +98,10 @@ namespace TwitchBot.Commands
 
                         // Prompt user's balance
                         if (wallet == 0)
-                            _irc.sendPublicChatMessage("Charged " + fee.ToString().Replace("-", "") + " " + _botConfig.CurrencyType + " to " + recipient
+                            _irc.SendPublicChatMessage("Charged " + fee.ToString().Replace("-", "") + " " + _botConfig.CurrencyType + " to " + recipient
                                 + "'s account! They are out of " + _botConfig.CurrencyType + " to spend");
                         else
-                            _irc.sendPublicChatMessage("Charged " + fee.ToString().Replace("-", "") + " " + _botConfig.CurrencyType + " to " + recipient
+                            _irc.SendPublicChatMessage("Charged " + fee.ToString().Replace("-", "") + " " + _botConfig.CurrencyType + " to " + recipient
                                 + "'s account! They only have " + wallet + " " + _botConfig.CurrencyType + " to spend");
                     }
                 }
@@ -134,10 +134,10 @@ namespace TwitchBot.Commands
 
                 // Check for valid command
                 if (message.StartsWith("!deposit @"))
-                    _irc.sendPublicChatMessage("Please enter a valid amount to a user @" + username);
+                    _irc.SendPublicChatMessage("Please enter a valid amount to a user @" + username);
                 // Check if moderator is trying to give money to themselves
                 else if (_modInstance.ListMods.Contains(username.ToLower()) && userList.Contains(username.ToLower()))
-                    _irc.sendPublicChatMessage($"Entire deposit voided. You cannot add funds to your own account @{username}");
+                    _irc.SendPublicChatMessage($"Entire deposit voided. You cannot add funds to your own account @{username}");
                 else
                 {
                     int indexAction = 9;
@@ -146,10 +146,10 @@ namespace TwitchBot.Commands
 
                     // Check if deposit amount is valid
                     if (deposit < 0)
-                        _irc.sendPublicChatMessage("Please insert a positive whole amount (no decimals) " 
+                        _irc.SendPublicChatMessage("Please insert a positive whole amount (no decimals) " 
                             + " or use the !charge command to remove " + _botConfig.CurrencyType + " from a user");
                     else if (!isValidDeposit)
-                        _irc.sendPublicChatMessage("The deposit wasn't accepted. Please try again with positive whole amount (no decimals)");
+                        _irc.SendPublicChatMessage("The deposit wasn't accepted. Please try again with positive whole amount (no decimals)");
                     else
                     {
                         if (userList.Count > 0)
@@ -175,11 +175,11 @@ namespace TwitchBot.Commands
                             else
                                 responseMsg = $"Unknown error has occurred in retrieving results. Please check your recipient's {_botConfig.CurrencyType}";
 
-                            _irc.sendPublicChatMessage(responseMsg);
+                            _irc.SendPublicChatMessage(responseMsg);
                         }
                         else
                         {
-                            _irc.sendPublicChatMessage($"There are no chatters to deposit {_botConfig.CurrencyType} @{username}");
+                            _irc.SendPublicChatMessage($"There are no chatters to deposit {_botConfig.CurrencyType} @{username}");
                         }
                     }
                 }
@@ -201,7 +201,7 @@ namespace TwitchBot.Commands
             {
                 // Check for valid command
                 if (message.StartsWith("!bonusall @"))
-                    _irc.sendPublicChatMessage("Please enter a valid amount to a user @" + username);
+                    _irc.SendPublicChatMessage("Please enter a valid amount to a user @" + username);
                 else
                 {
                     int indexAction = 10;
@@ -210,10 +210,10 @@ namespace TwitchBot.Commands
 
                     // Check if deposit amount is valid
                     if (deposit < 0)
-                        _irc.sendPublicChatMessage("Please insert a positive whole amount (no decimals) "
+                        _irc.SendPublicChatMessage("Please insert a positive whole amount (no decimals) "
                             + " or use the !charge command to remove " + _botConfig.CurrencyType + " from a user");
                     else if (!isValidDeposit)
-                        _irc.sendPublicChatMessage("The bulk deposit wasn't accepted. Please try again with positive whole amount (no decimals)");
+                        _irc.SendPublicChatMessage("The bulk deposit wasn't accepted. Please try again with positive whole amount (no decimals)");
                     else
                     {
                         List<string> chatterList = await _twitchInfo.GetChatterList();
@@ -222,12 +222,12 @@ namespace TwitchBot.Commands
                         if (chatterList != null && chatterList.Count > 0)
                         {
                             _bank.UpdateCreateBalance(chatterList, _broadcasterId, deposit);
-                            _irc.sendPublicChatMessage($"{deposit.ToString()} {_botConfig.CurrencyType} for everyone! "
+                            _irc.SendPublicChatMessage($"{deposit.ToString()} {_botConfig.CurrencyType} for everyone! "
                                 + $"Check your stream bank account with !{_botConfig.CurrencyType.ToLower()}");
                         }
                         else
                         {
-                            _irc.sendPublicChatMessage($"There are no chatters to deposit {_botConfig.CurrencyType} @{username}");
+                            _irc.SendPublicChatMessage($"There are no chatters to deposit {_botConfig.CurrencyType} @{username}");
                         }
                     }
                 }
@@ -281,10 +281,10 @@ namespace TwitchBot.Commands
                         cmd.ExecuteNonQuery();
                     }
 
-                    _irc.sendPublicChatMessage("The first song in queue, '" + removedSong + "' has been removed from the request list");
+                    _irc.SendPublicChatMessage("The first song in queue, '" + removedSong + "' has been removed from the request list");
                 }
                 else
-                    _irc.sendPublicChatMessage("There are no songs that can be removed from the song request list");
+                    _irc.SendPublicChatMessage("There are no songs that can be removed from the song request list");
             }
             catch (Exception ex)
             {
@@ -335,10 +335,10 @@ namespace TwitchBot.Commands
                         cmd.ExecuteNonQuery();
                     }
 
-                    _irc.sendPublicChatMessage("The first party member in queue, '" + removedPartyMember + "' has been removed from the request list");
+                    _irc.SendPublicChatMessage("The first party member in queue, '" + removedPartyMember + "' has been removed from the request list");
                 }
                 else
-                    _irc.sendPublicChatMessage("There are no songs that can be removed from the song request list");
+                    _irc.SendPublicChatMessage("There are no songs that can be removed from the song request list");
             }
             catch (Exception ex)
             {
@@ -356,11 +356,11 @@ namespace TwitchBot.Commands
             try
             {
                 if (message.StartsWith("!addtimeout @"))
-                    _irc.sendPublicChatMessage("I cannot make a user not talk to me without this format '!addtimeout [seconds] @[username]'");
+                    _irc.SendPublicChatMessage("I cannot make a user not talk to me without this format '!addtimeout [seconds] @[username]'");
                 else if (message.ToLower().Contains(_botConfig.Broadcaster.ToLower()))
-                    _irc.sendPublicChatMessage("I cannot betray @" + _botConfig.Broadcaster + " by not allowing him to communicate with me @" + username);
+                    _irc.SendPublicChatMessage("I cannot betray @" + _botConfig.Broadcaster + " by not allowing him to communicate with me @" + username);
                 else if (message.ToLower().Contains(_botConfig.BotName.ToLower()))
-                    _irc.sendPublicChatMessage("You can't time me out @" + username);
+                    _irc.SendPublicChatMessage("You can't time me out @" + username);
                 else
                 {
                     int indexAction = 12;
@@ -369,14 +369,14 @@ namespace TwitchBot.Commands
                     bool isValidDeposit = double.TryParse(message.Substring(indexAction, message.IndexOf("@") - indexAction - 1), out seconds);
 
                     if (!isValidDeposit || seconds < 0.00)
-                        _irc.sendPublicChatMessage("The timeout amount wasn't accepted. Please try again with positive seconds only");
+                        _irc.SendPublicChatMessage("The timeout amount wasn't accepted. Please try again with positive seconds only");
                     else if (seconds < 15.00)
-                        _irc.sendPublicChatMessage("The duration needs to be at least 15 seconds long. Please try again");
+                        _irc.SendPublicChatMessage("The duration needs to be at least 15 seconds long. Please try again");
                     else
                     {
                         _timeout.AddTimeoutToList(recipient, _broadcasterId, seconds, _connStr);
 
-                        _irc.sendPublicChatMessage("I am told not to talk to you for " + seconds + " seconds @" + recipient);
+                        _irc.SendPublicChatMessage("I am told not to talk to you for " + seconds + " seconds @" + recipient);
                     }
                 }
             }
@@ -399,7 +399,7 @@ namespace TwitchBot.Commands
 
                 _timeout.DeleteTimeoutFromList(recipient, _broadcasterId, _connStr);
 
-                _irc.sendPublicChatMessage(recipient + " can now interact with me again because of @" + username);
+                _irc.SendPublicChatMessage(recipient + " can now interact with me again because of @" + username);
             }
             catch (Exception ex)
             {
@@ -420,14 +420,14 @@ namespace TwitchBot.Commands
                 bool isValidInput = int.TryParse(message.Substring(12), out latency);
 
                 if (!isValidInput || latency < 0)
-                    _irc.sendPublicChatMessage("Please insert a valid positive alloted amount of time (in seconds)");
+                    _irc.SendPublicChatMessage("Please insert a valid positive alloted amount of time (in seconds)");
                 else
                 {
                     _botConfig.StreamLatency = latency;
                     _appConfig.Save();
 
                     Console.WriteLine("Stream latency set to " + _botConfig.StreamLatency + " second(s)");
-                    _irc.sendPublicChatMessage("Bot settings for stream latency set to " + _botConfig.StreamLatency + " second(s) @" + username);
+                    _irc.SendPublicChatMessage("Bot settings for stream latency set to " + _botConfig.StreamLatency + " second(s) @" + username);
                 }
             }
             catch (Exception ex)
@@ -461,7 +461,7 @@ namespace TwitchBot.Commands
                     cmd.ExecuteNonQuery();
                 }
 
-                _irc.sendPublicChatMessage($"Quote has been created @{username}");
+                _irc.SendPublicChatMessage($"Quote has been created @{username}");
             }
             catch (Exception ex)
             {
@@ -477,7 +477,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.sendPublicChatMessage($"@{username} is going AFK!");
+                _irc.SendPublicChatMessage($"@{username} is going AFK!");
             }
             catch (Exception ex)
             {
@@ -493,7 +493,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.sendPublicChatMessage($"@{username} is back!");
+                _irc.SendPublicChatMessage($"@{username} is back!");
             }
             catch (Exception ex)
             {

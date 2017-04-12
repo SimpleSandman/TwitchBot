@@ -13,7 +13,7 @@ namespace TwitchBot.Libraries
     // Reference: https://www.youtube.com/watch?v=Ss-OzV9aUZg
     public class IrcClient
     {
-        public string userName;
+        public string username;
         private string channel;
 
         private TcpClient tcpClient;
@@ -22,11 +22,11 @@ namespace TwitchBot.Libraries
 
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public IrcClient(string ip, int port, string userName, string password, string channel)
+        public IrcClient(string ip, int port, string username, string password, string channel)
         {
             try
             {
-                this.userName = userName;
+                this.username = username;
                 this.channel = channel;
 
                 tcpClient = new TcpClient(ip, port);
@@ -34,8 +34,8 @@ namespace TwitchBot.Libraries
                 outputStream = new StreamWriter(tcpClient.GetStream());
 
                 outputStream.WriteLine("PASS " + password);
-                outputStream.WriteLine("NICK " + userName);
-                outputStream.WriteLine("USER " + userName + " 8 * :" + userName);
+                outputStream.WriteLine("NICK " + username);
+                outputStream.WriteLine("USER " + username + " 8 * :" + username);
                 outputStream.WriteLine("JOIN #" + channel);
                 outputStream.Flush();
             }
@@ -45,7 +45,7 @@ namespace TwitchBot.Libraries
             }
         }
 
-        public void sendIrcMessage(string message)
+        public void SendIrcMessage(string message)
         {
             try
             {
@@ -54,24 +54,24 @@ namespace TwitchBot.Libraries
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "IrcClient", "sendIrcMessage", false);
+                _errHndlrInstance.LogError(ex, "IrcClient", "SendIrcMessage(string)", false);
             }
         }
 
-        public void sendPublicChatMessage(string message)
+        public void SendPublicChatMessage(string message)
         {
             try
             {
-                sendIrcMessage(":" + userName + "!" + userName + "@" + userName +
+                SendIrcMessage(":" + username + "!" + username + "@" + username +
                 ".tmi.twitch.tv PRIVMSG #" + channel + " :" + message);
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "IrcClient", "sendPublicMessage", false);
+                _errHndlrInstance.LogError(ex, "IrcClient", "SendPublicMessage(string)", false);
             }
         }
 
-        public string readMessage()
+        public string ReadMessage()
         {
             string message = inputStream.ReadLine();
             return message;

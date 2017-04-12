@@ -50,7 +50,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.sendPublicChatMessage("---> !hello >< !slap @[username] >< !stab @[username] >< !throw [item] @[username] >< !shoot @[username] "
+                _irc.SendPublicChatMessage("---> !hello >< !slap @[username] >< !stab @[username] >< !throw [item] @[username] >< !shoot @[username] "
                     + ">< !sr [youtube link/search] >< !sl >< !partyup [party member name] >< !gamble [money] "
                     + ">< !quote >< !" + _botConfig.CurrencyType.ToLower() + " (check stream currency) <---"
                     + " Link to full list of commands: http://bit.ly/2bXLlEe");
@@ -65,7 +65,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.sendPublicChatMessage($"Hey @{username}! Thanks for talking to me.");
+                _irc.SendPublicChatMessage($"Hey @{username}! Thanks for talking to me.");
             }
             catch (Exception ex)
             {
@@ -77,7 +77,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.sendPublicChatMessage($"UTC Time: {DateTime.UtcNow.ToString()}");
+                _irc.SendPublicChatMessage($"UTC Time: {DateTime.UtcNow.ToString()}");
             }
             catch (Exception ex)
             {
@@ -89,7 +89,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.sendPublicChatMessage($"{_botConfig.Broadcaster}'s Current Time: {DateTime.Now.ToString()} ({TimeZone.CurrentTimeZone.StandardName})");
+                _irc.SendPublicChatMessage($"{_botConfig.Broadcaster}'s Current Time: {DateTime.Now.ToString()} ({TimeZone.CurrentTimeZone.StandardName})");
             }
             catch (Exception ex)
             {
@@ -109,10 +109,10 @@ namespace TwitchBot.Commands
                     string duration = streamJson.stream.created_at;
                     TimeSpan ts = DateTime.UtcNow - DateTime.Parse(duration, new DateTimeFormatInfo(), DateTimeStyles.AdjustToUniversal);
                     string strResultDuration = String.Format("{0:h\\:mm\\:ss}", ts);
-                    _irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
+                    _irc.SendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
                 }
                 else
-                    _irc.sendPublicChatMessage("This channel is not streaming anything at the moment");
+                    _irc.SendPublicChatMessage("This channel is not streaming anything at the moment");
             }
             catch (Exception ex)
             {
@@ -160,12 +160,12 @@ namespace TwitchBot.Commands
                                 StringBuilder strBdrSongList = new StringBuilder(songList);
                                 strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " >< "
                                 songList = strBdrSongList.ToString(); // replace old song list string with new
-                                _irc.sendPublicChatMessage("Current List of Requested Songs: " + songList);
+                                _irc.SendPublicChatMessage("Current List of Requested Songs: " + songList);
                             }
                             else
                             {
                                 Console.WriteLine("No requests have been made");
-                                _irc.sendPublicChatMessage("No requests have been made");
+                                _irc.SendPublicChatMessage("No requests have been made");
                             }
                         }
                     }
@@ -198,7 +198,7 @@ namespace TwitchBot.Commands
                     // Check if song request has more than allowed symbols
                     if (!Regex.IsMatch(songRequest, @"^[a-zA-Z0-9 \-\(\)\'\?\,\/\""]+$"))
                     {
-                        _irc.sendPublicChatMessage("Only letters, numbers, commas, hyphens, parentheses, "
+                        _irc.SendPublicChatMessage("Only letters, numbers, commas, hyphens, parentheses, "
                             + "apostrophes, forward-slash, and question marks are allowed. Please try again. "
                             + "If the problem persists, please contact my creator");
                     }
@@ -218,11 +218,11 @@ namespace TwitchBot.Commands
                             cmd.ExecuteNonQuery();
                         }
 
-                        _irc.sendPublicChatMessage("The song \"" + songRequest + "\" has been successfully requested!");
+                        _irc.SendPublicChatMessage("The song \"" + songRequest + "\" has been successfully requested!");
                     }
                 }
                 else
-                    _irc.sendPublicChatMessage("Song requests are disabled at the moment");
+                    _irc.SendPublicChatMessage("Song requests are disabled at the moment");
             }
             catch (Exception ex)
             {
@@ -240,12 +240,12 @@ namespace TwitchBot.Commands
                 StatusResponse status = _spotify.GetStatus();
                 if (status != null)
                 {
-                    _irc.sendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
+                    _irc.SendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
                         + " >< Artist: " + status.Track.ArtistResource.Name
                         + " >< Album: " + status.Track.AlbumResource.Name);
                 }
                 else
-                    _irc.sendPublicChatMessage("The broadcaster is not playing a song at the moment");
+                    _irc.SendPublicChatMessage("The broadcaster is not playing a song at the moment");
             }
             catch (Exception ex)
             {
@@ -322,14 +322,14 @@ namespace TwitchBot.Commands
 
                 if (bodyPart.Equals(" but missed"))
                 {
-                    _irc.sendPublicChatMessage("Ha! You missed @" + username);
+                    _irc.SendPublicChatMessage("Ha! You missed @" + username);
                 }
                 else
                 {
                     // bot makes a special response if shot at
                     if (recipient.Equals(_botConfig.BotName.ToLower()))
                     {
-                        _irc.sendPublicChatMessage("You think shooting me in the " + bodyPart.Replace("'s ", "") + " would hurt me? I am a bot!");
+                        _irc.SendPublicChatMessage("You think shooting me in the " + bodyPart.Replace("'s ", "") + " would hurt me? I am a bot!");
                     }
                     else // viewer is the target
                     {
@@ -355,7 +355,7 @@ namespace TwitchBot.Commands
                 int indexAction = 7;
 
                 if (message.StartsWith("!throw @"))
-                    _irc.sendPublicChatMessage("Please throw an item to a user @" + username);
+                    _irc.SendPublicChatMessage("Please throw an item to a user @" + username);
                 else
                 {
                     string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
@@ -391,7 +391,7 @@ namespace TwitchBot.Commands
 
                 // check if user entered something
                 if (message.Length < inputIndex)
-                    _irc.sendPublicChatMessage("Please enter a party member @" + username);
+                    _irc.SendPublicChatMessage("Please enter a party member @" + username);
                 else
                     partyMember = message.Substring(inputIndex);
 
@@ -419,7 +419,7 @@ namespace TwitchBot.Commands
                 // if the game is not found
                 // tell users this game is not accepting party up requests
                 if (gameId == 0)
-                    _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
+                    _irc.SendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
                 else // check if user has already requested a party member
                 {
                     using (SqlConnection conn = new SqlConnection(_connStr))
@@ -449,7 +449,7 @@ namespace TwitchBot.Commands
                     }
 
                     if (isDuplicateRequestor)
-                        _irc.sendPublicChatMessage("You have already requested a party member. Please wait until your request has been completed @" + username);
+                        _irc.SendPublicChatMessage("You have already requested a party member. Please wait until your request has been completed @" + username);
                     else // search for party member user is requesting
                     {
                         using (SqlConnection conn = new SqlConnection(_connStr))
@@ -479,7 +479,7 @@ namespace TwitchBot.Commands
 
                         // insert party member if they exists from database
                         if (!isPartyMemebrFound)
-                            _irc.sendPublicChatMessage("I couldn't find the requested party member '" + partyMember + "' @" + username
+                            _irc.SendPublicChatMessage("I couldn't find the requested party member '" + partyMember + "' @" + username
                                 + ". Please check with the broadcaster for possible spelling errors");
                         else
                         {
@@ -501,7 +501,7 @@ namespace TwitchBot.Commands
                                 conn.Close();
                             }
 
-                            _irc.sendPublicChatMessage("@" + username + ": " + partyMember + " has been added to the party queue");
+                            _irc.SendPublicChatMessage("@" + username + ": " + partyMember + " has been added to the party queue");
                         }
                     }
                 }
@@ -550,7 +550,7 @@ namespace TwitchBot.Commands
                 // if the game is not found
                 // tell users this game is not part of the party up system
                 if (gameId == 0)
-                    _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
+                    _irc.SendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
                 else
                 {
                     using (SqlConnection conn = new SqlConnection(_connStr))
@@ -572,12 +572,12 @@ namespace TwitchBot.Commands
                                     StringBuilder modPartyListMsg = new StringBuilder(partyList);
                                     modPartyListMsg.Remove(partyList.Length - 4, 4); // remove extra " // "
                                     partyList = modPartyListMsg.ToString(); // replace old party member list string with new
-                                    _irc.sendPublicChatMessage(partyList);
+                                    _irc.SendPublicChatMessage(partyList);
                                 }
                                 else
                                 {
                                     Console.WriteLine("No party members are set for this game");
-                                    _irc.sendPublicChatMessage("No party members are set for this game");
+                                    _irc.SendPublicChatMessage("No party members are set for this game");
                                 }
                             }
                         }
@@ -628,7 +628,7 @@ namespace TwitchBot.Commands
                 // if the game is not found
                 // tell users this game is not part of the party up system
                 if (gameId == 0)
-                    _irc.sendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
+                    _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
                 else
                 {
                     using (SqlConnection conn = new SqlConnection(_connStr))
@@ -649,12 +649,12 @@ namespace TwitchBot.Commands
                                     StringBuilder modPartyListMsg = new StringBuilder(partyList);
                                     modPartyListMsg.Remove(partyList.Length - 4, 4); // remove extra " >< "
                                     partyList = modPartyListMsg.ToString(); // replace old party member list string with new
-                                    _irc.sendPublicChatMessage(partyList);
+                                    _irc.SendPublicChatMessage(partyList);
                                 }
                                 else
                                 {
                                     Console.WriteLine("No party members are set for this game");
-                                    _irc.sendPublicChatMessage("No party members are set for this game");
+                                    _irc.SendPublicChatMessage("No party members are set for this game");
                                 }
                             }
                         }
@@ -678,9 +678,9 @@ namespace TwitchBot.Commands
                 int balance = _bank.CheckBalance(username, _broadcasterId);
 
                 if (balance == -1)
-                    _irc.sendPublicChatMessage("You are not currently banking with us at the moment. Please talk to a moderator about acquiring " + _botConfig.CurrencyType);
+                    _irc.SendPublicChatMessage("You are not currently banking with us at the moment. Please talk to a moderator about acquiring " + _botConfig.CurrencyType);
                 else
-                    _irc.sendPublicChatMessage("@" + username + " currently has " + balance.ToString() + " " + _botConfig.CurrencyType);
+                    _irc.SendPublicChatMessage("@" + username + " currently has " + balance.ToString() + " " + _botConfig.CurrencyType);
             }
             catch (Exception ex)
             {
@@ -702,9 +702,9 @@ namespace TwitchBot.Commands
                 int walletBalance = _bank.CheckBalance(username, _broadcasterId);
 
                 if (!isValidMsg || gambledMoney < 1)
-                    _irc.sendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{username}");
+                    _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{username}");
                 else if (gambledMoney > walletBalance)
-                    _irc.sendPublicChatMessage($"You do not have the sufficient funds to gamble {gambledMoney} {_botConfig.CurrencyType} @{username}");
+                    _irc.SendPublicChatMessage($"You do not have the sufficient funds to gamble {gambledMoney} {_botConfig.CurrencyType} @{username}");
                 else
                 {
                     Random rnd = new Random(DateTime.Now.Millisecond);
@@ -737,7 +737,7 @@ namespace TwitchBot.Commands
 
                     result += $" and now has {newBalance} {_botConfig.CurrencyType}";
 
-                    _irc.sendPublicChatMessage(result);
+                    _irc.SendPublicChatMessage(result);
                 }
             }
             catch (Exception ex)
@@ -781,7 +781,7 @@ namespace TwitchBot.Commands
 
                 // Check if there any quotes inside the system
                 if (quoteList.Count == 0)
-                    _irc.sendPublicChatMessage("There are no quotes to be displayed at the moment");
+                    _irc.SendPublicChatMessage("There are no quotes to be displayed at the moment");
                 else
                 {
                     // Randomly pick a quote from the list to display
@@ -793,7 +793,7 @@ namespace TwitchBot.Commands
                     string quoteResult = $"\"{resultingQuote.Message}\" - {_botConfig.Broadcaster} " +
                         $"({resultingQuote.TimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {resultingQuote.TimeCreated.Year})";
 
-                    _irc.sendPublicChatMessage(quoteResult);
+                    _irc.SendPublicChatMessage(quoteResult);
                 }
             }
             catch (Exception ex)
@@ -819,13 +819,13 @@ namespace TwitchBot.Commands
                         FollowingSinceJSON response = JsonConvert.DeserializeObject<FollowingSinceJSON>(body);
                         DateTime startedFollowing = Convert.ToDateTime(response.created_at);
                         //TimeSpan howLong = DateTime.Now - startedFollowing;
-                        _irc.sendPublicChatMessage($"@{username} has been following since {startedFollowing.ToLongDateString()}");
+                        _irc.SendPublicChatMessage($"@{username} has been following since {startedFollowing.ToLongDateString()}");
                     }
                     else
                     {
                         string body = await message.Content.ReadAsStringAsync();
                         ErrMsgJSON response = JsonConvert.DeserializeObject<ErrMsgJSON>(body);
-                        _irc.sendPublicChatMessage(response.message);
+                        _irc.SendPublicChatMessage(response.message);
                     }
                 }
             }
@@ -923,7 +923,7 @@ namespace TwitchBot.Commands
 
                             decimal hoursWatched = Math.Round(Convert.ToDecimal(currExp) / (decimal)12.0, 2);
 
-                            _irc.sendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" {currExp}/{currFollowerRank.ExpCap} EXP ({hoursWatched} hours)");
+                            _irc.SendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" {currExp}/{currFollowerRank.ExpCap} EXP ({hoursWatched} hours)");
                         }
                         else
                         {
@@ -942,14 +942,14 @@ namespace TwitchBot.Commands
                                 cmd.ExecuteNonQuery();
                             }
 
-                            _irc.sendPublicChatMessage($"Welcome to the army @{username}. View your new rank using !rank");
+                            _irc.SendPublicChatMessage($"Welcome to the army @{username}. View your new rank using !rank");
                         }
                     }
                     else
                     {
                         string body = await message.Content.ReadAsStringAsync();
                         ErrMsgJSON response = JsonConvert.DeserializeObject<ErrMsgJSON>(body);
-                        _irc.sendPublicChatMessage(response.message);
+                        _irc.SendPublicChatMessage(response.message);
                     }
                 }
             }
@@ -965,11 +965,11 @@ namespace TwitchBot.Commands
             {
                 if (!hasYouTubeAuth)
                 {
-                    _irc.sendPublicChatMessage("YouTube song requests have not been set up");
+                    _irc.SendPublicChatMessage("YouTube song requests have not been set up");
                 }
                 else if (!isYouTubeSongRequestAvail)
                 {
-                    _irc.sendPublicChatMessage("YouTube song requests are not turned on");
+                    _irc.SendPublicChatMessage("YouTube song requests are not turned on");
                 }
                 else
                 { 
@@ -1004,7 +1004,7 @@ namespace TwitchBot.Commands
 
                     if (string.IsNullOrEmpty(videoId))
                     {
-                        _irc.sendPublicChatMessage($"Couldn't find video ID for song request @{username}");
+                        _irc.SendPublicChatMessage($"Couldn't find video ID for song request @{username}");
                     }
                     else
                     {
@@ -1015,7 +1015,7 @@ namespace TwitchBot.Commands
                         // ToDo: Make bot setting for duration limit based on minutes (if set)
                         if (!videoDuration.Contains("PT") || videoDuration.Contains("H"))
                         {
-                            _irc.sendPublicChatMessage($"Either couldn't find video duration or way too long for the stream @{username}");
+                            _irc.SendPublicChatMessage($"Either couldn't find video duration or way too long for the stream @{username}");
                         }
                         else
                         {
@@ -1035,11 +1035,11 @@ namespace TwitchBot.Commands
 
                             if (Convert.ToInt32(videoMin) >= videoMinLimit && Convert.ToInt32(videoSec) >= videoSecLimit)
                             {
-                                _irc.sendPublicChatMessage($"Song request is longer than or equal to {videoMinLimit} minute(s) and {videoSecLimit} second(s)");
+                                _irc.SendPublicChatMessage($"Song request is longer than or equal to {videoMinLimit} minute(s) and {videoSecLimit} second(s)");
                             }
                             else if (await _youTubeClientInstance.HasDuplicatePlaylistItem(_botConfig.YouTubeBroadcasterPlaylistId, videoId))
                             {
-                                _irc.sendPublicChatMessage($"Song has already been requested @{username}");
+                                _irc.SendPublicChatMessage($"Song has already been requested @{username}");
                             }
                             else
                             {
@@ -1048,7 +1048,7 @@ namespace TwitchBot.Commands
                                 //await Task.Delay(1500); // wait before attempting to get item count from playlist
                                 //Playlist broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId, 1);
 
-                                _irc.sendPublicChatMessage($"@{username} -> \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested!"); //+
+                                _irc.SendPublicChatMessage($"@{username} -> \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested!"); //+
                                     //$" at position #{broadcasterPlaylist.ContentDetails.ItemCount}");
                             }
                         }
@@ -1067,12 +1067,12 @@ namespace TwitchBot.Commands
             {
                 if (hasYouTubeAuth && isYouTubeSongRequestAvail && !string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                 {
-                    _irc.sendPublicChatMessage($"{_botConfig.Broadcaster.ToLower()}'s song request list is at " +
+                    _irc.SendPublicChatMessage($"{_botConfig.Broadcaster.ToLower()}'s song request list is at " +
                         "https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);
                 }
                 else
                 {
-                    _irc.sendPublicChatMessage("There is no song request list at this time");
+                    _irc.SendPublicChatMessage("There is no song request list at this time");
                 }
             }
             catch (Exception ex)
@@ -1086,14 +1086,14 @@ namespace TwitchBot.Commands
             // check if user is trying to use a command on themselves
             if (origUser.Equals(recipient))
             {
-                _irc.sendPublicChatMessage(msgToSelf + " @" + origUser);
+                _irc.SendPublicChatMessage(msgToSelf + " @" + origUser);
                 return true;
             }
 
             // check if recipient is the broadcaster before checking the viewer channel
             if (recipient.Equals(_botConfig.Broadcaster.ToLower()) || await ChatterValid(origUser, recipient))
             {
-                _irc.sendPublicChatMessage(origUser + " " + action + " @" + recipient + " " + addlMsg);
+                _irc.SendPublicChatMessage(origUser + " " + action + " @" + recipient + " " + addlMsg);
                 return true;
             }
 
@@ -1122,7 +1122,7 @@ namespace TwitchBot.Commands
             }
 
             // finished searching with no results
-            _irc.sendPublicChatMessage("@" + origUser + ": I cannot find the user you wanted to interact with. Perhaps the user left us?");
+            _irc.SendPublicChatMessage("@" + origUser + ": I cannot find the user you wanted to interact with. Perhaps the user left us?");
             return false;
         }
 

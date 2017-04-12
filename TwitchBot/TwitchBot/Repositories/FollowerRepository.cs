@@ -17,14 +17,14 @@ namespace TwitchBot.Repositories
             _connStr = connStr;
         }
 
-        public int CurrExp(string chatter, int intBroadcasterID)
+        public int CurrExp(string chatter, int broadcasterId)
         {
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
                 using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblRankFollowers WHERE broadcaster = @broadcaster", conn))
                 {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.HasRows)
@@ -44,7 +44,7 @@ namespace TwitchBot.Repositories
             return -1;
         }
 
-        public void UpdateExp(string strChatter, int intBroadcasterID, int intCurrExp)
+        public void UpdateExp(string chatter, int broadcasterId, int currExp)
         {
             // Give follower experience for watching
             string query = "UPDATE tblRankFollowers SET exp = @exp WHERE (username = @username AND broadcaster = @broadcaster)";
@@ -52,16 +52,16 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
             {
-                cmd.Parameters.Add("@exp", SqlDbType.Int).Value = ++intCurrExp; // add 1 experience every iteration
-                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strChatter;
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
+                cmd.Parameters.Add("@exp", SqlDbType.Int).Value = ++currExp; // add 1 experience every iteration
+                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = chatter;
+                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
 
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
         }
 
-        public void EnlistRecruit(string strChatter, int intBroadcasterID)
+        public void EnlistRecruit(string chatter, int broadcasterId)
         {
             // Add new follower to the ranks
             string query = "INSERT INTO tblRankFollowers (username, exp, broadcaster) "
@@ -70,9 +70,9 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
             {
-                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strChatter;
+                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = chatter;
                 cmd.Parameters.Add("@exp", SqlDbType.Int).Value = 0; // initial experience
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = intBroadcasterID;
+                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
 
                 conn.Open();
                 cmd.ExecuteNonQuery();
