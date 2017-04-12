@@ -476,7 +476,7 @@ namespace TwitchBot
                                  */
                                 /* Display some viewer commands a link to command documentation */
                                 if (message.Equals("!cmds"))
-                                    _cmdGen.CmdCmds();
+                                    _cmdGen.CmdDisplayCmds();
 
                                 /* Display a static greeting */
                                 else if (message.Equals("!hello"))
@@ -492,11 +492,11 @@ namespace TwitchBot
 
                                 /* Display the current time in the time zone the host is located */
                                 else if (message.Equals("!hosttime"))
-                                    _cmdGen.CmdHostTime(_botConfig.Broadcaster);
+                                    _cmdGen.CmdHostTime();
 
                                 /* Shows how long the broadcaster has been streaming */
-                                else if (message.Equals("!duration") || message.Equals("!uptime"))
-                                    _cmdGen.CmdDuration();
+                                else if (message.Equals("!uptime"))
+                                    await _cmdGen.CmdUptime();
 
                                 /* Display list of requested songs */
                                 else if (message.Equals("!rbsrlist"))
@@ -570,15 +570,15 @@ namespace TwitchBot
                                 /* Request party member if game and character exists in party up system */
                                 // Usage: !partyup [party member name]
                                 else if (message.StartsWith("!partyup "))
-                                    _cmdGen.CmdPartyUp(message, username);
+                                    await _cmdGen.CmdPartyUp(message, username);
 
                                 /* Check what other user's have requested */
                                 else if (message.Equals("!partyuprequestlist"))
-                                    _cmdGen.CmdPartyUpRequestList();
+                                    await _cmdGen.CmdPartyUpRequestList();
 
                                 /* Check what party members are available (if game is part of the party up system) */
                                 else if (message.Equals("!partyuplist"))
-                                    _cmdGen.CmdPartyUpList();
+                                    await _cmdGen.CmdPartyUpList();
 
                                 /* Check user's account balance */
                                 else if (message.Equals($"!{_botConfig.CurrencyType.ToLower()}"))

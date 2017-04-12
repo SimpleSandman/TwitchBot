@@ -29,10 +29,9 @@ namespace TwitchBot.Commands
         private LocalSpotifyClient _spotify;
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
-        private int _intBroadcasterID;
+        private int _broadcasterId;
         private TwitchInfoService _twitchInfo;
         private BankService _bank;
-        private string _strBroadcasterGame;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
@@ -42,12 +41,12 @@ namespace TwitchBot.Commands
             _spotify = spotify;
             _botConfig = botConfig;
             _connStr = connString;
-            _intBroadcasterID = broadcasterId;
+            _broadcasterId = broadcasterId;
             _twitchInfo = twitchInfo;
             _bank = bank;
         }
 
-        public void CmdCmds()
+        public void CmdDisplayCmds()
         {
             try
             {
@@ -62,11 +61,11 @@ namespace TwitchBot.Commands
             }
         }
 
-        public void CmdHello(string strUserName)
+        public void CmdHello(string username)
         {
             try
             {
-                _irc.sendPublicChatMessage($"Hey @{strUserName}! Thanks for talking to me.");
+                _irc.sendPublicChatMessage($"Hey @{username}! Thanks for talking to me.");
             }
             catch (Exception ex)
             {
@@ -86,27 +85,29 @@ namespace TwitchBot.Commands
             }
         }
 
-        public void CmdHostTime(string strBroadcasterName)
+        public void CmdHostTime()
         {
             try
             {
-                _irc.sendPublicChatMessage($"{strBroadcasterName}'s Current Time: {DateTime.Now.ToString()} ({TimeZone.CurrentTimeZone.StandardName})");
+                _irc.sendPublicChatMessage($"{_botConfig.Broadcaster}'s Current Time: {DateTime.Now.ToString()} ({TimeZone.CurrentTimeZone.StandardName})");
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdHostTime(string)", false, "!hosttime");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdHostTime()", false, "!hosttime");
             }
         }
 
-        public void CmdDuration()
+        public async Task CmdUptime()
         {
             try
             {
+                RootStreamJSON streamJson = await TaskJSON.GetStream(_botConfig.Broadcaster, _botConfig.TwitchClientId);
+
                 // Check if the channel is live
-                if (TaskJSON.GetStream(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.stream != null)
+                if (streamJson.stream != null)
                 {
-                    string strDuration = TaskJSON.GetStream(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.stream.created_at;
-                    TimeSpan ts = DateTime.UtcNow - DateTime.Parse(strDuration, new DateTimeFormatInfo(), DateTimeStyles.AdjustToUniversal);
+                    string duration = streamJson.stream.created_at;
+                    TimeSpan ts = DateTime.UtcNow - DateTime.Parse(duration, new DateTimeFormatInfo(), DateTimeStyles.AdjustToUniversal);
                     string strResultDuration = String.Format("{0:h\\:mm\\:ss}", ts);
                     _irc.sendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
                 }
@@ -115,7 +116,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdDuration(string)", false, "!duration");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdUptime()", false, "!uptime");
             }
         }
 
@@ -133,7 +134,7 @@ namespace TwitchBot.Commands
                     conn.Open();
                     using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster", conn))
                     {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
@@ -152,8 +153,8 @@ namespace TwitchBot.Commands
                                     foreach (DataColumn col in data.Columns)
                                     {
                                         newRow[col.ColumnName] = reader[col.ColumnName];
-                                        Console.WriteLine(newRow[col.ColumnName].ToString());
-                                        songList = songList + newRow[col.ColumnName].ToString() + " >< ";
+                                        Console.WriteLine(newRow[col.ColumnName]);
+                                        songList = songList + newRow[col.ColumnName] + " >< ";
                                     }
                                 }
                                 StringBuilder strBdrSongList = new StringBuilder(songList);
@@ -172,7 +173,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdListManualSr()", false, "!srlist");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdListManualSr()", false, "!rbsrlist");
             }
         }
 
@@ -181,8 +182,8 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="isSongRequestAvail">Check if song request system is enabled</param>
         /// <param name="message">Chat message from the user</param>
-        /// <param name="strUserName">User that sent the message</param>
-        public void CmdManualSr(bool isSongRequestAvail, string message, string strUserName)
+        /// <param name="username">User that sent the message</param>
+        public void CmdManualSr(bool isSongRequestAvail, string message, string username)
         {
             try
             {
@@ -210,12 +211,11 @@ namespace TwitchBot.Commands
                         using (SqlCommand cmd = new SqlCommand(query, conn))
                         {
                             cmd.Parameters.Add("@song", SqlDbType.VarChar, 200).Value = songRequest;
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.VarChar, 200).Value = _intBroadcasterID;
-                            cmd.Parameters.Add("@chatter", SqlDbType.VarChar, 200).Value = strUserName;
+                            cmd.Parameters.Add("@broadcaster", SqlDbType.VarChar, 200).Value = _broadcasterId;
+                            cmd.Parameters.Add("@chatter", SqlDbType.VarChar, 200).Value = username;
 
                             conn.Open();
                             cmd.ExecuteNonQuery();
-                            conn.Close();
                         }
 
                         _irc.sendPublicChatMessage("The song \"" + songRequest + "\" has been successfully requested!");
@@ -226,7 +226,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSr(bool, string, string)", false, "!sr", message);
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSr(bool, string, string)", false, "!rbsr", message);
             }
         }
 
@@ -257,13 +257,13 @@ namespace TwitchBot.Commands
         /// Slaps a user and rates its effectiveness
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        /// <param name="strUserName">User that sent the message</param>
-        public async Task CmdSlap(string message, string strUserName)
+        /// <param name="username">User that sent the message</param>
+        public async Task CmdSlap(string message, string username)
         {
             try
             {
-                string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                await ReactionCmd(strUserName, strRecipient, "Stop smacking yourself", "slaps", Effectiveness());
+                string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                await ReactionCmd(username, recipient, "Stop smacking yourself", "slaps", Effectiveness());
             }
             catch (Exception ex)
             {
@@ -275,13 +275,13 @@ namespace TwitchBot.Commands
         /// Stabs a user and rates its effectiveness
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        /// <param name="strUserName">User that sent the message</param>
-        public async Task CmdStab(string message, string strUserName)
+        /// <param name="username">User that sent the message</param>
+        public async Task CmdStab(string message, string username)
         {
             try
             {
-                string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                await ReactionCmd(strUserName, strRecipient, "Stop stabbing yourself! You'll bleed out", "stabs", Effectiveness());
+                string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                await ReactionCmd(username, recipient, "Stop stabbing yourself! You'll bleed out", "stabs", Effectiveness());
             }
             catch (Exception ex)
             {
@@ -293,47 +293,47 @@ namespace TwitchBot.Commands
         /// Shoots a viewer's random body part
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        /// <param name="strUserName">User that sent the message</param>
-        public async Task CmdShoot(string message, string strUserName)
+        /// <param name="username">User that sent the message</param>
+        public async Task CmdShoot(string message, string username)
         {
             try
             {
-                string strBodyPart = "'s ";
-                string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                string bodyPart = "'s ";
+                string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
                 Random rnd = new Random(DateTime.Now.Millisecond);
-                int intBodyPart = rnd.Next(8); // between 0 and 7
+                int bodyPartId = rnd.Next(8); // between 0 and 7
 
-                if (intBodyPart == 0)
-                    strBodyPart += "head";
-                else if (intBodyPart == 1)
-                    strBodyPart += "left leg";
-                else if (intBodyPart == 2)
-                    strBodyPart += "right leg";
-                else if (intBodyPart == 3)
-                    strBodyPart += "left arm";
-                else if (intBodyPart == 4)
-                    strBodyPart += "right arm";
-                else if (intBodyPart == 5)
-                    strBodyPart += "stomach";
-                else if (intBodyPart == 6)
-                    strBodyPart += "neck";
+                if (bodyPartId == 0)
+                    bodyPart += "head";
+                else if (bodyPartId == 1)
+                    bodyPart += "left leg";
+                else if (bodyPartId == 2)
+                    bodyPart += "right leg";
+                else if (bodyPartId == 3)
+                    bodyPart += "left arm";
+                else if (bodyPartId == 4)
+                    bodyPart += "right arm";
+                else if (bodyPartId == 5)
+                    bodyPart += "stomach";
+                else if (bodyPartId == 6)
+                    bodyPart += "neck";
                 else // found largest random value
-                    strBodyPart = " but missed";
+                    bodyPart = " but missed";
 
-                if (strBodyPart.Equals(" but missed"))
+                if (bodyPart.Equals(" but missed"))
                 {
-                    _irc.sendPublicChatMessage("Ha! You missed @" + strUserName);
+                    _irc.sendPublicChatMessage("Ha! You missed @" + username);
                 }
                 else
                 {
                     // bot makes a special response if shot at
-                    if (strRecipient.Equals(_botConfig.BotName.ToLower()))
+                    if (recipient.Equals(_botConfig.BotName.ToLower()))
                     {
-                        _irc.sendPublicChatMessage("You think shooting me in the " + strBodyPart.Replace("'s ", "") + " would hurt me? I am a bot!");
+                        _irc.sendPublicChatMessage("You think shooting me in the " + bodyPart.Replace("'s ", "") + " would hurt me? I am a bot!");
                     }
                     else // viewer is the target
                     {
-                        await ReactionCmd(strUserName, strRecipient, "You just shot your " + strBodyPart.Replace("'s ", ""), "shoots", strBodyPart);
+                        await ReactionCmd(username, recipient, "You just shot your " + bodyPart.Replace("'s ", ""), "shoots", bodyPart);
                     }
                 }
             }
@@ -347,21 +347,21 @@ namespace TwitchBot.Commands
         /// Throws an item at a viewer and rates its effectiveness against the victim
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        /// <param name="strUserName">User that sent the message</param>
-        public async Task CmdThrow(string message, string strUserName)
+        /// <param name="username">User that sent the message</param>
+        public async Task CmdThrow(string message, string username)
         {
             try
             {
-                int intIndexAction = 7;
+                int indexAction = 7;
 
                 if (message.StartsWith("!throw @"))
-                    _irc.sendPublicChatMessage("Please throw an item to a user @" + strUserName);
+                    _irc.sendPublicChatMessage("Please throw an item to a user @" + username);
                 else
                 {
-                    string strRecipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                    string item = message.Substring(intIndexAction, message.IndexOf("@") - intIndexAction - 1);
+                    string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                    string item = message.Substring(indexAction, message.IndexOf("@") - indexAction - 1);
 
-                    await ReactionCmd(strUserName, strRecipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + Effectiveness());
+                    await ReactionCmd(username, recipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + Effectiveness());
                 }
             }
             catch (Exception ex)
@@ -374,25 +374,26 @@ namespace TwitchBot.Commands
         /// Request party member if game and character exists in party up system
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        /// <param name="strUserName">User that sent the message</param>
-        public void CmdPartyUp(string message, string strUserName)
+        /// <param name="username">User that sent the message</param>
+        public async Task CmdPartyUp(string message, string username)
         {
             try
             {
-                string strPartyMember = "";
-                int intInputIndex = message.IndexOf(" ") + 1;
-                int intGameID = 0;
+                string partyMember = "";
+                int inputIndex = message.IndexOf(" ") + 1;
+                int gameId = 0;
                 bool isPartyMemebrFound = false;
                 bool isDuplicateRequestor = false;
 
                 // Get current game
-                _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.game;
+                ChannelJSON json = await TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId);
+                string broadcasterGame = json.game;
 
                 // check if user entered something
-                if (message.Length < intInputIndex)
-                    _irc.sendPublicChatMessage("Please enter a party member @" + strUserName);
+                if (message.Length < inputIndex)
+                    _irc.sendPublicChatMessage("Please enter a party member @" + username);
                 else
-                    strPartyMember = message.Substring(intInputIndex);
+                    partyMember = message.Substring(inputIndex);
 
                 // grab game id in order to find party member
                 using (SqlConnection conn = new SqlConnection(_connStr))
@@ -405,9 +406,9 @@ namespace TwitchBot.Commands
                         {
                             while (reader.Read())
                             {
-                                if (_strBroadcasterGame.Equals(reader["name"].ToString()))
+                                if (broadcasterGame.Equals(reader["name"].ToString()))
                                 {
-                                    intGameID = int.Parse(reader["id"].ToString());
+                                    gameId = int.Parse(reader["id"].ToString());
                                     break;
                                 }
                             }
@@ -417,7 +418,7 @@ namespace TwitchBot.Commands
 
                 // if the game is not found
                 // tell users this game is not accepting party up requests
-                if (intGameID == 0)
+                if (gameId == 0)
                     _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
                 else // check if user has already requested a party member
                 {
@@ -427,16 +428,16 @@ namespace TwitchBot.Commands
                         using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUpRequests "
                             + "WHERE broadcaster = @broadcaster AND game = @game AND username = @username", conn))
                         {
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                            cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
-                            cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strUserName;
+                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
+                            cmd.Parameters.Add("@game", SqlDbType.Int).Value = gameId;
+                            cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = username;
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.HasRows)
                                 {
                                     while (reader.Read())
                                     {
-                                        if (strUserName.ToLower().Equals(reader["username"].ToString().ToLower()))
+                                        if (username.ToLower().Equals(reader["username"].ToString().ToLower()))
                                         {
                                             isDuplicateRequestor = true;
                                             break;
@@ -448,7 +449,7 @@ namespace TwitchBot.Commands
                     }
 
                     if (isDuplicateRequestor)
-                        _irc.sendPublicChatMessage("You have already requested a party member. Please wait until your request has been completed @" + strUserName);
+                        _irc.sendPublicChatMessage("You have already requested a party member. Please wait until your request has been completed @" + username);
                     else // search for party member user is requesting
                     {
                         using (SqlConnection conn = new SqlConnection(_connStr))
@@ -456,17 +457,17 @@ namespace TwitchBot.Commands
                             conn.Open();
                             using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUp WHERE broadcaster = @broadcaster AND game = @game", conn))
                             {
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                                cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
+                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
+                                cmd.Parameters.Add("@game", SqlDbType.Int).Value = gameId;
                                 using (SqlDataReader reader = cmd.ExecuteReader())
                                 {
                                     if (reader.HasRows)
                                     {
                                         while (reader.Read())
                                         {
-                                            if (strPartyMember.ToLower().Equals(reader["partyMember"].ToString().ToLower()))
+                                            if (partyMember.ToLower().Equals(reader["partyMember"].ToString().ToLower()))
                                             {
-                                                strPartyMember = reader["partyMember"].ToString();
+                                                partyMember = reader["partyMember"].ToString();
                                                 isPartyMemebrFound = true;
                                                 break;
                                             }
@@ -478,7 +479,7 @@ namespace TwitchBot.Commands
 
                         // insert party member if they exists from database
                         if (!isPartyMemebrFound)
-                            _irc.sendPublicChatMessage("I couldn't find the requested party member '" + strPartyMember + "' @" + strUserName
+                            _irc.sendPublicChatMessage("I couldn't find the requested party member '" + partyMember + "' @" + username
                                 + ". Please check with the broadcaster for possible spelling errors");
                         else
                         {
@@ -489,18 +490,18 @@ namespace TwitchBot.Commands
                             using (SqlConnection conn = new SqlConnection(_connStr))
                             using (SqlCommand cmd = new SqlCommand(query, conn))
                             {
-                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 50).Value = strUserName;
-                                cmd.Parameters.Add("@partyMember", SqlDbType.VarChar, 50).Value = strPartyMember;
+                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 50).Value = username;
+                                cmd.Parameters.Add("@partyMember", SqlDbType.VarChar, 50).Value = partyMember;
                                 cmd.Parameters.Add("@timeRequested", SqlDbType.DateTime).Value = DateTime.Now;
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
-                                cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
+                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
+                                cmd.Parameters.Add("@game", SqlDbType.Int).Value = gameId;
 
                                 conn.Open();
                                 cmd.ExecuteNonQuery();
                                 conn.Close();
                             }
 
-                            _irc.sendPublicChatMessage("@" + strUserName + ": " + strPartyMember + " has been added to the party queue");
+                            _irc.sendPublicChatMessage("@" + username + ": " + partyMember + " has been added to the party queue");
                         }
                     }
                 }
@@ -514,15 +515,16 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Check what other user's have requested
         /// </summary>
-        public void CmdPartyUpRequestList()
+        public async Task CmdPartyUpRequestList()
         {
             try
             {
-                string strPartyList = "Here are the requested party members: ";
-                int intGameID = 0;
+                string partyList = "Here are the requested party members: ";
+                int gameId = 0;
 
                 // Get current game
-                _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.game;
+                ChannelJSON json = await TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId);
+                string broadcasterGame = json.game;
 
                 // grab game id in order to find party member
                 using (SqlConnection conn = new SqlConnection(_connStr))
@@ -535,9 +537,9 @@ namespace TwitchBot.Commands
                         {
                             while (reader.Read())
                             {
-                                if (_strBroadcasterGame.Equals(reader["name"].ToString()))
+                                if (broadcasterGame.Equals(reader["name"].ToString()))
                                 {
-                                    intGameID = int.Parse(reader["id"].ToString());
+                                    gameId = int.Parse(reader["id"].ToString());
                                     break;
                                 }
                             }
@@ -547,7 +549,7 @@ namespace TwitchBot.Commands
 
                 // if the game is not found
                 // tell users this game is not part of the party up system
-                if (intGameID == 0)
+                if (gameId == 0)
                     _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
                 else
                 {
@@ -557,20 +559,20 @@ namespace TwitchBot.Commands
                         using (SqlCommand cmd = new SqlCommand("SELECT username, partyMember FROM tblPartyUpRequests "
                             + "WHERE game = @game AND broadcaster = @broadcaster ORDER BY Id", conn))
                         {
-                            cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                            cmd.Parameters.Add("@game", SqlDbType.Int).Value = gameId;
+                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.HasRows)
                                 {
                                     while (reader.Read())
                                     {
-                                        strPartyList += reader["partyMember"].ToString() + " <-- " + reader["username"].ToString() + " // ";
+                                        partyList += reader["partyMember"].ToString() + " <-- " + reader["username"].ToString() + " // ";
                                     }
-                                    StringBuilder strBdrPartyList = new StringBuilder(strPartyList);
-                                    strBdrPartyList.Remove(strPartyList.Length - 4, 4); // remove extra " // "
-                                    strPartyList = strBdrPartyList.ToString(); // replace old party member list string with new
-                                    _irc.sendPublicChatMessage(strPartyList);
+                                    StringBuilder modPartyListMsg = new StringBuilder(partyList);
+                                    modPartyListMsg.Remove(partyList.Length - 4, 4); // remove extra " // "
+                                    partyList = modPartyListMsg.ToString(); // replace old party member list string with new
+                                    _irc.sendPublicChatMessage(partyList);
                                 }
                                 else
                                 {
@@ -591,15 +593,16 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Check what party members are available (if game is part of the party up system)
         /// </summary>
-        public void CmdPartyUpList()
+        public async Task CmdPartyUpList()
         {
             try
             {
-                string strPartyList = "The available party members are: ";
-                int intGameID = 0;
+                string partyList = "The available party members are: ";
+                int gameId = 0;
 
                 // Get current game
-                _strBroadcasterGame = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result.game;
+                ChannelJSON json = await TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId);
+                string broadcasterGame = json.game;
 
                 // grab game id in order to find party member
                 using (SqlConnection conn = new SqlConnection(_connStr))
@@ -612,9 +615,9 @@ namespace TwitchBot.Commands
                         {
                             while (reader.Read())
                             {
-                                if (_strBroadcasterGame.Equals(reader["name"].ToString()))
+                                if (broadcasterGame.Equals(reader["name"].ToString()))
                                 {
-                                    intGameID = int.Parse(reader["id"].ToString());
+                                    gameId = int.Parse(reader["id"].ToString());
                                     break;
                                 }
                             }
@@ -624,8 +627,8 @@ namespace TwitchBot.Commands
 
                 // if the game is not found
                 // tell users this game is not part of the party up system
-                if (intGameID == 0)
-                    _irc.sendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
+                if (gameId == 0)
+                    _irc.sendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
                 else
                 {
                     using (SqlConnection conn = new SqlConnection(_connStr))
@@ -633,20 +636,20 @@ namespace TwitchBot.Commands
                         conn.Open();
                         using (SqlCommand cmd = new SqlCommand("SELECT partyMember FROM tblPartyUp WHERE game = @game AND broadcaster = @broadcaster ORDER BY partyMember", conn))
                         {
-                            cmd.Parameters.Add("@game", SqlDbType.Int).Value = intGameID;
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                            cmd.Parameters.Add("@game", SqlDbType.Int).Value = gameId;
+                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.HasRows)
                                 {
                                     while (reader.Read())
                                     {
-                                        strPartyList += reader["partyMember"].ToString() + " >< ";
+                                        partyList += reader["partyMember"].ToString() + " >< ";
                                     }
-                                    StringBuilder strBdrPartyList = new StringBuilder(strPartyList);
-                                    strBdrPartyList.Remove(strPartyList.Length - 4, 4); // remove extra " >< "
-                                    strPartyList = strBdrPartyList.ToString(); // replace old party member list string with new
-                                    _irc.sendPublicChatMessage(strPartyList);
+                                    StringBuilder modPartyListMsg = new StringBuilder(partyList);
+                                    modPartyListMsg.Remove(partyList.Length - 4, 4); // remove extra " >< "
+                                    partyList = modPartyListMsg.ToString(); // replace old party member list string with new
+                                    _irc.sendPublicChatMessage(partyList);
                                 }
                                 else
                                 {
@@ -667,21 +670,21 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Check user's account balance
         /// </summary>
-        /// <param name="strUserName">User that sent the message</param>
-        public void CmdCheckFunds(string strUserName)
+        /// <param name="username">User that sent the message</param>
+        public void CmdCheckFunds(string username)
         {
             try
             {
-                int intBalance = _bank.CheckBalance(strUserName, _intBroadcasterID);
+                int balance = _bank.CheckBalance(username, _broadcasterId);
 
-                if (intBalance == -1)
+                if (balance == -1)
                     _irc.sendPublicChatMessage("You are not currently banking with us at the moment. Please talk to a moderator about acquiring " + _botConfig.CurrencyType);
                 else
-                    _irc.sendPublicChatMessage("@" + strUserName + " currently has " + intBalance.ToString() + " " + _botConfig.CurrencyType);
+                    _irc.sendPublicChatMessage("@" + username + " currently has " + balance.ToString() + " " + _botConfig.CurrencyType);
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdCheckFunds()", false, "!myfunds");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdCheckFunds(string)", false, "![currency name]");
             }
         }
 
@@ -689,52 +692,52 @@ namespace TwitchBot.Commands
         /// Gamble away currency
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        /// <param name="strUserName">User that sent the message</param>
-        public void CmdGamble(string message, string strUserName)
+        /// <param name="username">User that sent the message</param>
+        public void CmdGamble(string message, string username)
         {
             try
             {
-                int intGambledMoney = 0; // Money put into the gambling system
-                bool bolValid = int.TryParse(message.Substring(message.IndexOf(" ") + 1), out intGambledMoney);
-                int intWalletBalance = _bank.CheckBalance(strUserName, _intBroadcasterID);
+                int gambledMoney = 0; // Money put into the gambling system
+                bool isValidMsg = int.TryParse(message.Substring(message.IndexOf(" ") + 1), out gambledMoney);
+                int walletBalance = _bank.CheckBalance(username, _broadcasterId);
 
-                if (!bolValid || intGambledMoney < 1)
-                    _irc.sendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{strUserName}");
-                else if (intGambledMoney > intWalletBalance)
-                    _irc.sendPublicChatMessage($"You do not have the sufficient funds to gamble {intGambledMoney} {_botConfig.CurrencyType} @{strUserName}");
+                if (!isValidMsg || gambledMoney < 1)
+                    _irc.sendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{username}");
+                else if (gambledMoney > walletBalance)
+                    _irc.sendPublicChatMessage($"You do not have the sufficient funds to gamble {gambledMoney} {_botConfig.CurrencyType} @{username}");
                 else
                 {
                     Random rnd = new Random(DateTime.Now.Millisecond);
-                    int intDiceRoll = rnd.Next(1, 101); // between 1 and 100
-                    int intNewBalance = 0;
+                    int diceRoll = rnd.Next(1, 101); // between 1 and 100
+                    int newBalance = 0;
 
-                    string strResult = $"Gambled {intGambledMoney} {_botConfig.CurrencyType} and the dice roll was {intDiceRoll}. @{strUserName} ";
+                    string result = $"@{username} gambled {gambledMoney} {_botConfig.CurrencyType} and the dice roll was {diceRoll}. They ";
 
                     // Check the 100-sided die roll result
-                    if (intDiceRoll < 61) // lose gambled money
+                    if (diceRoll < 61) // lose gambled money
                     {
-                        intNewBalance = intWalletBalance - intGambledMoney;
-                        _bank.UpdateFunds(strUserName, _intBroadcasterID, intNewBalance);
-                        strResult += $"lost {intGambledMoney} {_botConfig.CurrencyType}";
+                        newBalance = walletBalance - gambledMoney;
+                        _bank.UpdateFunds(username, _broadcasterId, newBalance);
+                        result += $"lost {gambledMoney} {_botConfig.CurrencyType}";
                     }
-                    else if (intDiceRoll >= 61 && intDiceRoll <= 98) // earn double
+                    else if (diceRoll >= 61 && diceRoll <= 98) // earn double
                     {
-                        intWalletBalance -= intGambledMoney; // put money into the gambling pot (remove money from wallet)
-                        intNewBalance = intWalletBalance + (intGambledMoney * 2); // recieve 2x earnings back into wallet
-                        _bank.UpdateFunds(strUserName, _intBroadcasterID, intNewBalance);
-                        strResult += $"won {intGambledMoney * 2} {_botConfig.CurrencyType}";
+                        walletBalance -= gambledMoney; // put money into the gambling pot (remove money from wallet)
+                        newBalance = walletBalance + (gambledMoney * 2); // recieve 2x earnings back into wallet
+                        _bank.UpdateFunds(username, _broadcasterId, newBalance);
+                        result += $"won {gambledMoney * 2} {_botConfig.CurrencyType}";
                     }
-                    else if (intDiceRoll == 99 || intDiceRoll == 100) // earn triple
+                    else if (diceRoll == 99 || diceRoll == 100) // earn triple
                     {
-                        intWalletBalance -= intGambledMoney; // put money into the gambling pot (remove money from wallet)
-                        intNewBalance = intWalletBalance + (intGambledMoney * 3); // recieve 3x earnings back into wallet
-                        _bank.UpdateFunds(strUserName, _intBroadcasterID, intNewBalance);
-                        strResult += $"won {intGambledMoney * 3} {_botConfig.CurrencyType}";
+                        walletBalance -= gambledMoney; // put money into the gambling pot (remove money from wallet)
+                        newBalance = walletBalance + (gambledMoney * 3); // recieve 3x earnings back into wallet
+                        _bank.UpdateFunds(username, _broadcasterId, newBalance);
+                        result += $"won {gambledMoney * 3} {_botConfig.CurrencyType}";
                     }
 
-                    strResult += $" and now has {intNewBalance} {_botConfig.CurrencyType}";
+                    result += $" and now has {newBalance} {_botConfig.CurrencyType}";
 
-                    _irc.sendPublicChatMessage(strResult);
+                    _irc.sendPublicChatMessage(result);
                 }
             }
             catch (Exception ex)
@@ -750,7 +753,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                List<Quote> lstQuote = new List<Quote>();
+                List<Quote> quoteList = new List<Quote>();
 
                 // Get quotes from tblQuote and put them into a list
                 using (SqlConnection conn = new SqlConnection(_connStr))
@@ -758,18 +761,18 @@ namespace TwitchBot.Commands
                     conn.Open();
                     using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblQuote WHERE broadcaster = @broadcaster", conn))
                     {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
                             {
                                 while (reader.Read())
                                 {
-                                    Quote qte = new Quote();
-                                    qte.Message = reader["userQuote"].ToString();
-                                    qte.Author = reader["username"].ToString();
-                                    qte.TimeCreated = Convert.ToDateTime(reader["timeCreated"]);
-                                    lstQuote.Add(qte);
+                                    Quote quote = new Quote();
+                                    quote.Message = reader["userQuote"].ToString();
+                                    quote.Author = reader["username"].ToString();
+                                    quote.TimeCreated = Convert.ToDateTime(reader["timeCreated"]);
+                                    quoteList.Add(quote);
                                 }
                             }
                         }
@@ -777,20 +780,20 @@ namespace TwitchBot.Commands
                 }
 
                 // Check if there any quotes inside the system
-                if (lstQuote.Count == 0)
+                if (quoteList.Count == 0)
                     _irc.sendPublicChatMessage("There are no quotes to be displayed at the moment");
                 else
                 {
                     // Randomly pick a quote from the list to display
                     Random rnd = new Random(DateTime.Now.Millisecond);
-                    int intIndex = rnd.Next(lstQuote.Count);
+                    int index = rnd.Next(quoteList.Count);
 
-                    Quote qteResult = new Quote();
-                    qteResult = lstQuote.ElementAt(intIndex); // grab random quote from list of quotes
-                    string strQuote = $"\"{qteResult.Message}\" - {_botConfig.Broadcaster} " +
-                        $"({qteResult.TimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {qteResult.TimeCreated.Year})";
+                    Quote resultingQuote = new Quote();
+                    resultingQuote = quoteList.ElementAt(index); // grab random quote from list of quotes
+                    string quoteResult = $"\"{resultingQuote.Message}\" - {_botConfig.Broadcaster} " +
+                        $"({resultingQuote.TimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {resultingQuote.TimeCreated.Year})";
 
-                    _irc.sendPublicChatMessage(strQuote);
+                    _irc.sendPublicChatMessage(quoteResult);
                 }
             }
             catch (Exception ex)
@@ -802,12 +805,13 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Tell the user how long they have been following the broadcaster
         /// </summary>
-        /// <param name="strUserName"></param>
-        public async Task CmdFollowSince(string strUserName)
+        /// <param name="username"></param>
+        /// <returns></returns>
+        public async Task CmdFollowSince(string username)
         {
             try
             {
-                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(strUserName))
+                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(username))
                 {
                     if (message.IsSuccessStatusCode)
                     {
@@ -815,7 +819,7 @@ namespace TwitchBot.Commands
                         FollowingSinceJSON response = JsonConvert.DeserializeObject<FollowingSinceJSON>(body);
                         DateTime startedFollowing = Convert.ToDateTime(response.created_at);
                         //TimeSpan howLong = DateTime.Now - startedFollowing;
-                        _irc.sendPublicChatMessage($"@{strUserName} has been following since {startedFollowing.ToLongDateString()}");
+                        _irc.sendPublicChatMessage($"@{username} has been following since {startedFollowing.ToLongDateString()}");
                     }
                     else
                     {
@@ -827,20 +831,20 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdFollowSince()", false, "!followsince");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdFollowSince(string)", false, "!followsince");
             }
         }
 
         /// <summary>
         /// Display the follower's stream rank
         /// </summary>
-        /// <param name="strUserName"></param>
+        /// <param name="username"></param>
         /// <returns></returns>
-        public async Task CmdViewRank(string strUserName)
+        public async Task CmdViewRank(string username)
         {
             try
             {
-                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(strUserName))
+                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(username))
                 {
                     if (message.IsSuccessStatusCode)
                     {
@@ -852,14 +856,14 @@ namespace TwitchBot.Commands
                             conn.Open();
                             using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblRankFollowers WHERE broadcaster = @broadcaster", conn))
                             {
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
                                 using (SqlDataReader reader = cmd.ExecuteReader())
                                 {
                                     if (reader.HasRows)
                                     {
                                         while (reader.Read())
                                         {
-                                            if (strUserName.Equals(reader["username"].ToString()))
+                                            if (username.Equals(reader["username"].ToString()))
                                             {
                                                 currExp = int.Parse(reader["exp"].ToString());
                                                 break;
@@ -873,7 +877,7 @@ namespace TwitchBot.Commands
                         // Grab the follower's associated rank
                         if (currExp > -1)
                         {
-                            List<Rank> lstRanks = new List<Rank>();
+                            List<Rank> ranksList = new List<Rank>();
                             Rank currFollowerRank = new Rank();
 
                             // get list of ranks currently for the specific broadcaster
@@ -882,7 +886,7 @@ namespace TwitchBot.Commands
                                 conn.Open();
                                 using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblRank WHERE broadcaster = @broadcaster", conn))
                                 {
-                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
                                     using (SqlDataReader reader = cmd.ExecuteReader())
                                     {
                                         if (reader.HasRows)
@@ -894,7 +898,7 @@ namespace TwitchBot.Commands
                                                     Name = reader["name"].ToString(),
                                                     ExpCap = int.Parse(reader["expCap"].ToString())
                                                 };
-                                                lstRanks.Add(rank);
+                                                ranksList.Add(rank);
                                             }
                                         }
                                     }
@@ -902,7 +906,7 @@ namespace TwitchBot.Commands
                             }
 
                             // find the user's current rank by experience cap
-                            foreach (var followerRank in lstRanks.OrderBy(r => r.ExpCap))
+                            foreach (var followerRank in ranksList.OrderBy(r => r.ExpCap))
                             {
                                 // search until current experience < experience cap
                                 if (currExp >= followerRank.ExpCap)
@@ -919,7 +923,7 @@ namespace TwitchBot.Commands
 
                             decimal hoursWatched = Math.Round(Convert.ToDecimal(currExp) / (decimal)12.0, 2);
 
-                            _irc.sendPublicChatMessage($"@{strUserName}: \"{currFollowerRank.Name}\" {currExp}/{currFollowerRank.ExpCap} EXP ({hoursWatched} hours)");
+                            _irc.sendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" {currExp}/{currFollowerRank.ExpCap} EXP ({hoursWatched} hours)");
                         }
                         else
                         {
@@ -930,15 +934,15 @@ namespace TwitchBot.Commands
                             using (SqlConnection conn = new SqlConnection(_connStr))
                             using (SqlCommand cmd = new SqlCommand(query, conn))
                             {
-                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = strUserName;
+                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = username;
                                 cmd.Parameters.Add("@exp", SqlDbType.Int).Value = 0; // initial experience
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _intBroadcasterID;
+                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
 
                                 conn.Open();
                                 cmd.ExecuteNonQuery();
                             }
 
-                            _irc.sendPublicChatMessage($"Welcome to the army @{strUserName}. View your new rank using !rank");
+                            _irc.sendPublicChatMessage($"Welcome to the army @{username}. View your new rank using !rank");
                         }
                     }
                     else
@@ -951,11 +955,11 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdViewRank()", false, "!rank");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdViewRank(string)", false, "!rank");
             }
         }
 
-        public async Task CmdYouTubeSongRequest(string message, string strUserName, bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
+        public async Task CmdYouTubeSongRequest(string message, string username, bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
         {
             try
             {
@@ -1000,7 +1004,7 @@ namespace TwitchBot.Commands
 
                     if (string.IsNullOrEmpty(videoId))
                     {
-                        _irc.sendPublicChatMessage($"Couldn't find video ID for song request @{strUserName}");
+                        _irc.sendPublicChatMessage($"Couldn't find video ID for song request @{username}");
                     }
                     else
                     {
@@ -1011,7 +1015,7 @@ namespace TwitchBot.Commands
                         // ToDo: Make bot setting for duration limit based on minutes (if set)
                         if (!videoDuration.Contains("PT") || videoDuration.Contains("H"))
                         {
-                            _irc.sendPublicChatMessage($"Either couldn't find video duration or way too long for the stream @{strUserName}");
+                            _irc.sendPublicChatMessage($"Either couldn't find video duration or way too long for the stream @{username}");
                         }
                         else
                         {
@@ -1035,16 +1039,17 @@ namespace TwitchBot.Commands
                             }
                             else if (await _youTubeClientInstance.HasDuplicatePlaylistItem(_botConfig.YouTubeBroadcasterPlaylistId, videoId))
                             {
-                                _irc.sendPublicChatMessage($"Song has already been requested @{strUserName}");
+                                _irc.sendPublicChatMessage($"Song has already been requested @{username}");
                             }
                             else
                             {
-                                await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, strUserName);
-                                await Task.Delay(1500); // wait before attempting to get item count from playlist
-                                Playlist broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId, 1);
+                                await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, username);
+                                // ToDo: Show playlist position after being able to handle auto-removal of played songs
+                                //await Task.Delay(1500); // wait before attempting to get item count from playlist
+                                //Playlist broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId, 1);
 
-                                _irc.sendPublicChatMessage($"@{strUserName} -> \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested " +
-                                    $"at position #{broadcasterPlaylist.ContentDetails.ItemCount}");
+                                _irc.sendPublicChatMessage($"@{username} -> \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested!"); //+
+                                    //$" at position #{broadcasterPlaylist.ContentDetails.ItemCount}");
                             }
                         }
                     }
@@ -1052,82 +1057,89 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest(string, string, bool)", false, "!sr");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest(string, string, bool, bool)", false, "!sr");
             }
         }
 
         public void CmdYouTubeSongRequestList(bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
         {
-            if (hasYouTubeAuth && isYouTubeSongRequestAvail && !string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
+            try
             {
-                _irc.sendPublicChatMessage($"{_botConfig.Broadcaster.ToLower()}'s song request list is at " +
-                    "https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);
+                if (hasYouTubeAuth && isYouTubeSongRequestAvail && !string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
+                {
+                    _irc.sendPublicChatMessage($"{_botConfig.Broadcaster.ToLower()}'s song request list is at " +
+                        "https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);
+                }
+                else
+                {
+                    _irc.sendPublicChatMessage("There is no song request list at this time");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _irc.sendPublicChatMessage("There is no song request list at this time");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequestList(bool, bool)", false, "!sl");
             }
         }
 
-        private async Task<bool> ReactionCmd(string strOrigUser, string strRecipient, string strMsgToSelf, string strAction, string strAddlMsg = "")
+        private async Task<bool> ReactionCmd(string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
         {
             // check if user is trying to use a command on themselves
-            if (strOrigUser.Equals(strRecipient))
+            if (origUser.Equals(recipient))
             {
-                _irc.sendPublicChatMessage(strMsgToSelf + " @" + strOrigUser);
+                _irc.sendPublicChatMessage(msgToSelf + " @" + origUser);
                 return true;
             }
 
             // check if recipient is the broadcaster before checking the viewer channel
-            if (strRecipient.Equals(_botConfig.Broadcaster.ToLower()) || await ChatterValid(strOrigUser, strRecipient))
+            if (recipient.Equals(_botConfig.Broadcaster.ToLower()) || await ChatterValid(origUser, recipient))
             {
-                _irc.sendPublicChatMessage(strOrigUser + " " + strAction + " @" + strRecipient + " " + strAddlMsg);
+                _irc.sendPublicChatMessage(origUser + " " + action + " @" + recipient + " " + addlMsg);
                 return true;
             }
 
             return false;
         }
 
-        private async Task<bool> ChatterValid(string strOrigUser, string strRecipient)
+        private async Task<bool> ChatterValid(string origUser, string recipient)
         {
             // Check if the requested user is this bot
-            if (strRecipient.Equals(_botConfig.BotName.ToLower()))
+            if (recipient.Equals(_botConfig.BotName.ToLower()))
                 return true;
 
             // Grab user's chatter info (viewers, mods, etc.)
-            List<List<string>> lstAvailChatterType = await _twitchInfo.GetChatterListByType();
-            if (lstAvailChatterType.Count > 0)
+            List<List<string>> availChatterTypeList = await _twitchInfo.GetChatterListByType();
+            if (availChatterTypeList.Count > 0)
             {
                 // Search for user
-                for (int i = 0; i < lstAvailChatterType.Count(); i++)
+                for (int i = 0; i < availChatterTypeList.Count(); i++)
                 {
-                    foreach (string chatter in lstAvailChatterType[i])
+                    foreach (string chatter in availChatterTypeList[i])
                     {
-                        if (chatter.Equals(strRecipient.ToLower()))
+                        if (chatter.Equals(recipient.ToLower()))
                             return true;
                     }
                 }
             }
 
             // finished searching with no results
-            _irc.sendPublicChatMessage("@" + strOrigUser + ": I cannot find the user you wanted to interact with. Perhaps the user left us?");
+            _irc.sendPublicChatMessage("@" + origUser + ": I cannot find the user you wanted to interact with. Perhaps the user left us?");
             return false;
         }
 
         private string Effectiveness()
         {
             Random rnd = new Random(DateTime.Now.Millisecond);
-            int intEffectiveLvl = rnd.Next(3); // between 0 and 2
-            string strEffectiveness = "";
+            int effectiveLvl = rnd.Next(3); // between 0 and 2
+            string effectiveness = "";
 
-            if (intEffectiveLvl == 0)
-                strEffectiveness = "It's super effective!";
-            else if (intEffectiveLvl == 1)
-                strEffectiveness = "It wasn't very effective";
+            if (effectiveLvl == 0)
+                effectiveness = "It's super effective!";
+            else if (effectiveLvl == 1)
+                effectiveness = "It wasn't very effective";
             else
-                strEffectiveness = "It had no effect";
+                effectiveness = "It had no effect";
 
-            return strEffectiveness;
+            return effectiveness;
         }
     }
 }
