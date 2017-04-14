@@ -401,13 +401,13 @@ namespace TwitchBot
                                 else if (message.StartsWith("!addgiveaway "))
                                     _cmdBrdCstr.CmdAddGiveaway(message, username);
 
-                                /* Edit giveaway details (for either date and time or message) */
+                                /* Edit giveaway details */
                                 // Usage (message): !editgiveawayMSG [giveaway id] [message]
                                 // Usage (date and time): !editgiveawayDTE [giveaway id] [MM-DD-YY] [hh:mm:ss] [AM/PM]
-                                // Usage (eligibility): !editgiveawayELG [mods] [regulars] [subscribers] [users]
-                                // Usage (type): !editgiveawayTYP [giveaway id] [giveawaytype] [keyword]
-                                //else if (message.StartsWith("!editgiveaway"))
-                                //    _cmdBrdCstr.CmdEditGiveaway(message, username);
+                                // Usage (eligibility): !editgiveawayELG [giveaway id] [mods] [regulars] [subscribers] [users]
+                                // Usage (type): !editgiveawayTYP [giveaway id] [giveawaytype] ([keyword] OR [min number] [max number])
+                                else if (message.StartsWith("!editgiveaway"))
+                                    _cmdBrdCstr.CmdEditGiveaway(message, username);
 
                                 /* insert more broadcaster commands here */
                             }

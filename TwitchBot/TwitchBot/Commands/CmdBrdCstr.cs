@@ -789,15 +789,15 @@ namespace TwitchBot.Commands
             try
             {
                 int reqGiveawayId = -1;
-                string reqGiveawayIdMsg = message.Substring(18, message.GetNthCharIndex(' ', 2) - message.GetNthCharIndex(' ', 1) - 1);
+                string reqGiveawayIdMsg = message.Substring(17, message.GetNthCharIndex(' ', 2) - message.GetNthCharIndex(' ', 1) - 1);
                 bool isValidGiveawayId = int.TryParse(reqGiveawayIdMsg, out reqGiveawayId);
 
-                // validate requested giveaway ID
+                // Validate requested giveaway ID
                 if (!isValidGiveawayId || reqGiveawayId < 0)
                     _irc.SendPublicChatMessage("Please use a positive whole number to find your giveaway ID");
                 else
                 {
-                    // check if giveaway ID exists
+                    // Check if giveaway ID exists
                     int giveawayId = -1;
                     using (SqlConnection conn = new SqlConnection(_connStr))
                     {
@@ -823,39 +823,48 @@ namespace TwitchBot.Commands
                         }
                     }
 
-                    // check if giveaway ID was retrieved
+                    // Check if giveaway ID was retrieved
                     if (giveawayId == -1)
                         _irc.SendPublicChatMessage($"Cannot find the giveaway ID: {reqGiveawayId}");
                     else
                     {
-                        int inputType = -1; // check if input is in the correct format
+                        bool isEditValid = false;
+                        int inputType = -1;
                         DateTime giveawayDate = new DateTime();
                         int[] elgList = { };
+                        int giveawayType = -1;
+                        string giveawayTypeParam1 = "";
+                        string giveawayTypeParam2 = "";
 
                         string giveawayInput = message.Substring(message.GetNthCharIndex(' ', 2) + 1);
 
-                        /* Check if user wants to edit the date/time, message, giveaway type, or eligibility */
+                        /* Check if user wants to edit the date and time, message, giveaway type, or eligibility */
                         if (message.StartsWith("!editgiveawayDTE"))
                         {
-                            // get new due date of giveaway
+                            inputType = 1;
+
+                            // Get new due date of giveaway
                             if (!DateTime.TryParse(giveawayInput, out giveawayDate))
-                                _irc.SendPublicChatMessage("Please enter a valid date and time @" + username);
+                                _irc.SendPublicChatMessage($"Please enter a valid date and time: [MM-DD-YYYY HH:MM:SS AM/PM] @{username}");
                             else
-                                inputType = 1;
+                                isEditValid = true;
                         }
                         else if (message.StartsWith("!editgiveawayMSG"))
                         {
-                            // get new message for giveaway
+                            inputType = 2;
+
+                            // Get new message for giveaway
                             if (string.IsNullOrWhiteSpace(giveawayInput))
-                                _irc.SendPublicChatMessage("Please enter a valid message @" + username);
+                                _irc.SendPublicChatMessage($"Please enter a valid message @{username}");
                             else
-                                inputType = 2;
+                                isEditValid = true;
                         }
                         else if (message.StartsWith("!editgiveawayELG"))
                         {
-                            // ToDo: Test edit eligibility edit
-                            // get new eligibility list for giveaway
-                            string giveawayElg = message.Substring(message.GetNthCharIndex(' ', 1) + 1, 7); // [mods] [regulars] [subscribers] [users]
+                            inputType = 3;
+
+                            // Get new eligibility list for giveaway
+                            string giveawayElg = message.Substring(message.GetNthCharIndex(' ', 2) + 1, 7); // [mods] [regulars] [subscribers] [users]
                             if (giveawayElg.Replace(" ", "").IsInt()
                                 && giveawayElg.Replace(" ", "").Length == 4
                                 && !Regex.IsMatch(giveawayElg, @"[2-9]"))
@@ -868,42 +877,111 @@ namespace TwitchBot.Commands
                                     int.Parse(giveawayElg.Substring(6, 1))
                                 };
 
-                                inputType = 3;
+                                isEditValid = true;
                             }
                             else
-                            {
-                                _irc.SendPublicChatMessage("Please enter a valid message @" + username);
-                            }
+                                _irc.SendPublicChatMessage($"Please enter a valid message @{username}");
                         }
                         else if (message.StartsWith("!editgiveawayTYP"))
                         {
-                            // ToDo: Implement giveaway type/param(s) change
-                            // get new giveaway type for giveaway
+                            inputType = 4;
+
+                            // Get new giveaway type and param(s)
                             if (string.IsNullOrWhiteSpace(giveawayInput))
-                                _irc.SendPublicChatMessage("Please enter a valid message @" + username);
+                                _irc.SendPublicChatMessage($"Please enter a valid message @{username}");
+                            else if (!int.TryParse(message.Substring(message.GetNthCharIndex(' ', 2) + 1, 1), out giveawayType) || (giveawayType != 1 && giveawayType != 2))
+                                _irc.SendPublicChatMessage($"Please enter a valid giveaway type (1 = Keyword or 2 = Random Number) @{username}");
                             else
-                                inputType = 4;
+                            {
+                                int paramIndex1 = message.GetNthCharIndex(' ', 3);
+                                int paramIndex2 = message.GetNthCharIndex(' ', 4);
+
+                                if (giveawayType == 1 && paramIndex1 < 0)
+                                    _irc.SendPublicChatMessage($"Please enter a valid giveaway parameter for a keyword @{username}");
+                                else if (giveawayType == 2 && paramIndex2 < 0)
+                                    _irc.SendPublicChatMessage($"Please enter a valid giveaway parameter for a random number range @{username}");
+                                else
+                                {
+                                    if (giveawayType == 1)
+                                    {
+                                        giveawayTypeParam1 = message.Substring(paramIndex1 + 1);
+                                        isEditValid = true;
+                                    }
+                                    else if (giveawayType == 2)
+                                    {
+                                        giveawayTypeParam1 = message.Substring(paramIndex1 + 1, paramIndex2 - paramIndex1 - 1);
+                                        giveawayTypeParam2 = message.Substring(paramIndex2 + 1);
+
+                                        int testParam1 = 0;
+                                        int testParam2 = 0;
+
+                                        bool isValidIntParam1 = !int.TryParse(giveawayTypeParam1, out testParam1);
+                                        bool isValidIntParam2 = !int.TryParse(giveawayTypeParam2, out testParam2);
+
+                                        if (isValidIntParam1 && isValidIntParam2)
+                                            _irc.SendPublicChatMessage($"Cannot parse numbers correctly. Please enter whole numbers @{username}");
+                                        else if (testParam1 > testParam2)
+                                            _irc.SendPublicChatMessage("Parameter 1 is greater than parameter 2. " 
+                                                + $"Please either flip these values or enter new ones @{username}");
+                                        else
+                                            isEditValid = true;
+                                    }
+                                }
+                            }
                         }
 
-                        // update info based on input type
-                        // ToDo: Implement database updates for giveway type/param(s) and eligibility changes
-                        if (inputType > 0)
+                        // Update info based on input type
+                        if (inputType == -1)
+                            _irc.SendPublicChatMessage($"Please specify an option to edit a giveaway @{username}");
+                        else if (isEditValid)
                         {
-                            string strQuery = "";
+                            string query = "";
 
                             if (inputType == 1)
-                                strQuery = "UPDATE dbo.tblGiveaway SET dueDate = @dueDate WHERE (Id = @id AND broadcaster = @broadcaster)";
+                                query = "UPDATE dbo.tblGiveaway SET dueDate = @dueDate WHERE (Id = @id AND broadcaster = @broadcaster)";
                             else if (inputType == 2)
-                                strQuery = "UPDATE dbo.tblGiveaway SET message = @message WHERE (Id = @id AND broadcaster = @broadcaster)";
+                                query = "UPDATE dbo.tblGiveaway SET message = @message WHERE (Id = @id AND broadcaster = @broadcaster)";
+                            else if (inputType == 3)
+                            {
+                                query = "UPDATE dbo.tblGiveaway SET elgMod = @elgMod" + 
+                                    ", elgReg = @elgReg" + 
+                                    ", elgSub = @elgSub" + 
+                                    ", elgUsr = @elgUsr" + 
+                                    " WHERE (Id = @id AND broadcaster = @broadcaster)";
+                            }
+                            else if (inputType == 4)
+                            {
+                                query = "UPDATE dbo.tblGiveaway SET giveType = @giveType" +
+                                    ", giveParam1 = @giveParam1" +
+                                    ", giveParam2 = @giveParam2" +
+                                    " WHERE (Id = @id AND broadcaster = @broadcaster)";
+                            }
 
                             using (SqlConnection conn = new SqlConnection(_connStr))
-                            using (SqlCommand cmd = new SqlCommand(strQuery, conn))
+                            using (SqlCommand cmd = new SqlCommand(query, conn))
                             {
                                 // append proper parameter(s)
                                 if (inputType == 1)
                                     cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = giveawayDate;
                                 else if (inputType == 2)
                                     cmd.Parameters.Add("@message", SqlDbType.VarChar, 50).Value = giveawayInput;
+                                else if (inputType == 3)
+                                {
+                                    cmd.Parameters.Add("@elgMod", SqlDbType.Bit).Value = elgList[0];
+                                    cmd.Parameters.Add("@elgReg", SqlDbType.Bit).Value = elgList[1];
+                                    cmd.Parameters.Add("@elgSub", SqlDbType.Bit).Value = elgList[2];
+                                    cmd.Parameters.Add("@elgUsr", SqlDbType.Bit).Value = elgList[3];
+                                }
+                                else if (inputType == 4)
+                                {
+                                    cmd.Parameters.Add("@giveType", SqlDbType.Int).Value = giveawayType;
+                                    cmd.Parameters.Add("@giveParam1", SqlDbType.VarChar, 50).Value = giveawayTypeParam1;
+
+                                    if (giveawayType == 2)
+                                        cmd.Parameters.Add("@giveParam2", SqlDbType.VarChar, 50).Value = giveawayTypeParam2;
+                                    else
+                                        cmd.Parameters.Add("@giveParam2", SqlDbType.VarChar, 50).Value = DBNull.Value;
+                                }
 
                                 cmd.Parameters.Add("@id", SqlDbType.Int).Value = giveawayId;
                                 cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
@@ -915,16 +993,12 @@ namespace TwitchBot.Commands
                             Console.WriteLine($"Changes to giveaway ID: {reqGiveawayId} have been made @{username}");
                             _irc.SendPublicChatMessage($"Changes to giveaway ID: {reqGiveawayId} have been made @{username}");
                         }
-                        else
-                        {
-                            _irc.SendPublicChatMessage($"Please specify an option to edit a giveaway @{username}");
-                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string, string)", false, "!editcountdown");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string, string)", false, "!editgiveaway");
             }
         }
 
