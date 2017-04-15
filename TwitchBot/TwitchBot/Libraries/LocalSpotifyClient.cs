@@ -149,11 +149,11 @@ namespace TwitchBot.Libraries
                     + " >< Artist: " + track.ArtistResource.Name
                     + " >< Album: " + track.AlbumResource.Name;
 
-                //Program.DelayMsgTupleList.Add(new Tuple<string, DateTime>(
-                //        pendingMessage,
-                //        DateTime.Now.AddSeconds(_botConfig.StreamLatency)
-                //    )
-                //);
+                Program.DelayMsgTupleList.Add(new Tuple<string, DateTime>(
+                        pendingMessage,
+                        DateTime.Now.AddSeconds(_botConfig.StreamLatency)
+                    )
+                );
             }
         }
     }

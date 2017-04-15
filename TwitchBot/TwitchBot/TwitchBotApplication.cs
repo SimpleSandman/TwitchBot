@@ -207,8 +207,8 @@ namespace TwitchBot
 
                 /* Start listening for delayed messages */
                 // ToDo: Causes 30% CPU usage, needs different solution
-                //DelayMsg delayMsg = new DelayMsg(_irc);
-                //delayMsg.Start();
+                DelayMsg delayMsg = new DelayMsg(_irc);
+                delayMsg.Start();
 
                 /* Pull list of mods from database */
                 _modInstance.SetModeratorList(_connStr, _broadcasterId);

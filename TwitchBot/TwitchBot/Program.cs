@@ -14,7 +14,7 @@ namespace TwitchBot
     class Program
     {
         public static string ConnStrType = "TwitchBotConnStrPROD"; // assume prod connection string by default
-        //public static List<Tuple<string, DateTime>> DelayMsgTupleList = new List<Tuple<string, DateTime>>(); // used to handle delayed msgs
+        public static List<Tuple<string, DateTime>> DelayMsgTupleList = new List<Tuple<string, DateTime>>(); // used to handle delayed msgs
         public static readonly HttpClient HttpClient = new HttpClient();
 
         static void Main(string[] args)
