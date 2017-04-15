@@ -501,5 +501,117 @@ namespace TwitchBot.Commands
             }
         }
 
+        /// <summary>
+        /// Add user(s) to a MultiStream link so viewers can watch multiple streamers at the same time
+        /// </summary>
+        /// <param name="message">Chat message from the user</param>
+        /// <param name="username">User that sent the message</param>
+        /// <param name="multiStreamUsers">List of users that have already been added to the link</param>
+        public void CmdAddMultiStreamUser(string message, string username, ref List<string> multiStreamUsers)
+        {
+            try
+            {
+                int userLimit = 3;
+
+                // Hard-coded limit to 4 users (including broadcaster) 
+                // because of possible video bandwidth issues for users...for now
+                if (multiStreamUsers.Count >= userLimit)
+                    _irc.SendPublicChatMessage($"Max limit of users set for the MultiStream link! Please reset the link @{username}");
+                else if (message.IndexOf("@") == -1)
+                    _irc.SendPublicChatMessage($"Please use the \"@\" to define new user(s) to add @{username}");
+                else if (message.Contains(_botConfig.Broadcaster, StringComparison.CurrentCultureIgnoreCase)
+                            || message.Contains(_botConfig.BotName, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    _irc.SendPublicChatMessage($"I cannot add the broadcaster or myself to the MultiStream link @{username}");
+                }
+                else
+                {
+                    List<int> indexNewUsers = message.AllIndexesOf("@");
+
+                    if (multiStreamUsers.Count + indexNewUsers.Count > userLimit)
+                        _irc.SendPublicChatMessage("Too many users are being added to the MultiStream link " + 
+                            $"< Number of users already added: \"{multiStreamUsers.Count}\" >" + 
+                            $"< User limit (without broadcaster): \"{userLimit}\" > @{username}");
+                    else
+                    {
+                        string setMultiStreamUsers = "";
+                        string verbUsage = "has ";
+
+                        if (indexNewUsers.Count == 1)
+                        {
+                            string newUser = message.Substring(indexNewUsers[0] + 1);
+
+                            if (!multiStreamUsers.Contains(newUser.ToLower()))
+                            {
+                                multiStreamUsers.Add(newUser.ToLower());
+                                setMultiStreamUsers = $"@{newUser.ToLower()} ";
+                            }
+                            else
+                            {
+                                setMultiStreamUsers = $"{newUser} ";
+                                verbUsage = "has already ";
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < indexNewUsers.Count; i++)
+                            {
+                                int indexNewUser = indexNewUsers[i] + 1;
+                                string setMultiStreamUser = "";
+
+                                if (i + 1 < indexNewUsers.Count)
+                                    setMultiStreamUser = message.Substring(indexNewUser, indexNewUsers[i + 1] - indexNewUser - 1).ToLower();
+                                else
+                                    setMultiStreamUser = message.Substring(indexNewUser).ToLower();
+
+                                if (!multiStreamUsers.Contains(setMultiStreamUser))
+                                    multiStreamUsers.Add(setMultiStreamUser.ToLower());
+                            }
+
+                            foreach (string multiStreamUser in multiStreamUsers)
+                                setMultiStreamUsers += $"@{multiStreamUser} ";
+
+                            verbUsage = "have ";
+                        }
+
+                        string resultMsg = $"{setMultiStreamUsers} {verbUsage} been set up for the MultiStream link @{username}";
+
+                        if (username.ToLower().Equals(_botConfig.Broadcaster.ToLower()))
+                            _irc.SendPublicChatMessage(resultMsg);
+                        else
+                            _irc.SendPublicChatMessage($"{resultMsg} @{_botConfig.Broadcaster.ToLower()}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddMultiStreamUser(string, string, ref List<string>)", false, "!addmsl", message);
+            }
+        }
+
+        /// <summary>
+        /// Reset the MultiStream link to allow the link to be reconfigured
+        /// </summary>
+        /// <param name="username">User that sent the message</param>
+        /// <param name="multiStreamUsers">List of users that have already been added to the link</param>
+        public void CmdResetMultiStreamLink(string username, ref List<string> multiStreamUsers)
+        {
+            try
+            {
+                multiStreamUsers = new List<string>();
+
+                string resultMsg = "MultiStream link has been reset. " + 
+                    $"Please reconfigure the link if you are planning on using it in the near future @{username}";
+
+                if (username.ToLower().Equals(_botConfig.Broadcaster.ToLower()))
+                    _irc.SendPublicChatMessage(resultMsg);
+                else
+                    _irc.SendPublicChatMessage($"{resultMsg} @{_botConfig.Broadcaster.ToLower()}");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetMultiStream(string, ref List<string>)", false, "!resetmsl");
+            }
+        }
     }
 }

@@ -29,21 +29,21 @@ namespace TwitchBot.Threads
         {
             try
             {
-                while (true)
-                {
-                    /* Make sure to send messages at the proper time */
-                    if (Program.DelayMsgTupleList.Count > 0)
-                    {
-                        /* Send the first element from the list of delayed messages */
-                        Tuple<string, DateTime> firstMsg = Program.DelayMsgTupleList.First();
-                        if (firstMsg.Item2 < DateTime.Now)
-                        {
-                            _irc.SendPublicChatMessage(firstMsg.Item1);
-                            Console.WriteLine("Delayed message sent: " + firstMsg.Item1);
-                            Program.DelayMsgTupleList.Remove(firstMsg); // remove sent message from list
-                        }
-                    }
-                }
+                //while (true)
+                //{
+                //    /* Make sure to send messages at the proper time */
+                //    if (Program.DelayMsgTupleList.Count > 0)
+                //    {
+                //        /* Send the first element from the list of delayed messages */
+                //        Tuple<string, DateTime> firstMsg = Program.DelayMsgTupleList.First();
+                //        if (firstMsg.Item2 < DateTime.Now)
+                //        {
+                //            _irc.SendPublicChatMessage(firstMsg.Item1);
+                //            Console.WriteLine("Delayed message sent: " + firstMsg.Item1);
+                //            Program.DelayMsgTupleList.Remove(firstMsg); // remove sent message from list
+                //        }
+                //    }
+                //}
             }
             catch (Exception ex)
             {

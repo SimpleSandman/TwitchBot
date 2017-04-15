@@ -1088,6 +1088,36 @@ namespace TwitchBot.Commands
             }
         }
 
+        public void CmdMultiStreamLink(string username, ref List<string> multiStreamUsers)
+        {
+            try
+            {
+                if (multiStreamUsers.Count == 0)
+                    _irc.SendPublicChatMessage($"MultiStream link is not set up @{username}");
+                else
+                {
+                    string multiStreamLink = "https://multistre.am/" + _botConfig.Broadcaster.ToLower() + "/";
+
+                    foreach (string multiStreamUser in multiStreamUsers)
+                        multiStreamLink += $"{multiStreamUser}/";
+
+                    // Used specifically for multistre.am
+                    if (multiStreamUsers.Count == 3)
+                        multiStreamLink += "layout11";
+                    else if (multiStreamUsers.Count == 2)
+                        multiStreamLink += "layout7";
+                    else if (multiStreamUsers.Count == 1)
+                        multiStreamLink += "layout4";
+
+                    _irc.SendPublicChatMessage($"Check out these awesome streamers at the same time! (Use desktop for best results) {multiStreamLink}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdMultiStream(string, ref List<string>)", false, "!msl");
+            }
+        }
+
         private async Task<bool> ReactionCmd(string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
         {
             // check if user is trying to use a command on themselves

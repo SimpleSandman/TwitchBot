@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace TwitchBot.Extensions
@@ -49,6 +50,11 @@ namespace TwitchBot.Extensions
             writer.Flush();
             stream.Position = 0;
             return stream;
+        }
+
+        public static bool Contains(this string source, string toCheck, StringComparison comp)
+        {
+            return source.IndexOf(toCheck, comp) >= 0;
         }
     }
 }

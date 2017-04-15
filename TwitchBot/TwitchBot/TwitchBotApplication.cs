@@ -37,6 +37,7 @@ namespace TwitchBot
         private bool _hasTwitterInfo;
         private bool _hasYouTubeAuth;
         private double _defaultCooldownLimit;
+        private List<string> _multiStreamUsers;
         private List<CooldownUser> _cooldownUsers;
         private LocalSpotifyClient _spotify;
         private TwitchInfoService _twitchInfo;
@@ -58,6 +59,7 @@ namespace TwitchBot
             _hasYouTubeAuth = false;
             _timeout = new TimeoutCmd();
             _cooldownUsers = new List<CooldownUser>();
+            _multiStreamUsers = new List<string>();
             _defaultCooldownLimit = 20.0; // ToDo: Grab seconds from configuration
             _twitchInfo = twitchInfo;
             _follower = follower;
@@ -204,8 +206,9 @@ namespace TwitchBot
                 }
 
                 /* Start listening for delayed messages */
-                DelayMsg delayMsg = new DelayMsg(_irc);
-                delayMsg.Start();
+                // ToDo: Causes 30% CPU usage, needs different solution
+                //DelayMsg delayMsg = new DelayMsg(_irc);
+                //delayMsg.Start();
 
                 /* Pull list of mods from database */
                 _modInstance.SetModeratorList(_connStr, _broadcasterId);
@@ -468,6 +471,15 @@ namespace TwitchBot
                                     /* Gives every viewer a set amount of currency */
                                     else if (message.StartsWith("!bonusall "))
                                         await _cmdMod.CmdBonusAll(message, username);
+
+                                    /* Add MultiStream user to link */
+                                    else if (message.StartsWith("!addmsl "))
+                                        _cmdMod.CmdAddMultiStreamUser(message, username, ref _multiStreamUsers);
+
+                                    /* Reset MultiStream link so link can be reconfigured */
+                                    else if (message.Equals("!resetmsl"))
+                                        _cmdMod.CmdResetMultiStreamLink(username, ref _multiStreamUsers);
+
                                     /* insert moderator commands here */
                                 }
 
@@ -617,6 +629,10 @@ namespace TwitchBot
                                 /* Display YouTube link to song request playlist */
                                 else if (message.Equals("!sl"))
                                     _cmdGen.CmdYouTubeSongRequestList(hasYouTubeAuth, isYouTubeSongRequestAvail);
+
+                                /* Display MultiStream link */
+                                else if (message.Equals("!msl"))
+                                    _cmdGen.CmdMultiStreamLink(username, ref _multiStreamUsers);
 
                                 /* add more general commands here */
                             }
