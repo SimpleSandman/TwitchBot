@@ -1118,6 +1118,60 @@ namespace TwitchBot.Commands
             }
         }
 
+        public void CmdMagic8Ball(string username)
+        {
+            try
+            {
+                Random rnd = new Random(DateTime.Now.Millisecond);
+                int answerId = rnd.Next(20); // between 0 and 19
+
+                if (answerId == 0)
+                    _irc.SendPublicChatMessage($"It is certain @{username}");
+                else if (answerId == 1)
+                    _irc.SendPublicChatMessage($"It is decidedly so @{username}");
+                else if (answerId == 2)
+                    _irc.SendPublicChatMessage($"Without a doubt @{username}");
+                else if (answerId == 3)
+                    _irc.SendPublicChatMessage($"Yes definitely @{username}");
+                else if (answerId == 4)
+                    _irc.SendPublicChatMessage($"You may rely on it @{username}");
+                else if (answerId == 5)
+                    _irc.SendPublicChatMessage($"As I see it, yes @{username}");
+                else if (answerId == 6)
+                    _irc.SendPublicChatMessage($"Most likely @{username}");
+                else if (answerId == 7)
+                    _irc.SendPublicChatMessage($"Outlook good @{username}");
+                else if (answerId == 8)
+                    _irc.SendPublicChatMessage($"Yes @{username}");
+                else if (answerId == 9)
+                    _irc.SendPublicChatMessage($"Signs point to yes @{username}");
+                else if (answerId == 10)
+                    _irc.SendPublicChatMessage($"Reply hazy try again @{username}");
+                else if (answerId == 11)
+                    _irc.SendPublicChatMessage($"Ask again later @{username}");
+                else if (answerId == 12)
+                    _irc.SendPublicChatMessage($"Better not tell you now @{username}");
+                else if (answerId == 13)
+                    _irc.SendPublicChatMessage($"Cannot predict now @{username}");
+                else if (answerId == 14)
+                    _irc.SendPublicChatMessage($"Concentrate and ask again @{username}");
+                else if (answerId == 15)
+                    _irc.SendPublicChatMessage($"Don't count on it @{username}");
+                else if (answerId == 16)
+                    _irc.SendPublicChatMessage($"My reply is no @{username}");
+                else if (answerId == 17)
+                    _irc.SendPublicChatMessage($"My sources say no @{username}");
+                else if (answerId == 18)
+                    _irc.SendPublicChatMessage($"Outlook not so good @{username}");
+                else // found largest random value
+                    _irc.SendPublicChatMessage($"Very doubtful @{username}");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdMagic8Ball(string, string)", false, "!8ball");
+            }
+        }
+
         private async Task<bool> ReactionCmd(string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
         {
             // check if user is trying to use a command on themselves

@@ -634,6 +634,19 @@ namespace TwitchBot
                                 else if (message.Equals("!msl"))
                                     _cmdGen.CmdMultiStreamLink(username, ref _multiStreamUsers);
 
+                                /* Display Magic 8-ball response */
+                                else if (message.StartsWith("!8ball ") && !IsUserOnCooldown(username, "!8ball"))
+                                {
+                                    _cmdGen.CmdMagic8Ball(username);
+                                    _cooldownUsers.Add(new CooldownUser
+                                    {
+                                        Username = username,
+                                        Cooldown = DateTime.Now.AddSeconds(_defaultCooldownLimit),
+                                        Command = "!8ball",
+                                        Warned = false
+                                    });
+                                }
+
                                 /* add more general commands here */
                             }
                         }
