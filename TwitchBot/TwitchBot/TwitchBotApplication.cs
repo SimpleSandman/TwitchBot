@@ -511,11 +511,11 @@ namespace TwitchBot
                                     await _cmdGen.CmdUptime();
 
                                 /* Display list of requested songs */
-                                else if (message.Equals("!rbsrlist"))
-                                    _cmdGen.CmdListManualSr();
+                                else if (message.Equals("!rbsl"))
+                                    _cmdGen.CmdManualSrList();
 
                                 /* Request a song for the host to play */
-                                // Usage: !sr [artist] - [song title]
+                                // Usage: !rbsr [artist] - [song title]
                                 else if (message.StartsWith("!rbsr "))
                                     _cmdGen.CmdManualSr(isManualSongRequestAvail, message, username);
 
@@ -623,11 +623,12 @@ namespace TwitchBot
                                     await _cmdGen.CmdViewRank(username);
 
                                 /* Add song request to YouTube playlist */
-                                else if (message.StartsWith("!sr "))
+                                // Usage: !ytsr [video title/YouTube link]
+                                else if (message.StartsWith("!ytsr "))
                                     await _cmdGen.CmdYouTubeSongRequest(message, username, hasYouTubeAuth, isYouTubeSongRequestAvail);
 
                                 /* Display YouTube link to song request playlist */
-                                else if (message.Equals("!sl"))
+                                else if (message.Equals("!ytsl"))
                                     _cmdGen.CmdYouTubeSongRequestList(hasYouTubeAuth, isYouTubeSongRequestAvail);
 
                                 /* Display MultiStream link */
@@ -635,6 +636,7 @@ namespace TwitchBot
                                     _cmdGen.CmdMultiStreamLink(username, ref _multiStreamUsers);
 
                                 /* Display Magic 8-ball response */
+                                // Usage: !8ball [question]
                                 else if (message.StartsWith("!8ball ") && !IsUserOnCooldown(username, "!8ball"))
                                 {
                                     _cmdGen.CmdMagic8Ball(username);

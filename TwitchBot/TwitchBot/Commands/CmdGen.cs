@@ -51,8 +51,8 @@ namespace TwitchBot.Commands
             try
             {
                 _irc.SendPublicChatMessage("---> !hello >< !slap @[username] >< !stab @[username] >< !throw [item] @[username] >< !shoot @[username] "
-                    + ">< !sr [youtube link/search] >< !sl >< !partyup [party member name] >< !gamble [money] "
-                    + ">< !quote >< !" + _botConfig.CurrencyType.ToLower() + " (check stream currency) <---"
+                    + ">< !ytsr [youtube link/search] >< !ytsl >< !partyup [party member name] >< !gamble [money] "
+                    + ">< !quote >< !8ball [question] >< !" + _botConfig.CurrencyType.ToLower() + " (check stream currency) <---"
                     + " Link to full list of commands: http://bit.ly/2bXLlEe");
             }
             catch (Exception ex)
@@ -123,7 +123,7 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Display list of requested songs
         /// </summary>
-        public void CmdListManualSr()
+        public void CmdManualSrList()
         {
             try
             {
@@ -173,7 +173,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdListManualSr()", false, "!rbsrlist");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList()", false, "!rbsl");
             }
         }
 
@@ -996,11 +996,11 @@ namespace TwitchBot.Commands
                         else
                             videoId = message.Substring(videoIdIndex, addParam - videoIdIndex);
                     }
-                    else if (message.Replace("!sr ", "").Length == 11 
-                        && message.Replace("!sr ", "").IndexOf(" ") == -1
+                    else if (message.Replace("!ytsr ", "").Length == 11 
+                        && message.Replace("!ytsr ", "").IndexOf(" ") == -1
                         && Regex.Match(message, @"[\w\-]").Success) // assume only video ID
                     {
-                        videoId = message.Replace("!sr ", "");
+                        videoId = message.Replace("!ytsr ", "");
                     }
                     else // search by keyword
                     {
@@ -1064,7 +1064,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest(string, string, bool, bool)", false, "!sr");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest(string, string, bool, bool)", false, "!ytsr");
             }
         }
 
@@ -1084,7 +1084,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequestList(bool, bool)", false, "!sl");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequestList(bool, bool)", false, "!ytsl");
             }
         }
 
