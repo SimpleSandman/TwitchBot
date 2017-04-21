@@ -123,49 +123,56 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Display list of requested songs
         /// </summary>
-        public void CmdManualSrList()
+        /// <param name="isManualSongRequestAvail">Check if song requests are available</param>
+        /// <param name="username">User that sent the message</param>
+        public void CmdManualSrList(bool isManualSongRequestAvail, string username)
         {
             try
             {
-                string songList = "";
-
-                using (SqlConnection conn = new SqlConnection(_connStr))
+                if (!isManualSongRequestAvail)
+                    _irc.SendPublicChatMessage($"Song requests are not available at this time @{username}");
+                else
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster", conn))
+                    string songList = "";
+
+                    using (SqlConnection conn = new SqlConnection(_connStr))
                     {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        conn.Open();
+                        using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster", conn))
                         {
-                            if (reader.HasRows)
+                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
+                            using (SqlDataReader reader = cmd.ExecuteReader())
                             {
-                                DataTable schemaTable = reader.GetSchemaTable();
-                                DataTable data = new DataTable();
-                                foreach (DataRow row in schemaTable.Rows)
+                                if (reader.HasRows)
                                 {
-                                    string colName = row.Field<string>("ColumnName");
-                                    Type t = row.Field<Type>("DataType");
-                                    data.Columns.Add(colName, t);
-                                }
-                                while (reader.Read())
-                                {
-                                    var newRow = data.Rows.Add();
-                                    foreach (DataColumn col in data.Columns)
+                                    DataTable schemaTable = reader.GetSchemaTable();
+                                    DataTable data = new DataTable();
+                                    foreach (DataRow row in schemaTable.Rows)
                                     {
-                                        newRow[col.ColumnName] = reader[col.ColumnName];
-                                        Console.WriteLine(newRow[col.ColumnName]);
-                                        songList = songList + newRow[col.ColumnName] + " >< ";
+                                        string colName = row.Field<string>("ColumnName");
+                                        Type t = row.Field<Type>("DataType");
+                                        data.Columns.Add(colName, t);
                                     }
+                                    while (reader.Read())
+                                    {
+                                        var newRow = data.Rows.Add();
+                                        foreach (DataColumn col in data.Columns)
+                                        {
+                                            newRow[col.ColumnName] = reader[col.ColumnName];
+                                            Console.WriteLine(newRow[col.ColumnName]);
+                                            songList = songList + newRow[col.ColumnName] + " >< ";
+                                        }
+                                    }
+                                    StringBuilder strBdrSongList = new StringBuilder(songList);
+                                    strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " >< "
+                                    songList = strBdrSongList.ToString(); // replace old song list string with new
+                                    _irc.SendPublicChatMessage("Current List of Requested Songs: " + songList);
                                 }
-                                StringBuilder strBdrSongList = new StringBuilder(songList);
-                                strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " >< "
-                                songList = strBdrSongList.ToString(); // replace old song list string with new
-                                _irc.SendPublicChatMessage("Current List of Requested Songs: " + songList);
-                            }
-                            else
-                            {
-                                Console.WriteLine("No requests have been made");
-                                _irc.SendPublicChatMessage("No requests have been made");
+                                else
+                                {
+                                    Console.WriteLine("No requests have been made");
+                                    _irc.SendPublicChatMessage("No requests have been made");
+                                }
                             }
                         }
                     }
@@ -173,7 +180,27 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList()", false, "!rbsl");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList()", false, "!rbsrl");
+            }
+        }
+
+        /// <summary>
+        /// Displays link to the list of songs that can be requested manually
+        /// </summary>
+        /// <param name="isManualSongRequestAvail">Check if song requests are available</param>
+        /// <param name="username">User that sent the message</param>
+        public void CmdManualSrLink(bool isManualSongRequestAvail, string username)
+        {
+            try
+            {
+                if (!isManualSongRequestAvail)
+                    _irc.SendPublicChatMessage($"Song requests are not available at this time @{username}");
+                else
+                    _irc.SendPublicChatMessage($"Here is the link to the songs you can manually request {_botConfig.ManualSongRequestLink}");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrLink()", false, "!rbsl");
             }
         }
 

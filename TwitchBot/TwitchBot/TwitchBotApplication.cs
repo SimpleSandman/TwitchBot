@@ -511,8 +511,12 @@ namespace TwitchBot
                                     await _cmdGen.CmdUptime();
 
                                 /* Display list of requested songs */
+                                else if (message.Equals("!rbsrl"))
+                                    _cmdGen.CmdManualSrList(isManualSongRequestAvail, username);
+
+                                /* Display link of list of songs to request */
                                 else if (message.Equals("!rbsl"))
-                                    _cmdGen.CmdManualSrList();
+                                    _cmdGen.CmdManualSrLink(isManualSongRequestAvail, username);
 
                                 /* Request a song for the host to play */
                                 // Usage: !rbsr [artist] - [song title]

@@ -63,18 +63,26 @@ namespace TwitchBot.Libraries
             try
             {
                 SendIrcMessage(":" + username + "!" + username + "@" + username +
-                ".tmi.twitch.tv PRIVMSG #" + channel + " :" + message);
+                    ".tmi.twitch.tv PRIVMSG #" + channel + " :" + message);
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "IrcClient", "SendPublicMessage(string)", false);
+                _errHndlrInstance.LogError(ex, "IrcClient", "SendPublicChatMessage(string)", false);
             }
         }
 
         public string ReadMessage()
         {
-            string message = inputStream.ReadLine();
-            return message;
+            try
+            {
+                return inputStream.ReadLine(); // chat message
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "IrcClient", "ReadMessage(string)", true);
+            }
+
+            return "";
         }
     }
 }

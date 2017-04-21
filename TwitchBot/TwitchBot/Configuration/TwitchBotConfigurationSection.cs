@@ -66,6 +66,9 @@ namespace TwitchBot.Configuration
         private static readonly ConfigurationProperty _youTubeBroadcasterPlaylistName =
             new ConfigurationProperty("youTubeBroadcasterPlaylistName", typeof(string), "", ConfigurationPropertyOptions.None);
 
+        private static readonly ConfigurationProperty _manualSongRequestLink =
+            new ConfigurationProperty("manualSongRequestLink", typeof(string), "", ConfigurationPropertyOptions.None);
+
         public TwitchBotConfigurationSection()
         {
             _properties = new ConfigurationPropertyCollection();
@@ -88,6 +91,7 @@ namespace TwitchBot.Configuration
             _properties.Add(_youTubeClientSecret);
             _properties.Add(_youTubeBroadcasterPlaylistId);
             _properties.Add(_youTubeBroadcasterPlaylistName);
+            _properties.Add(_manualSongRequestLink);
         }
 
         protected override ConfigurationPropertyCollection Properties
@@ -308,6 +312,16 @@ namespace TwitchBot.Configuration
             {
                 ThrowIfReadOnly("YouTubeBroadcasterPlaylistName");
                 this["youTubeBroadcasterPlaylistName"] = value;
+            }
+        }
+
+        public string ManualSongRequestLink
+        {
+            get { return (string)this["manualSongRequestLink"]; }
+            set
+            {
+                ThrowIfReadOnly("ManualSongRequestLink");
+                this["manualSongRequestLink"] = value;
             }
         }
 
