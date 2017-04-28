@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using TwitchBot.Models;
+
 namespace TwitchBot.Repositories
 {
     public class FollowerRepository
@@ -77,6 +79,38 @@ namespace TwitchBot.Repositories
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
+        }
+
+        public List<Rank> GetRankList(int broadcasterId)
+        {
+            List<Rank> ranksList = new List<Rank>();
+
+            // Get list of ranks currently for the specific broadcaster
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblRank WHERE broadcaster = @broadcaster", conn))
+                {
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                Rank rank = new Rank()
+                                {
+                                    Name = reader["name"].ToString(),
+                                    ExpCap = int.Parse(reader["expCap"].ToString())
+                                };
+                                ranksList.Add(rank);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return ranksList;
         }
     }
 }

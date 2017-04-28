@@ -32,10 +32,11 @@ namespace TwitchBot.Commands
         private int _broadcasterId;
         private TwitchInfoService _twitchInfo;
         private BankService _bank;
+        private FollowerService _follower;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
-        public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, TwitchInfoService twitchInfo, BankService bank)
+        public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, TwitchInfoService twitchInfo, BankService bank, FollowerService follower)
         {
             _irc = irc;
             _spotify = spotify;
@@ -44,6 +45,7 @@ namespace TwitchBot.Commands
             _broadcasterId = broadcasterId;
             _twitchInfo = twitchInfo;
             _bank = bank;
+            _follower = follower;
         }
 
         public void CmdDisplayCmds()
@@ -875,99 +877,21 @@ namespace TwitchBot.Commands
                 {
                     if (message.IsSuccessStatusCode)
                     {
-                        int currExp = -1;
-
-                        // find existing follower's experience points (if available)
-                        using (SqlConnection conn = new SqlConnection(_connStr))
-                        {
-                            conn.Open();
-                            using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblRankFollowers WHERE broadcaster = @broadcaster", conn))
-                            {
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-                                using (SqlDataReader reader = cmd.ExecuteReader())
-                                {
-                                    if (reader.HasRows)
-                                    {
-                                        while (reader.Read())
-                                        {
-                                            if (username.Equals(reader["username"].ToString()))
-                                            {
-                                                currExp = int.Parse(reader["exp"].ToString());
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        int currExp = _follower.CurrExp(username, _broadcasterId);
 
                         // Grab the follower's associated rank
                         if (currExp > -1)
                         {
-                            List<Rank> ranksList = new List<Rank>();
-                            Rank currFollowerRank = new Rank();
+                            List<Rank> rankList = _follower.GetRankList(_broadcasterId);
+                            Rank currFollowerRank = _follower.GetCurrRank(rankList, currExp);
+                            decimal hoursWatched = _follower.GetHoursWatched(currExp);
 
-                            // get list of ranks currently for the specific broadcaster
-                            using (SqlConnection conn = new SqlConnection(_connStr))
-                            {
-                                conn.Open();
-                                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblRank WHERE broadcaster = @broadcaster", conn))
-                                {
-                                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-                                    using (SqlDataReader reader = cmd.ExecuteReader())
-                                    {
-                                        if (reader.HasRows)
-                                        {
-                                            while (reader.Read())
-                                            {
-                                                Rank rank = new Rank()
-                                                {
-                                                    Name = reader["name"].ToString(),
-                                                    ExpCap = int.Parse(reader["expCap"].ToString())
-                                                };
-                                                ranksList.Add(rank);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // find the user's current rank by experience cap
-                            foreach (var followerRank in ranksList.OrderBy(r => r.ExpCap))
-                            {
-                                // search until current experience < experience cap
-                                if (currExp >= followerRank.ExpCap)
-                                {
-                                    continue;
-                                }
-                                else
-                                {
-                                    currFollowerRank.Name = followerRank.Name;
-                                    currFollowerRank.ExpCap = followerRank.ExpCap;
-                                    break;
-                                }
-                            }
-
-                            decimal hoursWatched = Math.Round(Convert.ToDecimal(currExp) / (decimal)12.0, 2);
-
-                            _irc.SendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" {currExp}/{currFollowerRank.ExpCap} EXP ({hoursWatched} hours)");
+                            _irc.SendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" " 
+                                + $"{currExp}/{currFollowerRank.ExpCap} EXP ({hoursWatched} hours watched)");
                         }
                         else
                         {
-                            // Add follower to the ranks (mainly for existing followers without a rank)
-                            string query = "INSERT INTO tblRankFollowers (username, exp, broadcaster) "
-                                    + "VALUES (@username, @exp, @broadcaster)";
-
-                            using (SqlConnection conn = new SqlConnection(_connStr))
-                            using (SqlCommand cmd = new SqlCommand(query, conn))
-                            {
-                                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = username;
-                                cmd.Parameters.Add("@exp", SqlDbType.Int).Value = 0; // initial experience
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-
-                                conn.Open();
-                                cmd.ExecuteNonQuery();
-                            }
+                            _follower.EnlistRecruit(username, _broadcasterId);
 
                             _irc.SendPublicChatMessage($"Welcome to the army @{username}. View your new rank using !rank");
                         }
@@ -986,7 +910,7 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async Task CmdYouTubeSongRequest(string message, string username, bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
+        public async Task<DateTime> CmdYouTubeSongRequest(string message, string username, bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
         {
             try
             {
@@ -1003,7 +927,7 @@ namespace TwitchBot.Commands
                     string videoId = "";
 
                     // Parse video ID based on different types of requests
-                    if (message.Contains("youtube.com/watch?v="))
+                    if (message.Contains("youtube.com/watch?v=")) // full URL
                     {
                         int videoIdIndex = message.IndexOf("?v=") + 3;
                         int addParam = message.IndexOf("&", videoIdIndex);
@@ -1013,7 +937,7 @@ namespace TwitchBot.Commands
                         else
                             videoId = message.Substring(videoIdIndex, addParam - videoIdIndex);
                     }
-                    else if (message.Contains("youtu.be/"))
+                    else if (message.Contains("youtu.be/")) // short URL
                     {
                         int videoIdIndex = message.IndexOf("youtu.be/") + 9;
                         int addParam = message.IndexOf("?", videoIdIndex);
@@ -1078,12 +1002,13 @@ namespace TwitchBot.Commands
                             else
                             {
                                 await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, username);
-                                // ToDo: Show playlist position after being able to handle auto-removal of played songs
-                                //await Task.Delay(1500); // wait before attempting to get item count from playlist
-                                //Playlist broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId, 1);
 
-                                _irc.SendPublicChatMessage($"@{username} -> \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested!"); //+
-                                    //$" at position #{broadcasterPlaylist.ContentDetails.ItemCount}");
+                                _irc.SendPublicChatMessage($"@{username} -> \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested!");
+
+                                // Return cooldown time by using one-third of the length of the video duration
+                                TimeSpan totalTimeSpan = new TimeSpan(0, Convert.ToInt32(videoMin), Convert.ToInt32(videoSec));
+                                TimeSpan oneThirdTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 3);
+                                return DateTime.Now.AddSeconds(oneThirdTimeSpan.TotalSeconds);
                             }
                         }
                     }
@@ -1093,6 +1018,8 @@ namespace TwitchBot.Commands
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest(string, string, bool, bool)", false, "!ytsr");
             }
+
+            return new DateTime();
         }
 
         public void CmdYouTubeSongRequestList(bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
@@ -1115,7 +1042,7 @@ namespace TwitchBot.Commands
             }
         }
 
-        public void CmdMultiStreamLink(string username, ref List<string> multiStreamUsers)
+        public void CmdMultiStreamLink(string username, List<string> multiStreamUsers)
         {
             try
             {
@@ -1141,7 +1068,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdMultiStream(string, ref List<string>)", false, "!msl");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdMultiStream(string, List<string>)", false, "!msl");
             }
         }
 
@@ -1152,50 +1079,35 @@ namespace TwitchBot.Commands
                 Random rnd = new Random(DateTime.Now.Millisecond);
                 int answerId = rnd.Next(20); // between 0 and 19
 
-                if (answerId == 0)
-                    _irc.SendPublicChatMessage($"It is certain @{username}");
-                else if (answerId == 1)
-                    _irc.SendPublicChatMessage($"It is decidedly so @{username}");
-                else if (answerId == 2)
-                    _irc.SendPublicChatMessage($"Without a doubt @{username}");
-                else if (answerId == 3)
-                    _irc.SendPublicChatMessage($"Yes definitely @{username}");
-                else if (answerId == 4)
-                    _irc.SendPublicChatMessage($"You may rely on it @{username}");
-                else if (answerId == 5)
-                    _irc.SendPublicChatMessage($"As I see it, yes @{username}");
-                else if (answerId == 6)
-                    _irc.SendPublicChatMessage($"Most likely @{username}");
-                else if (answerId == 7)
-                    _irc.SendPublicChatMessage($"Outlook good @{username}");
-                else if (answerId == 8)
-                    _irc.SendPublicChatMessage($"Yes @{username}");
-                else if (answerId == 9)
-                    _irc.SendPublicChatMessage($"Signs point to yes @{username}");
-                else if (answerId == 10)
-                    _irc.SendPublicChatMessage($"Reply hazy try again @{username}");
-                else if (answerId == 11)
-                    _irc.SendPublicChatMessage($"Ask again later @{username}");
-                else if (answerId == 12)
-                    _irc.SendPublicChatMessage($"Better not tell you now @{username}");
-                else if (answerId == 13)
-                    _irc.SendPublicChatMessage($"Cannot predict now @{username}");
-                else if (answerId == 14)
-                    _irc.SendPublicChatMessage($"Concentrate and ask again @{username}");
-                else if (answerId == 15)
-                    _irc.SendPublicChatMessage($"Don't count on it @{username}");
-                else if (answerId == 16)
-                    _irc.SendPublicChatMessage($"My reply is no @{username}");
-                else if (answerId == 17)
-                    _irc.SendPublicChatMessage($"My sources say no @{username}");
-                else if (answerId == 18)
-                    _irc.SendPublicChatMessage($"Outlook not so good @{username}");
-                else // found largest random value
-                    _irc.SendPublicChatMessage($"Very doubtful @{username}");
+                string[] possibleAnswers = new string[20]
+                {
+                    $"It is certain @{username}",
+                    $"It is decidedly so @{username}",
+                    $"Without a doubt @{username}",
+                    $"Yes definitely @{username}",
+                    $"You may rely on it @{username}",
+                    $"As I see it, yes @{username}",
+                    $"Most likely @{username}",
+                    $"Outlook good @{username}",
+                    $"Yes @{username}",
+                    $"Signs point to yes @{username}",
+                    $"Reply hazy try again @{username}",
+                    $"Ask again later @{username}",
+                    $"Better not tell you now @{username}",
+                    $"Cannot predict now @{username}",
+                    $"Concentrate and ask again @{username}",
+                    $"Don't count on it @{username}",
+                    $"My reply is no @{username}",
+                    $"My sources say no @{username}",
+                    $"Outlook not so good @{username}",
+                    $"Very doubtful @{username}"
+                };
+
+                _irc.SendPublicChatMessage(possibleAnswers[answerId]);
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdMagic8Ball(string, string)", false, "!8ball");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdMagic8Ball(string)", false, "!8ball");
             }
         }
 

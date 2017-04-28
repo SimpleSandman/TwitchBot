@@ -140,7 +140,6 @@ namespace TwitchBot
 
                         conn.Open();
                         cmd.ExecuteNonQuery();
-                        conn.Close();
                     }
 
                     _broadcasterId = GetBroadcasterId();
@@ -167,7 +166,7 @@ namespace TwitchBot
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
                 _irc = new IrcClient("irc.twitch.tv", 6667, _botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
-                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterId, _twitchInfo, _bank);
+                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterId, _twitchInfo, _bank, _follower);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterId, _appConfig);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterId, _appConfig, _bank, _twitchInfo);
 
@@ -214,7 +213,7 @@ namespace TwitchBot
                 _modInstance.SetModeratorList(_connStr, _broadcasterId);
 
                 /* Pull list of followers and check experience points for stream leveling */
-                _followerListener.Start(_broadcasterId);
+                _followerListener.Start(_irc, _broadcasterId);
 
                 /* Get list of timed out users from database */
                 SetListTimeouts();
@@ -628,8 +627,20 @@ namespace TwitchBot
 
                                 /* Add song request to YouTube playlist */
                                 // Usage: !ytsr [video title/YouTube link]
-                                else if (message.StartsWith("!ytsr "))
-                                    await _cmdGen.CmdYouTubeSongRequest(message, username, hasYouTubeAuth, isYouTubeSongRequestAvail);
+                                else if (message.StartsWith("!ytsr ") && !IsUserOnCooldown(username, "!ytsr"))
+                                {
+                                    DateTime cooldown = await _cmdGen.CmdYouTubeSongRequest(message, username, hasYouTubeAuth, isYouTubeSongRequestAvail);
+                                    if (cooldown > new DateTime())
+                                    {
+                                        _cooldownUsers.Add(new CooldownUser
+                                        {
+                                            Username = username,
+                                            Cooldown = cooldown,
+                                            Command = "!ytsr",
+                                            Warned = false
+                                        });
+                                    }
+                                }
 
                                 /* Display YouTube link to song request playlist */
                                 else if (message.Equals("!ytsl"))
@@ -637,7 +648,7 @@ namespace TwitchBot
 
                                 /* Display MultiStream link */
                                 else if (message.Equals("!msl"))
-                                    _cmdGen.CmdMultiStreamLink(username, ref _multiStreamUsers);
+                                    _cmdGen.CmdMultiStreamLink(username, _multiStreamUsers);
 
                                 /* Display Magic 8-ball response */
                                 // Usage: !8ball [question]
@@ -718,7 +729,14 @@ namespace TwitchBot
             {
                 user.Warned = true; // prevent spamming cooldown message
                 TimeSpan ts = user.Cooldown - DateTime.Now;
-                _irc.SendPublicChatMessage($"The {cmd} command is currently on cooldown @{username} for {ts.Seconds} seconds");
+                string tsMsg = "";
+
+                if (ts.Minutes > 0)
+                    tsMsg = $"{ts.Minutes} minute(s) and {ts.Seconds} second(s)";
+                else
+                    tsMsg = $"{ts.Seconds} second(s)";
+
+                _irc.SendPublicChatMessage($"The {cmd} command is currently on cooldown @{username} for {tsMsg}");
             }
 
             return true;

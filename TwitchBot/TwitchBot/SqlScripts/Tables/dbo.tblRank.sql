@@ -10,7 +10,7 @@ GO
 
 CREATE TABLE [dbo].[tblRank] (
     [Id]          INT          IDENTITY (1, 1) NOT NULL,
-    [name]        VARCHAR (30) NOT NULL,
+    [name]        VARCHAR (50) NOT NULL,
     [expCap]      INT          NOT NULL,
     [broadcaster] INT          NOT NULL
 );
