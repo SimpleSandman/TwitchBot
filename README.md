@@ -22,7 +22,7 @@ For development environment (testing), create 2 files in the same folder as App.
     currencyType="[CurrencyName] (optional)" enableTweets="false" enableDisplaySong="false"
     streamLatency="[Latency] (in seconds)" youTubeClientId="[YouTubeClientId]" 
     youTubeClientSecret="[YouTubeClientSecret]" youTubeBroadcasterPlaylistId="[YouTubeBroadcasterPlaylistId]"
-    youTubeBroadcasterPlaylistName="[YouTubeBroadcasterPlaylistName]" />
+    youTubeBroadcasterPlaylistName="[YouTubeBroadcasterPlaylistName]" manualSongRequestLink="[ManualSongRequestLink]" />
 ```
 
 ## ConnectionStringsSecrets.config
