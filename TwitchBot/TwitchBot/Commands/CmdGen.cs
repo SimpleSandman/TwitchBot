@@ -15,11 +15,11 @@ using Newtonsoft.Json;
 using Google.Apis.YouTube.v3.Data;
 
 using TwitchBot.Configuration;
+using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
-
 
 namespace TwitchBot.Commands
 {
@@ -33,10 +33,12 @@ namespace TwitchBot.Commands
         private TwitchInfoService _twitchInfo;
         private BankService _bank;
         private FollowerService _follower;
+        private SongRequestService _songRequest;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
-        public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, TwitchInfoService twitchInfo, BankService bank, FollowerService follower)
+        public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, 
+            TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestService songRequest)
         {
             _irc = irc;
             _spotify = spotify;
@@ -46,6 +48,7 @@ namespace TwitchBot.Commands
             _twitchInfo = twitchInfo;
             _bank = bank;
             _follower = follower;
+            _songRequest = songRequest;
         }
 
         public void CmdDisplayCmds()
@@ -971,6 +974,36 @@ namespace TwitchBot.Commands
                     else
                     {
                         Video video = await _youTubeClientInstance.GetVideoById(videoId, 2);
+
+                        // Check if video's title and account match song request blacklist
+                        List<SongRequestBlacklistItem> blacklist = _songRequest.GetSongRequestBlackList(_broadcasterId);
+
+                        if (blacklist.Count > 0)
+                        {
+                            // Check for artist-wide blacklist
+                            if (blacklist.Any(
+                                   b => (string.IsNullOrEmpty(b.Title)
+                                           && video.Snippet.Title.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
+                                       || (string.IsNullOrEmpty(b.Title)
+                                           && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
+                                ))
+                            {
+                                _irc.SendPublicChatMessage($"This artist cannot be requested at this time @{username}");
+                                return new DateTime();
+                            }
+                            // Check for song-specific blacklist
+                            else if (blacklist.Any(
+                                        b => (!string.IsNullOrEmpty(b.Title) && video.Snippet.Title.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase)
+                                                && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // both song/artist in video title
+                                            || (!string.IsNullOrEmpty(b.Title) && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase)
+                                                && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // song in title and artist in channel title
+                                ))
+                            {
+                                _irc.SendPublicChatMessage($"This song cannot be requested at this time @{username}");
+                                return new DateTime();
+                            }
+                        }
+
                         string videoDuration = video.ContentDetails.Duration;
 
                         // Check if time limit has been reached

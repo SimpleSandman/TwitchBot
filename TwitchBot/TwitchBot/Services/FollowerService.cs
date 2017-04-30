@@ -9,31 +9,31 @@ namespace TwitchBot.Services
 {
     public class FollowerService
     {
-        private FollowerRepository _followerDB;
+        private FollowerRepository _followerDb;
 
-        public FollowerService(FollowerRepository followerDB)
+        public FollowerService(FollowerRepository followerDb)
         {
-            _followerDB = followerDB;
+            _followerDb = followerDb;
         }
 
         public int CurrExp(string chatter, int broadcasterId)
         {
-            return _followerDB.CurrExp(chatter, broadcasterId);
+            return _followerDb.CurrExp(chatter, broadcasterId);
         }
 
         public void UpdateExp(string chatter, int broadcasterId, int currExp)
         {
-            _followerDB.UpdateExp(chatter, broadcasterId, currExp);
+            _followerDb.UpdateExp(chatter, broadcasterId, currExp);
         }
 
         public void EnlistRecruit(string chatter, int broadcasterId)
         {
-            _followerDB.EnlistRecruit(chatter, broadcasterId);
+            _followerDb.EnlistRecruit(chatter, broadcasterId);
         }
 
         public List<Rank> GetRankList(int broadcasterId)
         {
-            return _followerDB.GetRankList(broadcasterId);
+            return _followerDb.GetRankList(broadcasterId);
         }
 
         public Rank GetCurrRank(List<Rank> rankList, int currExp)

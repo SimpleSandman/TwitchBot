@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Autofac;
+﻿using Autofac;
+
 using TwitchBot.Configuration;
 using TwitchBot.Repositories;
 using TwitchBot.Services;
@@ -27,12 +23,14 @@ namespace TwitchBot.Modules
             builder.RegisterType<TwitchBotApplication>();
 
             // repositories
-            builder.RegisterType<FollowerRepository>().WithParameter(ParamConnStr);
             builder.RegisterType<BankRepository>().WithParameter(ParamConnStr);
+            builder.RegisterType<FollowerRepository>().WithParameter(ParamConnStr);
+            builder.RegisterType<SongRequestRepository>().WithParameter(ParamConnStr);
 
             // services
-            builder.RegisterType<FollowerService>();
             builder.RegisterType<BankService>();
+            builder.RegisterType<FollowerService>();
+            builder.RegisterType<SongRequestService>();
             builder.RegisterType<TwitchInfoService>();
 
             // threads

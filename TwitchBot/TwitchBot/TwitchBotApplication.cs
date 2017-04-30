@@ -44,11 +44,13 @@ namespace TwitchBot
         private FollowerService _follower;
         private FollowerListener _followerListener;
         private BankService _bank;
+        private SongRequestService _songRequest;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
-        public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, FollowerService follower, BankService bank, FollowerListener followerListener)
+        public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestService songRequest,
+            FollowerService follower, BankService bank, FollowerListener followerListener)
         {
             _appConfig = appConfig;
             _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program.ConnStrType].ConnectionString;
@@ -65,6 +67,7 @@ namespace TwitchBot
             _follower = follower;
             _followerListener = followerListener;
             _bank = bank;
+            _songRequest = songRequest;
         }
 
         public async Task RunAsync()
@@ -166,8 +169,8 @@ namespace TwitchBot
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
                 _irc = new IrcClient("irc.twitch.tv", 6667, _botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
-                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterId, _twitchInfo, _bank, _follower);
-                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterId, _appConfig);
+                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterId, _twitchInfo, _bank, _follower, _songRequest);
+                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterId, _appConfig, _songRequest);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterId, _appConfig, _bank, _twitchInfo);
 
                 /* Whisper broadcaster bot settings */
@@ -410,6 +413,18 @@ namespace TwitchBot
                                 // Usage (type): !editgiveawayTYP [giveaway id] [giveawaytype] ([keyword] OR [min number] [max number])
                                 else if (message.StartsWith("!editgiveaway"))
                                     _cmdBrdCstr.CmdEditGiveaway(message, username);
+
+                                else if (message.StartsWith("!srbl "))
+                                    _cmdBrdCstr.CmdAddSongRequestBlacklist(message, username);
+
+                                else if (message.StartsWith("!removesrbl "))
+                                    _cmdBrdCstr.CmdRemoveSongRequestBlacklist(message, username);
+
+                                else if (message.Equals("!resetsrbl"))
+                                    _cmdBrdCstr.CmdResetSongRequestBlacklist(username);
+
+                                else if (message.Equals("!showsrbl"))
+                                    _cmdBrdCstr.CmdListSongRequestBlacklist(username);
 
                                 /* insert more broadcaster commands here */
                             }

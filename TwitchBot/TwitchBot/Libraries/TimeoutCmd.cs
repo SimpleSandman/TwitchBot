@@ -59,7 +59,6 @@ namespace TwitchBot.Libraries
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
-                    conn.Close();
                 }
 
                 _timeoutKeyValues.Remove(recipient);

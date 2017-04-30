@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -12,6 +13,8 @@ using Tweetinvi;
 using TwitchBot.Configuration;
 using TwitchBot.Extensions;
 using TwitchBot.Libraries;
+using TwitchBot.Models;
+using TwitchBot.Services;
 
 namespace TwitchBot.Commands
 {
@@ -23,15 +26,18 @@ namespace TwitchBot.Commands
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _broadcasterId;
+        private SongRequestService _songRequest;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, System.Configuration.Configuration appConfig)
+        public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, 
+            System.Configuration.Configuration appConfig, SongRequestService songRequest)
         {
             _irc = irc;
             _botConfig = botConfig;
             _connStr = connStr;
             _broadcasterId = broadcasterId;
             _appConfig = appConfig;
+            _songRequest = songRequest;
         }
 
         /// <summary>
@@ -1002,7 +1008,272 @@ namespace TwitchBot.Commands
             }
         }
 
-        public void SendTweet(string pendingMessage, string command)
+        public void CmdAddSongRequestBlacklist(string message, string username)
+        {
+            try
+            {
+                int requestIndex = message.GetNthCharIndex(' ', 2);
+
+                if (requestIndex == -1)
+                {
+                    _irc.SendPublicChatMessage($"Please enter a request @{username}");
+                    return;
+                }
+                
+                string requestType = message.Substring(message.IndexOf(" ") + 1, 1);
+                string request = message.Substring(requestIndex + 1);
+
+                // Check if request is based on an artist or just a song by an artist
+                if (requestType.Equals("1")) // blackout any song by this artist
+                {
+                    // check if song-specific request is being used for artist blackout
+                    if (request.Count(c => c == '"') == 2
+                        || request.Count(c => c == '<') == 1
+                        || request.Count(c => c == '>') == 1)
+                    {
+                        _irc.SendPublicChatMessage($"Please use request type 2 for song-specific blacklist-restrictions @{username}");
+                        return;
+                    }
+
+                    List<SongRequestBlacklistItem> blacklist = _songRequest.GetSongRequestBlackList(_broadcasterId);
+                    if (blacklist.Count > 0 && blacklist.Exists(b => b.Artist.Equals(request, StringComparison.CurrentCultureIgnoreCase)))
+                    {
+                        _irc.SendPublicChatMessage($"This song is already on the blacklist @{username}");
+                        return;
+                    }
+
+                    // log artist into db
+                    string query = "INSERT INTO tblSongRequestBlacklist (artist, broadcaster) VALUES (@artist, @broadcaster)";
+
+                    using (SqlConnection conn = new SqlConnection(_connStr))
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.Add("@artist", SqlDbType.VarChar, 100).Value = request;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    _irc.SendPublicChatMessage($"The artist \"{request}\" has been added to the blacklist @{username}");
+                }
+                else if (requestType.Equals("2")) // blackout a song by an artist
+                {
+                    if (request.Count(c => c == '"') < 2 
+                        || request.Count(c => c == '<') != 1 
+                        || request.Count(c => c == '>') != 1)
+                    {
+                        _irc.SendPublicChatMessage($"Please surround the song title with \" (quotation marks) " + 
+                            $"and the artist with \"<\" and \">\" @{username}");
+                        return;
+                    }
+
+                    int songTitleStartIndex = message.IndexOf('"');
+                    int songTitleEndIndex = message.LastIndexOf('"');
+                    int artistStartIndex = message.IndexOf('<');
+                    int artistEndIndex = message.IndexOf('>');
+
+                    string songTitle = message.Substring(songTitleStartIndex + 1, songTitleEndIndex - songTitleStartIndex - 1);
+                    string artist = message.Substring(artistStartIndex + 1, artistEndIndex - artistStartIndex - 1);
+
+                    // check if the request's exact song or artist-wide blackout-restriction has already been added
+                    List<SongRequestBlacklistItem> blacklist = _songRequest.GetSongRequestBlackList(_broadcasterId);
+
+                    if (blacklist.Count > 0)
+                    { 
+                        if (blacklist.Exists(b => b.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase) 
+                                && b.Title.Equals(songTitle, StringComparison.CurrentCultureIgnoreCase)))
+                        {
+                            _irc.SendPublicChatMessage($"This song is already on the blacklist @{username}");
+                            return;
+                        }
+                        else if (blacklist.Exists(b => b.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase)))
+                        {
+                            _irc.SendPublicChatMessage($"This song's artist is already on the blacklist @{username}");
+                            return;
+                        }
+                    }
+
+                    // log song into db
+                    string query = "INSERT INTO tblSongRequestBlacklist (title, artist, broadcaster) VALUES (@title, @artist, @broadcaster)";
+
+                    using (SqlConnection conn = new SqlConnection(_connStr))
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.Add("@title", SqlDbType.VarChar, 100).Value = songTitle;
+                        cmd.Parameters.Add("@artist", SqlDbType.VarChar, 100).Value = artist;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    _irc.SendPublicChatMessage($"The song \"{songTitle} by {artist}\" has been added to the blacklist @{username}");
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"Please insert request type (1 = artist/2 = song) @{username}");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddSongRequestBlacklist(string, string)", false, "!srbl");
+            }
+        }
+
+        public void CmdRemoveSongRequestBlacklist(string message, string username)
+        {
+            try
+            {
+                int requestIndex = message.GetNthCharIndex(' ', 2);
+
+                if (requestIndex == -1)
+                {
+                    _irc.SendPublicChatMessage($"Please enter a request @{username}");
+                    return;
+                }
+
+                string requestType = message.Substring(message.IndexOf(" ") + 1, 1);
+                string request = message.Substring(requestIndex + 1);
+
+                // Check if request is based on an artist or just a song by an artist
+                if (requestType.Equals("1")) // remove blackout for any song by this artist
+                {
+                    // remove artist from db
+                    int recordsAffected = 0;
+                    string query = "DELETE FROM tblSongRequestBlacklist WHERE artist = @artist AND broadcaster = @broadcaster";
+
+                    using (SqlConnection conn = new SqlConnection(_connStr))
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.Add("@artist", SqlDbType.VarChar, 100).Value = request;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
+
+                        conn.Open();
+                        recordsAffected = cmd.ExecuteNonQuery();
+                    }
+
+                    if (recordsAffected > 0)
+                        _irc.SendPublicChatMessage($"The artist \"{request}\" can now be requested @{username}");
+                    else
+                        _irc.SendPublicChatMessage($"Couldn't find the requested artist for blacklist-removal @{username}");
+                }
+                else if (requestType.Equals("2")) // remove blackout for a song by an artist
+                {
+                    if (request.Count(c => c == '"') < 2
+                        || request.Count(c => c == '<') != 1
+                        || request.Count(c => c == '>') != 1)
+                    {
+                        _irc.SendPublicChatMessage($"Please surround the song title with \" (quotation marks) " 
+                            + $"and the artist with \"<\" and \">\" @{username}");
+                        return;
+                    }
+
+                    int songTitleStartIndex = message.IndexOf('"');
+                    int songTitleEndIndex = message.LastIndexOf('"');
+                    int artistStartIndex = message.IndexOf('<');
+                    int artistEndIndex = message.IndexOf('>');
+
+                    string songTitle = message.Substring(songTitleStartIndex + 1, songTitleEndIndex - songTitleStartIndex - 1);
+                    string artist = message.Substring(artistStartIndex + 1, artistEndIndex - artistStartIndex - 1);
+
+                    // remove song from db
+                    int recordsAffected = 0;
+                    string query = "DELETE FROM tblSongRequestBlacklist " 
+                        + "WHERE title = @title AND artist = @artist AND broadcaster = @broadcaster";
+
+                    using (SqlConnection conn = new SqlConnection(_connStr))
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.Add("@title", SqlDbType.VarChar, 100).Value = songTitle;
+                        cmd.Parameters.Add("@artist", SqlDbType.VarChar, 100).Value = artist;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
+
+                        conn.Open();
+                        recordsAffected = cmd.ExecuteNonQuery();
+                    }
+
+                    if (recordsAffected > 0)
+                        _irc.SendPublicChatMessage($"The song \"{songTitle} by {artist}\" can now requested @{username}");
+                    else
+                        _irc.SendPublicChatMessage($"Couldn't find the requested song for blacklist-removal @{username}");
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"Please insert request type (1 = artist/2 = song) @{username}");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRemoveSongRequestBlacklist(string, string)", false, "!removesrbl");
+            }
+        }
+
+        public void CmdResetSongRequestBlacklist(string username)
+        {
+            try
+            {
+                int recordsAffected = 0;
+                string query = "DELETE FROM tblSongRequestBlacklist WHERE broadcaster = @broadcaster";
+
+                // Create connection and command
+                using (SqlConnection conn = new SqlConnection(_connStr))
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
+
+                    conn.Open();
+                    recordsAffected = cmd.ExecuteNonQuery();
+                }
+
+                if (recordsAffected > 0)
+                    _irc.SendPublicChatMessage($"Song Request Blacklist has been reset @{username}");
+                else
+                    _irc.SendPublicChatMessage($"Song Request Blacklist is empty @{username}");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdResetSongRequestBlacklist(string)", false, "!resetsrbl");
+            }
+        }
+
+        public void CmdListSongRequestBlacklist(string username)
+        {
+            try
+            {
+                List<SongRequestBlacklistItem> blacklist = _songRequest.GetSongRequestBlackList(_broadcasterId);
+
+                if (blacklist.Count == 0)
+                {
+                    _irc.SendPublicChatMessage($"The song request blacklist is empty @{username}");
+                    return;
+                }
+
+                string songList = "";
+
+                foreach (SongRequestBlacklistItem item in blacklist.OrderBy(i => i.Artist))
+                {
+                    if (!string.IsNullOrEmpty(item.Title))
+                        songList += $"\"{item.Title}\" - ";
+
+                    songList += $"{item.Artist} >< ";
+                }
+
+                StringBuilder strBdrSongList = new StringBuilder(songList);
+                strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " >< "
+                songList = strBdrSongList.ToString(); // replace old song list string with new
+
+                _irc.SendPublicChatMessage("Song Request Blacklist: < " + songList + " >");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListSongRequestBlacklist(string)", false, "!showsrbl");
+            }
+        }
+
+        private void SendTweet(string pendingMessage, string command)
         {
             // Check if there are at least two quotation marks before sending message using LINQ
             string resultMessage = "";
