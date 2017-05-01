@@ -414,15 +414,23 @@ namespace TwitchBot
                                 else if (message.StartsWith("!editgiveaway"))
                                     _cmdBrdCstr.CmdEditGiveaway(message, username);
 
+                                /* Add song or artist to song request blacklist */
+                                // Usage (artist): !srbl 1 [artist name]
+                                // Usage (song): !srbl 2 "[song title]" <[artist name]>
                                 else if (message.StartsWith("!srbl "))
                                     _cmdBrdCstr.CmdAddSongRequestBlacklist(message, username);
 
+                                /* Remove song or artist from song request blacklist */
+                                // Usage (artist): !removesrbl 1 [artist name]
+                                // Usage (song): !removesrbl 2 "[song title]" <[artist name]>
                                 else if (message.StartsWith("!removesrbl "))
                                     _cmdBrdCstr.CmdRemoveSongRequestBlacklist(message, username);
 
+                                /* Reset the entire song request blacklist */
                                 else if (message.Equals("!resetsrbl"))
                                     _cmdBrdCstr.CmdResetSongRequestBlacklist(username);
 
+                                /* Show the song request blacklist */
                                 else if (message.Equals("!showsrbl"))
                                     _cmdBrdCstr.CmdListSongRequestBlacklist(username);
 
