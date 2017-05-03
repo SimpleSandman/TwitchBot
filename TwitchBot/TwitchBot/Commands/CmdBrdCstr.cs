@@ -1042,20 +1042,12 @@ namespace TwitchBot.Commands
                         return;
                     }
 
-                    // log artist into db
-                    string query = "INSERT INTO tblSongRequestBlacklist (artist, broadcaster) VALUES (@artist, @broadcaster)";
+                    int recordsAffected = _songRequest.AddArtistToBlacklist(request, _broadcasterId);
 
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.Add("@artist", SqlDbType.VarChar, 100).Value = request;
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    _irc.SendPublicChatMessage($"The artist \"{request}\" has been added to the blacklist @{username}");
+                    if (recordsAffected > 0)
+                        _irc.SendPublicChatMessage($"The artist \"{request}\" has been added to the blacklist @{username}");
+                    else
+                        _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this artist to the blacklist at this time @{username}");
                 }
                 else if (requestType.Equals("2")) // blackout a song by an artist
                 {
@@ -1094,21 +1086,12 @@ namespace TwitchBot.Commands
                         }
                     }
 
-                    // log song into db
-                    string query = "INSERT INTO tblSongRequestBlacklist (title, artist, broadcaster) VALUES (@title, @artist, @broadcaster)";
+                    int recordsAffected = _songRequest.AddSongToBlacklist(songTitle, artist, _broadcasterId);
 
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.Add("@title", SqlDbType.VarChar, 100).Value = songTitle;
-                        cmd.Parameters.Add("@artist", SqlDbType.VarChar, 100).Value = artist;
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    _irc.SendPublicChatMessage($"The song \"{songTitle} by {artist}\" has been added to the blacklist @{username}");
+                    if (recordsAffected > 0)
+                        _irc.SendPublicChatMessage($"The song \"{songTitle} by {artist}\" has been added to the blacklist @{username}");
+                    else
+                        _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this song to the blacklist at this time @{username}");
                 }
                 else
                 {
@@ -1141,18 +1124,7 @@ namespace TwitchBot.Commands
                 if (requestType.Equals("1")) // remove blackout for any song by this artist
                 {
                     // remove artist from db
-                    int recordsAffected = 0;
-                    string query = "DELETE FROM tblSongRequestBlacklist WHERE artist = @artist AND broadcaster = @broadcaster";
-
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.Add("@artist", SqlDbType.VarChar, 100).Value = request;
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-
-                        conn.Open();
-                        recordsAffected = cmd.ExecuteNonQuery();
-                    }
+                    int recordsAffected = _songRequest.DeleteArtistFromBlacklist(request, _broadcasterId);
 
                     if (recordsAffected > 0)
                         _irc.SendPublicChatMessage($"The artist \"{request}\" can now be requested @{username}");
@@ -1178,21 +1150,7 @@ namespace TwitchBot.Commands
                     string songTitle = message.Substring(songTitleStartIndex + 1, songTitleEndIndex - songTitleStartIndex - 1);
                     string artist = message.Substring(artistStartIndex + 1, artistEndIndex - artistStartIndex - 1);
 
-                    // remove song from db
-                    int recordsAffected = 0;
-                    string query = "DELETE FROM tblSongRequestBlacklist " 
-                        + "WHERE title = @title AND artist = @artist AND broadcaster = @broadcaster";
-
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.Add("@title", SqlDbType.VarChar, 100).Value = songTitle;
-                        cmd.Parameters.Add("@artist", SqlDbType.VarChar, 100).Value = artist;
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-
-                        conn.Open();
-                        recordsAffected = cmd.ExecuteNonQuery();
-                    }
+                    int recordsAffected = _songRequest.DeleteSongFromBlacklist(songTitle, artist, _broadcasterId);
 
                     if (recordsAffected > 0)
                         _irc.SendPublicChatMessage($"The song \"{songTitle} by {artist}\" can now requested @{username}");
@@ -1215,18 +1173,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                int recordsAffected = 0;
-                string query = "DELETE FROM tblSongRequestBlacklist WHERE broadcaster = @broadcaster";
-
-                // Create connection and command
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-
-                    conn.Open();
-                    recordsAffected = cmd.ExecuteNonQuery();
-                }
+                int recordsAffected = _songRequest.ResetBlacklist(_broadcasterId);
 
                 if (recordsAffected > 0)
                     _irc.SendPublicChatMessage($"Song Request Blacklist has been reset @{username}");
