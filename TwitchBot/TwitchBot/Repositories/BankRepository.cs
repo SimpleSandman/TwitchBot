@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.SqlClient;
 
 using TwitchBot.Extensions;
+using TwitchBot.Models;
 
 namespace TwitchBot.Repositories
 {
@@ -96,6 +97,41 @@ namespace TwitchBot.Repositories
             }
 
             return -1;
+        }
+
+        public List<BalanceResult> GetCurrencyLeaderboard(string broadcasterName, int broadcasterId, string botName)
+        {
+            List<BalanceResult> balanceResult = new List<BalanceResult>();
+
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT TOP 3 * FROM tblBank " 
+                    + "WHERE broadcaster = @broadcasterId AND username <> @broadcasterName AND username <> @botName " 
+                    + "ORDER BY wallet DESC", conn))
+                {
+                    cmd.Parameters.Add("@broadcasterId", SqlDbType.Int).Value = broadcasterId;
+                    cmd.Parameters.Add("@broadcasterName", SqlDbType.VarChar, 30).Value = broadcasterName;
+                    cmd.Parameters.Add("@botName", SqlDbType.VarChar, 30).Value = botName;
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                balanceResult.Add(new BalanceResult
+                                {
+                                    ActionType = "SELECT",
+                                    Username = reader["username"].ToString(),
+                                    Wallet = int.Parse(reader["wallet"].ToString())
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            return balanceResult;
         }
     }
 }

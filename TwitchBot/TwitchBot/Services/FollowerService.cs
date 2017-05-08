@@ -38,30 +38,35 @@ namespace TwitchBot.Services
 
         public Rank GetCurrRank(List<Rank> rankList, int currExp)
         {
-            Rank currFollowerRank = new Rank();
+            Rank currRank = new Rank();
 
             // find the user's current rank by experience cap
-            foreach (Rank followerRank in rankList.OrderBy(r => r.ExpCap))
+            foreach (Rank rank in rankList.OrderBy(r => r.ExpCap))
             {
                 // search until current experience < experience cap
-                if (currExp >= followerRank.ExpCap)
+                if (currExp >= rank.ExpCap)
                 {
                     continue;
                 }
                 else
                 {
-                    currFollowerRank.Name = followerRank.Name;
-                    currFollowerRank.ExpCap = followerRank.ExpCap;
+                    currRank.Name = rank.Name;
+                    currRank.ExpCap = rank.ExpCap;
                     break;
                 }
             }
 
-            return currFollowerRank;
+            return currRank;
         }
 
         public decimal GetHoursWatched(int currExp)
         {
             return Math.Round(Convert.ToDecimal(currExp) / (decimal)12.0, 2);
+        }
+
+        public List<Follower> GetFollowersLeaderboard(string broadcasterName, int broadcasterId, string botName)
+        {
+            return _followerDb.GetFollowersLeaderboard(broadcasterName, broadcasterId, botName);
         }
     }
 }

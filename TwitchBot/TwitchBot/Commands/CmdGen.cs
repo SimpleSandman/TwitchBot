@@ -837,7 +837,7 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Tell the user how long they have been following the broadcaster
         /// </summary>
-        /// <param name="username"></param>
+        /// <param name="username">User that sent the message</param>
         /// <returns></returns>
         public async Task CmdFollowSince(string username)
         {
@@ -870,7 +870,7 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Display the follower's stream rank
         /// </summary>
-        /// <param name="username"></param>
+        /// <param name="username">User that sent the message</param>
         /// <returns></returns>
         public async Task CmdViewRank(string username)
         {
@@ -913,6 +913,14 @@ namespace TwitchBot.Commands
             }
         }
 
+        /// <summary>
+        /// Uses the Google API to add YouTube videos to the broadcaster's specified request playlist
+        /// </summary>
+        /// <param name="message">Chat message from the user</param>
+        /// <param name="username">User that sent the message</param>
+        /// <param name="hasYouTubeAuth">Checks if broadcaster allowed this bot to post videos to the playlist</param>
+        /// <param name="isYouTubeSongRequestAvail">Checks if users can request songs</param>
+        /// <returns></returns>
         public async Task<DateTime> CmdYouTubeSongRequest(string message, string username, bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
         {
             try
@@ -1055,6 +1063,11 @@ namespace TwitchBot.Commands
             return new DateTime();
         }
 
+        /// <summary>
+        /// Display's link to broadcaster's YouTube song request playlist
+        /// </summary>
+        /// <param name="hasYouTubeAuth">Checks if broadcaster allowed this bot to post videos to the playlist</param>
+        /// <param name="isYouTubeSongRequestAvail">Checks if users can request songs</param>
         public void CmdYouTubeSongRequestList(bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
         {
             try
@@ -1075,6 +1088,11 @@ namespace TwitchBot.Commands
             }
         }
 
+        /// <summary>
+        /// Display's MultiStream link so multiple streamers can be watched at once
+        /// </summary>
+        /// <param name="username">User that sent the message</param>
+        /// <param name="multiStreamUsers">List of broadcasters that are a part of the link</param>
         public void CmdMultiStreamLink(string username, List<string> multiStreamUsers)
         {
             try
@@ -1105,6 +1123,10 @@ namespace TwitchBot.Commands
             }
         }
 
+        /// <summary>
+        /// Ask any question and the Magic 8 Ball will give a fortune
+        /// </summary>
+        /// <param name="username">User that sent the message</param>
         public void CmdMagic8Ball(string username)
         {
             try
@@ -1144,6 +1166,93 @@ namespace TwitchBot.Commands
             }
         }
 
+        /// <summary>
+        /// Disply the top 3 richest users (if available)
+        /// </summary>
+        /// <param name="username">User that sent the message</param>
+        public void CmdLeaderboardCurrency(string username)
+        {
+            try
+            {
+                List<BalanceResult> richestUsers = _bank.GetCurrencyLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
+
+                if (richestUsers.Count == 0)
+                {
+                    _irc.SendPublicChatMessage($"Everyone's broke! @{username}");
+                    return;
+                }
+
+                string resultMsg = "";
+                foreach (BalanceResult user in richestUsers)
+                {
+                    resultMsg += $"\"{user.Username}\" with {user.Wallet} {_botConfig.CurrencyType}, ";
+                }
+
+                resultMsg = resultMsg.Remove(resultMsg.Length - 2); // remove extra ","
+
+                // improve list grammar
+                if (richestUsers.Count == 2)
+                    resultMsg = resultMsg.ReplaceLastOccurrence(", ", " and ");
+                else if (richestUsers.Count > 2)
+                    resultMsg = resultMsg.ReplaceLastOccurrence(", ", ", and ");
+
+                if (richestUsers.Count == 1)
+                    _irc.SendPublicChatMessage($"The richest user is {resultMsg}");
+                else
+                    _irc.SendPublicChatMessage($"The richest users are: {resultMsg}");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardCurrency(string)", false, "![currency name]top3");
+            }
+        }
+
+        /// <summary>
+        /// Display the top 3 highest ranking members (if available)
+        /// </summary>
+        /// <param name="username">User that sent the message</param>
+        public void CmdLeaderboardRank(string username)
+        {
+            try
+            {
+                List<Follower> highestRankedFollowers = _follower.GetFollowersLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
+
+                if (highestRankedFollowers.Count == 0)
+                {
+                    _irc.SendPublicChatMessage($"There's no one in your ranks. Start recruiting today! @{username}");
+                    return;
+                }
+
+                List<Rank> rankList = _follower.GetRankList(_broadcasterId);
+
+                string resultMsg = "";
+                foreach (Follower follower in highestRankedFollowers)
+                {
+                    Rank currFollowerRank = _follower.GetCurrRank(rankList, follower.Exp);
+                    decimal hoursWatched = _follower.GetHoursWatched(follower.Exp);
+
+                    resultMsg += $"\"{currFollowerRank.Name} {follower.Username}\" with {hoursWatched} hour(s), ";
+                }
+
+                resultMsg = resultMsg.Remove(resultMsg.Length - 2); // remove extra ","
+
+                // improve list grammar
+                if (highestRankedFollowers.Count == 2)
+                    resultMsg = resultMsg.ReplaceLastOccurrence(", ", " and ");
+                else if (highestRankedFollowers.Count > 2)
+                    resultMsg = resultMsg.ReplaceLastOccurrence(", ", ", and ");
+
+                if (highestRankedFollowers.Count == 1)
+                    _irc.SendPublicChatMessage($"This leader's highest ranking member is {resultMsg}");
+                else
+                    _irc.SendPublicChatMessage($"This leader's highest ranking members are: {resultMsg}");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardRank(string)", false, "!ranktop3");
+            }
+        }
+
         private async Task<bool> ReactionCmd(string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
         {
             // check if user is trying to use a command on themselves
@@ -1154,7 +1263,7 @@ namespace TwitchBot.Commands
             }
 
             // check if recipient is the broadcaster before checking the viewer channel
-            if (recipient.Equals(_botConfig.Broadcaster.ToLower()) || await ChatterValid(origUser, recipient))
+            if (await ChatterValid(origUser, recipient))
             {
                 _irc.SendPublicChatMessage(origUser + " " + action + " @" + recipient + " " + addlMsg);
                 return true;
@@ -1166,7 +1275,7 @@ namespace TwitchBot.Commands
         private async Task<bool> ChatterValid(string origUser, string recipient)
         {
             // Check if the requested user is this bot
-            if (recipient.Equals(_botConfig.BotName.ToLower()))
+            if (recipient.Equals(_botConfig.BotName.ToLower()) || recipient.Equals(_botConfig.Broadcaster.ToLower()))
                 return true;
 
             // Grab user's chatter info (viewers, mods, etc.)

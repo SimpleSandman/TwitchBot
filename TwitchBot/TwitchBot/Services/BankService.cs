@@ -55,5 +55,10 @@ namespace TwitchBot.Services
         {
             return _bank.CheckBalance(username, broadcasterId);
         }
+
+        public List<BalanceResult> GetCurrencyLeaderboard(string broadcasterName, int broadcasterId, string botName)
+        {
+            return _bank.GetCurrencyLeaderboard(broadcasterName, broadcasterId, botName);
+        }
     }
 }

@@ -98,12 +98,11 @@ namespace TwitchBot.Repositories
                         {
                             while (reader.Read())
                             {
-                                Rank rank = new Rank()
+                                ranksList.Add(new Rank()
                                 {
                                     Name = reader["name"].ToString(),
                                     ExpCap = int.Parse(reader["expCap"].ToString())
-                                };
-                                ranksList.Add(rank);
+                                });
                             }
                         }
                     }
@@ -111,6 +110,40 @@ namespace TwitchBot.Repositories
             }
 
             return ranksList;
+        }
+
+        public List<Follower> GetFollowersLeaderboard(string broadcasterName, int broadcasterId, string botName)
+        {
+            List<Follower> followerList = new List<Follower>();
+
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT TOP 3 * FROM tblRankFollowers "
+                    + "WHERE broadcaster = @broadcasterId AND username <> @broadcasterName AND username <> @botName "
+                    + "ORDER BY exp DESC", conn))
+                {
+                    cmd.Parameters.Add("@broadcasterId", SqlDbType.Int).Value = broadcasterId;
+                    cmd.Parameters.Add("@broadcasterName", SqlDbType.VarChar, 30).Value = broadcasterName;
+                    cmd.Parameters.Add("@botName", SqlDbType.VarChar, 30).Value = botName;
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                followerList.Add(new Follower()
+                                {
+                                    Username = reader["username"].ToString(),
+                                    Exp = int.Parse(reader["exp"].ToString())
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            return followerList;
         }
     }
 }
