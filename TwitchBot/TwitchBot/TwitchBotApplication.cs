@@ -36,7 +36,6 @@ namespace TwitchBot
         private bool _isYouTubeSongRequestAvail;
         private bool _hasTwitterInfo;
         private bool _hasYouTubeAuth;
-        private double _defaultCooldownLimit;
         private List<string> _multiStreamUsers;
         private List<CooldownUser> _cooldownUsers;
         private LocalSpotifyClient _spotify;
@@ -62,7 +61,6 @@ namespace TwitchBot
             _timeout = new TimeoutCmd();
             _cooldownUsers = new List<CooldownUser>();
             _multiStreamUsers = new List<string>();
-            _defaultCooldownLimit = 20.0; // ToDo: Grab seconds from configuration
             _twitchInfo = twitchInfo;
             _follower = follower;
             _followerListener = followerListener;
@@ -553,56 +551,68 @@ namespace TwitchBot
                                 // Usage: !slap @[username]
                                 else if (message.StartsWith("!slap @") && !IsUserOnCooldown(username, "!slap"))
                                 {
-                                    await _cmdGen.CmdSlap(message, username);
-                                    _cooldownUsers.Add(new CooldownUser
+                                    DateTime cooldown = await _cmdGen.CmdSlap(message, username);
+                                    if (cooldown > DateTime.Now)
                                     {
-                                        Username = username,
-                                        Cooldown = DateTime.Now.AddSeconds(_defaultCooldownLimit),
-                                        Command = "!slap",
-                                        Warned = false
-                                    });
+                                        _cooldownUsers.Add(new CooldownUser
+                                        {
+                                            Username = username,
+                                            Cooldown = cooldown,
+                                            Command = "!slap",
+                                            Warned = false
+                                        });
+                                    }                                    
                                 }
 
                                 /* Stabs a user and rates its effectiveness */
                                 // Usage: !stab @[username]
                                 else if (message.StartsWith("!stab @") && !IsUserOnCooldown(username, "!stab"))
                                 {
-                                    await _cmdGen.CmdStab(message, username);
-                                    _cooldownUsers.Add(new CooldownUser
+                                    DateTime cooldown = await _cmdGen.CmdStab(message, username);
+                                    if (cooldown > DateTime.Now)
                                     {
-                                        Username = username,
-                                        Cooldown = DateTime.Now.AddSeconds(_defaultCooldownLimit),
-                                        Command = "!stab",
-                                        Warned = false
-                                    });
+                                        _cooldownUsers.Add(new CooldownUser
+                                        {
+                                            Username = username,
+                                            Cooldown = cooldown,
+                                            Command = "!stab",
+                                            Warned = false
+                                        });
+                                    }
                                 }
 
                                 /* Shoots a viewer's random body part */
                                 // Usage !shoot @[username]
                                 else if (message.StartsWith("!shoot @") && !IsUserOnCooldown(username, "!shoot"))
                                 {
-                                    await _cmdGen.CmdShoot(message, username);
-                                    _cooldownUsers.Add(new CooldownUser
+                                    DateTime cooldown = await _cmdGen.CmdShoot(message, username);
+                                    if (cooldown > DateTime.Now)
                                     {
-                                        Username = username,
-                                        Cooldown = DateTime.Now.AddSeconds(_defaultCooldownLimit),
-                                        Command = "!shoot",
-                                        Warned = false
-                                    });
+                                        _cooldownUsers.Add(new CooldownUser
+                                        {
+                                            Username = username,
+                                            Cooldown = cooldown,
+                                            Command = "!shoot",
+                                            Warned = false
+                                        });
+                                    }
                                 }
 
                                 /* Throws an item at a viewer and rates its effectiveness against the victim */
                                 // Usage: !throw [item] @username
                                 else if (message.StartsWith("!throw ") && message.Contains("@") && !IsUserOnCooldown(username, "!throw"))
                                 {
-                                    await _cmdGen.CmdThrow(message, username);
-                                    _cooldownUsers.Add(new CooldownUser
+                                    DateTime cooldown = await _cmdGen.CmdThrow(message, username);
+                                    if (cooldown > DateTime.Now)
                                     {
-                                        Username = username,
-                                        Cooldown = DateTime.Now.AddSeconds(_defaultCooldownLimit),
-                                        Command = "!throw",
-                                        Warned = false
-                                    });
+                                        _cooldownUsers.Add(new CooldownUser
+                                        {
+                                            Username = username,
+                                            Cooldown = cooldown,
+                                            Command = "!throw",
+                                            Warned = false
+                                        });
+                                    }
                                 }
 
                                 /* Request party member if game and character exists in party up system */
@@ -626,14 +636,17 @@ namespace TwitchBot
                                 // Usage: !gamble [money]
                                 else if (message.StartsWith("!gamble ") && !IsUserOnCooldown(username, "!gamble"))
                                 {
-                                    _cmdGen.CmdGamble(message, username);
-                                    _cooldownUsers.Add(new CooldownUser
+                                    DateTime cooldown = _cmdGen.CmdGamble(message, username);
+                                    if (cooldown > DateTime.Now)
                                     {
-                                        Username = username,
-                                        Cooldown = DateTime.Now.AddSeconds(_defaultCooldownLimit),
-                                        Command = "!gamble",
-                                        Warned = false
-                                    });
+                                        _cooldownUsers.Add(new CooldownUser
+                                        {
+                                            Username = username,
+                                            Cooldown = cooldown,
+                                            Command = "!gamble",
+                                            Warned = false
+                                        });
+                                    }
                                 }
 
                                 /* Display random broadcaster quote */
@@ -653,7 +666,7 @@ namespace TwitchBot
                                 else if (message.StartsWith("!ytsr ") && !IsUserOnCooldown(username, "!ytsr"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdYouTubeSongRequest(message, username, hasYouTubeAuth, isYouTubeSongRequestAvail);
-                                    if (cooldown > new DateTime())
+                                    if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
                                         {
@@ -677,14 +690,17 @@ namespace TwitchBot
                                 // Usage: !8ball [question]
                                 else if (message.StartsWith("!8ball ") && !IsUserOnCooldown(username, "!8ball"))
                                 {
-                                    _cmdGen.CmdMagic8Ball(username);
-                                    _cooldownUsers.Add(new CooldownUser
+                                    DateTime cooldown = _cmdGen.CmdMagic8Ball(username);
+                                    if (cooldown > DateTime.Now)
                                     {
-                                        Username = username,
-                                        Cooldown = DateTime.Now.AddSeconds(_defaultCooldownLimit),
-                                        Command = "!8ball",
-                                        Warned = false
-                                    });
+                                        _cooldownUsers.Add(new CooldownUser
+                                        {
+                                            Username = username,
+                                            Cooldown = cooldown,
+                                            Command = "!8ball",
+                                            Warned = false
+                                        });
+                                    }
                                 }
 
                                 /* Disply the top 3 richest users */

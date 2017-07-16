@@ -7,12 +7,13 @@ using System.Globalization;
 using System.Data.SqlClient;
 using System.Data;
 using System.Text.RegularExpressions;
-using SpotifyAPI.Local.Models;
 using System.Net.Http;
+
+using Google.Apis.YouTube.v3.Data;
 
 using Newtonsoft.Json;
 
-using Google.Apis.YouTube.v3.Data;
+using SpotifyAPI.Local.Models;
 
 using TwitchBot.Configuration;
 using TwitchBot.Extensions;
@@ -290,17 +291,20 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public async Task CmdSlap(string message, string username)
+        public async Task<DateTime> CmdSlap(string message, string username)
         {
             try
             {
                 string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
                 await ReactionCmd(username, recipient, "Stop smacking yourself", "slaps", Effectiveness());
+                return DateTime.Now.AddSeconds(20);
             }
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdSlap(string, string)", false, "!slap", message);
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -308,17 +312,20 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public async Task CmdStab(string message, string username)
+        public async Task<DateTime> CmdStab(string message, string username)
         {
             try
             {
                 string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
                 await ReactionCmd(username, recipient, "Stop stabbing yourself! You'll bleed out", "stabs", Effectiveness());
+                return DateTime.Now.AddSeconds(20);
             }
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdStab(string, string)", false, "!stab", message);
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -326,7 +333,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public async Task CmdShoot(string message, string username)
+        public async Task<DateTime> CmdShoot(string message, string username)
         {
             try
             {
@@ -366,6 +373,7 @@ namespace TwitchBot.Commands
                     else // viewer is the target
                     {
                         await ReactionCmd(username, recipient, "You just shot your " + bodyPart.Replace("'s ", ""), "shoots", bodyPart);
+                        return DateTime.Now.AddSeconds(20);
                     }
                 }
             }
@@ -373,6 +381,8 @@ namespace TwitchBot.Commands
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdShoot(string, string)", false, "!shoot", message);
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -380,7 +390,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public async Task CmdThrow(string message, string username)
+        public async Task<DateTime> CmdThrow(string message, string username)
         {
             try
             {
@@ -394,12 +404,15 @@ namespace TwitchBot.Commands
                     string item = message.Substring(indexAction, message.IndexOf("@") - indexAction - 1);
 
                     await ReactionCmd(username, recipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + Effectiveness());
+                    return DateTime.Now.AddSeconds(20);
                 }
             }
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdThrow(string, string)", false, "!throw", message);
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -725,7 +738,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdGamble(string message, string username)
+        public DateTime CmdGamble(string message, string username)
         {
             try
             {
@@ -770,12 +783,15 @@ namespace TwitchBot.Commands
                     result += $" and now has {newBalance} {_botConfig.CurrencyType}";
 
                     _irc.SendPublicChatMessage(result);
+                    return DateTime.Now.AddSeconds(20);
                 }
             }
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdGamble(string, string)", false, "!gamble", message);
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -997,7 +1013,6 @@ namespace TwitchBot.Commands
                                 ))
                             {
                                 _irc.SendPublicChatMessage($"This artist cannot be requested at this time @{username}");
-                                return new DateTime();
                             }
                             // Check for song-specific blacklist
                             else if (blacklist.Any(
@@ -1008,7 +1023,6 @@ namespace TwitchBot.Commands
                                 ))
                             {
                                 _irc.SendPublicChatMessage($"This song cannot be requested at this time @{username}");
-                                return new DateTime();
                             }
                         }
 
@@ -1060,7 +1074,7 @@ namespace TwitchBot.Commands
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest(string, string, bool, bool)", false, "!ytsr");
             }
 
-            return new DateTime();
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -1127,7 +1141,7 @@ namespace TwitchBot.Commands
         /// Ask any question and the Magic 8 Ball will give a fortune
         /// </summary>
         /// <param name="username">User that sent the message</param>
-        public void CmdMagic8Ball(string username)
+        public DateTime CmdMagic8Ball(string username)
         {
             try
             {
@@ -1159,11 +1173,14 @@ namespace TwitchBot.Commands
                 };
 
                 _irc.SendPublicChatMessage(possibleAnswers[answerId]);
+                return DateTime.Now.AddSeconds(20);
             }
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdMagic8Ball(string)", false, "!8ball");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
