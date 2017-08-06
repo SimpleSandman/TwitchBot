@@ -37,6 +37,7 @@ namespace TwitchBot
         private bool _hasTwitterInfo;
         private bool _hasYouTubeAuth;
         private List<string> _multiStreamUsers;
+        private List<string> _greetedUsers;
         private List<CooldownUser> _cooldownUsers;
         private LocalSpotifyClient _spotify;
         private TwitchInfoService _twitchInfo;
@@ -61,6 +62,7 @@ namespace TwitchBot
             _timeout = new TimeoutCmd();
             _cooldownUsers = new List<CooldownUser>();
             _multiStreamUsers = new List<string>();
+            _greetedUsers = new List<string>();
             _twitchInfo = twitchInfo;
             _follower = follower;
             _followerListener = followerListener;
@@ -288,6 +290,8 @@ namespace TwitchBot
                             indexParseSign = message.IndexOf(" :");
                             modifiedMessage.Remove(0, indexParseSign + 2); // remove unnecessary info before and including the parse symbol
                             message = modifiedMessage.ToString();
+
+                            GreetNewUser(username);
 
                             /* 
                              * Broadcaster commands 
@@ -902,6 +906,40 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "TwitchBotApplication", "SetListTimeouts()", true);
+            }
+        }
+
+        /// <summary>
+        /// Greet a new user with a welcome message and a "thank-you" deposit of stream currency
+        /// </summary>
+        /// <param name="username"></param>
+        private void GreetNewUser(string username)
+        {
+            try
+            {
+                if (!_greetedUsers.Any(u => u == username) && !username.Equals(_botConfig.Broadcaster.ToLower()))
+                {
+                    // check if user has a stream currency account
+                    int funds = _bank.CheckBalance(username, _broadcasterId);
+                    int greetedDeposit = 500; // ToDo: Make greeted deposit config setting
+
+                    if (funds > -1)
+                    {
+                        funds += greetedDeposit; // deposit 500 stream currency
+                        _bank.UpdateFunds(username, _broadcasterId, funds);
+                    }
+                    else
+                        _bank.CreateAccount(username, _broadcasterId, greetedDeposit);
+
+                    _greetedUsers.Add(username);
+
+                    _irc.SendPublicChatMessage($"Welcome to the channel @{username}! Thanks for saying something! Let me show you my appreciation with "
+                        + $"{greetedDeposit} {_botConfig.CurrencyType}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GreetNewUser(string)", false);
             }
         }
     }
