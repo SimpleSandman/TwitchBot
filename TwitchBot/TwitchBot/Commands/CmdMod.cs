@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+
+using RestSharp;
 
 using TwitchBot.Configuration;
 using TwitchBot.Extensions;
@@ -25,8 +28,10 @@ namespace TwitchBot.Commands
         private BankService _bank;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private TwitchInfoService _twitchInfo;
+        private TwitterClient _twitter = TwitterClient.Instance;
 
-        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo)
+        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, 
+            System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo)
         {
             _irc = irc;
             _timeout = timeout;
@@ -611,6 +616,112 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetMultiStream(string, ref List<string>)", false, "!resetmsl");
+            }
+        }
+
+        /// <summary>
+        /// Update the title of the Twitch channel
+        /// </summary>
+        /// <param name="message">Chat message from the user</param>
+        /// <param name="twitchAccessToken">Token needed to change channel info</param>
+        public void CmdUpdateTitle(string message, string twitchAccessToken)
+        {
+            try
+            {
+                // Get title from command parameter
+                string title = message.Substring(message.IndexOf(" ") + 1);
+
+                // Send HTTP method PUT to base URI in order to change the title
+                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _botConfig.Broadcaster + "?client_id=" + _botConfig.TwitchClientId);
+                RestRequest request = new RestRequest(Method.PUT);
+                request.AddHeader("cache-control", "no-cache");
+                request.AddHeader("content-type", "application/json");
+                request.AddHeader("authorization", "OAuth " + twitchAccessToken);
+                request.AddHeader("accept", "application/vnd.twitchtv.v5+json");
+                request.AddParameter("application/json", "{\"channel\":{\"status\":\"" + title + "\"}}",
+                    ParameterType.RequestBody);
+
+                IRestResponse response = null;
+                try
+                {
+                    response = client.Execute(request);
+                    string statResponse = response.StatusCode.ToString();
+                    if (statResponse.Contains("OK"))
+                    {
+                        _irc.SendPublicChatMessage("Twitch channel title updated to \"" + title + "\"");
+                    }
+                    else
+                        Console.WriteLine(response.ErrorMessage);
+                }
+                catch (WebException ex)
+                {
+                    if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.BadRequest)
+                    {
+                        Console.WriteLine("Error 400 detected!");
+                    }
+                    response = (IRestResponse)ex.Response;
+                    Console.WriteLine("Error: " + response);
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdUpdateTitle(string, string)", false, "!updatetitle");
+            }
+        }
+
+        /// <summary>
+        /// Updates the game being played on the Twitch channel
+        /// </summary>
+        /// <param name="message">Chat message from the user</param>
+        /// <param name="hasTwitterInfo">Check for Twitter credentials</param>
+        public void CmdUpdateGame(string message, bool hasTwitterInfo)
+        {
+            try
+            {
+                // Get game from command parameter
+                string game = message.Substring(message.IndexOf(" ") + 1);
+
+                // Send HTTP method PUT to base URI in order to change the game
+                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _botConfig.Broadcaster + "?client_id=" + _botConfig.TwitchClientId);
+                RestRequest request = new RestRequest(Method.PUT);
+                request.AddHeader("cache-control", "no-cache");
+                request.AddHeader("content-type", "application/json");
+                request.AddHeader("authorization", "OAuth " + _botConfig.TwitchAccessToken);
+                request.AddHeader("accept", "application/vnd.twitchtv.v5+json");
+                request.AddParameter("application/json", "{\"channel\":{\"game\":\"" + game + "\"}}",
+                    ParameterType.RequestBody);
+
+                IRestResponse response = null;
+                try
+                {
+                    response = client.Execute(request);
+                    string statResponse = response.StatusCode.ToString();
+                    if (statResponse.Contains("OK"))
+                    {
+                        _irc.SendPublicChatMessage("Twitch channel game status updated to \"" + game + "\"");
+                        if (_botConfig.EnableTweets && hasTwitterInfo)
+                        {
+                            Console.WriteLine(_twitter.SendTweet("Watch me stream " + game + " on Twitch" + Environment.NewLine
+                                + "http://goo.gl/SNyDFD" + Environment.NewLine
+                                + "#twitch #gaming #streaming"));
+                        }
+                    }
+                    else
+                        Console.WriteLine(response.ErrorMessage);
+                }
+                catch (WebException ex)
+                {
+                    if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.BadRequest)
+                    {
+                        Console.WriteLine("Error 400 detected!!");
+                    }
+                    response = (IRestResponse)ex.Response;
+                    Console.WriteLine("Error: " + response);
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdUpdateGame(string, string, bool)", false, "!updategame");
             }
         }
     }

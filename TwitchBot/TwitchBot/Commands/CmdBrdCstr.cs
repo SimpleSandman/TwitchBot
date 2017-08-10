@@ -3,12 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-
-using RestSharp;
-using Tweetinvi;
 
 using TwitchBot.Configuration;
 using TwitchBot.Extensions;
@@ -27,6 +23,7 @@ namespace TwitchBot.Commands
         private string _connStr;
         private int _broadcasterId;
         private SongRequestService _songRequest;
+        private TwitterClient _twitter = TwitterClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, 
@@ -193,115 +190,6 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
-        /// Update the title of the Twitch channel
-        /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="twitchAccessToken">Token needed to change channel info</param>
-        public void CmdUpdateTitle(string message, string twitchAccessToken)
-        {
-            try
-            {
-                // Get title from command parameter
-                string title = message.Substring(message.IndexOf(" ") + 1);
-
-                // Send HTTP method PUT to base URI in order to change the title
-                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _botConfig.Broadcaster);
-                RestRequest request = new RestRequest(Method.PUT);
-                request.AddHeader("cache-control", "no-cache");
-                request.AddHeader("content-type", "application/json");
-                request.AddHeader("authorization", "OAuth " + twitchAccessToken);
-                request.AddHeader("accept", "application/vnd.twitchtv.v3+json");
-                request.AddParameter("application/json", "{\"channel\":{\"status\":\"" + title + "\"}}",
-                    ParameterType.RequestBody);
-
-                IRestResponse response = null;
-                try
-                {
-                    response = client.Execute(request);
-                    string statResponse = response.StatusCode.ToString();
-                    if (statResponse.Contains("OK"))
-                    {
-                        _irc.SendPublicChatMessage("Twitch channel title updated to \"" + title +
-                            "\" >< Refresh your browser [F5] or twitch app to see the change");
-                    }
-                    else
-                        Console.WriteLine(response.ErrorMessage);
-                }
-                catch (WebException ex)
-                {
-                    if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.BadRequest)
-                    {
-                        Console.WriteLine("Error 400 detected!");
-                    }
-                    response = (IRestResponse)ex.Response;
-                    Console.WriteLine("Error: " + response);
-                }
-            }
-            catch (Exception ex)
-            {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdUpdateTitle(string, string)", false, "!updatetitle");
-            }
-        }
-
-        /// <summary>
-        /// Updates the game being played on the Twitch channel
-        /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="twitchAccessToken">Token needed to change channel info</param>
-        /// <param name="hasTwitterInfo">Check for Twitter credentials</param>
-        public void CmdUpdateGame(string message, string twitchAccessToken, bool hasTwitterInfo)
-        {
-            try
-            {
-                // Get game from command parameter
-                string game = message.Substring(message.IndexOf(" ") + 1);
-
-                // Send HTTP method PUT to base URI in order to change the game
-                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _botConfig.Broadcaster);
-                RestRequest request = new RestRequest(Method.PUT);
-                request.AddHeader("cache-control", "no-cache");
-                request.AddHeader("content-type", "application/json");
-                request.AddHeader("authorization", "OAuth " + twitchAccessToken);
-                request.AddHeader("accept", "application/vnd.twitchtv.v3+json");
-                request.AddParameter("application/json", "{\"channel\":{\"game\":\"" + game + "\"}}",
-                    ParameterType.RequestBody);
-
-                IRestResponse response = null;
-                try
-                {
-                    response = client.Execute(request);
-                    string statResponse = response.StatusCode.ToString();
-                    if (statResponse.Contains("OK"))
-                    {
-                        _irc.SendPublicChatMessage("Twitch channel game status updated to \"" + game +
-                            "\" >< Restart your connection to the stream or twitch app to see the change");
-                        if (_botConfig.EnableTweets && hasTwitterInfo)
-                        {
-                            SendTweet("Watch me stream " + game + " on Twitch" + Environment.NewLine
-                                + "http://goo.gl/SNyDFD" + Environment.NewLine
-                                + "#twitch #gaming #streaming", message);
-                        }
-                    }
-                    else
-                        Console.WriteLine(response.ErrorMessage);
-                }
-                catch (WebException ex)
-                {
-                    if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.BadRequest)
-                    {
-                        Console.WriteLine("Error 400 detected!!");
-                    }
-                    response = (IRestResponse)ex.Response;
-                    Console.WriteLine("Error: " + response);
-                }
-            }
-            catch (Exception ex)
-            {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdUpdateGame(string, string, bool)", false, "!updategame");
-            }
-        }
-
-        /// <summary>
         /// Manually send a tweet
         /// </summary>
         /// <param name="bolHasTwitterInfo">Check if user has provided the specific twitter credentials</param>
@@ -313,10 +201,7 @@ namespace TwitchBot.Commands
                 if (!bolHasTwitterInfo)
                     _irc.SendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
                 else
-                {
-                    string command = message;
-                    SendTweet(message, command);
-                }
+                    _irc.SendPublicChatMessage(_twitter.SendTweet(message.Replace("!tweet ", "")));
             }
             catch (Exception ex)
             {
@@ -1217,47 +1102,6 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListSongRequestBlacklist(string)", false, "!showsrbl");
-            }
-        }
-
-        private void SendTweet(string pendingMessage, string command)
-        {
-            // Check if there are at least two quotation marks before sending message using LINQ
-            string resultMessage = "";
-            if (command.Count(c => c == '"') < 2)
-            {
-                resultMessage = "Please use at least two quotation marks (\") before sending a tweet. " +
-                    "Quotations are used to find the start and end of a message wanting to be sent";
-                Console.WriteLine(resultMessage);
-                _irc.SendPublicChatMessage(resultMessage);
-                return;
-            }
-
-            // Get message from quotation parameter
-            string tweetMessage = string.Empty;
-            int length = (pendingMessage.LastIndexOf('"') - pendingMessage.IndexOf('"')) - 1;
-            if (length == -1) // if no quotations were found
-                length = pendingMessage.Length;
-            int startIndex = pendingMessage.IndexOf('"') + 1;
-            tweetMessage = pendingMessage.Substring(startIndex, length);
-
-            // Check if message length is at or under 140 characters
-            var basicTweet = new object();
-
-            if (tweetMessage.Length <= 140)
-            {
-                basicTweet = Tweet.PublishTweet(tweetMessage);
-                resultMessage = "Tweet successfully published!";
-                Console.WriteLine(resultMessage);
-                _irc.SendPublicChatMessage(resultMessage);
-            }
-            else
-            {
-                int overCharLimit = tweetMessage.Length - 140;
-                resultMessage = "The message you attempted to tweet had " + overCharLimit +
-                    " characters more than the 140 character limit. Please shorten your message and try again";
-                Console.WriteLine(resultMessage);
-                _irc.SendPublicChatMessage(resultMessage);
             }
         }
     }

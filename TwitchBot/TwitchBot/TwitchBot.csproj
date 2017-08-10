@@ -132,6 +132,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\ListStringExtensions.cs" />
+    <Compile Include="Libraries\TwitterClient.cs" />
     <Compile Include="Libraries\YouTubeClient.cs" />
     <Compile Include="Models\BalanceResult.cs" />
     <Compile Include="Models\CooldownUser.cs" />
@@ -178,6 +179,7 @@
     </None>
     <None Include="AppConfigSecrets.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </None>
     <None Include="ConnectionStringsSecrets.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

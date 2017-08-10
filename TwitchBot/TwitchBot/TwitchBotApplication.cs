@@ -40,6 +40,7 @@ namespace TwitchBot
         private List<string> _greetedUsers;
         private List<CooldownUser> _cooldownUsers;
         private LocalSpotifyClient _spotify;
+        private TwitterClient _twitter;
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
         private FollowerListener _followerListener;
@@ -350,16 +351,6 @@ namespace TwitchBot
                                 else if (message.Equals("!ytsrmode off"))
                                     _cmdBrdCstr.CmdDisableYouTubeSrMode(ref isYouTubeSongRequestAvail);
 
-                                /* Updates the title of the Twitch channel */
-                                // Usage: !updatetitle [title]
-                                else if (message.StartsWith("!updatetitle "))
-                                    _cmdBrdCstr.CmdUpdateTitle(message, twitchAccessToken);
-
-                                /* Updates the game of the Twitch channel */
-                                // Usage: !updategame "[game]" (with quotation marks)
-                                else if (message.StartsWith("!updategame "))
-                                    _cmdBrdCstr.CmdUpdateGame(message, twitchAccessToken, hasTwitterInfo);
-
                                 /* Sends a manual tweet (if credentials have been provided) */
                                 // Usage: !tweet "[message]" (use quotation marks)
                                 else if (message.StartsWith("!tweet "))
@@ -503,6 +494,16 @@ namespace TwitchBot
                                     /* Reset MultiStream link so link can be reconfigured */
                                     else if (message.Equals("!resetmsl"))
                                         _cmdMod.CmdResetMultiStreamLink(username, ref _multiStreamUsers);
+
+                                    /* Updates the title of the Twitch channel */
+                                    // Usage: !updatetitle [title]
+                                    else if (message.StartsWith("!updatetitle "))
+                                        _cmdMod.CmdUpdateTitle(message, twitchAccessToken);
+
+                                    /* Updates the game of the Twitch channel */
+                                    // Usage: !updategame [game]
+                                    else if (message.StartsWith("!updategame "))
+                                        _cmdMod.CmdUpdateGame(message, hasTwitterInfo);
 
                                     /* insert moderator commands here */
                                 }
