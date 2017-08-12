@@ -139,6 +139,7 @@
     <Compile Include="Models\Follower.cs" />
     <Compile Include="Models\JSON\ChannelJSON.cs" />
     <Compile Include="Models\JSON\ChatterInfoJSON.cs" />
+    <Compile Include="Models\RouletteUser.cs" />
     <Compile Include="Models\SongRequestBlacklistItem.cs" />
     <Compile Include="Modules\TwitchBotModule.cs" />
     <Compile Include="Repositories\BankRepository.cs" />

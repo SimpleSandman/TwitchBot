@@ -1270,6 +1270,75 @@ namespace TwitchBot.Commands
             }
         }
 
+        public void CmdRussianRoulette(string username, ref List<RouletteUser> rouletteUsers)
+        {
+            try
+            {
+                RouletteUser rouletteUser = rouletteUsers.FirstOrDefault(u => u.Username.Equals(username));
+
+                Random rnd = new Random(DateTime.Now.Millisecond);
+                int bullet = rnd.Next(6); // between 0 and 5
+
+                if (bullet == 0) // user was shot
+                {
+                    if (rouletteUser != null)
+                        rouletteUsers.Remove(rouletteUser);
+
+                    _irc.SendChatTimeout(username, 300); // 5 minute timeout
+                    _irc.SendPublicChatMessage($"You are dead @{username}. Enjoy your 5 minutes in limbo (cannot talk)");
+                    return;
+                }
+
+                if (rouletteUser == null) // new roulette user
+                {
+                    rouletteUser = new RouletteUser() { Username = username, ShotsTaken = 1 };
+                    rouletteUsers.Add(rouletteUser);
+
+                    _irc.SendPublicChatMessage($"@{username} -> 1/6 attempts");
+                }
+                else // existing roulette user
+                {
+                    if (rouletteUser.ShotsTaken < 6)
+                    {
+                        foreach (var user in rouletteUsers)
+                        {
+                            if (user.Username.Equals(username))
+                            {
+                                user.ShotsTaken++;
+                                break;
+                            }
+                        }
+                    }
+
+                    string responseMessage = $"@{username} -> {rouletteUser.ShotsTaken}/6 attempts";
+
+                    if (rouletteUser.ShotsTaken == 6)
+                    {
+                        int funds = _bank.CheckBalance(username, _broadcasterId);
+                        int reward = 2000; // ToDo: Make roulette reward deposit config setting
+
+                        if (funds > -1)
+                        {
+                            funds += reward; // deposit 500 stream currency
+                            _bank.UpdateFunds(username, _broadcasterId, funds);
+                        }
+                        else
+                            _bank.CreateAccount(username, _broadcasterId, reward);
+
+                        rouletteUsers.RemoveAll(u => u.Username.Equals(username));
+
+                        responseMessage = $"Congrats on surviving russian roulette. Here's {reward} {_botConfig.CurrencyType}!";
+                    }
+
+                    _irc.SendPublicChatMessage(responseMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdRussianRoulette(string, ref List<RouletteUser>)", false, "!roulette");
+            }
+        }
+
         private async Task<bool> ReactionCmd(string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
         {
             // check if user is trying to use a command on themselves

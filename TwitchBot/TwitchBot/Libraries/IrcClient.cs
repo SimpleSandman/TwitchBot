@@ -71,6 +71,19 @@ namespace TwitchBot.Libraries
             }
         }
 
+        public void SendChatTimeout(string offender, int timeout = 1, string reason = "N/A")
+        {
+            try
+            {
+                SendIrcMessage(":" + username + "!" + username + "@" + username +
+                    ".tmi.twitch.tv PRIVMSG #" + channel + " :/timeout " + offender + " " + timeout);
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "IrcClient", "SendChatTimeout(string, string)", false);
+            }
+        }
+
         public string ReadMessage()
         {
             try

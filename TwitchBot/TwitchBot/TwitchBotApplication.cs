@@ -39,8 +39,8 @@ namespace TwitchBot
         private List<string> _multiStreamUsers;
         private List<string> _greetedUsers;
         private List<CooldownUser> _cooldownUsers;
+        private List<RouletteUser> _rouletteUsers;
         private LocalSpotifyClient _spotify;
-        private TwitterClient _twitter;
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
         private FollowerListener _followerListener;
@@ -62,6 +62,7 @@ namespace TwitchBot
             _hasYouTubeAuth = false;
             _timeout = new TimeoutCmd();
             _cooldownUsers = new List<CooldownUser>();
+            _rouletteUsers = new List<RouletteUser>();
             _multiStreamUsers = new List<string>();
             _greetedUsers = new List<string>();
             _twitchInfo = twitchInfo;
@@ -209,7 +210,6 @@ namespace TwitchBot
                 }
 
                 /* Start listening for delayed messages */
-                // ToDo: Causes 30% CPU usage, needs different solution
                 DelayMsg delayMsg = new DelayMsg(_irc);
                 delayMsg.Start();
 
@@ -292,7 +292,7 @@ namespace TwitchBot
                             modifiedMessage.Remove(0, indexParseSign + 2); // remove unnecessary info before and including the parse symbol
                             message = modifiedMessage.ToString();
 
-                            GreetNewUser(username);
+                            GreetNewUser(username, message);
 
                             /* 
                              * Broadcaster commands 
@@ -566,7 +566,7 @@ namespace TwitchBot
                                             Command = "!slap",
                                             Warned = false
                                         });
-                                    }                                    
+                                    }
                                 }
 
                                 /* Stabs a user and rates its effectiveness */
@@ -715,6 +715,10 @@ namespace TwitchBot
                                 /* Display the top 3 highest ranking users */
                                 else if (message.Equals("!ranktop3"))
                                     _cmdGen.CmdLeaderboardRank(username);
+
+                                /* Play russian roulette */
+                                else if (message.Equals("!roulette"))
+                                    _cmdGen.CmdRussianRoulette(username, ref _rouletteUsers);
 
                                 /* add more general commands here */
                             }
@@ -914,11 +918,12 @@ namespace TwitchBot
         /// Greet a new user with a welcome message and a "thank-you" deposit of stream currency
         /// </summary>
         /// <param name="username"></param>
-        private void GreetNewUser(string username)
+        /// <param name="message"></param>
+        private void GreetNewUser(string username, string message)
         {
             try
             {
-                if (!_greetedUsers.Any(u => u == username) && !username.Equals(_botConfig.Broadcaster.ToLower()))
+                if (!_greetedUsers.Any(u => u == username) && !username.Equals(_botConfig.Broadcaster.ToLower()) && message.Length > 1)
                 {
                     // check if user has a stream currency account
                     int funds = _bank.CheckBalance(username, _broadcasterId);
@@ -934,8 +939,8 @@ namespace TwitchBot
 
                     _greetedUsers.Add(username);
 
-                    _irc.SendPublicChatMessage($"Welcome to the channel @{username}! Thanks for saying something! Let me show you my appreciation with "
-                        + $"{greetedDeposit} {_botConfig.CurrencyType}");
+                    _irc.SendPublicChatMessage($"Welcome to the channel @{username}! Thanks for saying something! "
+                        + $"Let me show you my appreciation with {greetedDeposit} {_botConfig.CurrencyType}");
                 }
             }
             catch (Exception ex)
