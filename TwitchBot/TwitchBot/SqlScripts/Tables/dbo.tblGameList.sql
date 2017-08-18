@@ -11,6 +11,7 @@ GO
 CREATE TABLE [dbo].[tblGameList] (
     [Id]   INT           IDENTITY (1, 1) NOT NULL,
     [name] VARCHAR (100) NOT NULL,
+    [multiplayer] BIT NOT NULL DEFAULT 0, 
     PRIMARY KEY CLUSTERED ([Id] ASC)
 );
 

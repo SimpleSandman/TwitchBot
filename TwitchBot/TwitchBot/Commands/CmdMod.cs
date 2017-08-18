@@ -623,8 +623,7 @@ namespace TwitchBot.Commands
         /// Update the title of the Twitch channel
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        /// <param name="twitchAccessToken">Token needed to change channel info</param>
-        public void CmdUpdateTitle(string message, string twitchAccessToken)
+        public void CmdUpdateTitle(string message)
         {
             try
             {
@@ -636,7 +635,7 @@ namespace TwitchBot.Commands
                 RestRequest request = new RestRequest(Method.PUT);
                 request.AddHeader("cache-control", "no-cache");
                 request.AddHeader("content-type", "application/json");
-                request.AddHeader("authorization", "OAuth " + twitchAccessToken);
+                request.AddHeader("authorization", "OAuth " + _botConfig.TwitchAccessToken);
                 request.AddHeader("accept", "application/vnd.twitchtv.v5+json");
                 request.AddParameter("application/json", "{\"channel\":{\"status\":\"" + title + "\"}}",
                     ParameterType.RequestBody);
@@ -665,7 +664,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdUpdateTitle(string, string)", false, "!updatetitle");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdUpdateTitle(string, string)", false, "!updatetitle");
             }
         }
 
@@ -721,7 +720,39 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdUpdateGame(string, string, bool)", false, "!updategame");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdUpdateGame(string, string, bool)", false, "!updategame");
+            }
+        }
+
+        public void CmdPopGotNextGame(string username, ref Queue<string> gameQueueUsers)
+        {
+            try
+            {
+                if (gameQueueUsers.Count == 0)
+                    _irc.SendPublicChatMessage($"Queue is empty @{username}");
+                else
+                {
+                    string poppedUser = gameQueueUsers.Dequeue();
+                    _irc.SendPublicChatMessage($"{poppedUser} has been removed from the queue @{username}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopGotNextGame(string, Queue<string>)", false, "!popgotnext");
+            }
+        }
+
+        public void CmdResetGotNextGame(string username, ref Queue<string> gameQueueUsers)
+        {
+            try
+            {
+                if (gameQueueUsers.Count != 0) gameQueueUsers.Clear();
+
+                _irc.SendPublicChatMessage($"Queue is empty @{username}");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetGotNextGame(string, Queue<string>)", false, "!resetgotnext");
             }
         }
     }

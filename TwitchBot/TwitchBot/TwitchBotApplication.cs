@@ -38,6 +38,7 @@ namespace TwitchBot
         private bool _hasYouTubeAuth;
         private List<string> _multiStreamUsers;
         private List<string> _greetedUsers;
+        private Queue<string> _gameQueueUsers;
         private List<CooldownUser> _cooldownUsers;
         private List<RouletteUser> _rouletteUsers;
         private LocalSpotifyClient _spotify;
@@ -65,6 +66,7 @@ namespace TwitchBot
             _rouletteUsers = new List<RouletteUser>();
             _multiStreamUsers = new List<string>();
             _greetedUsers = new List<string>();
+            _gameQueueUsers = new Queue<string>();
             _twitchInfo = twitchInfo;
             _follower = follower;
             _followerListener = followerListener;
@@ -498,12 +500,20 @@ namespace TwitchBot
                                     /* Updates the title of the Twitch channel */
                                     // Usage: !updatetitle [title]
                                     else if (message.StartsWith("!updatetitle "))
-                                        _cmdMod.CmdUpdateTitle(message, twitchAccessToken);
+                                        _cmdMod.CmdUpdateTitle(message);
 
                                     /* Updates the game of the Twitch channel */
                                     // Usage: !updategame [game]
                                     else if (message.StartsWith("!updategame "))
                                         _cmdMod.CmdUpdateGame(message, hasTwitterInfo);
+
+                                    /* Pops user from the queue of users that want to play with the broadcaster */
+                                    else if (message.Equals("!popgotnext"))
+                                        _cmdMod.CmdPopGotNextGame(username, ref _gameQueueUsers);
+
+                                    /* Resets game queue of users that want to play with the broadcaster */
+                                    else if (message.Equals("!resetgotnext"))
+                                        _cmdMod.CmdResetGotNextGame(username, ref _gameQueueUsers);
 
                                     /* insert moderator commands here */
                                 }
@@ -719,6 +729,14 @@ namespace TwitchBot
                                 /* Play russian roulette */
                                 else if (message.Equals("!roulette"))
                                     _cmdGen.CmdRussianRoulette(username, ref _rouletteUsers);
+
+                                /* Show the users that want to play with the broadcaster */
+                                else if (message.Equals("!listgotnext"))
+                                    _cmdGen.CmdListGotNextGame(username, _gameQueueUsers);
+
+                                /* Request to play with the broadcaster */
+                                else if (message.Equals("!gotnextgame"))
+                                    _cmdGen.CmdGotNextGame(username, ref _gameQueueUsers);
 
                                 /* add more general commands here */
                             }

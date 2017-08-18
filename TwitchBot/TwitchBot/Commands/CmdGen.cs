@@ -38,7 +38,7 @@ namespace TwitchBot.Commands
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
-        public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, 
+        public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId,
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestService songRequest)
         {
             _irc = irc;
@@ -905,7 +905,7 @@ namespace TwitchBot.Commands
                             Rank currFollowerRank = _follower.GetCurrRank(rankList, currExp);
                             decimal hoursWatched = _follower.GetHoursWatched(currExp);
 
-                            _irc.SendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" " 
+                            _irc.SendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" "
                                 + $"{currExp}/{currFollowerRank.ExpCap} EXP ({hoursWatched} hours watched)");
                         }
                         else
@@ -950,7 +950,7 @@ namespace TwitchBot.Commands
                     _irc.SendPublicChatMessage("YouTube song requests are not turned on");
                 }
                 else
-                { 
+                {
                     string videoId = "";
 
                     // Parse video ID based on different types of requests
@@ -974,7 +974,7 @@ namespace TwitchBot.Commands
                         else
                             videoId = message.Substring(videoIdIndex, addParam - videoIdIndex);
                     }
-                    else if (message.Replace("!ytsr ", "").Length == 11 
+                    else if (message.Replace("!ytsr ", "").Length == 11
                         && message.Replace("!ytsr ", "").IndexOf(" ") == -1
                         && Regex.Match(message, @"[\w\-]").Success) // assume only video ID
                     {
@@ -1270,6 +1270,11 @@ namespace TwitchBot.Commands
             }
         }
 
+        /// <summary>
+        /// Play a friendly game of Russian Roulette and risk chat privileges for stream currency
+        /// </summary>
+        /// <param name="username">User that sent the message</param>
+        /// <param name="rouletteUsers">List of roulette users that have attempted and survived</param>
         public void CmdRussianRoulette(string username, ref List<RouletteUser> rouletteUsers)
         {
             try
@@ -1337,6 +1342,108 @@ namespace TwitchBot.Commands
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdRussianRoulette(string, ref List<RouletteUser>)", false, "!roulette");
             }
+        }
+
+        public void CmdListGotNextGame(string username, Queue<string> gameQueueUsers)
+        {
+            try
+            {
+                if (!IsMultiplayerGame(username)) return;
+
+                if (gameQueueUsers.Count == 0)
+                {
+                    _irc.SendPublicChatMessage($"No one wants to play with the streamer at the moment. "
+                        + "Be the first to play with !gotnextgame");
+                    return;
+                }
+
+                // Show list of queued users
+                string message = $"List of users waiting to play with the streamer (in order from left to right): < ";
+
+                foreach (string user in gameQueueUsers)
+                {
+                    message += user + " >< ";
+                }
+
+                _irc.SendPublicChatMessage(message.Remove(message.Length - 2));
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdListGotNextGame(string, Queue<string>)", false, "!listgotnext");
+            }
+        }
+
+        public void CmdGotNextGame(string username, ref Queue<string> gameQueueUsers)
+        {
+            try
+            {
+                if (!IsMultiplayerGame(username)) return;
+
+                if (gameQueueUsers.Contains(username))
+                {
+                    _irc.SendPublicChatMessage($"Don't worry @{username}. You're on the list to play with " +
+                        $"the streamer with your current position at {gameQueueUsers.ToList().IndexOf(username) + 1} " +
+                        $"of {gameQueueUsers.Count} user(s)");
+                }
+                else
+                {
+                    gameQueueUsers.Enqueue(username);
+
+                    _irc.SendPublicChatMessage($"Congrats @{username}! You're currently in line with your current position at " +
+                        $"{gameQueueUsers.ToList().IndexOf(username) + 1} of {gameQueueUsers.Count} user(s)");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdGotNextGame(string, Queue<string>)", false, "!gotnextgame");
+            }
+        }
+
+        private bool IsMultiplayerGame(string username)
+        {
+            // Game properties
+            int gameId = 0;
+            bool hasMultiplayer = false;
+
+            // Get current game name
+            ChannelJSON json = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result;
+            string broadcasterGame = json.game;
+
+            // Grab game id in order to find party member
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblGameList", conn))
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            if (broadcasterGame.Equals(reader["name"].ToString()))
+                            {
+                                gameId = int.Parse(reader["id"].ToString());
+                                hasMultiplayer = bool.Parse(reader["multiplayer"].ToString());
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (gameId == 0)
+            {
+                _irc.SendPublicChatMessage($"I cannot find this game in the database. Have my master resolve this issue @{username}");
+                return false;
+            }
+
+            if (hasMultiplayer == false)
+            {
+                _irc.SendPublicChatMessage($"This game is set to single-player only. Verify with my master with this game @{username}");
+                return false;
+            }
+
+            return true;
         }
 
         private async Task<bool> ReactionCmd(string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
