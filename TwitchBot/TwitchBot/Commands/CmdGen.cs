@@ -982,7 +982,7 @@ namespace TwitchBot.Commands
                     }
                     else // search by keyword
                     {
-                        string videoKeyword = message.Substring(4);
+                        string videoKeyword = message.Substring(6);
                         videoId = await _youTubeClientInstance.SearchVideoByKeyword(videoKeyword, 3);
                     }
 
