@@ -727,7 +727,8 @@ namespace TwitchBot
                                     _cmdGen.CmdLeaderboardRank(username);
 
                                 /* Play russian roulette */
-                                else if (message.Equals("!roulette"))
+                                // Note: Chat moderators cannot be timed out by the bot (reason for being excluded)
+                                else if (message.Equals("!roulette") && !_modInstance.ListMods.Contains(username.ToLower()))
                                     _cmdGen.CmdRussianRoulette(username, ref _rouletteUsers);
 
                                 /* Show the users that want to play with the broadcaster */

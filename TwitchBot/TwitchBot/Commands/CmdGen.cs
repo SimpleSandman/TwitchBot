@@ -944,10 +944,22 @@ namespace TwitchBot.Commands
                 if (!hasYouTubeAuth)
                 {
                     _irc.SendPublicChatMessage("YouTube song requests have not been set up");
+                    return DateTime.Now;
                 }
-                else if (!isYouTubeSongRequestAvail)
+
+                if (!isYouTubeSongRequestAvail)
                 {
                     _irc.SendPublicChatMessage("YouTube song requests are not turned on");
+                    return DateTime.Now;
+                }
+
+                int funds = _bank.CheckBalance(username, _broadcasterId);
+                int cost = 250; // ToDo: Set YTSR currency cost into settings
+
+                if (funds < cost)
+                {
+                    _irc.SendPublicChatMessage($"You do not have enough {_botConfig.CurrencyType} to make a song request. "
+                        + $"You currently have {funds} {_botConfig.CurrencyType} @{username}");
                 }
                 else
                 {
@@ -1006,20 +1018,20 @@ namespace TwitchBot.Commands
                         {
                             // Check for artist-wide blacklist
                             if (blacklist.Any(
-                                   b => (string.IsNullOrEmpty(b.Title)
-                                           && video.Snippet.Title.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
-                                       || (string.IsNullOrEmpty(b.Title)
-                                           && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
+                                    b => (string.IsNullOrEmpty(b.Title)
+                                            && video.Snippet.Title.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
+                                        || (string.IsNullOrEmpty(b.Title)
+                                            && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
                                 ))
                             {
                                 _irc.SendPublicChatMessage($"This artist cannot be requested at this time @{username}");
                             }
                             // Check for song-specific blacklist
                             else if (blacklist.Any(
-                                        b => (!string.IsNullOrEmpty(b.Title) && video.Snippet.Title.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase)
-                                                && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // both song/artist in video title
-                                            || (!string.IsNullOrEmpty(b.Title) && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase)
-                                                && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // song in title and artist in channel title
+                                    b => (!string.IsNullOrEmpty(b.Title) && video.Snippet.Title.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase)
+                                            && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // both song/artist in video title
+                                        || (!string.IsNullOrEmpty(b.Title) && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase)
+                                            && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // song in title and artist in channel title
                                 ))
                             {
                                 _irc.SendPublicChatMessage($"This song cannot be requested at this time @{username}");
@@ -1032,7 +1044,7 @@ namespace TwitchBot.Commands
                         // ToDo: Make bot setting for duration limit based on minutes (if set)
                         if (!videoDuration.Contains("PT") || videoDuration.Contains("H"))
                         {
-                            _irc.SendPublicChatMessage($"Either couldn't find video duration or way too long for the stream @{username}");
+                            _irc.SendPublicChatMessage($"Either couldn't find the video duration or it was way too long for the stream @{username}");
                         }
                         else
                         {
@@ -1057,12 +1069,15 @@ namespace TwitchBot.Commands
                             else
                             {
                                 await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, username);
+                                _bank.UpdateFunds(username, _broadcasterId, funds - cost);
 
-                                _irc.SendPublicChatMessage($"@{username} -> \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested!");
+                                _irc.SendPublicChatMessage($"@{username} spent {cost} {_botConfig.CurrencyType} " + 
+                                    $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested!");
 
                                 // Return cooldown time by using one-third of the length of the video duration
                                 TimeSpan totalTimeSpan = new TimeSpan(0, Convert.ToInt32(videoMin), Convert.ToInt32(videoSec));
                                 TimeSpan oneThirdTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 3);
+
                                 return DateTime.Now.AddSeconds(oneThirdTimeSpan.TotalSeconds);
                             }
                         }
@@ -1320,7 +1335,7 @@ namespace TwitchBot.Commands
                     if (rouletteUser.ShotsTaken == 6)
                     {
                         int funds = _bank.CheckBalance(username, _broadcasterId);
-                        int reward = 2000; // ToDo: Make roulette reward deposit config setting
+                        int reward = 3000; // ToDo: Make roulette reward deposit config setting
 
                         if (funds > -1)
                         {

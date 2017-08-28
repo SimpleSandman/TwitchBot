@@ -19,15 +19,15 @@ namespace TwitchBot.Commands
     public class CmdMod
     {
         private IrcClient _irc;
-        private Moderator _modInstance = Moderator.Instance;
         private TimeoutCmd _timeout;
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _broadcasterId;
         private BankService _bank;
-        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private TwitchInfoService _twitchInfo;
+        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+        private Moderator _modInstance = Moderator.Instance;
         private TwitterClient _twitter = TwitterClient.Instance;
 
         public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, 
@@ -222,7 +222,9 @@ namespace TwitchBot.Commands
                     else
                     {
                         List<string> chatterList = await _twitchInfo.GetChatterList();
-                        chatterList = chatterList.Where(t => t != _botConfig.Broadcaster.ToLower() && t != _botConfig.BotName.ToLower()).ToList();
+
+                        // exclude broadcaster, bot, and the moderator executing this command
+                        chatterList = chatterList.Where(t => t != username.ToLower() && t != _botConfig.BotName.ToLower()).ToList();
 
                         if (chatterList != null && chatterList.Count > 0)
                         {
