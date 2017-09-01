@@ -26,12 +26,13 @@ namespace TwitchBot.Commands
         private int _broadcasterId;
         private BankService _bank;
         private TwitchInfoService _twitchInfo;
+        private ManualSongRequestService _manualSongRequest;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
         private TwitterClient _twitter = TwitterClient.Instance;
 
         public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, 
-            System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo)
+            System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo, ManualSongRequestService manualSongRequest)
         {
             _irc = irc;
             _timeout = timeout;
@@ -41,6 +42,7 @@ namespace TwitchBot.Commands
             _appConfig = appConfig;
             _bank = bank;
             _twitchInfo = twitchInfo;
+            _manualSongRequest = manualSongRequest;
         }
 
         /// <summary>
@@ -250,43 +252,13 @@ namespace TwitchBot.Commands
         /// </summary>
         public void CmdPopManualSr()
         {
-            string removedSong = "";
-
             try
             {
-                using (SqlConnection conn = new SqlConnection(_connStr))
+                string removedSong = _manualSongRequest.GetFirstSongRequest(_broadcasterId);
+
+                if (!string.IsNullOrEmpty(removedSong))
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
-                    {
-                        cmd.Parameters.AddWithValue("@broadcaster", _broadcasterId);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    removedSong = reader["songRequests"].ToString();
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (!string.IsNullOrWhiteSpace(removedSong))
-                {
-                    string query = "WITH T AS (SELECT TOP(1) * FROM tblSongRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
-
-                    // Create connection and command
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
-                    }
+                    _manualSongRequest.PopSongRequest(_broadcasterId);
 
                     _irc.SendPublicChatMessage("The first song in queue, '" + removedSong + "' has been removed from the request list");
                 }

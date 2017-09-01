@@ -34,12 +34,14 @@ namespace TwitchBot.Commands
         private TwitchInfoService _twitchInfo;
         private BankService _bank;
         private FollowerService _follower;
-        private SongRequestBlacklistService _songRequest;
+        private SongRequestBlacklistService _songRequestBlacklist;
+        private ManualSongRequestService _manualSongRequest;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
         public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId,
-            TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequest)
+            TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
+            ManualSongRequestService manualSongRequest)
         {
             _irc = irc;
             _spotify = spotify;
@@ -49,7 +51,8 @@ namespace TwitchBot.Commands
             _twitchInfo = twitchInfo;
             _bank = bank;
             _follower = follower;
-            _songRequest = songRequest;
+            _songRequestBlacklist = songRequestBlacklist;
+            _manualSongRequest = manualSongRequest;
         }
 
         public void CmdDisplayCmds()
@@ -118,7 +121,7 @@ namespace TwitchBot.Commands
                     _irc.SendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
                 }
                 else
-                    _irc.SendPublicChatMessage("This channel is not streaming anything at the moment");
+                    _irc.SendPublicChatMessage("This channel is not streaming right now");
             }
             catch (Exception ex)
             {
@@ -139,54 +142,17 @@ namespace TwitchBot.Commands
                     _irc.SendPublicChatMessage($"Song requests are not available at this time @{username}");
                 else
                 {
-                    string songList = "";
+                    string songList = _manualSongRequest.ListSongRequests(_broadcasterId);
 
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    {
-                        conn.Open();
-                        using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster", conn))
-                        {
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    DataTable schemaTable = reader.GetSchemaTable();
-                                    DataTable data = new DataTable();
-                                    foreach (DataRow row in schemaTable.Rows)
-                                    {
-                                        string colName = row.Field<string>("ColumnName");
-                                        Type t = row.Field<Type>("DataType");
-                                        data.Columns.Add(colName, t);
-                                    }
-                                    while (reader.Read())
-                                    {
-                                        var newRow = data.Rows.Add();
-                                        foreach (DataColumn col in data.Columns)
-                                        {
-                                            newRow[col.ColumnName] = reader[col.ColumnName];
-                                            Console.WriteLine(newRow[col.ColumnName]);
-                                            songList = songList + newRow[col.ColumnName] + " >< ";
-                                        }
-                                    }
-                                    StringBuilder strBdrSongList = new StringBuilder(songList);
-                                    strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " >< "
-                                    songList = strBdrSongList.ToString(); // replace old song list string with new
-                                    _irc.SendPublicChatMessage("Current List of Requested Songs: " + songList);
-                                }
-                                else
-                                {
-                                    Console.WriteLine("No requests have been made");
-                                    _irc.SendPublicChatMessage("No requests have been made");
-                                }
-                            }
-                        }
-                    }
+                    if (!string.IsNullOrEmpty(songList))
+                        _irc.SendPublicChatMessage($"Current list of requested songs: {songList}");
+                    else
+                        _irc.SendPublicChatMessage($"No song requests have been made @{username}");
                 }
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList()", false, "!rbsrl");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList(bool, string)", false, "!rbsrl");
             }
         }
 
@@ -206,7 +172,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrLink()", false, "!rbsl");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrLink(bool, string)", false, "!rbsl");
             }
         }
 
@@ -237,19 +203,7 @@ namespace TwitchBot.Commands
                     }
                     else
                     {
-                        /* Add song request to database */
-                        string query = "INSERT INTO tblSongRequests (songRequests, broadcaster, chatter) VALUES (@song, @broadcaster, @chatter)";
-
-                        using (SqlConnection conn = new SqlConnection(_connStr))
-                        using (SqlCommand cmd = new SqlCommand(query, conn))
-                        {
-                            cmd.Parameters.Add("@song", SqlDbType.VarChar, 200).Value = songRequest;
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.VarChar, 200).Value = _broadcasterId;
-                            cmd.Parameters.Add("@chatter", SqlDbType.VarChar, 200).Value = username;
-
-                            conn.Open();
-                            cmd.ExecuteNonQuery();
-                        }
+                        _manualSongRequest.AddSongRequest(songRequest, username, _broadcasterId);
 
                         _irc.SendPublicChatMessage("The song \"" + songRequest + "\" has been successfully requested!");
                     }
@@ -1012,7 +966,7 @@ namespace TwitchBot.Commands
                         Video video = await _youTubeClientInstance.GetVideoById(videoId, 2);
 
                         // Check if video's title and account match song request blacklist
-                        List<SongRequestBlacklistItem> blacklist = _songRequest.GetSongRequestBlackList(_broadcasterId);
+                        List<SongRequestBlacklistItem> blacklist = _songRequestBlacklist.GetSongRequestBlackList(_broadcasterId);
 
                         if (blacklist.Count > 0)
                         {
