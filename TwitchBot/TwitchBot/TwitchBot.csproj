@@ -149,10 +149,10 @@
     <Compile Include="Commands\CmdMod.cs" />
     <Compile Include="Configuration\TwitchBotConfigurationSection.cs" />
     <Compile Include="Configuration\TwitchBotConfigurator.cs" />
-    <Compile Include="Repositories\SongRequestRepository.cs" />
+    <Compile Include="Repositories\SongRequestBlacklistRepository.cs" />
     <Compile Include="Services\BankService.cs" />
     <Compile Include="Services\FollowerService.cs" />
-    <Compile Include="Services\SongRequestService.cs" />
+    <Compile Include="Services\SongRequestBlacklistService.cs" />
     <Compile Include="Services\TwitchInfoService.cs" />
     <Compile Include="Threads\DelayMsg.cs" />
     <Compile Include="Models\JSON\ErrMsgJSON.cs" />

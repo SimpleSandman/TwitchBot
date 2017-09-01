@@ -22,12 +22,12 @@ namespace TwitchBot.Commands
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
         private int _broadcasterId;
-        private SongRequestService _songRequest;
+        private SongRequestBlacklistService _songRequest;
         private TwitterClient _twitter = TwitterClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, 
-            System.Configuration.Configuration appConfig, SongRequestService songRequest)
+            System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest)
         {
             _irc = irc;
             _botConfig = botConfig;

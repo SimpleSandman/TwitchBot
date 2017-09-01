@@ -46,12 +46,12 @@ namespace TwitchBot
         private FollowerService _follower;
         private FollowerListener _followerListener;
         private BankService _bank;
-        private SongRequestService _songRequest;
+        private SongRequestBlacklistService _songRequest;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
-        public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestService songRequest,
+        public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequest,
             FollowerService follower, BankService bank, FollowerListener followerListener)
         {
             _appConfig = appConfig;

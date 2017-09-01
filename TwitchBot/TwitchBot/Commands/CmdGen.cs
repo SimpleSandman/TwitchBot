@@ -34,12 +34,12 @@ namespace TwitchBot.Commands
         private TwitchInfoService _twitchInfo;
         private BankService _bank;
         private FollowerService _follower;
-        private SongRequestService _songRequest;
+        private SongRequestBlacklistService _songRequest;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
         public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId,
-            TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestService songRequest)
+            TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequest)
         {
             _irc = irc;
             _spotify = spotify;

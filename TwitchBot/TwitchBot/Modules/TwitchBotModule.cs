@@ -25,12 +25,12 @@ namespace TwitchBot.Modules
             // repositories
             builder.RegisterType<BankRepository>().WithParameter(ParamConnStr);
             builder.RegisterType<FollowerRepository>().WithParameter(ParamConnStr);
-            builder.RegisterType<SongRequestRepository>().WithParameter(ParamConnStr);
+            builder.RegisterType<SongRequestBlacklistRepository>().WithParameter(ParamConnStr);
 
             // services
             builder.RegisterType<BankService>();
             builder.RegisterType<FollowerService>();
-            builder.RegisterType<SongRequestService>();
+            builder.RegisterType<SongRequestBlacklistService>();
             builder.RegisterType<TwitchInfoService>();
 
             // threads

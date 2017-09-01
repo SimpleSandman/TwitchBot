@@ -6,11 +6,11 @@ using TwitchBot.Models;
 
 namespace TwitchBot.Repositories
 {
-    public class SongRequestRepository
+    public class SongRequestBlacklistRepository
     {
         private string _connStr;
 
-        public SongRequestRepository(string connStr)
+        public SongRequestBlacklistRepository(string connStr)
         {
             _connStr = connStr;
         }

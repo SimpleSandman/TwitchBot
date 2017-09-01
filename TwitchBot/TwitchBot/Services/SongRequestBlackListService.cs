@@ -5,11 +5,11 @@ using TwitchBot.Repositories;
 
 namespace TwitchBot.Services
 {
-    public class SongRequestService
+    public class SongRequestBlacklistService
     {
-        private SongRequestRepository _songRequestDb;
+        private SongRequestBlacklistRepository _songRequestDb;
 
-        public SongRequestService(SongRequestRepository songRequestDb)
+        public SongRequestBlacklistService(SongRequestBlacklistRepository songRequestDb)
         {
             _songRequestDb = songRequestDb;
         }
