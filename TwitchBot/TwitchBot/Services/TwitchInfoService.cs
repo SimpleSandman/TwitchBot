@@ -51,7 +51,7 @@ namespace TwitchBot.Services
         }
 
         /// <summary>
-        /// Get a full list of chatters broken up by each type
+        /// Get a full list of chatters
         /// </summary>
         /// <returns></returns>
         public async Task<List<string>> GetChatterList()
@@ -82,7 +82,7 @@ namespace TwitchBot.Services
         }
 
         /// <summary>
-        /// Check if viewer is a follower via HttpResponseMessage
+        /// Check if viewer is a follower
         /// </summary>
         /// <param name="username"></param>
         /// <returns></returns>
