@@ -276,10 +276,10 @@ namespace TwitchBot.Commands
         /// </summary>
         public void CmdPopPartyUpRequest()
         {
-            string removedPartyMember = "";
-
             try
             {
+                string removedPartyMember = "";
+
                 using (SqlConnection conn = new SqlConnection(_connStr))
                 {
                     conn.Open();

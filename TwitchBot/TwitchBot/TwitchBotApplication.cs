@@ -48,12 +48,15 @@ namespace TwitchBot
         private BankService _bank;
         private SongRequestBlacklistService _songRequestBlacklist;
         private ManualSongRequestService _manualSongRequest;
+        private PartyUpService _partyUp;
+        private GameDirectoryService _gameDirectory;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
-            FollowerService follower, BankService bank, FollowerListener followerListener, ManualSongRequestService manualSongRequest)
+            FollowerService follower, BankService bank, FollowerListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
+            GameDirectoryService gameDirectory)
         {
             _appConfig = appConfig;
             _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program.ConnStrType].ConnectionString;
@@ -74,6 +77,8 @@ namespace TwitchBot
             _bank = bank;
             _songRequestBlacklist = songRequestBlacklist;
             _manualSongRequest = manualSongRequest;
+            _partyUp = partyUp;
+            _gameDirectory = gameDirectory;
         }
 
         public async Task RunAsync()
@@ -176,7 +181,7 @@ namespace TwitchBot
                 /* main server: irc.twitch.tv, 6667 */
                 _irc = new IrcClient("irc.twitch.tv", 6667, _botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterId, _twitchInfo, _bank, _follower, _songRequestBlacklist, 
-                    _manualSongRequest);
+                    _manualSongRequest, _partyUp, _gameDirectory);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterId, _appConfig, _songRequestBlacklist);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterId, _appConfig, _bank, _twitchInfo, _manualSongRequest);
 
@@ -493,6 +498,7 @@ namespace TwitchBot
                                         await _cmdMod.CmdBonusAll(message, username);
 
                                     /* Add MultiStream user to link */
+                                    // Usage: !addmsl @[username]
                                     else if (message.StartsWith("!addmsl "))
                                         _cmdMod.CmdAddMultiStreamUser(message, username, ref _multiStreamUsers);
 

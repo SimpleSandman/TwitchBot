@@ -27,12 +27,16 @@ namespace TwitchBot.Modules
             builder.RegisterType<FollowerRepository>().WithParameter(ParamConnStr);
             builder.RegisterType<SongRequestBlacklistRepository>().WithParameter(ParamConnStr);
             builder.RegisterType<ManualSongRequestRepository>().WithParameter(ParamConnStr);
+            builder.RegisterType<PartyUpRepository>().WithParameter(ParamConnStr);
+            builder.RegisterType<GameDirectoryRepository>().WithParameter(ParamConnStr);
 
             // services
             builder.RegisterType<BankService>();
             builder.RegisterType<FollowerService>();
             builder.RegisterType<SongRequestBlacklistService>();
             builder.RegisterType<ManualSongRequestService>();
+            builder.RegisterType<PartyUpService>();
+            builder.RegisterType<GameDirectoryService>();
             builder.RegisterType<TwitchInfoService>();
 
             // threads
