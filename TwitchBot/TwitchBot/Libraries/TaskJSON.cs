@@ -43,15 +43,15 @@ namespace TwitchBot.Libraries
                 Console.WriteLine(ex.Message);
                 return new ChatterInfoJSON
                 {
-                    chatters = new Chatters
+                    Chatters = new Chatters
                     {
-                        viewers = new List<string>(),
-                        moderators = new List<string>(),
-                        admins = new List<string>(),
-                        global_mods = new List<string>(),
-                        staff = new List<string>()
+                        Viewers = new List<string>(),
+                        Moderators = new List<string>(),
+                        Admins = new List<string>(),
+                        GlobalMods = new List<string>(),
+                        Staff = new List<string>()
                     },
-                    chatter_count = 0
+                    ChatterCount = 0
                 };
             }
         }

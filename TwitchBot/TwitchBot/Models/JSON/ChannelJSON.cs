@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json;
+
 namespace TwitchBot.Models.JSON
 {
     public class ChannelJSON
@@ -12,7 +14,8 @@ namespace TwitchBot.Models.JSON
         //public string status { get; set; }
         //public string broadcaster_language { get; set; }
         //public string display_name { get; set; }
-        public string game { get; set; }
+        [JsonProperty("game")]
+        public string Game { get; set; }
         //public object delay { get; set; }
         //public string language { get; set; }
         //public int _id { get; set; }
@@ -28,7 +31,8 @@ namespace TwitchBot.Models.JSON
         //public bool partner { get; set; }
         //public string url { get; set; }
         //public int views { get; set; }
-        public int followers { get; set; }
+        [JsonProperty("followers")]
+        public int Followers { get; set; }
         //public Links _links { get; set; }
     }
 }

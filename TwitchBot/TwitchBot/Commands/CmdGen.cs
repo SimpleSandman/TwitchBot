@@ -117,9 +117,9 @@ namespace TwitchBot.Commands
                 RootStreamJSON streamJson = await TaskJSON.GetStream(_botConfig.Broadcaster, _botConfig.TwitchClientId);
 
                 // Check if the channel is live
-                if (streamJson.stream != null)
+                if (streamJson.Stream != null)
                 {
-                    string duration = streamJson.stream.created_at;
+                    string duration = streamJson.Stream.CreatedAt;
                     TimeSpan ts = DateTime.UtcNow - DateTime.Parse(duration, new DateTimeFormatInfo(), DateTimeStyles.AdjustToUniversal);
                     string strResultDuration = String.Format("{0:h\\:mm\\:ss}", ts);
                     _irc.SendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
@@ -391,7 +391,7 @@ namespace TwitchBot.Commands
                 {
                     // get current game info
                     ChannelJSON json = await TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId);
-                    string gameTitle = json.game;
+                    string gameTitle = json.Game;
                     string partyMember = message.Substring(inputIndex);
                     int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
 
@@ -434,7 +434,7 @@ namespace TwitchBot.Commands
             {
                 // get current game info
                 ChannelJSON json = await TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId);
-                string gameTitle = json.game;
+                string gameTitle = json.Game;
                 int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
 
                 if (gameId == 0)
@@ -457,7 +457,7 @@ namespace TwitchBot.Commands
             {
                 // get current game info
                 ChannelJSON json = await TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId);
-                string gameTitle = json.game;
+                string gameTitle = json.Game;
                 int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
 
                 if (gameId == 0)
@@ -626,7 +626,7 @@ namespace TwitchBot.Commands
                     {
                         string body = await message.Content.ReadAsStringAsync();
                         FollowingSinceJSON response = JsonConvert.DeserializeObject<FollowingSinceJSON>(body);
-                        DateTime startedFollowing = Convert.ToDateTime(response.created_at);
+                        DateTime startedFollowing = Convert.ToDateTime(response.CreatedAt);
                         //TimeSpan howLong = DateTime.Now - startedFollowing;
                         _irc.SendPublicChatMessage($"@{username} has been following since {startedFollowing.ToLongDateString()}");
                     }
@@ -634,7 +634,7 @@ namespace TwitchBot.Commands
                     {
                         string body = await message.Content.ReadAsStringAsync();
                         ErrMsgJSON response = JsonConvert.DeserializeObject<ErrMsgJSON>(body);
-                        _irc.SendPublicChatMessage(response.message);
+                        _irc.SendPublicChatMessage(response.Message);
                     }
                 }
             }
@@ -680,7 +680,7 @@ namespace TwitchBot.Commands
                     {
                         string body = await message.Content.ReadAsStringAsync();
                         ErrMsgJSON response = JsonConvert.DeserializeObject<ErrMsgJSON>(body);
-                        _irc.SendPublicChatMessage(response.message);
+                        _irc.SendPublicChatMessage(response.Message);
                     }
                 }
             }
@@ -1179,7 +1179,7 @@ namespace TwitchBot.Commands
         {
             // Get current game name
             ChannelJSON json = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result;
-            string gameTitle = json.game;
+            string gameTitle = json.Game;
 
             // Grab game id in order to find party member
             int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);

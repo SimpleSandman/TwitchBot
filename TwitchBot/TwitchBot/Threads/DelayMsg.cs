@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using TwitchBot.Libraries;
+using TwitchBot.Models;
 
 namespace TwitchBot.Threads
 {
@@ -47,18 +48,18 @@ namespace TwitchBot.Threads
             try
             {
                 /* Make sure to send messages at the proper time */
-                if (Program.DelayMsgTupleList.Count == 0)
+                if (Program.DelayedMessages.Count == 0)
                 {
                     return;
                 }
                 
                 /* Send the first element from the list of delayed messages */
-                Tuple<string, DateTime> firstMsg = Program.DelayMsgTupleList.First();
-                if (firstMsg.Item2 < DateTime.Now)
+                DelayedMessage firstMsg = Program.DelayedMessages.First();
+                if (firstMsg.SendDate < DateTime.Now)
                 {
-                    _irc.SendPublicChatMessage(firstMsg.Item1);
-                    Console.WriteLine("Delayed message sent: " + firstMsg.Item1);
-                    Program.DelayMsgTupleList.Remove(firstMsg); // remove sent message from list
+                    _irc.SendPublicChatMessage(firstMsg.Message);
+                    Console.WriteLine($"Delayed message sent: {firstMsg.Message}");
+                    Program.DelayedMessages.Remove(firstMsg); // remove sent message from list
                 }
             }
             catch (Exception ex)

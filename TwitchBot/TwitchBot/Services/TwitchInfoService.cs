@@ -31,20 +31,20 @@ namespace TwitchBot.Services
             // ToDo: Categorize each list with username and chatter type
             List<List<string>> availChatterTypeList = new List<List<string>>();
 
-            if (chatterInfo.chatter_count > 0)
+            if (chatterInfo.ChatterCount > 0)
             {
-                Chatters chatters = chatterInfo.chatters; // get list of chatters
+                Chatters chatters = chatterInfo.Chatters; // get list of chatters
 
-                if (chatters.viewers.Count() > 0)
-                    availChatterTypeList.Add(chatters.viewers);
-                if (chatters.moderators.Count() > 0)
-                    availChatterTypeList.Add(chatters.moderators);
-                if (chatters.global_mods.Count() > 0)
-                    availChatterTypeList.Add(chatters.global_mods);
-                if (chatters.admins.Count() > 0)
-                    availChatterTypeList.Add(chatters.admins);
-                if (chatters.staff.Count() > 0)
-                    availChatterTypeList.Add(chatters.staff);
+                if (chatters.Viewers.Count() > 0)
+                    availChatterTypeList.Add(chatters.Viewers);
+                if (chatters.Moderators.Count() > 0)
+                    availChatterTypeList.Add(chatters.Moderators);
+                if (chatters.GlobalMods.Count() > 0)
+                    availChatterTypeList.Add(chatters.GlobalMods);
+                if (chatters.Admins.Count() > 0)
+                    availChatterTypeList.Add(chatters.Admins);
+                if (chatters.Staff.Count() > 0)
+                    availChatterTypeList.Add(chatters.Staff);
             }
 
             return availChatterTypeList;
@@ -62,20 +62,20 @@ namespace TwitchBot.Services
             // Make list of available chatters
             List<string> availChatterList = new List<string>();
 
-            if (chatterInfo.chatter_count > 0)
+            if (chatterInfo.ChatterCount > 0)
             {
-                Chatters chatters = chatterInfo.chatters; // get list of chatters
+                Chatters chatters = chatterInfo.Chatters; // get list of chatters
 
-                if (chatters.viewers.Count() > 0)
-                    availChatterList.AddRange(chatters.viewers);
-                if (chatters.moderators.Count() > 0)
-                    availChatterList.AddRange(chatters.moderators);
-                if (chatters.global_mods.Count() > 0)
-                    availChatterList.AddRange(chatters.global_mods);
-                if (chatters.admins.Count() > 0)
-                    availChatterList.AddRange(chatters.admins);
-                if (chatters.staff.Count() > 0)
-                    availChatterList.AddRange(chatters.staff);
+                if (chatters.Viewers.Count() > 0)
+                    availChatterList.AddRange(chatters.Viewers);
+                if (chatters.Moderators.Count() > 0)
+                    availChatterList.AddRange(chatters.Moderators);
+                if (chatters.GlobalMods.Count() > 0)
+                    availChatterList.AddRange(chatters.GlobalMods);
+                if (chatters.Admins.Count() > 0)
+                    availChatterList.AddRange(chatters.Admins);
+                if (chatters.Staff.Count() > 0)
+                    availChatterList.AddRange(chatters.Staff);
             }
 
             return availChatterList;

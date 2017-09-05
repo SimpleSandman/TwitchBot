@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json;
+
 namespace TwitchBot.Models.JSON
 {
     public class FollowingSinceJSON
     {
-        public string created_at { get; set; }
+        [JsonProperty("created_at")]
+        public string CreatedAt { get; set; }
         //public bool notifications { get; set; }
     }
 }

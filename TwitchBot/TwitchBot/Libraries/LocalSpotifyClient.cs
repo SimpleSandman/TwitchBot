@@ -8,6 +8,7 @@ using SpotifyAPI.Local.Enums;
 using SpotifyAPI.Local.Models;
 
 using TwitchBot.Configuration;
+using TwitchBot.Models;
 
 namespace TwitchBot.Libraries
 {
@@ -149,10 +150,11 @@ namespace TwitchBot.Libraries
                     + " >< Artist: " + track.ArtistResource.Name
                     + " >< Album: " + track.AlbumResource.Name;
 
-                Program.DelayMsgTupleList.Add(new Tuple<string, DateTime>(
-                        pendingMessage,
-                        DateTime.Now.AddSeconds(_botConfig.StreamLatency)
-                    )
+                Program.DelayedMessages.Add(new DelayedMessage
+                    {
+                        Message = pendingMessage,
+                        SendDate = DateTime.Now.AddSeconds(_botConfig.StreamLatency)
+                    }
                 );
             }
         }

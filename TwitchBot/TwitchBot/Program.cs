@@ -8,13 +8,14 @@ using Autofac;
 
 using TwitchBot.Configuration;
 using TwitchBot.Modules;
+using TwitchBot.Models;
 
 namespace TwitchBot
 {
     class Program
     {
         public static string ConnStrType = "TwitchBotConnStrPROD"; // assume prod connection string by default
-        public static List<Tuple<string, DateTime>> DelayMsgTupleList = new List<Tuple<string, DateTime>>(); // used to handle delayed msgs
+        public static List<DelayedMessage> DelayedMessages = new List<DelayedMessage>(); // used to handle delayed msgs
         public static readonly HttpClient HttpClient = new HttpClient();
 
         static void Main(string[] args)

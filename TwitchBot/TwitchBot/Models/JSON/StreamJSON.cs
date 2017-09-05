@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json;
+
 namespace TwitchBot.Models.JSON
 {
     public class RootStreamJSON
     {
-        public StreamJSON stream { get; set; }
+        [JsonProperty("stream")]
+        public StreamJSON Stream { get; set; }
     }
 
     public class StreamJSON
@@ -16,7 +19,8 @@ namespace TwitchBot.Models.JSON
         //public long _id { get; set; }
         //public string game { get; set; }
         //public int viewers { get; set; }
-        public string created_at { get; set; }
+        [JsonProperty("created_at")]
+        public string CreatedAt { get; set; }
         //public int video_height { get; set; }
         //public int average_fps { get; set; }
         //public int delay { get; set; }
