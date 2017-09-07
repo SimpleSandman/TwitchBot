@@ -5,7 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-
+using System.Threading.Tasks;
 using TwitchBot.Configuration;
 using TwitchBot.Extensions;
 using TwitchBot.Libraries;
@@ -25,6 +25,7 @@ namespace TwitchBot.Commands
         private SongRequestBlacklistService _songRequest;
         private TwitterClient _twitter = TwitterClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+        private Broadcaster _broadcasterInstance = Broadcaster.Instance;
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, 
             System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest)
@@ -313,8 +314,7 @@ namespace TwitchBot.Commands
         /// Add a custom countdown for a user to post in the chat
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public void CmdAddCountdown(string message, string username)
+        public void CmdAddCountdown(string message)
         {
             try
             {
@@ -340,11 +340,11 @@ namespace TwitchBot.Commands
                 }
 
                 Console.WriteLine("Countdown added!");
-                _irc.SendPublicChatMessage($"Countdown added @{username}");
+                _irc.SendPublicChatMessage($"Countdown added @{_botConfig.Broadcaster}");
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddCountdown(string, string)", false, "!addcountdown");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddCountdown(string)", false, "!addcountdown");
             }
         }
 
@@ -352,8 +352,7 @@ namespace TwitchBot.Commands
         /// Edit countdown details (for either date and time or message)
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public void CmdEditCountdown(string message, string username)
+        public void CmdEditCountdown(string message)
         {
             try
             {
@@ -408,7 +407,7 @@ namespace TwitchBot.Commands
                             bool hasValidCountdownDuration = DateTime.TryParse(countdownInput, out countdownDuration);
 
                             if (!hasValidCountdownDuration)
-                                _irc.SendPublicChatMessage("Please enter a valid date and time @" + username);
+                                _irc.SendPublicChatMessage($"Please enter a valid date and time @{_botConfig.Broadcaster}");
                             else
                                 inputType = 1;
                         }
@@ -416,7 +415,7 @@ namespace TwitchBot.Commands
                         {
                             // get new message of countdown
                             if (string.IsNullOrWhiteSpace(countdownInput))
-                                _irc.SendPublicChatMessage("Please enter a valid message @" + username);
+                                _irc.SendPublicChatMessage($"Please enter a valid message @{_botConfig.Broadcaster}");
                             else
                                 inputType = 2;
                         }
@@ -447,23 +446,22 @@ namespace TwitchBot.Commands
                                 cmd.ExecuteNonQuery();
                             }
 
-                            Console.WriteLine($"Changes to countdown ID: {reqCountdownId} have been made @{username}");
-                            _irc.SendPublicChatMessage($"Changes to countdown ID: {reqCountdownId} have been made @{username}");
+                            Console.WriteLine($"Changes to countdown ID: {reqCountdownId} have been made @{_botConfig.Broadcaster}");
+                            _irc.SendPublicChatMessage($"Changes to countdown ID: {reqCountdownId} have been made @{_botConfig.Broadcaster}");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string, string)", false, "!editcountdown");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string)", false, "!editcountdown");
             }
         }
 
         /// <summary>
         /// List all of the countdowns the broadcaster has set
         /// </summary>
-        /// <param name="username">User that sent the message</param>
-        public void CmdListCountdown(string username)
+        public void CmdListCountdown()
         {
             try
             {
@@ -495,7 +493,7 @@ namespace TwitchBot.Commands
                             else
                             {
                                 Console.WriteLine("No countdown messages are set at the moment");
-                                _irc.SendPublicChatMessage("No countdown messages are set at the moment @" + username);
+                                _irc.SendPublicChatMessage($"No countdown messages are set at the moment @{_botConfig.Broadcaster}");
                             }
                         }
                     }
@@ -503,7 +501,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListCountdown(string)", false, "!listcountdown");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListCountdown()", false, "!listcountdown");
             }
         }
 
@@ -511,8 +509,7 @@ namespace TwitchBot.Commands
         /// Add a giveaway for a user to post in the chat
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public void CmdAddGiveaway(string message, string username)
+        public void CmdAddGiveaway(string message)
         {
             int giveawayType = -1;
             DateTime giveawayDate;
@@ -618,55 +615,55 @@ namespace TwitchBot.Commands
                                             }
 
                                             Console.WriteLine("Giveaway started!");
-                                            _irc.SendPublicChatMessage($"Giveaway \"{giveawayText}\" has started @{username}");
+                                            _irc.SendPublicChatMessage($"Giveaway \"{giveawayText}\" has started @{_botConfig.Broadcaster}");
                                         }
                                         else
                                         {
                                             if (int.Parse(minRandNum) > int.Parse(maxRandNum))
-                                                _irc.SendPublicChatMessage($"Giveaway random number parameter values were flipped @{username}");
+                                                _irc.SendPublicChatMessage($"Giveaway random number parameter values were flipped @{_botConfig.Broadcaster}");
                                             else
-                                                _irc.SendPublicChatMessage($"Giveaway random number parameter [min-max] was not given correctly @{username}");
+                                                _irc.SendPublicChatMessage($"Giveaway random number parameter [min-max] was not given correctly @{_botConfig.Broadcaster}");
                                         }
                                     }
                                     else
                                     {
                                         if (giveawayType == 1)
-                                            _irc.SendPublicChatMessage($"Giveaway keyword parameter was not given @{username}");
+                                            _irc.SendPublicChatMessage($"Giveaway keyword parameter was not given @{_botConfig.Broadcaster}");
                                         else if (giveawayType == 2)
-                                            _irc.SendPublicChatMessage($"Giveaway random number parameter was not given @{username}");
+                                            _irc.SendPublicChatMessage($"Giveaway random number parameter was not given @{_botConfig.Broadcaster}");
                                     }
                                 }
                                 else
                                 {
                                     if (giveawayType == -1)
-                                        _irc.SendPublicChatMessage($"Giveaway type was not given correctly @{username}");
+                                        _irc.SendPublicChatMessage($"Giveaway type was not given correctly @{_botConfig.Broadcaster}");
                                     else if (giveawayType != 1 || giveawayType != 2)
-                                        _irc.SendPublicChatMessage($"Please use giveaway type (1 = Keyword or 2 = Random Number) @{username}");
+                                        _irc.SendPublicChatMessage($"Please use giveaway type (1 = Keyword or 2 = Random Number) @{_botConfig.Broadcaster}");
                                 }
                             }
                             else
                             {
-                                _irc.SendPublicChatMessage($"Eligibility parameters were not given correctly @{username}");
+                                _irc.SendPublicChatMessage($"Eligibility parameters were not given correctly @{_botConfig.Broadcaster}");
                             }
                         }
                         else
                         {
-                            _irc.SendPublicChatMessage($"Couldn't find space between eligibility parameters @{username}");
+                            _irc.SendPublicChatMessage($"Couldn't find space between eligibility parameters @{_botConfig.Broadcaster}");
                         }
                     }
                     else
                     {
-                        _irc.SendPublicChatMessage($"Date and time parameters were not given correctly @{username}");
+                        _irc.SendPublicChatMessage($"Date and time parameters were not given correctly @{_botConfig.Broadcaster}");
                     }
                 }
                 else
                 {
-                    _irc.SendPublicChatMessage($"Couldn't find eligibility parameters @{username}");
+                    _irc.SendPublicChatMessage($"Couldn't find eligibility parameters @{_botConfig.Broadcaster}");
                 }
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddGiveaway(string, string)", false, "!addgiveaway");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddGiveaway(string)", false, "!addgiveaway");
             }
         }
 
@@ -674,8 +671,7 @@ namespace TwitchBot.Commands
         /// Edit giveaway details (date/time, message, giveaway type, or eligibility)
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public void CmdEditGiveaway(string message, string username)
+        public void CmdEditGiveaway(string message)
         {
             try
             {
@@ -736,7 +732,7 @@ namespace TwitchBot.Commands
 
                             // Get new due date of giveaway
                             if (!DateTime.TryParse(giveawayInput, out giveawayDate))
-                                _irc.SendPublicChatMessage($"Please enter a valid date and time: [MM-DD-YYYY HH:MM:SS AM/PM] @{username}");
+                                _irc.SendPublicChatMessage($"Please enter a valid date and time: [MM-DD-YYYY HH:MM:SS AM/PM] @{_botConfig.Broadcaster}");
                             else
                                 isEditValid = true;
                         }
@@ -746,7 +742,7 @@ namespace TwitchBot.Commands
 
                             // Get new message for giveaway
                             if (string.IsNullOrWhiteSpace(giveawayInput))
-                                _irc.SendPublicChatMessage($"Please enter a valid message @{username}");
+                                _irc.SendPublicChatMessage($"Please enter a valid message @{_botConfig.Broadcaster}");
                             else
                                 isEditValid = true;
                         }
@@ -771,7 +767,7 @@ namespace TwitchBot.Commands
                                 isEditValid = true;
                             }
                             else
-                                _irc.SendPublicChatMessage($"Please enter a valid message @{username}");
+                                _irc.SendPublicChatMessage($"Please enter a valid message @{_botConfig.Broadcaster}");
                         }
                         else if (message.StartsWith("!editgiveawayTYP"))
                         {
@@ -779,18 +775,18 @@ namespace TwitchBot.Commands
 
                             // Get new giveaway type and param(s)
                             if (string.IsNullOrWhiteSpace(giveawayInput))
-                                _irc.SendPublicChatMessage($"Please enter a valid message @{username}");
+                                _irc.SendPublicChatMessage($"Please enter a valid message @{_botConfig.Broadcaster}");
                             else if (!int.TryParse(message.Substring(message.GetNthCharIndex(' ', 2) + 1, 1), out giveawayType) || (giveawayType != 1 && giveawayType != 2))
-                                _irc.SendPublicChatMessage($"Please enter a valid giveaway type (1 = Keyword or 2 = Random Number) @{username}");
+                                _irc.SendPublicChatMessage($"Please enter a valid giveaway type (1 = Keyword or 2 = Random Number) @{_botConfig.Broadcaster}");
                             else
                             {
                                 int paramIndex1 = message.GetNthCharIndex(' ', 3);
                                 int paramIndex2 = message.GetNthCharIndex(' ', 4);
 
                                 if (giveawayType == 1 && paramIndex1 < 0)
-                                    _irc.SendPublicChatMessage($"Please enter a valid giveaway parameter for a keyword @{username}");
+                                    _irc.SendPublicChatMessage($"Please enter a valid giveaway parameter for a keyword @{_botConfig.Broadcaster}");
                                 else if (giveawayType == 2 && paramIndex2 < 0)
-                                    _irc.SendPublicChatMessage($"Please enter a valid giveaway parameter for a random number range @{username}");
+                                    _irc.SendPublicChatMessage($"Please enter a valid giveaway parameter for a random number range @{_botConfig.Broadcaster}");
                                 else
                                 {
                                     if (giveawayType == 1)
@@ -810,10 +806,10 @@ namespace TwitchBot.Commands
                                         bool isValidIntParam2 = !int.TryParse(giveawayTypeParam2, out testParam2);
 
                                         if (isValidIntParam1 && isValidIntParam2)
-                                            _irc.SendPublicChatMessage($"Cannot parse numbers correctly. Please enter whole numbers @{username}");
+                                            _irc.SendPublicChatMessage($"Cannot parse numbers correctly. Please enter whole numbers @{_botConfig.Broadcaster}");
                                         else if (testParam1 > testParam2)
                                             _irc.SendPublicChatMessage("Parameter 1 is greater than parameter 2. " 
-                                                + $"Please either flip these values or enter new ones @{username}");
+                                                + $"Please either flip these values or enter new ones @{_botConfig.Broadcaster}");
                                         else
                                             isEditValid = true;
                                     }
@@ -823,7 +819,7 @@ namespace TwitchBot.Commands
 
                         // Update info based on input type
                         if (inputType == -1)
-                            _irc.SendPublicChatMessage($"Please specify an option to edit a giveaway @{username}");
+                            _irc.SendPublicChatMessage($"Please specify an option to edit a giveaway @{_botConfig.Broadcaster}");
                         else if (isEditValid)
                         {
                             string query = "";
@@ -881,19 +877,19 @@ namespace TwitchBot.Commands
                                 cmd.ExecuteNonQuery();
                             }
 
-                            Console.WriteLine($"Changes to giveaway ID: {reqGiveawayId} have been made @{username}");
-                            _irc.SendPublicChatMessage($"Changes to giveaway ID: {reqGiveawayId} have been made @{username}");
+                            Console.WriteLine($"Changes to giveaway ID: {reqGiveawayId} have been made @{_botConfig.Broadcaster}");
+                            _irc.SendPublicChatMessage($"Changes to giveaway ID: {reqGiveawayId} have been made @{_botConfig.Broadcaster}");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string, string)", false, "!editgiveaway");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string)", false, "!editgiveaway");
             }
         }
 
-        public void CmdAddSongRequestBlacklist(string message, string username)
+        public void CmdAddSongRequestBlacklist(string message)
         {
             try
             {
@@ -901,7 +897,7 @@ namespace TwitchBot.Commands
 
                 if (requestIndex == -1)
                 {
-                    _irc.SendPublicChatMessage($"Please enter a request @{username}");
+                    _irc.SendPublicChatMessage($"Please enter a request @{_botConfig.Broadcaster}");
                     return;
                 }
                 
@@ -916,23 +912,23 @@ namespace TwitchBot.Commands
                         || request.Count(c => c == '<') == 1
                         || request.Count(c => c == '>') == 1)
                     {
-                        _irc.SendPublicChatMessage($"Please use request type 2 for song-specific blacklist-restrictions @{username}");
+                        _irc.SendPublicChatMessage($"Please use request type 2 for song-specific blacklist-restrictions @{_botConfig.Broadcaster}");
                         return;
                     }
 
                     List<SongRequestBlacklistItem> blacklist = _songRequest.GetSongRequestBlackList(_broadcasterId);
                     if (blacklist.Count > 0 && blacklist.Exists(b => b.Artist.Equals(request, StringComparison.CurrentCultureIgnoreCase)))
                     {
-                        _irc.SendPublicChatMessage($"This song is already on the blacklist @{username}");
+                        _irc.SendPublicChatMessage($"This song is already on the blacklist @{_botConfig.Broadcaster}");
                         return;
                     }
 
                     int recordsAffected = _songRequest.AddArtistToBlacklist(request, _broadcasterId);
 
                     if (recordsAffected > 0)
-                        _irc.SendPublicChatMessage($"The artist \"{request}\" has been added to the blacklist @{username}");
+                        _irc.SendPublicChatMessage($"The artist \"{request}\" has been added to the blacklist @{_botConfig.Broadcaster}");
                     else
-                        _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this artist to the blacklist at this time @{username}");
+                        _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this artist to the blacklist at this time @{_botConfig.Broadcaster}");
                 }
                 else if (requestType.Equals("2")) // blackout a song by an artist
                 {
@@ -941,7 +937,7 @@ namespace TwitchBot.Commands
                         || request.Count(c => c == '>') != 1)
                     {
                         _irc.SendPublicChatMessage($"Please surround the song title with \" (quotation marks) " + 
-                            $"and the artist with \"<\" and \">\" @{username}");
+                            $"and the artist with \"<\" and \">\" @{_botConfig.Broadcaster}");
                         return;
                     }
 
@@ -961,12 +957,12 @@ namespace TwitchBot.Commands
                         if (blacklist.Exists(b => b.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase) 
                                 && b.Title.Equals(songTitle, StringComparison.CurrentCultureIgnoreCase)))
                         {
-                            _irc.SendPublicChatMessage($"This song is already on the blacklist @{username}");
+                            _irc.SendPublicChatMessage($"This song is already on the blacklist @{_botConfig.Broadcaster}");
                             return;
                         }
                         else if (blacklist.Exists(b => b.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase)))
                         {
-                            _irc.SendPublicChatMessage($"This song's artist is already on the blacklist @{username}");
+                            _irc.SendPublicChatMessage($"This song's artist is already on the blacklist @{_botConfig.Broadcaster}");
                             return;
                         }
                     }
@@ -974,23 +970,23 @@ namespace TwitchBot.Commands
                     int recordsAffected = _songRequest.AddSongToBlacklist(songTitle, artist, _broadcasterId);
 
                     if (recordsAffected > 0)
-                        _irc.SendPublicChatMessage($"The song \"{songTitle} by {artist}\" has been added to the blacklist @{username}");
+                        _irc.SendPublicChatMessage($"The song \"{songTitle} by {artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
                     else
-                        _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this song to the blacklist at this time @{username}");
+                        _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this song to the blacklist at this time @{_botConfig.Broadcaster}");
                 }
                 else
                 {
-                    _irc.SendPublicChatMessage($"Please insert request type (1 = artist/2 = song) @{username}");
+                    _irc.SendPublicChatMessage($"Please insert request type (1 = artist/2 = song) @{_botConfig.Broadcaster}");
                     return;
                 }
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddSongRequestBlacklist(string, string)", false, "!srbl");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddSongRequestBlacklist(string)", false, "!srbl");
             }
         }
 
-        public void CmdRemoveSongRequestBlacklist(string message, string username)
+        public void CmdRemoveSongRequestBlacklist(string message)
         {
             try
             {
@@ -998,7 +994,7 @@ namespace TwitchBot.Commands
 
                 if (requestIndex == -1)
                 {
-                    _irc.SendPublicChatMessage($"Please enter a request @{username}");
+                    _irc.SendPublicChatMessage($"Please enter a request @{_botConfig.Broadcaster}");
                     return;
                 }
 
@@ -1012,9 +1008,9 @@ namespace TwitchBot.Commands
                     int recordsAffected = _songRequest.DeleteArtistFromBlacklist(request, _broadcasterId);
 
                     if (recordsAffected > 0)
-                        _irc.SendPublicChatMessage($"The artist \"{request}\" can now be requested @{username}");
+                        _irc.SendPublicChatMessage($"The artist \"{request}\" can now be requested @{_botConfig.Broadcaster}");
                     else
-                        _irc.SendPublicChatMessage($"Couldn't find the requested artist for blacklist-removal @{username}");
+                        _irc.SendPublicChatMessage($"Couldn't find the requested artist for blacklist-removal @{_botConfig.Broadcaster}");
                 }
                 else if (requestType.Equals("2")) // remove blackout for a song by an artist
                 {
@@ -1023,7 +1019,7 @@ namespace TwitchBot.Commands
                         || request.Count(c => c == '>') != 1)
                     {
                         _irc.SendPublicChatMessage($"Please surround the song title with \" (quotation marks) " 
-                            + $"and the artist with \"<\" and \">\" @{username}");
+                            + $"and the artist with \"<\" and \">\" @{_botConfig.Broadcaster}");
                         return;
                     }
 
@@ -1038,40 +1034,40 @@ namespace TwitchBot.Commands
                     int recordsAffected = _songRequest.DeleteSongFromBlacklist(songTitle, artist, _broadcasterId);
 
                     if (recordsAffected > 0)
-                        _irc.SendPublicChatMessage($"The song \"{songTitle} by {artist}\" can now requested @{username}");
+                        _irc.SendPublicChatMessage($"The song \"{songTitle} by {artist}\" can now requested @{_botConfig.Broadcaster}");
                     else
-                        _irc.SendPublicChatMessage($"Couldn't find the requested song for blacklist-removal @{username}");
+                        _irc.SendPublicChatMessage($"Couldn't find the requested song for blacklist-removal @{_botConfig.Broadcaster}");
                 }
                 else
                 {
-                    _irc.SendPublicChatMessage($"Please insert request type (1 = artist/2 = song) @{username}");
+                    _irc.SendPublicChatMessage($"Please insert request type (1 = artist/2 = song) @{_botConfig.Broadcaster}");
                     return;
                 }
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRemoveSongRequestBlacklist(string, string)", false, "!removesrbl");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRemoveSongRequestBlacklist(string)", false, "!removesrbl");
             }
         }
 
-        public void CmdResetSongRequestBlacklist(string username)
+        public void CmdResetSongRequestBlacklist()
         {
             try
             {
                 int recordsAffected = _songRequest.ResetBlacklist(_broadcasterId);
 
                 if (recordsAffected > 0)
-                    _irc.SendPublicChatMessage($"Song Request Blacklist has been reset @{username}");
+                    _irc.SendPublicChatMessage($"Song Request Blacklist has been reset @{_botConfig.Broadcaster}");
                 else
-                    _irc.SendPublicChatMessage($"Song Request Blacklist is empty @{username}");
+                    _irc.SendPublicChatMessage($"Song Request Blacklist is empty @{_botConfig.Broadcaster}");
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdResetSongRequestBlacklist(string)", false, "!resetsrbl");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdResetSongRequestBlacklist()", false, "!resetsrbl");
             }
         }
 
-        public void CmdListSongRequestBlacklist(string username)
+        public void CmdListSongRequestBlacklist()
         {
             try
             {
@@ -1079,7 +1075,7 @@ namespace TwitchBot.Commands
 
                 if (blacklist.Count == 0)
                 {
-                    _irc.SendPublicChatMessage($"The song request blacklist is empty @{username}");
+                    _irc.SendPublicChatMessage($"The song request blacklist is empty @{_botConfig.Broadcaster}");
                     return;
                 }
 
@@ -1101,7 +1097,29 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListSongRequestBlacklist(string)", false, "!showsrbl");
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListSongRequestBlacklist()", false, "!showsrbl");
+            }
+        }
+
+        public async Task CmdLive(bool hasTwitterInfo)
+        {
+            try
+            {
+                var streamJSON = await TwitchApi.GetStream(_botConfig.TwitchClientId);
+                
+                if (streamJSON.Stream == null)
+                    _irc.SendPublicChatMessage("This channel is not streaming right now");
+                else if (_botConfig.EnableTweets && hasTwitterInfo)
+                {
+                    _twitter.SendTweet($"Live on Twitch! Now Playing: {streamJSON.Stream.Game} http://goo.gl/SNyDFD" 
+                        + Environment.NewLine + "#twitch #gaming #streaming");
+
+                    _irc.SendPublicChatMessage($"Announcement tweet has been published @{_botConfig.Broadcaster}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLive(bool)", false, "!live");
             }
         }
     }

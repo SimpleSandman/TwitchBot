@@ -17,7 +17,8 @@ namespace TwitchBot.Models.JSON
     public class StreamJSON
     {
         //public long _id { get; set; }
-        //public string game { get; set; }
+        [JsonProperty("game")]
+        public string Game { get; set; }
         //public int viewers { get; set; }
         [JsonProperty("created_at")]
         public string CreatedAt { get; set; }

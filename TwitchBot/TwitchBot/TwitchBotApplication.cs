@@ -376,23 +376,23 @@ namespace TwitchBot
                                 /* Add countdown */
                                 // Usage: !addcountdown [MM-DD-YY] [hh:mm:ss] [AM/PM] [message]
                                 else if (message.StartsWith("!addcountdown "))
-                                    _cmdBrdCstr.CmdAddCountdown(message, username);
+                                    _cmdBrdCstr.CmdAddCountdown(message);
 
                                 /* Edit countdown details (for either date and time or message) */
                                 // Usage (message): !editcountdownMSG [countdown id] [message]
                                 // Usage (date and time): !editcountdownDTE [countdown id] [MM-DD-YY] [hh:mm:ss] [AM/PM]
                                 else if (message.StartsWith("!editcountdown"))
-                                    _cmdBrdCstr.CmdEditCountdown(message, username);
+                                    _cmdBrdCstr.CmdEditCountdown(message);
 
                                 /* List all of the countdowns the broadcaster has set */
                                 else if (message.Equals("!listcountdown"))
-                                    _cmdBrdCstr.CmdListCountdown(username);
+                                    _cmdBrdCstr.CmdListCountdown();
 
                                 /* Add giveaway */
                                 // Usage (Keyword = 1): !addgiveaway [MM-DD-YY] [hh:mm:ss] [AM/PM] [mods] [regulars] [subscribers] [users] [giveawaytype] [keyword] [message]
                                 // Usage (Random Number = 2): !addgiveaway [MM-DD-YY] [hh:mm:ss] [AM/PM] [mods] [regulars] [subscribers] [users] [giveawaytype] [min]-[max] [message]
                                 else if (message.StartsWith("!addgiveaway "))
-                                    _cmdBrdCstr.CmdAddGiveaway(message, username);
+                                    _cmdBrdCstr.CmdAddGiveaway(message);
 
                                 /* Edit giveaway details */
                                 // Usage (message): !editgiveawayMSG [giveaway id] [message]
@@ -400,27 +400,30 @@ namespace TwitchBot
                                 // Usage (eligibility): !editgiveawayELG [giveaway id] [mods] [regulars] [subscribers] [users]
                                 // Usage (type): !editgiveawayTYP [giveaway id] [giveawaytype] ([keyword] OR [min number] [max number])
                                 else if (message.StartsWith("!editgiveaway"))
-                                    _cmdBrdCstr.CmdEditGiveaway(message, username);
+                                    _cmdBrdCstr.CmdEditGiveaway(message);
 
                                 /* Add song or artist to song request blacklist */
                                 // Usage (artist): !srbl 1 [artist name]
                                 // Usage (song): !srbl 2 "[song title]" <[artist name]>
                                 else if (message.StartsWith("!srbl "))
-                                    _cmdBrdCstr.CmdAddSongRequestBlacklist(message, username);
+                                    _cmdBrdCstr.CmdAddSongRequestBlacklist(message);
 
                                 /* Remove song or artist from song request blacklist */
                                 // Usage (artist): !removesrbl 1 [artist name]
                                 // Usage (song): !removesrbl 2 "[song title]" <[artist name]>
                                 else if (message.StartsWith("!removesrbl "))
-                                    _cmdBrdCstr.CmdRemoveSongRequestBlacklist(message, username);
+                                    _cmdBrdCstr.CmdRemoveSongRequestBlacklist(message);
 
                                 /* Reset the entire song request blacklist */
                                 else if (message.Equals("!resetsrbl"))
-                                    _cmdBrdCstr.CmdResetSongRequestBlacklist(username);
+                                    _cmdBrdCstr.CmdResetSongRequestBlacklist();
 
                                 /* Show the song request blacklist */
                                 else if (message.Equals("!showsrbl"))
-                                    _cmdBrdCstr.CmdListSongRequestBlacklist(username);
+                                    _cmdBrdCstr.CmdListSongRequestBlacklist();
+
+                                else if (message.Equals("!live"))
+                                    await _cmdBrdCstr.CmdLive(hasTwitterInfo);
 
                                 /* insert more broadcaster commands here */
                             }
