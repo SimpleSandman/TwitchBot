@@ -25,7 +25,7 @@ namespace TwitchBot.Services
         public async Task<List<List<string>>> GetChatterListByType()
         {
             // Grab user's chatter info (viewers, mods, etc.)
-            ChatterInfoJSON chatterInfo = await TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId);
+            ChatterInfoJSON chatterInfo = await TwitchApi.GetChatters(_botConfig.TwitchClientId);
 
             // Make list of available chatters by chatter type
             // ToDo: Categorize each list with username and chatter type
@@ -57,7 +57,7 @@ namespace TwitchBot.Services
         public async Task<List<string>> GetChatterList()
         {
             // Grab user's chatter info (viewers, mods, etc.)
-            ChatterInfoJSON chatterInfo = await TaskJSON.GetChatters(_botConfig.Broadcaster, _botConfig.TwitchClientId);
+            ChatterInfoJSON chatterInfo = await TwitchApi.GetChatters(_botConfig.TwitchClientId);
 
             // Make list of available chatters
             List<string> availChatterList = new List<string>();
@@ -88,7 +88,7 @@ namespace TwitchBot.Services
         /// <returns></returns>
         public async Task<HttpResponseMessage> CheckFollowerStatus(string username)
         {
-            return await TaskJSON.GetFollowerStatus(_botConfig.Broadcaster.ToLower(), _botConfig.TwitchClientId, username);
+            return await TwitchApi.GetFollowerStatus(username, _botConfig.TwitchClientId);
         }
     }
 }

@@ -50,7 +50,7 @@ namespace TwitchBot.Repositories
             return isDuplicateRequestor;
         }
 
-        public bool FindRequestedPartyMember(string partyMember, int gameId, int broadcasterId)
+        public bool HasRequestedPartyMember(string partyMember, int gameId, int broadcasterId)
         {
             bool isPartyMemberFound = false;
 
@@ -170,6 +170,47 @@ namespace TwitchBot.Repositories
             }
 
             return partyRequestList;
+        }
+
+        public string FirstRequestedPartyMember(int broadcasterId)
+        {
+            string removedPartyMember = "";
+
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) partyMember, username FROM tblPartyUpRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
+                {
+                    cmd.Parameters.AddWithValue("@broadcaster", broadcasterId);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                removedPartyMember = reader["partyMember"].ToString();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return removedPartyMember;
+        }
+
+        public void PopRequestedPartyMember(int broadcasterId)
+        {
+            string query = "WITH T AS (SELECT TOP(1) * FROM tblPartyUpRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
+
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
         }
     }
 }

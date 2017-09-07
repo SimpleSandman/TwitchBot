@@ -21,9 +21,9 @@ namespace TwitchBot.Services
             return _partyUpDb.HasPartyMemberBeenRequested(username, gameId, broadcasterId);
         }
 
-        public bool FindRequestedPartyMember(string partyMember, int gameId, int broadcasterId)
+        public bool HasRequestedPartyMember(string partyMember, int gameId, int broadcasterId)
         {
-            return _partyUpDb.FindRequestedPartyMember(partyMember, gameId, broadcasterId);
+            return _partyUpDb.HasRequestedPartyMember(partyMember, gameId, broadcasterId);
         }
 
         public void AddPartyMember(string username, string partyMember, int gameId, int broadcasterId)
@@ -39,6 +39,16 @@ namespace TwitchBot.Services
         public string GetRequestList(int gameId, int broadcasterId)
         {
             return _partyUpDb.GetRequestList(gameId, broadcasterId);
+        }
+
+        public string FirstRequestedPartyMember(int broadcasterId)
+        {
+            return _partyUpDb.FirstRequestedPartyMember(broadcasterId);
+        }
+
+        public void PopRequestedPartyMember(int broadcasterId)
+        {
+            _partyUpDb.PopRequestedPartyMember(broadcasterId);
         }
     }
 }

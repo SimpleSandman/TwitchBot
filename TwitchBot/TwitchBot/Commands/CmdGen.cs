@@ -38,12 +38,13 @@ namespace TwitchBot.Commands
         private ManualSongRequestService _manualSongRequest;
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
+        private QuoteService _quote;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
         public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId,
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
-            ManualSongRequestService manualSongRequest, PartyUpService partyUp, GameDirectoryService gameDirectory)
+            ManualSongRequestService manualSongRequest, PartyUpService partyUp, GameDirectoryService gameDirectory, QuoteService quote)
         {
             _irc = irc;
             _spotify = spotify;
@@ -57,6 +58,7 @@ namespace TwitchBot.Commands
             _manualSongRequest = manualSongRequest;
             _partyUp = partyUp;
             _gameDirectory = gameDirectory;
+            _quote = quote;
         }
 
         public void CmdDisplayCmds()
@@ -114,7 +116,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                RootStreamJSON streamJson = await TaskJSON.GetStream(_botConfig.Broadcaster, _botConfig.TwitchClientId);
+                RootStreamJSON streamJson = await TwitchApi.GetStream(_botConfig.TwitchClientId);
 
                 // Check if the channel is live
                 if (streamJson.Stream != null)
@@ -390,7 +392,7 @@ namespace TwitchBot.Commands
                 else
                 {
                     // get current game info
-                    ChannelJSON json = await TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId);
+                    ChannelJSON json = await TwitchApi.GetChannelById(_botConfig.TwitchClientId);
                     string gameTitle = json.Game;
                     string partyMember = message.Substring(inputIndex);
                     int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
@@ -406,7 +408,7 @@ namespace TwitchBot.Commands
                                 + $"Please wait until your request has been completed @{username}");
                         else // search for party member user is requesting
                         {
-                            if (!_partyUp.FindRequestedPartyMember(partyMember, gameId, _broadcasterId))
+                            if (!_partyUp.HasRequestedPartyMember(partyMember, gameId, _broadcasterId))
                                 _irc.SendPublicChatMessage($"I couldn't find the requested party member \"{partyMember}\" @{username}. "
                                     + "Please check with the broadcaster for possible spelling errors");
                             else // insert party member if they exists from database
@@ -433,7 +435,7 @@ namespace TwitchBot.Commands
             try
             {
                 // get current game info
-                ChannelJSON json = await TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId);
+                ChannelJSON json = await TwitchApi.GetChannelById(_botConfig.TwitchClientId);
                 string gameTitle = json.Game;
                 int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
 
@@ -456,7 +458,7 @@ namespace TwitchBot.Commands
             try
             {
                 // get current game info
-                ChannelJSON json = await TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId);
+                ChannelJSON json = await TwitchApi.GetChannelById(_botConfig.TwitchClientId);
                 string gameTitle = json.Game;
                 int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
 
@@ -562,31 +564,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                List<Quote> quoteList = new List<Quote>();
-
-                // Get quotes from tblQuote and put them into a list
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblQuote WHERE broadcaster = @broadcaster", conn))
-                    {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    Quote quote = new Quote();
-                                    quote.Message = reader["userQuote"].ToString();
-                                    quote.Author = reader["username"].ToString();
-                                    quote.TimeCreated = Convert.ToDateTime(reader["timeCreated"]);
-                                    quoteList.Add(quote);
-                                }
-                            }
-                        }
-                    }
-                }
+                List<Quote> quoteList = _quote.GetQuotes(_broadcasterId);
 
                 // Check if there any quotes inside the system
                 if (quoteList.Count == 0)
@@ -620,7 +598,10 @@ namespace TwitchBot.Commands
         {
             try
             {
-                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(username))
+                // get chatter info
+                var rootUserJSON = await TwitchApi.GetUsersByLoginName(username, _botConfig.TwitchClientId);
+
+                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
                 {
                     if (message.IsSuccessStatusCode)
                     {
@@ -634,7 +615,10 @@ namespace TwitchBot.Commands
                     {
                         string body = await message.Content.ReadAsStringAsync();
                         ErrMsgJSON response = JsonConvert.DeserializeObject<ErrMsgJSON>(body);
-                        _irc.SendPublicChatMessage(response.Message);
+                        if (response.Message.Contains("is not following"))
+                            _irc.SendPublicChatMessage($"{username} is not following {_botConfig.Broadcaster.ToLower()}");
+                        else
+                            _irc.SendPublicChatMessage(response.Message);
                     }
                 }
             }
@@ -653,7 +637,10 @@ namespace TwitchBot.Commands
         {
             try
             {
-                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(username))
+                // get chatter info
+                var rootUserJSON = await TwitchApi.GetUsersByLoginName(username, _botConfig.TwitchClientId);
+
+                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
                 {
                     if (message.IsSuccessStatusCode)
                     {
@@ -680,7 +667,10 @@ namespace TwitchBot.Commands
                     {
                         string body = await message.Content.ReadAsStringAsync();
                         ErrMsgJSON response = JsonConvert.DeserializeObject<ErrMsgJSON>(body);
-                        _irc.SendPublicChatMessage(response.Message);
+                        if (response.Message.Contains("is not following"))
+                            _irc.SendPublicChatMessage($"{username} is not following {_botConfig.Broadcaster.ToLower()}");
+                        else
+                            _irc.SendPublicChatMessage(response.Message);
                     }
                 }
             }
@@ -1178,7 +1168,7 @@ namespace TwitchBot.Commands
         private bool IsMultiplayerGame(string username)
         {
             // Get current game name
-            ChannelJSON json = TaskJSON.GetChannel(_botConfig.Broadcaster, _botConfig.TwitchClientId).Result;
+            ChannelJSON json = TwitchApi.GetChannelById(_botConfig.TwitchClientId).Result;
             string gameTitle = json.Game;
 
             // Grab game id in order to find party member

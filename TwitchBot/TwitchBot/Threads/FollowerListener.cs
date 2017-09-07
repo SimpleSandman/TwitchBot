@@ -81,7 +81,10 @@ namespace TwitchBot.Threads
                             continue;
                         }
 
-                        using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(chatter))
+                        // get chatter info
+                        var rootUserJSON = await TwitchApi.GetUsersByLoginName(chatter, _botConfig.TwitchClientId);
+
+                        using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
                         {
                             // check if chatter is a follower
                             if (!message.IsSuccessStatusCode)

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -27,12 +26,16 @@ namespace TwitchBot.Commands
         private BankService _bank;
         private TwitchInfoService _twitchInfo;
         private ManualSongRequestService _manualSongRequest;
+        private QuoteService _quote;
+        private PartyUpService _partyUp;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
         private TwitterClient _twitter = TwitterClient.Instance;
+        private Broadcaster _broadcasterInstance = Broadcaster.Instance;
 
         public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, 
-            System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo, ManualSongRequestService manualSongRequest)
+            System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo, ManualSongRequestService manualSongRequest,
+            QuoteService quote, PartyUpService partyUp)
         {
             _irc = irc;
             _timeout = timeout;
@@ -43,6 +46,8 @@ namespace TwitchBot.Commands
             _bank = bank;
             _twitchInfo = twitchInfo;
             _manualSongRequest = manualSongRequest;
+            _quote = quote;
+            _partyUp = partyUp;
         }
 
         /// <summary>
@@ -260,7 +265,7 @@ namespace TwitchBot.Commands
                 {
                     _manualSongRequest.PopSongRequest(_broadcasterId);
 
-                    _irc.SendPublicChatMessage("The first song in queue, '" + removedSong + "' has been removed from the request list");
+                    _irc.SendPublicChatMessage($"The first song in the queue, \"{removedSong}\", has been removed from the request list");
                 }
                 else
                     _irc.SendPublicChatMessage("There are no songs that can be removed from the song request list");
@@ -278,46 +283,16 @@ namespace TwitchBot.Commands
         {
             try
             {
-                string removedPartyMember = "";
-
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) partyMember, username FROM tblPartyUpRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
-                    {
-                        cmd.Parameters.AddWithValue("@broadcaster", _broadcasterId);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    removedPartyMember = reader["partyMember"].ToString();
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
+                string removedPartyMember = _partyUp.FirstRequestedPartyMember(_broadcasterId);
 
                 if (!string.IsNullOrWhiteSpace(removedPartyMember))
                 {
-                    string query = "WITH T AS (SELECT TOP(1) * FROM tblPartyUpRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
+                    _partyUp.PopRequestedPartyMember(_broadcasterId);
 
-                    // Create connection and command
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    _irc.SendPublicChatMessage("The first party member in queue, '" + removedPartyMember + "' has been removed from the request list");
+                    _irc.SendPublicChatMessage($"The first party member in the queue, \"{removedPartyMember}\", has been removed from the request list");
                 }
                 else
-                    _irc.SendPublicChatMessage("There are no songs that can be removed from the song request list");
+                    _irc.SendPublicChatMessage("There are no party members that can be removed from the request list");
             }
             catch (Exception ex)
             {
@@ -426,19 +401,7 @@ namespace TwitchBot.Commands
             {
                 string quote = message.Substring(message.IndexOf(" ") + 1);
 
-                string query = "INSERT INTO tblQuote (userQuote, username, timeCreated, broadcaster) VALUES (@userQuote, @username, @timeCreated, @broadcaster)";
-
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.Add("@userQuote", SqlDbType.VarChar, 500).Value = quote;
-                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = username;
-                    cmd.Parameters.Add("@timeCreated", SqlDbType.DateTime).Value = DateTime.Now;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                }
+                _quote.AddQuote(quote, username, _broadcasterId);
 
                 _irc.SendPublicChatMessage($"Quote has been created @{username}");
             }
@@ -605,12 +568,13 @@ namespace TwitchBot.Commands
                 string title = message.Substring(message.IndexOf(" ") + 1);
 
                 // Send HTTP method PUT to base URI in order to change the title
-                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _botConfig.Broadcaster + "?client_id=" + _botConfig.TwitchClientId);
+                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId);
                 RestRequest request = new RestRequest(Method.PUT);
-                request.AddHeader("cache-control", "no-cache");
-                request.AddHeader("content-type", "application/json");
-                request.AddHeader("authorization", "OAuth " + _botConfig.TwitchAccessToken);
-                request.AddHeader("accept", "application/vnd.twitchtv.v5+json");
+                request.AddHeader("Cache-Control", "no-cache");
+                request.AddHeader("Content-Type", "application/json");
+                request.AddHeader("Authorization", "OAuth " + _botConfig.TwitchAccessToken);
+                request.AddHeader("Accept", "application/vnd.twitchtv.v5+json");
+                request.AddHeader("Client-ID", _botConfig.TwitchClientId);
                 request.AddParameter("application/json", "{\"channel\":{\"status\":\"" + title + "\"}}",
                     ParameterType.RequestBody);
 
@@ -621,7 +585,7 @@ namespace TwitchBot.Commands
                     string statResponse = response.StatusCode.ToString();
                     if (statResponse.Contains("OK"))
                     {
-                        _irc.SendPublicChatMessage("Twitch channel title updated to \"" + title + "\"");
+                        _irc.SendPublicChatMessage($"Twitch channel title updated to \"{title}\"");
                     }
                     else
                         Console.WriteLine(response.ErrorMessage);
@@ -638,7 +602,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdUpdateTitle(string, string)", false, "!updatetitle");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdUpdateTitle(string)", false, "!updatetitle");
             }
         }
 
@@ -655,12 +619,13 @@ namespace TwitchBot.Commands
                 string game = message.Substring(message.IndexOf(" ") + 1);
 
                 // Send HTTP method PUT to base URI in order to change the game
-                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _botConfig.Broadcaster + "?client_id=" + _botConfig.TwitchClientId);
+                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId);
                 RestRequest request = new RestRequest(Method.PUT);
-                request.AddHeader("cache-control", "no-cache");
-                request.AddHeader("content-type", "application/json");
-                request.AddHeader("authorization", "OAuth " + _botConfig.TwitchAccessToken);
-                request.AddHeader("accept", "application/vnd.twitchtv.v5+json");
+                request.AddHeader("Cache-Control", "no-cache");
+                request.AddHeader("Content-Type", "application/json");
+                request.AddHeader("Authorization", "OAuth " + _botConfig.TwitchAccessToken);
+                request.AddHeader("Accept", "application/vnd.twitchtv.v5+json");
+                request.AddHeader("Client-ID", _botConfig.TwitchClientId);
                 request.AddParameter("application/json", "{\"channel\":{\"game\":\"" + game + "\"}}",
                     ParameterType.RequestBody);
 
@@ -671,7 +636,7 @@ namespace TwitchBot.Commands
                     string statResponse = response.StatusCode.ToString();
                     if (statResponse.Contains("OK"))
                     {
-                        _irc.SendPublicChatMessage("Twitch channel game status updated to \"" + game + "\"");
+                        _irc.SendPublicChatMessage($"Twitch channel game status updated to \"{game}\"");
                         if (_botConfig.EnableTweets && hasTwitterInfo)
                         {
                             Console.WriteLine(_twitter.SendTweet("Watch me stream " + game + " on Twitch" + Environment.NewLine
@@ -680,7 +645,9 @@ namespace TwitchBot.Commands
                         }
                     }
                     else
-                        Console.WriteLine(response.ErrorMessage);
+                    {
+                        Console.WriteLine(response.Content);
+                    }
                 }
                 catch (WebException ex)
                 {
@@ -694,7 +661,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdUpdateGame(string, string, bool)", false, "!updategame");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdUpdateGame(string, bool)", false, "!updategame");
             }
         }
 

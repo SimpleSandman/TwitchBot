@@ -18,6 +18,7 @@ using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Services;
 using TwitchBot.Threads;
+using TwitchBot.Models.JSON;
 
 namespace TwitchBot
 {
@@ -26,7 +27,6 @@ namespace TwitchBot
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
-        private int _broadcasterId;
         private IrcClient _irc;
         private TimeoutCmd _timeout;
         private CmdBrdCstr _cmdBrdCstr;
@@ -50,13 +50,15 @@ namespace TwitchBot
         private ManualSongRequestService _manualSongRequest;
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
+        private QuoteService _quote;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
+        private Broadcaster _broadcasterInstance = Broadcaster.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
-            GameDirectoryService gameDirectory)
+            GameDirectoryService gameDirectory, QuoteService quote)
         {
             _appConfig = appConfig;
             _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program.ConnStrType].ConnectionString;
@@ -79,6 +81,7 @@ namespace TwitchBot
             _manualSongRequest = manualSongRequest;
             _partyUp = partyUp;
             _gameDirectory = gameDirectory;
+            _quote = quote;
         }
 
         public async Task RunAsync()
@@ -140,36 +143,18 @@ namespace TwitchBot
             try
             {
                 // Get broadcaster ID so the user can only see their data from the db
-                _broadcasterId = GetBroadcasterId();
+                await SetBroadcasterIds();
 
-                // Add broadcaster as new user to database
-                if (_broadcasterId == 0)
+                if (_broadcasterInstance.DatabaseId == 0 || string.IsNullOrEmpty(_broadcasterInstance.TwitchId))
                 {
-                    string query = "INSERT INTO tblBroadcasters (username) VALUES (@username)";
-
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = _botConfig.Broadcaster;
-
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    _broadcasterId = GetBroadcasterId();
-
-                    // Try looking for the broadcaster's ID again
-                    if (_broadcasterId == 0)
-                    {
-                        Console.WriteLine("Cannot find a broadcaster ID for you. "
-                            + "Please contact the author with a detailed description of the issue");
-                        Thread.Sleep(3000);
-                        Environment.Exit(1);
-                    }
+                    Console.WriteLine("Cannot find a broadcaster ID for you. "
+                        + "Please contact the author with a detailed description of the issue");
+                    Thread.Sleep(3000);
+                    Environment.Exit(1);
                 }
 
                 // Configure error handler singleton class
-                ErrorHandler.Configure(_broadcasterId, _connStr, _irc, _botConfig);
+                ErrorHandler.Configure(_broadcasterInstance.DatabaseId, _connStr, _irc, _botConfig);
 
                 /* Connect to local Spotify client */
                 _spotify = new LocalSpotifyClient(_botConfig);
@@ -180,13 +165,13 @@ namespace TwitchBot
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
                 _irc = new IrcClient("irc.twitch.tv", 6667, _botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
-                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterId, _twitchInfo, _bank, _follower, _songRequestBlacklist, 
-                    _manualSongRequest, _partyUp, _gameDirectory);
-                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterId, _appConfig, _songRequestBlacklist);
-                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterId, _appConfig, _bank, _twitchInfo, _manualSongRequest);
+                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterInstance.DatabaseId, 
+                    _twitchInfo, _bank, _follower, _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
+                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist);
+                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo, 
+                    _manualSongRequest, _quote, _partyUp);
 
                 /* Whisper broadcaster bot settings */
-                Console.WriteLine();
                 Console.WriteLine("---> Extra Bot Settings <---");
                 Console.WriteLine("Discord link: " + _botConfig.DiscordLink);
                 Console.WriteLine("Currency type: " + _botConfig.CurrencyType);
@@ -224,10 +209,10 @@ namespace TwitchBot
                 delayMsg.Start();
 
                 /* Pull list of mods from database */
-                _modInstance.SetModeratorList(_connStr, _broadcasterId);
+                _modInstance.SetModeratorList(_connStr, _broadcasterInstance.DatabaseId);
 
                 /* Pull list of followers and check experience points for stream leveling */
-                _followerListener.Start(_irc, _broadcasterId);
+                _followerListener.Start(_irc, _broadcasterInstance.DatabaseId);
 
                 /* Get list of timed out users from database */
                 SetListTimeouts();
@@ -778,7 +763,7 @@ namespace TwitchBot
         {
             if (_timeout.TimeoutKeyValues.ContainsKey(username))
             {
-                string timeout = _timeout.GetTimeoutFromUser(username, _broadcasterId, _connStr);
+                string timeout = _timeout.GetTimeoutFromUser(username, _broadcasterInstance.DatabaseId, _connStr);
 
                 if (timeout.Equals("0 seconds"))
                     _irc.SendPublicChatMessage("You are now allowed to talk to me again @" + username
@@ -860,41 +845,51 @@ namespace TwitchBot
             }
         }
 
-        private int GetBroadcasterId()
+        private async Task SetBroadcasterIds()
         {
-            int broadcasterId = 0;
-
             try
             {
-                using (SqlConnection conn = new SqlConnection(_connStr))
+                _broadcasterInstance.FindBroadcaster(_botConfig.Broadcaster.ToLower(), _connStr);
+
+                if (_broadcasterInstance.DatabaseId != 0 && !(string.IsNullOrEmpty(_broadcasterInstance.TwitchId) || _broadcasterInstance.TwitchId.Equals("0")))
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBroadcasters WHERE username = @username", conn))
+                    return;
+                }
+
+                if (_broadcasterInstance.DatabaseId == 0) // new user needs to be added
+                {
+                    RootUserJSON json = await TwitchApi.GetUsersByLoginName(_botConfig.Broadcaster.ToLower(), _botConfig.TwitchClientId);
+                    if (json.Users.Count == 0)
                     {
-                        cmd.Parameters.AddWithValue("@username", _botConfig.Broadcaster.ToLower());
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    if (_botConfig.Broadcaster.ToLower().Equals(reader["username"].ToString().ToLower()))
-                                    {
-                                        broadcasterId = int.Parse(reader["id"].ToString());
-                                        break;
-                                    }
-                                }
-                            }
-                        }
+                        Console.WriteLine("Error: Couldn't find Twitch login name from Twitch. If this persists, please contact my creator");
+                        Console.WriteLine("Shutting down now...");
+                        Thread.Sleep(3000);
+                        Environment.Exit(0);
                     }
+                    _broadcasterInstance.TwitchId = json.Users.First().Id;
+
+                    _broadcasterInstance.AddBroadcaster(_connStr);
+                    _broadcasterInstance.UpdateTwitchId(_connStr);
+                }
+                else if (string.IsNullOrEmpty(_broadcasterInstance.TwitchId) || _broadcasterInstance.TwitchId.Equals("0")) // twitch id was not set
+                {
+                    RootUserJSON json = await TwitchApi.GetUsersByLoginName(_botConfig.Broadcaster.ToLower(), _botConfig.TwitchClientId);
+                    if (json.Users.Count == 0)
+                    {
+                        Console.WriteLine("Error: Couldn't find Twitch login name from Twitch. If this persists, please contact my creator");
+                        Console.WriteLine("Shutting down now...");
+                        Thread.Sleep(3000);
+                        Environment.Exit(0);
+                    }
+                    _broadcasterInstance.TwitchId = json.Users.First().Id;
+
+                    _broadcasterInstance.UpdateTwitchId(_connStr);
                 }
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetBroadcasterId()", true);
+                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "SetBroadcasterIds()", true);
             }
-
-            return broadcasterId;
         }
 
         private void SetListTimeouts()
@@ -907,7 +902,7 @@ namespace TwitchBot
                 using (SqlConnection conn = new SqlConnection(_connStr))
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterInstance.DatabaseId;
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
@@ -920,7 +915,7 @@ namespace TwitchBot
                     conn.Open();
                     using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblTimeout WHERE broadcaster = @broadcaster", conn))
                     {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
+                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterInstance.DatabaseId;
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
@@ -954,16 +949,16 @@ namespace TwitchBot
                 if (!_greetedUsers.Any(u => u == username) && !username.Equals(_botConfig.Broadcaster.ToLower()) && message.Length > 1)
                 {
                     // check if user has a stream currency account
-                    int funds = _bank.CheckBalance(username, _broadcasterId);
+                    int funds = _bank.CheckBalance(username, _broadcasterInstance.DatabaseId);
                     int greetedDeposit = 500; // ToDo: Make greeted deposit config setting
 
                     if (funds > -1)
                     {
                         funds += greetedDeposit; // deposit 500 stream currency
-                        _bank.UpdateFunds(username, _broadcasterId, funds);
+                        _bank.UpdateFunds(username, _broadcasterInstance.DatabaseId, funds);
                     }
                     else
-                        _bank.CreateAccount(username, _broadcasterId, greetedDeposit);
+                        _bank.CreateAccount(username, _broadcasterInstance.DatabaseId, greetedDeposit);
 
                     _greetedUsers.Add(username);
 

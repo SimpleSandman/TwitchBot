@@ -12,7 +12,9 @@ CREATE TABLE [dbo].[tblBroadcasters] (
     [Id]        INT          IDENTITY (1, 1) NOT NULL,
     [username]  VARCHAR (30) NOT NULL,
     [timeAdded] DATETIME     DEFAULT (getdate()) NOT NULL,
+    [twitchId]  INT          NOT NULL DEFAULT 0,
     PRIMARY KEY CLUSTERED ([Id] ASC),
+    UNIQUE NONCLUSTERED ([twitchId] ASC),
     CONSTRAINT [AK_username] UNIQUE NONCLUSTERED ([username] ASC)
 );
 

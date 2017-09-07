@@ -141,7 +141,7 @@ namespace TwitchBot.Libraries
             // display track
             Console.WriteLine("\nSong: " + track.TrackResource.Name);
             Console.WriteLine("Artist: " + track.ArtistResource.Name);
-            Console.WriteLine("Album: " + track.AlbumResource.Name);
+            Console.WriteLine("Album: " + track.AlbumResource.Name + "\n");
 
             // if song is allowed to be displayed to the chat
             if (isDisplayed)
