@@ -116,7 +116,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                RootStreamJSON streamJson = await TwitchApi.GetStream(_botConfig.TwitchClientId);
+                RootStreamJSON streamJson = await _twitchInfo.GetStream();
 
                 // Check if the channel is live
                 if (streamJson.Stream != null)
@@ -392,7 +392,7 @@ namespace TwitchBot.Commands
                 else
                 {
                     // get current game info
-                    ChannelJSON json = await TwitchApi.GetChannelById(_botConfig.TwitchClientId);
+                    ChannelJSON json = await _twitchInfo.GetChannelById();
                     string gameTitle = json.Game;
                     string partyMember = message.Substring(inputIndex);
                     int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
@@ -435,7 +435,7 @@ namespace TwitchBot.Commands
             try
             {
                 // get current game info
-                ChannelJSON json = await TwitchApi.GetChannelById(_botConfig.TwitchClientId);
+                ChannelJSON json = await _twitchInfo.GetChannelById();
                 string gameTitle = json.Game;
                 int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
 
@@ -458,7 +458,7 @@ namespace TwitchBot.Commands
             try
             {
                 // get current game info
-                ChannelJSON json = await TwitchApi.GetChannelById(_botConfig.TwitchClientId);
+                ChannelJSON json = await _twitchInfo.GetChannelById();
                 string gameTitle = json.Game;
                 int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
 
@@ -599,7 +599,7 @@ namespace TwitchBot.Commands
             try
             {
                 // get chatter info
-                var rootUserJSON = await TwitchApi.GetUsersByLoginName(username, _botConfig.TwitchClientId);
+                var rootUserJSON = await _twitchInfo.GetUsersByLoginName(username);
 
                 using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
                 {
@@ -638,7 +638,7 @@ namespace TwitchBot.Commands
             try
             {
                 // get chatter info
-                var rootUserJSON = await TwitchApi.GetUsersByLoginName(username, _botConfig.TwitchClientId);
+                var rootUserJSON = await _twitchInfo.GetUsersByLoginName(username);
 
                 using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
                 {
@@ -1168,7 +1168,7 @@ namespace TwitchBot.Commands
         private bool IsMultiplayerGame(string username)
         {
             // Get current game name
-            ChannelJSON json = TwitchApi.GetChannelById(_botConfig.TwitchClientId).Result;
+            ChannelJSON json = _twitchInfo.GetChannelById().Result;
             string gameTitle = json.Game;
 
             // Grab game id in order to find party member

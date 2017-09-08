@@ -165,9 +165,10 @@ namespace TwitchBot
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
                 _irc = new IrcClient("irc.twitch.tv", 6667, _botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
-                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterInstance.DatabaseId, 
-                    _twitchInfo, _bank, _follower, _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
-                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist);
+                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower, 
+                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
+                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist, 
+                    _twitchInfo);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo, 
                     _manualSongRequest, _quote, _partyUp);
 
@@ -422,6 +423,7 @@ namespace TwitchBot
                                 else if (message.Equals("!showsrbl"))
                                     _cmdBrdCstr.CmdListSongRequestBlacklist();
 
+                                /* Sends an announcement tweet saying the broadcaster is live */
                                 else if (message.Equals("!live"))
                                     await _cmdBrdCstr.CmdLive(hasTwitterInfo);
 
@@ -852,7 +854,7 @@ namespace TwitchBot
         {
             try
             {
-                _broadcasterInstance.FindBroadcaster(_botConfig.Broadcaster.ToLower(), _connStr);
+                _broadcasterInstance.FindBroadcaster(_botConfig.Broadcaster, _connStr);
 
                 if (_broadcasterInstance.DatabaseId != 0 && !(string.IsNullOrEmpty(_broadcasterInstance.TwitchId) || _broadcasterInstance.TwitchId.Equals("0")))
                 {
@@ -861,7 +863,7 @@ namespace TwitchBot
 
                 if (_broadcasterInstance.DatabaseId == 0) // new user needs to be added
                 {
-                    RootUserJSON json = await TwitchApi.GetUsersByLoginName(_botConfig.Broadcaster.ToLower(), _botConfig.TwitchClientId);
+                    RootUserJSON json = await _twitchInfo.GetUsersByLoginName(_botConfig.Broadcaster);
                     if (json.Users.Count == 0)
                     {
                         Console.WriteLine("Error: Couldn't find Twitch login name from Twitch. If this persists, please contact my creator");
@@ -876,7 +878,7 @@ namespace TwitchBot
                 }
                 else if (string.IsNullOrEmpty(_broadcasterInstance.TwitchId) || _broadcasterInstance.TwitchId.Equals("0")) // twitch id was not set
                 {
-                    RootUserJSON json = await TwitchApi.GetUsersByLoginName(_botConfig.Broadcaster.ToLower(), _botConfig.TwitchClientId);
+                    RootUserJSON json = await _twitchInfo.GetUsersByLoginName(_botConfig.Broadcaster);
                     if (json.Users.Count == 0)
                     {
                         Console.WriteLine("Error: Couldn't find Twitch login name from Twitch. If this persists, please contact my creator");

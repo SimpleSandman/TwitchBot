@@ -82,7 +82,7 @@ namespace TwitchBot.Threads
                         }
 
                         // get chatter info
-                        var rootUserJSON = await TwitchApi.GetUsersByLoginName(chatter, _botConfig.TwitchClientId);
+                        var rootUserJSON = await _twitchInfo.GetUsersByLoginName(chatter);
 
                         using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
                         {

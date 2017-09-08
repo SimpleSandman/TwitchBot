@@ -25,7 +25,7 @@ namespace TwitchBot.Services
         public async Task<List<List<string>>> GetChatterListByType()
         {
             // Grab user's chatter info (viewers, mods, etc.)
-            ChatterInfoJSON chatterInfo = await TwitchApi.GetChatters(_botConfig.TwitchClientId);
+            ChatterInfoJSON chatterInfo = await GetChatters();
 
             // Make list of available chatters by chatter type
             // ToDo: Categorize each list with username and chatter type
@@ -57,7 +57,7 @@ namespace TwitchBot.Services
         public async Task<List<string>> GetChatterList()
         {
             // Grab user's chatter info (viewers, mods, etc.)
-            ChatterInfoJSON chatterInfo = await TwitchApi.GetChatters(_botConfig.TwitchClientId);
+            ChatterInfoJSON chatterInfo = await GetChatters();
 
             // Make list of available chatters
             List<string> availChatterList = new List<string>();
@@ -81,14 +81,29 @@ namespace TwitchBot.Services
             return availChatterList;
         }
 
-        /// <summary>
-        /// Check if viewer is a follower
-        /// </summary>
-        /// <param name="username"></param>
-        /// <returns></returns>
+        public async Task<ChannelJSON> GetChannelById()
+        {
+            return await TwitchApi.GetChannelById(_botConfig.TwitchClientId);
+        }
+
+        public async Task<RootStreamJSON> GetStream()
+        {
+            return await TwitchApi.GetStream(_botConfig.TwitchClientId);
+        }
+
+        public async Task<RootUserJSON> GetUsersByLoginName(string loginName)
+        {
+            return await TwitchApi.GetUsersByLoginName(loginName, _botConfig.TwitchClientId);
+        }
+
         public async Task<HttpResponseMessage> CheckFollowerStatus(string username)
         {
             return await TwitchApi.GetFollowerStatus(username, _botConfig.TwitchClientId);
+        }
+
+        public async Task<ChatterInfoJSON> GetChatters()
+        {
+            return await TwitchApi.GetChatters(_botConfig.TwitchClientId);
         }
     }
 }

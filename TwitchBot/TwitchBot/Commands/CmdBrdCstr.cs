@@ -6,10 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
 using TwitchBot.Configuration;
 using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
+using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 
 namespace TwitchBot.Commands
@@ -23,12 +25,13 @@ namespace TwitchBot.Commands
         private string _connStr;
         private int _broadcasterId;
         private SongRequestBlacklistService _songRequest;
+        private TwitchInfoService _twitchInfo;
         private TwitterClient _twitter = TwitterClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Broadcaster _broadcasterInstance = Broadcaster.Instance;
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, 
-            System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest)
+            System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo)
         {
             _irc = irc;
             _botConfig = botConfig;
@@ -36,6 +39,7 @@ namespace TwitchBot.Commands
             _broadcasterId = broadcasterId;
             _appConfig = appConfig;
             _songRequest = songRequest;
+            _twitchInfo = twitchInfo;
         }
 
         /// <summary>
@@ -1105,13 +1109,15 @@ namespace TwitchBot.Commands
         {
             try
             {
-                var streamJSON = await TwitchApi.GetStream(_botConfig.TwitchClientId);
-                
+                RootStreamJSON streamJSON = await _twitchInfo.GetStream();
+
                 if (streamJSON.Stream == null)
                     _irc.SendPublicChatMessage("This channel is not streaming right now");
+                else if (!_botConfig.EnableTweets)
+                    _irc.SendPublicChatMessage("Tweets are disabled at the moment");
                 else if (_botConfig.EnableTweets && hasTwitterInfo)
                 {
-                    _twitter.SendTweet($"Live on Twitch! Now Playing: {streamJSON.Stream.Game} http://goo.gl/SNyDFD" 
+                    _twitter.SendTweet($"Live on Twitch! Now Playing: \"{streamJSON.Stream.Game}\" http://goo.gl/SNyDFD"
                         + Environment.NewLine + "#twitch #gaming #streaming");
 
                     _irc.SendPublicChatMessage($"Announcement tweet has been published @{_botConfig.Broadcaster}");
