@@ -221,6 +221,8 @@
     <Compile Include="Libraries\YouTubeClient.cs" />
     <Compile Include="Models\BalanceResult.cs" />
     <Compile Include="Libraries\Broadcaster.cs" />
+    <Compile Include="Models\BankHeistSettings.cs" />
+    <Compile Include="Models\BankRobber.cs" />
     <Compile Include="Models\CooldownUser.cs" />
     <Compile Include="Models\DelayedMessage.cs" />
     <Compile Include="Models\Follower.cs" />

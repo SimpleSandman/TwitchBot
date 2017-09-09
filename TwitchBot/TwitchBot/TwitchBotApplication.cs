@@ -39,6 +39,7 @@ namespace TwitchBot
         private List<string> _multiStreamUsers;
         private List<string> _greetedUsers;
         private Queue<string> _gameQueueUsers;
+        private List<BankRobber> _bankHeistRobbers;
         private List<CooldownUser> _cooldownUsers;
         private List<RouletteUser> _rouletteUsers;
         private LocalSpotifyClient _spotify;
@@ -72,6 +73,7 @@ namespace TwitchBot
             _timeout = new TimeoutCmd();
             _cooldownUsers = new List<CooldownUser>();
             _rouletteUsers = new List<RouletteUser>();
+            _bankHeistRobbers = new List<BankRobber>();
             _multiStreamUsers = new List<string>();
             _greetedUsers = new List<string>();
             _gameQueueUsers = new Queue<string>();
