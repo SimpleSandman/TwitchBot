@@ -51,6 +51,8 @@ namespace TwitchBot
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
         private QuoteService _quote;
+        private CountdownService _countdown;
+        private GiveawayService _giveaway;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
@@ -58,7 +60,7 @@ namespace TwitchBot
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
-            GameDirectoryService gameDirectory, QuoteService quote)
+            GameDirectoryService gameDirectory, QuoteService quote, CountdownService countdown, GiveawayService giveaway)
         {
             _appConfig = appConfig;
             _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program.ConnStrType].ConnectionString;
@@ -82,6 +84,8 @@ namespace TwitchBot
             _partyUp = partyUp;
             _gameDirectory = gameDirectory;
             _quote = quote;
+            _countdown = countdown;
+            _giveaway = giveaway;
         }
 
         public async Task RunAsync()
@@ -168,7 +172,7 @@ namespace TwitchBot
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower, 
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist, 
-                    _twitchInfo);
+                    _twitchInfo, _countdown, _giveaway);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo, 
                     _manualSongRequest, _quote, _partyUp);
 

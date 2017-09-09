@@ -231,6 +231,7 @@
     <Compile Include="Models\SongRequestBlacklistItem.cs" />
     <Compile Include="Modules\TwitchBotModule.cs" />
     <Compile Include="Repositories\BankRepository.cs" />
+    <Compile Include="Repositories\CountdownRepository.cs" />
     <Compile Include="Repositories\FollowerRepository.cs" />
     <Compile Include="Commands\CmdBrdCstr.cs" />
     <Compile Include="Commands\CmdGen.cs" />
@@ -238,13 +239,16 @@
     <Compile Include="Configuration\TwitchBotConfigurationSection.cs" />
     <Compile Include="Configuration\TwitchBotConfigurator.cs" />
     <Compile Include="Repositories\GameDirectoryRepository.cs" />
+    <Compile Include="Repositories\GiveawayRepository.cs" />
     <Compile Include="Repositories\PartyUpRepository.cs" />
     <Compile Include="Repositories\QuoteRepository.cs" />
     <Compile Include="Repositories\SongRequestBlacklistRepository.cs" />
     <Compile Include="Repositories\ManualSongRequestRepository.cs" />
     <Compile Include="Services\BankService.cs" />
+    <Compile Include="Services\CountdownService.cs" />
     <Compile Include="Services\FollowerService.cs" />
     <Compile Include="Services\GameDirectoryService.cs" />
+    <Compile Include="Services\GiveawayService.cs" />
     <Compile Include="Services\PartyUpService.cs" />
     <Compile Include="Services\QuoteService.cs" />
     <Compile Include="Services\SongRequestBlacklistService.cs" />

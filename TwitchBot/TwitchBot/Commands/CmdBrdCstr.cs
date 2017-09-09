@@ -26,12 +26,15 @@ namespace TwitchBot.Commands
         private int _broadcasterId;
         private SongRequestBlacklistService _songRequest;
         private TwitchInfoService _twitchInfo;
+        private CountdownService _countdown;
+        private GiveawayService _giveaway;
         private TwitterClient _twitter = TwitterClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Broadcaster _broadcasterInstance = Broadcaster.Instance;
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, 
-            System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo)
+            System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo,
+            CountdownService countdown, GiveawayService giveaway)
         {
             _irc = irc;
             _botConfig = botConfig;
@@ -40,6 +43,8 @@ namespace TwitchBot.Commands
             _appConfig = appConfig;
             _songRequest = songRequest;
             _twitchInfo = twitchInfo;
+            _countdown = countdown;
+            _giveaway = giveaway;
         }
 
         /// <summary>
@@ -330,18 +335,7 @@ namespace TwitchBot.Commands
                 string countdownMsg = message.Substring(34);
 
                 // log new countdown into db
-                string query = "INSERT INTO tblCountdown (dueDate, message, broadcaster) VALUES (@dueDate, @message, @broadcaster)";
-
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = countdownDuration;
-                    cmd.Parameters.Add("@message", SqlDbType.VarChar, 50).Value = countdownMsg;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                }
+                _countdown.AddCountdown(countdownMsg, countdownDuration, _broadcasterId);
 
                 Console.WriteLine("Countdown added!");
                 _irc.SendPublicChatMessage($"Countdown added @{_botConfig.Broadcaster}");
@@ -370,30 +364,7 @@ namespace TwitchBot.Commands
                 else
                 {
                     // check if countdown ID exists
-                    int responseCountdownId = -1;
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    {
-                        conn.Open();
-                        using (SqlCommand cmd = new SqlCommand("SELECT id, broadcaster FROM tblCountdown "
-                            + "WHERE broadcaster = @broadcaster", conn))
-                        {
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    while (reader.Read())
-                                    {
-                                        if (reqCountdownId.ToString().Equals(reader["id"].ToString()))
-                                        {
-                                            responseCountdownId = int.Parse(reader["id"].ToString());
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    int responseCountdownId = _countdown.GetCountdownId(reqCountdownId, _broadcasterId);
 
                     // check if countdown ID was retrieved
                     if (responseCountdownId == -1)
@@ -427,30 +398,8 @@ namespace TwitchBot.Commands
                         // if input is correct update db
                         if (inputType > 0)
                         {
-                            string strQuery = "";
+                            _countdown.UpdateCountdown(inputType, countdownDuration, countdownInput, responseCountdownId, _broadcasterId);
 
-                            if (inputType == 1)
-                                strQuery = "UPDATE dbo.tblCountdown SET dueDate = @dueDate WHERE (Id = @id AND broadcaster = @broadcaster)";
-                            else if (inputType == 2)
-                                strQuery = "UPDATE dbo.tblCountdown SET message = @message WHERE (Id = @id AND broadcaster = @broadcaster)";
-
-                            using (SqlConnection conn = new SqlConnection(_connStr))
-                            using (SqlCommand cmd = new SqlCommand(strQuery, conn))
-                            {
-                                // append proper parameter
-                                if (inputType == 1)
-                                    cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = countdownDuration;
-                                else if (inputType == 2)
-                                    cmd.Parameters.Add("@message", SqlDbType.VarChar, 50).Value = countdownInput;
-
-                                cmd.Parameters.Add("@id", SqlDbType.Int).Value = responseCountdownId;
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-
-                                conn.Open();
-                                cmd.ExecuteNonQuery();
-                            }
-
-                            Console.WriteLine($"Changes to countdown ID: {reqCountdownId} have been made @{_botConfig.Broadcaster}");
                             _irc.SendPublicChatMessage($"Changes to countdown ID: {reqCountdownId} have been made @{_botConfig.Broadcaster}");
                         }
                     }
@@ -469,39 +418,12 @@ namespace TwitchBot.Commands
         {
             try
             {
-                string countdownListMsg = "";
+                string countdownListMsg = _countdown.ListCountdowns(_broadcasterId);
 
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT Id, dueDate, message, broadcaster FROM tblCountdown "
-                        + "WHERE broadcaster = @broadcaster ORDER BY Id", conn))
-                    {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    countdownListMsg += "ID: " + reader["Id"].ToString()
-                                        + " Message: \"" + reader["message"].ToString()
-                                        + "\" Time: \"" + reader["dueDate"].ToString()
-                                        + "\" // ";
-                                }
-                                StringBuilder modCountdownListMsg = new StringBuilder(countdownListMsg);
-                                modCountdownListMsg.Remove(countdownListMsg.Length - 4, 4); // remove extra " >< "
-                                countdownListMsg = modCountdownListMsg.ToString(); // replace old countdown list string with new
-                                _irc.SendPublicChatMessage(countdownListMsg);
-                            }
-                            else
-                            {
-                                Console.WriteLine("No countdown messages are set at the moment");
-                                _irc.SendPublicChatMessage($"No countdown messages are set at the moment @{_botConfig.Broadcaster}");
-                            }
-                        }
-                    }
-                }
+                if (!string.IsNullOrEmpty(countdownListMsg))
+                    _irc.SendPublicChatMessage(countdownListMsg);
+                else
+                    _irc.SendPublicChatMessage($"No countdown messages are set at the moment @{_botConfig.Broadcaster}");
             }
             catch (Exception ex)
             {
@@ -516,7 +438,6 @@ namespace TwitchBot.Commands
         public void CmdAddGiveaway(string message)
         {
             int giveawayType = -1;
-            DateTime giveawayDate;
             string minRandNum = "-1";
             string maxRandNum = "0";
             bool isValidated = true; // used for nested "if" validation
@@ -528,15 +449,14 @@ namespace TwitchBot.Commands
                 if (dueDateMsgIndex > 0)
                 {
                     string giveawayDateMsg = message.Substring(13, dueDateMsgIndex - 13); // MM-DD-YY hh:mm:ss [AM/PM]
-                    if (DateTime.TryParse(giveawayDateMsg, out giveawayDate))
+                    if (DateTime.TryParse(giveawayDateMsg, out DateTime giveawayDate))
                     {
                         // get eligibility parameters for user types (using boolean bits)
                         int elgMsgIndex = -1; // get the index of the space separating the message and the parameter
                         for (int i = 5; i < 8; i++)
                         {
                             elgMsgIndex = message.GetNthCharIndex(' ', i);
-                            if (elgMsgIndex == -1)
-                                break;
+                            if (elgMsgIndex == -1) break;
                         }
 
                         if (elgMsgIndex > 0)
@@ -574,7 +494,9 @@ namespace TwitchBot.Commands
                                                 maxRandNum = giveawayParam.Substring(dashIndex + 1); // max
 
                                                 if (int.Parse(minRandNum) > int.Parse(maxRandNum))
+                                                {
                                                     isValidated = false;
+                                                }
                                             }
                                             else
                                             {
@@ -588,38 +510,10 @@ namespace TwitchBot.Commands
                                             string giveawayText = message.Substring(paramMsgIndex + 1);
 
                                             // log new giveaway into db
-                                            string query = "INSERT INTO tblGiveaway (dueDate, message, broadcaster, elgMod, elgReg, elgSub, elgUsr, giveType, giveParam1, giveParam2) " +
-                                                            "VALUES (@dueDate, @message, @broadcaster, @elgMod, @elgReg, @elgSub, @elgUsr, @giveType, @giveParam1, @giveParam2)";
+                                            _giveaway.AddGiveaway(giveawayDate, giveawayText, _broadcasterId, elgList,
+                                                giveawayType, giveawayParam, minRandNum, maxRandNum);
 
-                                            using (SqlConnection conn = new SqlConnection(_connStr))
-                                            using (SqlCommand cmd = new SqlCommand(query, conn))
-                                            {
-                                                cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = giveawayDate;
-                                                cmd.Parameters.Add("@message", SqlDbType.VarChar, 75).Value = giveawayText;
-                                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-                                                cmd.Parameters.Add("@elgMod", SqlDbType.Bit).Value = elgList[0];
-                                                cmd.Parameters.Add("@elgReg", SqlDbType.Bit).Value = elgList[1];
-                                                cmd.Parameters.Add("@elgSub", SqlDbType.Bit).Value = elgList[2];
-                                                cmd.Parameters.Add("@elgUsr", SqlDbType.Bit).Value = elgList[3];
-                                                cmd.Parameters.Add("@giveType", SqlDbType.Int).Value = giveawayType;
-
-                                                if (giveawayType == 1) // keyword
-                                                {
-                                                    cmd.Parameters.Add("@giveParam1", SqlDbType.VarChar, 50).Value = giveawayParam;
-                                                    cmd.Parameters.Add("@giveParam2", SqlDbType.VarChar, 50).Value = DBNull.Value;
-                                                }
-                                                else if (giveawayType == 2) // random number
-                                                {
-                                                    cmd.Parameters.Add("@giveParam1", SqlDbType.VarChar, 50).Value = minRandNum;
-                                                    cmd.Parameters.Add("@giveParam2", SqlDbType.VarChar, 50).Value = maxRandNum;
-                                                }
-
-                                                conn.Open();
-                                                cmd.ExecuteNonQuery();
-                                            }
-
-                                            Console.WriteLine("Giveaway started!");
-                                            _irc.SendPublicChatMessage($"Giveaway \"{giveawayText}\" has started @{_botConfig.Broadcaster}");
+                                            _irc.SendPublicChatMessage($"Giveaway \"{giveawayText}\" has started!");
                                         }
                                         else
                                         {
@@ -689,30 +583,7 @@ namespace TwitchBot.Commands
                 else
                 {
                     // Check if giveaway ID exists
-                    int giveawayId = -1;
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    {
-                        conn.Open();
-                        using (SqlCommand cmd = new SqlCommand("SELECT id, broadcaster FROM tblGiveaway "
-                            + "WHERE broadcaster = @broadcaster", conn))
-                        {
-                            cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    while (reader.Read())
-                                    {
-                                        if (reqGiveawayId.ToString().Equals(reader["id"].ToString()))
-                                        {
-                                            giveawayId = int.Parse(reader["id"].ToString());
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    int giveawayId = _giveaway.GetGiveawayId(reqGiveawayId, _broadcasterId);
 
                     // Check if giveaway ID was retrieved
                     if (giveawayId == -1)
@@ -803,11 +674,8 @@ namespace TwitchBot.Commands
                                         giveawayTypeParam1 = message.Substring(paramIndex1 + 1, paramIndex2 - paramIndex1 - 1);
                                         giveawayTypeParam2 = message.Substring(paramIndex2 + 1);
 
-                                        int testParam1 = 0;
-                                        int testParam2 = 0;
-
-                                        bool isValidIntParam1 = !int.TryParse(giveawayTypeParam1, out testParam1);
-                                        bool isValidIntParam2 = !int.TryParse(giveawayTypeParam2, out testParam2);
+                                        bool isValidIntParam1 = !int.TryParse(giveawayTypeParam1, out int testParam1);
+                                        bool isValidIntParam2 = !int.TryParse(giveawayTypeParam2, out int testParam2);
 
                                         if (isValidIntParam1 && isValidIntParam2)
                                             _irc.SendPublicChatMessage($"Cannot parse numbers correctly. Please enter whole numbers @{_botConfig.Broadcaster}");
@@ -826,62 +694,9 @@ namespace TwitchBot.Commands
                             _irc.SendPublicChatMessage($"Please specify an option to edit a giveaway @{_botConfig.Broadcaster}");
                         else if (isEditValid)
                         {
-                            string query = "";
+                            _giveaway.UpdateGiveaway(inputType, giveawayDate, giveawayInput, elgList, giveawayType,
+                                giveawayId, _broadcasterId, giveawayTypeParam1, giveawayTypeParam2);
 
-                            if (inputType == 1)
-                                query = "UPDATE dbo.tblGiveaway SET dueDate = @dueDate WHERE (Id = @id AND broadcaster = @broadcaster)";
-                            else if (inputType == 2)
-                                query = "UPDATE dbo.tblGiveaway SET message = @message WHERE (Id = @id AND broadcaster = @broadcaster)";
-                            else if (inputType == 3)
-                            {
-                                query = "UPDATE dbo.tblGiveaway SET elgMod = @elgMod" + 
-                                    ", elgReg = @elgReg" + 
-                                    ", elgSub = @elgSub" + 
-                                    ", elgUsr = @elgUsr" + 
-                                    " WHERE (Id = @id AND broadcaster = @broadcaster)";
-                            }
-                            else if (inputType == 4)
-                            {
-                                query = "UPDATE dbo.tblGiveaway SET giveType = @giveType" +
-                                    ", giveParam1 = @giveParam1" +
-                                    ", giveParam2 = @giveParam2" +
-                                    " WHERE (Id = @id AND broadcaster = @broadcaster)";
-                            }
-
-                            using (SqlConnection conn = new SqlConnection(_connStr))
-                            using (SqlCommand cmd = new SqlCommand(query, conn))
-                            {
-                                // append proper parameter(s)
-                                if (inputType == 1)
-                                    cmd.Parameters.Add("@dueDate", SqlDbType.DateTime).Value = giveawayDate;
-                                else if (inputType == 2)
-                                    cmd.Parameters.Add("@message", SqlDbType.VarChar, 50).Value = giveawayInput;
-                                else if (inputType == 3)
-                                {
-                                    cmd.Parameters.Add("@elgMod", SqlDbType.Bit).Value = elgList[0];
-                                    cmd.Parameters.Add("@elgReg", SqlDbType.Bit).Value = elgList[1];
-                                    cmd.Parameters.Add("@elgSub", SqlDbType.Bit).Value = elgList[2];
-                                    cmd.Parameters.Add("@elgUsr", SqlDbType.Bit).Value = elgList[3];
-                                }
-                                else if (inputType == 4)
-                                {
-                                    cmd.Parameters.Add("@giveType", SqlDbType.Int).Value = giveawayType;
-                                    cmd.Parameters.Add("@giveParam1", SqlDbType.VarChar, 50).Value = giveawayTypeParam1;
-
-                                    if (giveawayType == 2)
-                                        cmd.Parameters.Add("@giveParam2", SqlDbType.VarChar, 50).Value = giveawayTypeParam2;
-                                    else
-                                        cmd.Parameters.Add("@giveParam2", SqlDbType.VarChar, 50).Value = DBNull.Value;
-                                }
-
-                                cmd.Parameters.Add("@id", SqlDbType.Int).Value = giveawayId;
-                                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-
-                                conn.Open();
-                                cmd.ExecuteNonQuery();
-                            }
-
-                            Console.WriteLine($"Changes to giveaway ID: {reqGiveawayId} have been made @{_botConfig.Broadcaster}");
                             _irc.SendPublicChatMessage($"Changes to giveaway ID: {reqGiveawayId} have been made @{_botConfig.Broadcaster}");
                         }
                     }

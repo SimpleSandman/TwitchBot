@@ -30,6 +30,8 @@ namespace TwitchBot.Modules
             builder.RegisterType<PartyUpRepository>().WithParameter(ParamConnStr);
             builder.RegisterType<GameDirectoryRepository>().WithParameter(ParamConnStr);
             builder.RegisterType<QuoteRepository>().WithParameter(ParamConnStr);
+            builder.RegisterType<CountdownRepository>().WithParameter(ParamConnStr);
+            builder.RegisterType<GiveawayRepository>().WithParameter(ParamConnStr);
 
             // services
             builder.RegisterType<BankService>();
@@ -39,6 +41,8 @@ namespace TwitchBot.Modules
             builder.RegisterType<PartyUpService>();
             builder.RegisterType<GameDirectoryService>();
             builder.RegisterType<QuoteService>();
+            builder.RegisterType<CountdownService>();
+            builder.RegisterType<GiveawayService>();
             builder.RegisterType<TwitchInfoService>();
 
             // threads
