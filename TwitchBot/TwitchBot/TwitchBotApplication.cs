@@ -58,6 +58,7 @@ namespace TwitchBot
         private Moderator _modInstance = Moderator.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private Broadcaster _broadcasterInstance = Broadcaster.Instance;
+        private BankHeistSettings _bankHeistInstance = BankHeistSettings.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
@@ -223,6 +224,9 @@ namespace TwitchBot
 
                 /* Get list of timed out users from database */
                 SetListTimeouts();
+
+                /* Load bank heist settings */
+                _bankHeistInstance.LoadSettings(_broadcasterInstance.DatabaseId, _connStr);
 
                 /* Ping to twitch server to prevent auto-disconnect */
                 PingSender ping = new PingSender(_irc);
