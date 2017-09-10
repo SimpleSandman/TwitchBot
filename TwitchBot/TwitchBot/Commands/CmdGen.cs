@@ -1165,6 +1165,20 @@ namespace TwitchBot.Commands
             }
         }
 
+        public void CmdBankHeist(string username, ref List<BankRobber> bankHeistRobbers)
+        {
+            try
+            {
+                // check if bank heist is available
+
+                // join bank heist
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdBankHeist(string, List<BankRobber>)", false, "!bankheist");
+            }
+        }
+
         private bool IsMultiplayerGame(string username)
         {
             // Get current game name

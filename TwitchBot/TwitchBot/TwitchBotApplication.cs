@@ -748,6 +748,10 @@ namespace TwitchBot
                                 else if (message.Equals("!gotnextgame"))
                                     _cmdGen.CmdGotNextGame(username, ref _gameQueueUsers);
 
+                                /* Join the heist */
+                                else if (message.Equals("!bankheist"))
+                                    _cmdGen.CmdBankHeist(username, ref _bankHeistRobbers);
+
                                 /* add more general commands here */
                             }
                         }
