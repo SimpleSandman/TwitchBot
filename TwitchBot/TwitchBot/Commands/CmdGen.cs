@@ -21,6 +21,7 @@ using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
+using TwitchBot.Threads;
 
 namespace TwitchBot.Commands
 {
@@ -41,6 +42,7 @@ namespace TwitchBot.Commands
         private QuoteService _quote;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
+        private BankHeistSettings _heistSettingsInstance = BankHeistSettings.Instance;
 
         public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId,
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
@@ -1165,17 +1167,77 @@ namespace TwitchBot.Commands
             }
         }
 
-        public void CmdBankHeist(string username, ref List<BankRobber> bankHeistRobbers)
+        public void CmdBankHeist(string message, string username)
         {
             try
             {
-                // check if bank heist is available
+                BankHeist bankHeist = new BankHeist();
+                int funds = _bank.CheckBalance(username, _broadcasterId);
+                bool isValid = int.TryParse(message.Substring(message.IndexOf(" ")), out int gamble);
 
-                // join bank heist
+                if (_heistSettingsInstance.IsHeistOnCooldown())
+                {
+                    _irc.SendPublicChatMessage(_heistSettingsInstance.CooldownEntry);
+                    return;
+                }
+
+                if (bankHeist.HasRobberEntered(username))
+                {
+                    _irc.SendPublicChatMessage($"You are already in this heist @{username}");
+                    return;
+                }
+
+                // check if funds and gambling amount are valid
+                if (!isValid)
+                {
+                    _irc.SendPublicChatMessage($"Please gamble with a positive amount of {_botConfig.CurrencyType} @{username}");
+                    return;
+                }
+                else if (gamble < 1)
+                {
+                    _irc.SendPublicChatMessage($"You cannot gamble less than one {_botConfig.CurrencyType} @{username}");
+                    return;
+                }
+                else if (funds < 1)
+                {
+                    _irc.SendPublicChatMessage($"You need at least one {_botConfig.CurrencyType} to join the heist @{username}");
+                    return;
+                }
+                else if (funds < gamble)
+                {
+                    _irc.SendPublicChatMessage($"You do not have enough to gamble {gamble} {_botConfig.CurrencyType} @{username}");
+                    return;
+                }
+                else if (gamble > _heistSettingsInstance.MaxGamble)
+                {
+                    _irc.SendPublicChatMessage($"{_heistSettingsInstance.MaxGamble} {_botConfig.CurrencyType} is the most you can put in. " + 
+                        $"Please try again with less {_botConfig.CurrencyType} @{username}");
+                    return;
+                }
+                
+                if (!bankHeist.IsEntryPeriodOver())
+                {
+                    // join bank heist
+                    _bank.UpdateFunds(username, _broadcasterId, funds - gamble);
+                    BankRobber robber = new BankRobber { Username = username, Gamble = gamble };
+                    bankHeist.Produce(robber);
+
+                    // make heist announcement if first robber and start recruiting members
+                    if (bankHeist.NumRobbers() == 1)
+                    {
+                        _heistSettingsInstance.EntryPeriod = DateTime.Now.AddSeconds(_heistSettingsInstance.EntryPeriodSeconds);
+                        _irc.SendPublicChatMessage(_heistSettingsInstance.EntryMessage);
+                    }
+
+                    // display new heist level
+                    _irc.SendPublicChatMessage(bankHeist.NextLevelMessage());
+
+                    Console.WriteLine($"@{username} has joined the heist");
+                }
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdBankHeist(string, List<BankRobber>)", false, "!bankheist");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdBankHeist(string)", false, "!bankheist");
             }
         }
 

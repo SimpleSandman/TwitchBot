@@ -39,7 +39,6 @@ namespace TwitchBot
         private List<string> _multiStreamUsers;
         private List<string> _greetedUsers;
         private Queue<string> _gameQueueUsers;
-        private List<BankRobber> _bankHeistRobbers;
         private List<CooldownUser> _cooldownUsers;
         private List<RouletteUser> _rouletteUsers;
         private LocalSpotifyClient _spotify;
@@ -54,6 +53,7 @@ namespace TwitchBot
         private QuoteService _quote;
         private CountdownService _countdown;
         private GiveawayService _giveaway;
+        private BankHeist _bankHeist;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
@@ -62,7 +62,7 @@ namespace TwitchBot
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
-            GameDirectoryService gameDirectory, QuoteService quote, CountdownService countdown, GiveawayService giveaway)
+            GameDirectoryService gameDirectory, QuoteService quote, CountdownService countdown, GiveawayService giveaway, BankHeist bankHeist)
         {
             _appConfig = appConfig;
             _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program.ConnStrType].ConnectionString;
@@ -74,7 +74,6 @@ namespace TwitchBot
             _timeout = new TimeoutCmd();
             _cooldownUsers = new List<CooldownUser>();
             _rouletteUsers = new List<RouletteUser>();
-            _bankHeistRobbers = new List<BankRobber>();
             _multiStreamUsers = new List<string>();
             _greetedUsers = new List<string>();
             _gameQueueUsers = new Queue<string>();
@@ -89,6 +88,7 @@ namespace TwitchBot
             _quote = quote;
             _countdown = countdown;
             _giveaway = giveaway;
+            _bankHeist = bankHeist;
         }
 
         public async Task RunAsync()
@@ -225,8 +225,9 @@ namespace TwitchBot
                 /* Get list of timed out users from database */
                 SetListTimeouts();
 
-                /* Load bank heist settings */
+                /* Load settings and start the heist */
                 _bankHeistInstance.LoadSettings(_broadcasterInstance.DatabaseId, _connStr);
+                _bankHeist.Start(_irc, _broadcasterInstance.DatabaseId);
 
                 /* Ping to twitch server to prevent auto-disconnect */
                 PingSender ping = new PingSender(_irc);
@@ -748,9 +749,10 @@ namespace TwitchBot
                                 else if (message.Equals("!gotnextgame"))
                                     _cmdGen.CmdGotNextGame(username, ref _gameQueueUsers);
 
-                                /* Join the heist */
-                                else if (message.Equals("!bankheist"))
-                                    _cmdGen.CmdBankHeist(username, ref _bankHeistRobbers);
+                                /* Join the heist and gamble your currency for a higher payout */
+                                // Usage: !bankheist [currency]
+                                else if (message.StartsWith("!bankheist "))
+                                    _cmdGen.CmdBankHeist(message, username);
 
                                 /* add more general commands here */
                             }

@@ -4,19 +4,22 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace TwitchBot.Models
 {
     public class BankHeistSettings
     {
         /* Settings */
+        public int CooldownTimePeriodMinutes { get; set; }
+        public int EntryPeriodSeconds { get; set; }
+        public DateTime CooldownTimePeriod { get; set; }
+        public DateTime EntryPeriod { get; set; }
+
         // Entry Messages
-        public int EntryCooldown { get; set; }
         public string EntryMessage { get; set; }
-        public string MaxPointText { get; set; }
+        public int MaxGamble { get; set; }
+        public string MaxGambleText { get; set; }
         public string EntryInstructions { get; set; }
-        public string LateEntry { get; set; }
         public string CooldownEntry { get; set; }
         public string CooldownOver { get; set; }
 
@@ -64,6 +67,16 @@ namespace TwitchBot.Models
             }
         }
 
+        public bool IsEntryPeriodOver()
+        {
+            return EntryPeriod < DateTime.Now ? true : false;
+        }
+
+        public bool IsHeistOnCooldown()
+        {
+            return CooldownTimePeriod < DateTime.Now ? true : false;
+        }
+
         /// <summary>
         /// Load all of the settings from the database for the bank heist mini-game
         /// </summary>
@@ -89,11 +102,12 @@ namespace TwitchBot.Models
                             while (reader.Read())
                             {
                                 // entry messages
-                                EntryCooldown = int.Parse(reader["entryCooldown"].ToString());
+                                CooldownTimePeriodMinutes = int.Parse(reader["cooldownTimePeriodMin"].ToString());
+                                EntryPeriodSeconds = int.Parse(reader["entryPeriodSec"].ToString());
                                 EntryMessage = reader["entryMessage"].ToString();
-                                MaxPointText = reader["maxPointText"].ToString();
+                                MaxGamble = int.Parse(reader["maxGamble"].ToString());
+                                MaxGambleText = reader["maxGambleText"].ToString();
                                 EntryInstructions = reader["entryInstructions"].ToString();
-                                LateEntry = reader["lateEntry"].ToString();
                                 CooldownEntry = reader["cooldownEntry"].ToString();
                                 CooldownOver = reader["cooldownOver"].ToString();
                                 // next level messages
@@ -122,16 +136,18 @@ namespace TwitchBot.Models
                                 Levels[4].LevelBankName = reader["levelName5"].ToString();
                                 Levels[4].MaxUsers = int.Parse(reader["levelMaxUsers5"].ToString());
                                 // payout
-                                Payouts[0].WinPercentage = int.Parse(reader["payoutPercentage1"].ToString());
+                                Payouts[0].SuccessRate = decimal.Parse(reader["payoutSuccessRate1"].ToString());
                                 Payouts[0].WinMultiplier = decimal.Parse(reader["payoutMultiplier1"].ToString());
-                                Payouts[1].WinPercentage = int.Parse(reader["payoutPercentage2"].ToString());
+                                Payouts[1].SuccessRate = decimal.Parse(reader["payoutSuccessRate2"].ToString());
                                 Payouts[1].WinMultiplier = decimal.Parse(reader["payoutMultiplier2"].ToString());
-                                Payouts[2].WinPercentage = int.Parse(reader["payoutPercentage3"].ToString());
+                                Payouts[2].SuccessRate = decimal.Parse(reader["payoutSuccessRate3"].ToString());
                                 Payouts[2].WinMultiplier = decimal.Parse(reader["payoutMultiplier3"].ToString());
-                                Payouts[3].WinPercentage = int.Parse(reader["payoutPercentage4"].ToString());
+                                Payouts[3].SuccessRate = decimal.Parse(reader["payoutSuccessRate4"].ToString());
                                 Payouts[3].WinMultiplier = decimal.Parse(reader["payoutMultiplier4"].ToString());
-                                Payouts[4].WinPercentage = int.Parse(reader["payoutPercentage5"].ToString());
+                                Payouts[4].SuccessRate = decimal.Parse(reader["payoutSuccessRate5"].ToString());
                                 Payouts[4].WinMultiplier = decimal.Parse(reader["payoutMultiplier5"].ToString());
+
+                                break;
                             }
                         }
                     }
@@ -148,7 +164,7 @@ namespace TwitchBot.Models
 
     public class BankHeistPayout
     {
-        public int WinPercentage { get; set; }
+        public decimal SuccessRate { get; set; }
         public decimal WinMultiplier { get; set; }
     }
 }

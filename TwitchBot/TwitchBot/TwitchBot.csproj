@@ -256,6 +256,7 @@
     <Compile Include="Services\SongRequestBlacklistService.cs" />
     <Compile Include="Services\ManualSongRequestService.cs" />
     <Compile Include="Services\TwitchInfoService.cs" />
+    <Compile Include="Threads\BankHeist.cs" />
     <Compile Include="Threads\DelayMsg.cs" />
     <Compile Include="Models\JSON\ErrMsgJSON.cs" />
     <Compile Include="Libraries\ErrorHandler.cs" />
