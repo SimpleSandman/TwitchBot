@@ -28,13 +28,13 @@ namespace TwitchBot.Models
 
         // Game Outcomes
         public string GameStart { get; set; }
+        public string ResultsPrefix { get; set; }
         public string SingleUserSuccess { get; set; }
         public string SingleUserFail { get; set; }
         public string Success100 { get; set; }
         public string Success34 { get; set; }
         public string Success1 { get; set; }
         public string Success0 { get; set; }
-        public string Results { get; set; }
 
         // Game Levels (Level 1-5)
         public BankHeistLevel[] Levels { get; set; }
@@ -74,7 +74,7 @@ namespace TwitchBot.Models
 
         public bool IsHeistOnCooldown()
         {
-            return CooldownTimePeriod < DateTime.Now ? true : false;
+            return CooldownTimePeriod > DateTime.Now ? true : false;
         }
 
         /// <summary>
@@ -86,8 +86,22 @@ namespace TwitchBot.Models
         {
             // refresh arrays
             NextLevelMessages = new string[4];
-            Levels = new BankHeistLevel[5];
-            Payouts = new BankHeistPayout[5];
+            Levels = new BankHeistLevel[] 
+            {
+                new BankHeistLevel { },
+                new BankHeistLevel { },
+                new BankHeistLevel { },
+                new BankHeistLevel { },
+                new BankHeistLevel { }
+            };
+            Payouts = new BankHeistPayout[] 
+            {
+                new BankHeistPayout{ },
+                new BankHeistPayout{ },
+                new BankHeistPayout{ },
+                new BankHeistPayout{ },
+                new BankHeistPayout{ }
+            };
 
             using (SqlConnection conn = new SqlConnection(connStr))
             {
@@ -102,7 +116,7 @@ namespace TwitchBot.Models
                             while (reader.Read())
                             {
                                 // entry messages
-                                CooldownTimePeriodMinutes = int.Parse(reader["cooldownTimePeriodMin"].ToString());
+                                CooldownTimePeriodMinutes = int.Parse(reader["cooldownPeriodMin"].ToString());
                                 EntryPeriodSeconds = int.Parse(reader["entryPeriodSec"].ToString());
                                 EntryMessage = reader["entryMessage"].ToString();
                                 MaxGamble = int.Parse(reader["maxGamble"].ToString());
@@ -117,13 +131,13 @@ namespace TwitchBot.Models
                                 NextLevelMessages[3] = reader["nextLevelMessage5"].ToString();
                                 // game outcomes
                                 GameStart = reader["gameStart"].ToString();
+                                ResultsPrefix = reader["resultsPrefix"].ToString();
                                 SingleUserSuccess = reader["singleUserSuccess"].ToString();
                                 SingleUserSuccess = reader["singleUserFail"].ToString();
                                 Success100 = reader["success100"].ToString();
                                 Success34 = reader["success34"].ToString();
                                 Success1 = reader["success1"].ToString();
                                 Success0 = reader["success0"].ToString();
-                                Results = reader["results"].ToString();
                                 // game levels
                                 Levels[0].LevelBankName = reader["levelName1"].ToString();
                                 Levels[0].MaxUsers = int.Parse(reader["levelMaxUsers1"].ToString());
@@ -152,6 +166,20 @@ namespace TwitchBot.Models
                         }
                     }
                 }
+            }
+        }
+
+        public void CreateSettings(int broadcasterId, string connStr)
+        {
+            string query = "INSERT INTO tblBankHeistSettings (broadcaster) VALUES (@broadcaster)";
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+
+                conn.Open();
+                cmd.ExecuteNonQuery();
             }
         }
     }

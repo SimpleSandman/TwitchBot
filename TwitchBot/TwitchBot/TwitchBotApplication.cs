@@ -225,8 +225,12 @@ namespace TwitchBot
                 /* Get list of timed out users from database */
                 SetListTimeouts();
 
-                /* Load settings and start the heist */
+                /* Load/Create settings and start the heist */
                 _bankHeistInstance.LoadSettings(_broadcasterInstance.DatabaseId, _connStr);
+
+                if (_bankHeistInstance.CooldownTimePeriodMinutes == 0)
+                    _bankHeistInstance.CreateSettings(_broadcasterInstance.DatabaseId, _connStr);
+
                 _bankHeist.Start(_irc, _broadcasterInstance.DatabaseId);
 
                 /* Ping to twitch server to prevent auto-disconnect */

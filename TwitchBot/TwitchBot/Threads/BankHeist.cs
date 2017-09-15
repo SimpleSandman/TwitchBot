@@ -35,7 +35,7 @@ namespace TwitchBot.Threads
         {
             _irc = irc;
             _broadcasterId = broadcasterId;
-            _heistSettings.CooldownTimePeriod = DateTime.Now;
+            _heistSettings.CooldownTimePeriod = DateTime.Now.AddMinutes(_heistSettings.CooldownTimePeriodMinutes);
 
             _thread.IsBackground = true;
             _thread.Start();
