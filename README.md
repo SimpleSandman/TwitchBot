@@ -1,4 +1,4 @@
-# Simple Bot
+# Simple Bot [![Build status](https://ci.appveyor.com/api/projects/status/k0cgg8xeqgh58uc7?svg=true)](https://ci.appveyor.com/project/SimpleSandman/twitchbot)
 Custom chat bot for Twitch TV
 
 This is an open-source Console application that will benefit anyone who wants to have a foundation of making their own Twitch bot. This is primarly written in C#/SQL Server using an Azure database from Microsoft. Currently, this is not end-user friendly because I am concentrating on the logic of the bot first.
