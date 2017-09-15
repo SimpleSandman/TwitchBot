@@ -123,7 +123,7 @@ namespace TwitchBot.Threads
 
                             if (funds > -1)
                             {
-                                funds += 10; // deposit 10 stream currency for each iteration
+                                funds += 50; // deposit 50 stream currency for each iteration
                                 _bank.UpdateFunds(chatter, _broadcasterId, funds);
                             }
                             else // ToDo: Make currency auto-increment setting
