@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -9,6 +10,8 @@ namespace TwitchBot.Models
 {
     public class BankHeistSettings
     {
+        public BlockingCollection<BankRobber> Robbers { get; set; }
+
         /* Settings */
         public int CooldownTimePeriodMinutes { get; set; }
         public int EntryPeriodSeconds { get; set; }
@@ -84,7 +87,7 @@ namespace TwitchBot.Models
         /// <param name="connStr"></param>
         public void LoadSettings(int broadcasterId, string connStr)
         {
-            // refresh arrays
+            // refresh arrays and lists
             NextLevelMessages = new string[4];
             Levels = new BankHeistLevel[] 
             {
@@ -102,6 +105,7 @@ namespace TwitchBot.Models
                 new BankHeistPayout{ },
                 new BankHeistPayout{ }
             };
+            Robbers = new BlockingCollection<BankRobber>();
 
             using (SqlConnection conn = new SqlConnection(connStr))
             {
@@ -133,7 +137,7 @@ namespace TwitchBot.Models
                                 GameStart = reader["gameStart"].ToString();
                                 ResultsPrefix = reader["resultsPrefix"].ToString();
                                 SingleUserSuccess = reader["singleUserSuccess"].ToString();
-                                SingleUserSuccess = reader["singleUserFail"].ToString();
+                                SingleUserFail = reader["singleUserFail"].ToString();
                                 Success100 = reader["success100"].ToString();
                                 Success34 = reader["success34"].ToString();
                                 Success1 = reader["success1"].ToString();

@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Globalization;
-using System.Data.SqlClient;
-using System.Data;
 using System.Text.RegularExpressions;
 using System.Net.Http;
 
@@ -1177,11 +1174,12 @@ namespace TwitchBot.Commands
 
                 if (_heistSettingsInstance.IsHeistOnCooldown())
                 {
-                    _irc.SendPublicChatMessage(_heistSettingsInstance.CooldownEntry);
+                    TimeSpan cooldown = _heistSettingsInstance.CooldownTimePeriod.Subtract(DateTime.Now);
+                    _irc.SendPublicChatMessage(_heistSettingsInstance.CooldownEntry.Replace("@timeleft@", cooldown.TotalMinutes.ToString()));
                     return;
                 }
 
-                if (bankHeist.HasRobberEntered(username))
+                if (bankHeist.HasRobberAlreadyEntered(username))
                 {
                     _irc.SendPublicChatMessage($"You are already in this heist @{username}");
                     return;
@@ -1217,17 +1215,17 @@ namespace TwitchBot.Commands
                 
                 if (!bankHeist.IsEntryPeriodOver())
                 {
+                    // make heist announcement if first robber and start recruiting members
+                    if (_heistSettingsInstance.Robbers.Count == 0)
+                    {
+                        _heistSettingsInstance.EntryPeriod = DateTime.Now.AddSeconds(_heistSettingsInstance.EntryPeriodSeconds);
+                        _irc.SendPublicChatMessage(_heistSettingsInstance.EntryMessage.Replace("user@", username));
+                    }
+
                     // join bank heist
                     _bank.UpdateFunds(username, _broadcasterId, funds - gamble);
                     BankRobber robber = new BankRobber { Username = username, Gamble = gamble };
                     bankHeist.Produce(robber);
-
-                    // make heist announcement if first robber and start recruiting members
-                    if (bankHeist.NumRobbers() == 1)
-                    {
-                        _heistSettingsInstance.EntryPeriod = DateTime.Now.AddSeconds(_heistSettingsInstance.EntryPeriodSeconds);
-                        _irc.SendPublicChatMessage(_heistSettingsInstance.EntryMessage);
-                    }
 
                     // display new heist level
                     _irc.SendPublicChatMessage(bankHeist.NextLevelMessage());
