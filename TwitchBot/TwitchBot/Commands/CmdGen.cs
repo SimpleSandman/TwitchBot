@@ -1175,7 +1175,19 @@ namespace TwitchBot.Commands
                 if (_heistSettingsInstance.IsHeistOnCooldown())
                 {
                     TimeSpan cooldown = _heistSettingsInstance.CooldownTimePeriod.Subtract(DateTime.Now);
-                    _irc.SendPublicChatMessage(_heistSettingsInstance.CooldownEntry.Replace("@timeleft@", cooldown.TotalMinutes.ToString()));
+
+                    if (cooldown.Minutes >= 1)
+                    {
+                        _irc.SendPublicChatMessage(_heistSettingsInstance.CooldownEntry
+                            .Replace("@timeleft@", cooldown.Minutes.ToString()));
+                    }
+                    else
+                    {
+                        _irc.SendPublicChatMessage(_heistSettingsInstance.CooldownEntry
+                            .Replace("@timeleft@", cooldown.Seconds.ToString())
+                            .Replace("minutes", "seconds"));
+                    }
+
                     return;
                 }
 
@@ -1223,19 +1235,22 @@ namespace TwitchBot.Commands
                     }
 
                     // join bank heist
-                    _bank.UpdateFunds(username, _broadcasterId, funds - gamble);
                     BankRobber robber = new BankRobber { Username = username, Gamble = gamble };
                     bankHeist.Produce(robber);
+                    _bank.UpdateFunds(username, _broadcasterId, funds - gamble);
 
                     // display new heist level
-                    _irc.SendPublicChatMessage(bankHeist.NextLevelMessage());
-
+                    if (!string.IsNullOrEmpty(bankHeist.NextLevelMessage()))
+                    {
+                        _irc.SendPublicChatMessage(bankHeist.NextLevelMessage());
+                    }
+                    
                     Console.WriteLine($"@{username} has joined the heist");
                 }
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdBankHeist(string)", false, "!bankheist");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdBankHeist(string, string)", false, "!bankheist");
             }
         }
 

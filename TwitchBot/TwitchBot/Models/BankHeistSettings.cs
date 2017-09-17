@@ -31,7 +31,7 @@ namespace TwitchBot.Models
 
         // Game Outcomes
         public string GameStart { get; set; }
-        public string ResultsPrefix { get; set; }
+        public string ResultsMessage { get; set; }
         public string SingleUserSuccess { get; set; }
         public string SingleUserFail { get; set; }
         public string Success100 { get; set; }
@@ -135,7 +135,7 @@ namespace TwitchBot.Models
                                 NextLevelMessages[3] = reader["nextLevelMessage5"].ToString();
                                 // game outcomes
                                 GameStart = reader["gameStart"].ToString();
-                                ResultsPrefix = reader["resultsPrefix"].ToString();
+                                ResultsMessage = reader["resultsMessage"].ToString();
                                 SingleUserSuccess = reader["singleUserSuccess"].ToString();
                                 SingleUserFail = reader["singleUserFail"].ToString();
                                 Success100 = reader["success100"].ToString();

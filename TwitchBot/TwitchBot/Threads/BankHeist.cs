@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
+using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Services;
@@ -18,15 +19,17 @@ namespace TwitchBot.Threads
         private int _broadcasterId;
         private Thread _thread;
         private BankService _bank;
+        private TwitchBotConfigurationSection _botConfig;
         private BankHeistSettings _heistSettings = BankHeistSettings.Instance;
 
         public BankHeist() { }
 
-        public BankHeist(string connStr, BankService bank)
+        public BankHeist(string connStr, BankService bank, TwitchBotConfigurationSection botConfig)
         {
             _connStr = connStr;
             _thread = new Thread(new ThreadStart(this.Run));
             _bank = bank;
+            _botConfig = botConfig;
         }
 
         public void Start(IrcClient irc, int broadcasterId)
@@ -69,6 +72,7 @@ namespace TwitchBot.Threads
         public void Consume()
         {
             BankHeistLevel heistLevel = _heistSettings.Levels[HeistLevel() - 1];
+            BankHeistPayout payout = _heistSettings.Payouts[HeistLevel() - 1];
 
             _irc.SendPublicChatMessage(_heistSettings.GameStart
                 .Replace("@bankname@", heistLevel.LevelBankName));
@@ -76,9 +80,8 @@ namespace TwitchBot.Threads
             Thread.Sleep(2000); // wait in anticipation
 
             Random rnd = new Random();
-            BankHeistPayout payout = _heistSettings.Payouts[HeistLevel() - 1];
-
             int chance = rnd.Next(1, 101); // 1 - 100
+
             if (chance >= payout.SuccessRate) // failed
             {
                 if (_heistSettings.Robbers.Count == 1)
@@ -96,7 +99,7 @@ namespace TwitchBot.Threads
             }
             
             int numWinners = (int)Math.Ceiling(_heistSettings.Robbers.Count * (payout.SuccessRate / 100));
-            var winners = _heistSettings.Robbers.OrderBy(x => rnd.Next()).Take(numWinners);
+            IEnumerable<BankRobber> winners = _heistSettings.Robbers.OrderBy(x => rnd.Next()).Take(numWinners);
 
             foreach (BankRobber winner in winners)
             {
@@ -104,37 +107,41 @@ namespace TwitchBot.Threads
                 decimal earnings = Math.Ceiling(winner.Gamble * payout.WinMultiplier);
 
                 _bank.UpdateFunds(winner.Username.ToLower(), _broadcasterId, (int)earnings);
+
+                _heistSettings.ResultsMessage += $" @{winner.Username} ({winner.Gamble} {_botConfig.CurrencyType}),";
             }
+
+            // remove extra ","
+            _heistSettings.ResultsMessage = _heistSettings.ResultsMessage.Remove(_heistSettings.ResultsMessage.LastIndexOf(','), 1);
+
+            decimal numWinnersPercentage = numWinners / (decimal)_heistSettings.Robbers.Count;
 
             // display success outcome
             if (winners.Count() == 1)
             {
                 BankRobber onlyWinner = winners.First();
                 int earnings = (int)Math.Ceiling(onlyWinner.Gamble * payout.WinMultiplier);
+
                 _irc.SendPublicChatMessage(_heistSettings.SingleUserSuccess
                     .Replace("user@", onlyWinner.Username)
                     .Replace("@bankname@", heistLevel.LevelBankName)
                     .Replace("@winamount@", earnings.ToString())
-                    .Replace("@pointsname@", ""));
+                    .Replace("@pointsname@", _botConfig.CurrencyType));
             }
-            else if (payout.SuccessRate == 100.0m)
+            else if (numWinners == _heistSettings.Robbers.Count)
             {
-                _irc.SendPublicChatMessage(_heistSettings.Success100
-                    .Replace("@totalwinamount@", "")
-                    .Replace("@pointsname@", ""));
+                _irc.SendPublicChatMessage(_heistSettings.Success100 + " " + _heistSettings.ResultsMessage);
             }
-            else if (payout.SuccessRate > 34.0m && payout.SuccessRate < 100.0m)
+            else if (numWinnersPercentage >= 0.34m)
             {
-                _irc.SendPublicChatMessage(_heistSettings.Success34
-                    .Replace("@totalwinamount@", "")
-                    .Replace("@pointsname@", ""));
+                _irc.SendPublicChatMessage(_heistSettings.Success34 + " " + _heistSettings.ResultsMessage);
             }
-            else if (payout.SuccessRate > 0 && payout.SuccessRate < 34.0m)
+            else if (numWinnersPercentage > 0)
             {
-                _irc.SendPublicChatMessage(_heistSettings.Success1
-                    .Replace("@totalwinamount@", "")
-                    .Replace("@pointsname@", ""));
+                _irc.SendPublicChatMessage(_heistSettings.Success1 + " " + _heistSettings.ResultsMessage);
             }
+
+            Console.WriteLine(_heistSettings.ResultsMessage);
         }
 
         public bool HasRobberAlreadyEntered(string username)

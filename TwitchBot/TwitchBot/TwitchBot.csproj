@@ -308,6 +308,7 @@
   <ItemGroup>
     <Content Include="SqlScripts\StoredProcedures\dbo.uspUpdateCreateBalance.sql" />
     <Content Include="SqlScripts\Tables\dbo.tblBank.sql" />
+    <Content Include="SqlScripts\Tables\dbo.tblBankHeistSettings.sql" />
     <Content Include="SqlScripts\Tables\dbo.tblBroadcasters.sql" />
     <Content Include="SqlScripts\Tables\dbo.tblCountdown.sql" />
     <Content Include="SqlScripts\Tables\dbo.tblErrorLog.sql" />
