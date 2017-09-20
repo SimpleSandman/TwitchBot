@@ -51,6 +51,7 @@ namespace TwitchBot.Threads
                 {
                     double cooldownTime = (_heistSettings.CooldownTimePeriod.Subtract(DateTime.Now)).TotalMilliseconds;
                     Thread.Sleep((int)cooldownTime);
+                    _irc.SendPublicChatMessage(_heistSettings.CooldownOver);
                 }
                 else if (_heistSettings.Robbers.Count > 0 && _heistSettings.IsEntryPeriodOver())
                 {
@@ -60,7 +61,10 @@ namespace TwitchBot.Threads
                     // refresh the list and reset the cooldown time period
                     _heistSettings.Robbers = new BlockingCollection<BankRobber>();
                     _heistSettings.CooldownTimePeriod = DateTime.Now.AddMinutes(_heistSettings.CooldownTimePeriodMinutes);
+                    _heistSettings.ResultsMessage = "The heist payouts are: ";
                 }
+
+                Thread.Sleep(100);
             }
         }
 
@@ -106,9 +110,9 @@ namespace TwitchBot.Threads
                 int funds = _bank.CheckBalance(winner.Username.ToLower(), _broadcasterId);
                 decimal earnings = Math.Ceiling(winner.Gamble * payout.WinMultiplier);
 
-                _bank.UpdateFunds(winner.Username.ToLower(), _broadcasterId, (int)earnings);
+                _bank.UpdateFunds(winner.Username.ToLower(), _broadcasterId, (int)earnings + funds);
 
-                _heistSettings.ResultsMessage += $" @{winner.Username} ({winner.Gamble} {_botConfig.CurrencyType}),";
+                _heistSettings.ResultsMessage += $" @{winner.Username} ({(int)earnings} {_botConfig.CurrencyType}),";
             }
 
             // remove extra ","

@@ -1244,8 +1244,12 @@ namespace TwitchBot.Commands
                     {
                         _irc.SendPublicChatMessage(bankHeist.NextLevelMessage());
                     }
-                    
-                    Console.WriteLine($"@{username} has joined the heist");
+
+                    // display if more than one robber joins
+                    if (_heistSettingsInstance.Robbers.Count > 1)
+                    {
+                        _irc.SendPublicChatMessage($"@{username} has joined the heist");
+                    }
                 }
             }
             catch (Exception ex)
