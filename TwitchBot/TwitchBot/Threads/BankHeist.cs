@@ -20,6 +20,7 @@ namespace TwitchBot.Threads
         private Thread _thread;
         private BankService _bank;
         private TwitchBotConfigurationSection _botConfig;
+        private string _resultMessage;
         private BankHeistSettings _heistSettings = BankHeistSettings.Instance;
 
         public BankHeist() { }
@@ -38,6 +39,7 @@ namespace TwitchBot.Threads
             _broadcasterId = broadcasterId;
             _heistSettings.CooldownTimePeriod = DateTime.Now;
             _heistSettings.Robbers = new BlockingCollection<BankRobber>();
+            _resultMessage = _heistSettings.ResultsMessage;
 
             _thread.IsBackground = true;
             _thread.Start();
@@ -61,10 +63,10 @@ namespace TwitchBot.Threads
                     // refresh the list and reset the cooldown time period
                     _heistSettings.Robbers = new BlockingCollection<BankRobber>();
                     _heistSettings.CooldownTimePeriod = DateTime.Now.AddMinutes(_heistSettings.CooldownTimePeriodMinutes);
-                    _heistSettings.ResultsMessage = "The heist payouts are: ";
+                    _resultMessage = _heistSettings.ResultsMessage;
                 }
 
-                Thread.Sleep(100);
+                Thread.Sleep(200);
             }
         }
 
@@ -81,7 +83,7 @@ namespace TwitchBot.Threads
             _irc.SendPublicChatMessage(_heistSettings.GameStart
                 .Replace("@bankname@", heistLevel.LevelBankName));
 
-            Thread.Sleep(2000); // wait in anticipation
+            Thread.Sleep(5000); // wait in anticipation
 
             Random rnd = new Random();
             int chance = rnd.Next(1, 101); // 1 - 100
@@ -112,11 +114,11 @@ namespace TwitchBot.Threads
 
                 _bank.UpdateFunds(winner.Username.ToLower(), _broadcasterId, (int)earnings + funds);
 
-                _heistSettings.ResultsMessage += $" @{winner.Username} ({(int)earnings} {_botConfig.CurrencyType}),";
+                _resultMessage += $" {winner.Username} ({(int)earnings} {_botConfig.CurrencyType}),";
             }
 
             // remove extra ","
-            _heistSettings.ResultsMessage = _heistSettings.ResultsMessage.Remove(_heistSettings.ResultsMessage.LastIndexOf(','), 1);
+            _resultMessage = _resultMessage.Remove(_resultMessage.LastIndexOf(','), 1);
 
             decimal numWinnersPercentage = numWinners / (decimal)_heistSettings.Robbers.Count;
 
@@ -134,18 +136,19 @@ namespace TwitchBot.Threads
             }
             else if (numWinners == _heistSettings.Robbers.Count)
             {
-                _irc.SendPublicChatMessage(_heistSettings.Success100 + " " + _heistSettings.ResultsMessage);
+                _irc.SendPublicChatMessage(_heistSettings.Success100 + " " + _resultMessage);
             }
             else if (numWinnersPercentage >= 0.34m)
             {
-                _irc.SendPublicChatMessage(_heistSettings.Success34 + " " + _heistSettings.ResultsMessage);
+                _irc.SendPublicChatMessage(_heistSettings.Success34 + " " + _resultMessage);
             }
             else if (numWinnersPercentage > 0)
             {
-                _irc.SendPublicChatMessage(_heistSettings.Success1 + " " + _heistSettings.ResultsMessage);
+                _irc.SendPublicChatMessage(_heistSettings.Success1 + " " + _resultMessage);
             }
 
-            Console.WriteLine(_heistSettings.ResultsMessage);
+            // show in case Twitch deletes the message because of exceeding character length
+            Console.WriteLine("\n" + _resultMessage + "\n");
         }
 
         public bool HasRobberAlreadyEntered(string username)
