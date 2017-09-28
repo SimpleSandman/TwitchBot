@@ -180,6 +180,7 @@ namespace TwitchBot
                     _manualSongRequest, _quote, _partyUp);
 
                 /* Whisper broadcaster bot settings */
+                Console.WriteLine();
                 Console.WriteLine("---> Extra Bot Settings <---");
                 Console.WriteLine("Discord link: " + _botConfig.DiscordLink);
                 Console.WriteLine("Currency type: " + _botConfig.CurrencyType);
@@ -225,7 +226,7 @@ namespace TwitchBot
                 /* Get list of timed out users from database */
                 SetListTimeouts();
 
-                /* Load/Create settings and start the heist */
+                /* Load/create settings and start the heist */
                 _bankHeistInstance.LoadSettings(_broadcasterInstance.DatabaseId, _connStr);
 
                 if (_bankHeistInstance.CooldownTimePeriodMinutes == 0)
@@ -237,8 +238,8 @@ namespace TwitchBot
                 PingSender ping = new PingSender(_irc);
                 ping.Start();
 
-                /* Remind viewers of bot's existance */
-                PresenceReminder preRmd = new PresenceReminder(_irc);
+                /* Send reminders of certain events */
+                ChatReminder preRmd = new ChatReminder(_broadcasterInstance.DatabaseId, _connStr);
                 preRmd.Start();
 
                 /* Authenticate to Twitter if possible */

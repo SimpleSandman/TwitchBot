@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 using TwitchBot.Libraries;
 using TwitchBot.Models;
@@ -12,7 +11,6 @@ namespace TwitchBot.Threads
     {
         private Thread _msgSender;
         private IrcClient _irc;
-
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public DelayMsg(IrcClient irc)
@@ -33,38 +31,24 @@ namespace TwitchBot.Threads
             {
                 while (true)
                 {
-                    SendDelayMsg().Wait();
+                    if (Program.DelayedMessages.Count > 0)
+                    {
+                        /* Make sure to send messages at the proper time */
+                        DelayedMessage firstMsg = Program.DelayedMessages.OrderBy(d => d.SendDate).First();
+                        if (firstMsg.SendDate < DateTime.Now)
+                        {
+                            _irc.SendPublicChatMessage(firstMsg.Message);
+                            Console.WriteLine($"Delayed message sent: {firstMsg.Message}");
+                            Program.DelayedMessages.Remove(firstMsg); // remove sent message from list
+                        }
+                    }
+
                     Thread.Sleep(100);
                 }
             }
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "DelayMsg", "Run()", false);
-            }
-        }
-
-        public async Task SendDelayMsg()
-        {
-            try
-            {
-                /* Make sure to send messages at the proper time */
-                if (Program.DelayedMessages.Count == 0)
-                {
-                    return;
-                }
-                
-                /* Send the first element from the list of delayed messages */
-                DelayedMessage firstMsg = Program.DelayedMessages.First();
-                if (firstMsg.SendDate < DateTime.Now)
-                {
-                    _irc.SendPublicChatMessage(firstMsg.Message);
-                    Console.WriteLine($"Delayed message sent: {firstMsg.Message}");
-                    Program.DelayedMessages.Remove(firstMsg); // remove sent message from list
-                }
-            }
-            catch (Exception ex)
-            {
-                _errHndlrInstance.LogError(ex, "DelayMsg", "SendDelayMsg()", false);
             }
         }
     }
