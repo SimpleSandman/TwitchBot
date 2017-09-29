@@ -10,5 +10,6 @@ namespace TwitchBot.Models
     {
         public string Message { get; set; }
         public DateTime SendDate { get; set; }
+        public int? ReminderEveryMin { get; set; }
     }
 }

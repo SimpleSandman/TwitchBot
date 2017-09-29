@@ -9,8 +9,9 @@ namespace TwitchBot.Models
     public class Reminder
     {
         public bool[] IsReminderDay { get; set; }
-        public TimeSpan TimeToPost { get; set; }
+        public TimeSpan TimeOfEvent { get; set; }
         public int?[] ReminderSeconds { get; set; }
+        public int? RemindEveryMin { get; set; }
         public string Message { get; set; }
     }
 }

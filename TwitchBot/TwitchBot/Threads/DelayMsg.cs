@@ -34,12 +34,23 @@ namespace TwitchBot.Threads
                     if (Program.DelayedMessages.Count > 0)
                     {
                         /* Make sure to send messages at the proper time */
-                        DelayedMessage firstMsg = Program.DelayedMessages.OrderBy(d => d.SendDate).First();
-                        if (firstMsg.SendDate < DateTime.Now)
+                        DelayedMessage delayedMessage = Program.DelayedMessages.FirstOrDefault(m => m.SendDate < DateTime.Now);
+                        if (delayedMessage != null)
                         {
-                            _irc.SendPublicChatMessage(firstMsg.Message);
-                            Console.WriteLine($"Delayed message sent: {firstMsg.Message}");
-                            Program.DelayedMessages.Remove(firstMsg); // remove sent message from list
+                            _irc.SendPublicChatMessage(delayedMessage.Message);
+                            Console.WriteLine($"Delayed message sent: {delayedMessage.Message}");
+                            Program.DelayedMessages.Remove(delayedMessage); // remove sent message from list
+
+                            // re-add message if set as reminder
+                            if (delayedMessage.ReminderEveryMin > 0)
+                            {
+                                Program.DelayedMessages.Add(new DelayedMessage
+                                {
+                                    Message = delayedMessage.Message,
+                                    SendDate = delayedMessage.SendDate.AddMinutes((double)delayedMessage.ReminderEveryMin),
+                                    ReminderEveryMin = delayedMessage.ReminderEveryMin
+                                });
+                            }
                         }
                     }
 

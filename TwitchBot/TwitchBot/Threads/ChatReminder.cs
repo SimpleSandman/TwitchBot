@@ -22,7 +22,7 @@ namespace TwitchBot.Threads
         {
             _broadcasterId = broadcasterId;
             _connStr = connStr;
-            _chatReminderThread = new Thread (new ThreadStart (this.Run)); 
+            _chatReminderThread = new Thread (new ThreadStart (this.Run));
         }
 
         public void Start()
@@ -37,9 +37,35 @@ namespace TwitchBot.Threads
 
             while (true)
             {
-                foreach (Reminder reminder in _reminders)
+                foreach (Reminder reminder in _reminders.OrderBy(m => m.RemindEveryMin))
                 {
-                    DateTime dateTimeOfEvent = DateTime.Today.Date.Add(reminder.TimeToPost);
+                    /* Set any reminders that happen every X minutes */
+                    if (reminder.RemindEveryMin != null
+                        && reminder.IsReminderDay[(int)DateTime.Now.DayOfWeek]
+                        && !Program.DelayedMessages.Any(m => m.Message.Contains(reminder.Message)))
+                    {
+                        int sameReminderMinCount = _reminders.Count(r => r.RemindEveryMin == reminder.RemindEveryMin);
+                        double dividedSeconds = ((double)reminder.RemindEveryMin * 60) / sameReminderMinCount;
+
+                        int sameDelayedMinCount = Program.DelayedMessages.Count(m => m.ReminderEveryMin == reminder.RemindEveryMin);
+                        double setSeconds = dividedSeconds;
+                        for (int i = 0; i < sameDelayedMinCount; i++)
+                        {
+                            setSeconds += dividedSeconds;
+                        }
+
+                        Program.DelayedMessages.Add(new DelayedMessage
+                        {
+                            Message = reminder.Message,
+                            SendDate = DateTime.Now.AddSeconds(setSeconds),
+                            ReminderEveryMin = reminder.RemindEveryMin
+                        });
+
+                        continue;
+                    }
+
+                    /* Set reminders that happen throughout the day */
+                    DateTime dateTimeOfEvent = DateTime.Today.Date.Add(reminder.TimeOfEvent);
                     dateTimeOfEvent = DateTime.SpecifyKind(dateTimeOfEvent, DateTimeKind.Utc);
                     dateTimeOfEvent = dateTimeOfEvent.ToLocalTime();
 
@@ -79,7 +105,7 @@ namespace TwitchBot.Threads
                     });
                 }
 
-                Thread.Sleep(60000); // 60 seconds
+                Thread.Sleep(30000); // 30 seconds
             }
         }
 
@@ -119,7 +145,8 @@ namespace TwitchBot.Threads
                                         reader["reminderSec4"].ToString().ToNullableInt(),
                                         reader["reminderSec5"].ToString().ToNullableInt()
                                     },
-                                    TimeToPost = TimeSpan.Parse(reader["timeOfEvent"].ToString()),
+                                    TimeOfEvent = TimeSpan.Parse(reader["timeOfEvent"].ToString()),
+                                    RemindEveryMin = reader["remindEveryMin"].ToString().ToNullableInt(),
                                     Message = reader["message"].ToString()
                                 });
                             }
