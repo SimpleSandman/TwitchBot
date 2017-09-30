@@ -8,6 +8,7 @@ namespace TwitchBot.Models
 {
     public class Reminder
     {
+        public int Id { get; set; }
         public bool[] IsReminderDay { get; set; }
         public TimeSpan TimeOfEvent { get; set; }
         public int?[] ReminderSeconds { get; set; }

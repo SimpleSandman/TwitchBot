@@ -46,6 +46,7 @@ namespace TwitchBot.Threads
                             {
                                 Program.DelayedMessages.Add(new DelayedMessage
                                 {
+                                    ReminderId = delayedMessage.ReminderId,
                                     Message = delayedMessage.Message,
                                     SendDate = delayedMessage.SendDate.AddMinutes((double)delayedMessage.ReminderEveryMin),
                                     ReminderEveryMin = delayedMessage.ReminderEveryMin

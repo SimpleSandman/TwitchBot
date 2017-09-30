@@ -239,8 +239,8 @@ namespace TwitchBot
                 ping.Start();
 
                 /* Send reminders of certain events */
-                ChatReminder preRmd = new ChatReminder(_broadcasterInstance.DatabaseId, _connStr);
-                preRmd.Start();
+                ChatReminder chatReminder = new ChatReminder(_irc, _broadcasterInstance.DatabaseId, _connStr);
+                chatReminder.Start();
 
                 /* Authenticate to Twitter if possible */
                 if (!string.IsNullOrEmpty(_botConfig.TwitterConsumerKey) 
@@ -442,6 +442,10 @@ namespace TwitchBot
                                 /* Sends an announcement tweet saying the broadcaster is live */
                                 else if (message.Equals("!live"))
                                     await _cmdBrdCstr.CmdLive(hasTwitterInfo);
+
+                                /* Manually refreshes reminders */
+                                else if (message.Equals("!refreshreminders"))
+                                    _cmdBrdCstr.CmdRefreshReminders();
 
                                 /* insert more broadcaster commands here */
                             }

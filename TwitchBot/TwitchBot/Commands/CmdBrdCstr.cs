@@ -943,5 +943,17 @@ namespace TwitchBot.Commands
                 _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLive(bool)", false, "!live");
             }
         }
+
+        public void CmdRefreshReminders()
+        {
+            try
+            {
+                Threads.ChatReminder.RefreshReminders();
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRefreshReminders()", false, "!refreshreminders");
+            }
+        }
     }
 }
