@@ -9,6 +9,8 @@ using System.Threading;
 using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
+using TwitchBot.Models.JSON;
+using TwitchBot.Services;
 
 namespace TwitchBot.Threads
 {
@@ -16,16 +18,21 @@ namespace TwitchBot.Threads
     {
         private Thread _chatReminderThread;
         private IrcClient _irc;
-        private static int _broadcasterId;
         private static string _connStr;
         private static bool _refreshReminders;
+        private static int _broadcasterId;
+        private static string _twitchClientId;
+        private int? _gameId;
         private static List<Reminder> _reminders;
+        private GameDirectoryService _gameDirectory;
 
-        public ChatReminder(IrcClient irc, int broadcasterId, string connStr)
+        public ChatReminder(IrcClient irc, int broadcasterId, string connStr, string twitchClientId, GameDirectoryService gameDirectory)
         {
             _irc = irc;
             _broadcasterId = broadcasterId;
             _connStr = connStr;
+            _twitchClientId = twitchClientId;
+            _gameDirectory = gameDirectory;
             _refreshReminders = false;
             _chatReminderThread = new Thread (new ThreadStart (this.Run));
         }
@@ -36,13 +43,23 @@ namespace TwitchBot.Threads
             _chatReminderThread.Start(); 
         }
 
-        public void Run()
+        public async void Run()
         {
             LoadReminderContext(); // initial load
             DateTime midnightNextDay = DateTime.Today.AddDays(1);
 
             while (true)
             {
+                ChannelJSON channelJSON = await TwitchApi.GetChannelById(_twitchClientId);
+                string gameTitle = channelJSON.Game;
+                if (_gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer) == 0)
+                    _gameId = null;
+                else
+                    _gameId = _gameDirectory.GetGameId(gameTitle, out hasMultiplayer);
+
+                // remove pending reminders
+                Program.DelayedMessages.RemoveAll(r => r.ReminderId > 0);
+
                 foreach (Reminder reminder in _reminders.OrderBy(m => m.RemindEveryMin))
                 {
                     if (IsEveryMinReminder(reminder)) continue;
@@ -74,9 +91,11 @@ namespace TwitchBot.Threads
         {
             LoadReminderContext();
             _refreshReminders = true;
-            Program.DelayedMessages.RemoveAll(r => r.ReminderId > 0);
         }
 
+        /// <summary>
+        /// Load reminders from database
+        /// </summary>
         private static void LoadReminderContext()
         {
             _reminders = new List<Reminder>();
@@ -96,6 +115,7 @@ namespace TwitchBot.Threads
                                 _reminders.Add(new Reminder
                                 {
                                     Id = int.Parse(reader["Id"].ToString()),
+                                    GameId = reader["game"].ToString().ToNullableInt(),
                                     IsReminderDay = new bool[7]
                                     {
                                         bool.Parse(reader["sunday"].ToString()),
@@ -114,7 +134,7 @@ namespace TwitchBot.Threads
                                         reader["reminderSec4"].ToString().ToNullableInt(),
                                         reader["reminderSec5"].ToString().ToNullableInt()
                                     },
-                                    TimeOfEvent = TimeSpan.Parse(reader["timeOfEvent"].ToString()),
+                                    TimeOfEvent = reader["timeOfEventUtc"].ToString().ToNullableTimeSpan(),
                                     RemindEveryMin = reader["remindEveryMin"].ToString().ToNullableInt(),
                                     Message = reader["message"].ToString()
                                 });
@@ -123,6 +143,21 @@ namespace TwitchBot.Threads
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Check if reminder is set for a specific game
+        /// </summary>
+        /// <param name="reminder"></param>
+        /// <returns></returns>
+        private bool IsGameReminderBasedOnSetGame(Reminder reminder)
+        {
+            if (reminder.GameId != _gameId)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -138,7 +173,12 @@ namespace TwitchBot.Threads
                 && reminder.IsReminderDay[(int)DateTime.Now.DayOfWeek]
                 && !Program.DelayedMessages.Any(m => m.Message.Contains(reminder.Message)))
             {
-                int sameReminderMinCount = _reminders.Count(r => r.RemindEveryMin == reminder.RemindEveryMin);
+                if (reminder.GameId != null && !IsGameReminderBasedOnSetGame(reminder))
+                {
+                    return false;
+                }
+
+                int sameReminderMinCount = _reminders.Count(r => r.RemindEveryMin == reminder.RemindEveryMin && (r.GameId == _gameId || r.GameId == null));
                 double dividedSeconds = ((double)reminder.RemindEveryMin * 60) / sameReminderMinCount;
 
                 int sameDelayedMinCount = Program.DelayedMessages.Count(m => m.ReminderEveryMin == reminder.RemindEveryMin);
@@ -168,14 +208,15 @@ namespace TwitchBot.Threads
         /// <param name="reminder"></param>
         private void AddDayOfReminder(Reminder reminder)
         {
+            if (reminder.TimeOfEvent == null) return;
+
             /* Set reminders that happen throughout the day */
-            DateTime dateTimeOfEvent = DateTime.Today.Date.Add(reminder.TimeOfEvent);
-            dateTimeOfEvent = DateTime.SpecifyKind(dateTimeOfEvent, DateTimeKind.Utc);
-            dateTimeOfEvent = dateTimeOfEvent.ToLocalTime();
+            DateTime dateTimeOfEvent = DateTime.UtcNow.Date.Add((TimeSpan)reminder.TimeOfEvent).ToLocalTime();
 
             if (!reminder.IsReminderDay[(int)DateTime.Now.DayOfWeek]
                 || dateTimeOfEvent < DateTime.Now
-                || Program.DelayedMessages.Any(m => m.Message.Contains(reminder.Message)))
+                || Program.DelayedMessages.Any(m => m.Message.Contains(reminder.Message))
+                || (reminder.GameId != null && !IsGameReminderBasedOnSetGame(reminder)))
             {
                 return; // do not display reminder
             }

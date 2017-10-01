@@ -239,7 +239,7 @@ namespace TwitchBot
                 ping.Start();
 
                 /* Send reminders of certain events */
-                ChatReminder chatReminder = new ChatReminder(_irc, _broadcasterInstance.DatabaseId, _connStr);
+                ChatReminder chatReminder = new ChatReminder(_irc, _broadcasterInstance.DatabaseId, _connStr, _botConfig.TwitchClientId, _gameDirectory);
                 chatReminder.Start();
 
                 /* Authenticate to Twitter if possible */

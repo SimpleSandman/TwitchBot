@@ -22,5 +22,12 @@ namespace TwitchBot.Extensions
 
             return formatted;
         }
+
+        public static TimeSpan? ToNullableTimeSpan(this string s)
+        {
+            if (TimeSpan.TryParse(s, out TimeSpan i)) return i;
+
+            return null;
+        }
     }
 }

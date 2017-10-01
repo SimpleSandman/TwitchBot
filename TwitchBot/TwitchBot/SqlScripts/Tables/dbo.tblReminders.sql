@@ -17,7 +17,7 @@ CREATE TABLE [dbo].[tblReminders] (
     [thursday]       BIT           DEFAULT ((0)) NOT NULL,
     [friday]         BIT           DEFAULT ((0)) NOT NULL,
     [saturday]       BIT           DEFAULT ((0)) NOT NULL,
-    [timeOfEvent]    TIME (7)      NOT NULL,
+    [timeOfEventUtc] TIME (7)      NULL,
     [reminderSec1]   INT           DEFAULT ((60)) NOT NULL,
     [reminderSec2]   INT           DEFAULT ((120)) NULL,
     [reminderSec3]   INT           DEFAULT ((300)) NULL,
@@ -26,6 +26,8 @@ CREATE TABLE [dbo].[tblReminders] (
     [remindEveryMin] INT           NULL,
     [message]        VARCHAR (150) NOT NULL,
     [broadcaster]    INT           NOT NULL,
+    [game]			 INT		   NULL, 
     PRIMARY KEY CLUSTERED ([Id] ASC),
+	CONSTRAINT [FK_tblReminders_tblGameList] FOREIGN KEY ([game]) REFERENCES [dbo].[tblGameList] ([Id]),
     CONSTRAINT [FK_tblReminders_tblBroadcasters] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[tblBroadcasters] ([Id])
 );
