@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -788,6 +789,18 @@ namespace TwitchBot.Commands
                             }
                         }
 
+                        // Check if video is blocked in the broadcaster's country
+                        CultureInfo cultureInfo = Thread.CurrentThread.CurrentCulture;
+                        RegionInfo regionInfo = new RegionInfo(cultureInfo.Name);
+                        var regionRestriction = video.ContentDetails.RegionRestriction;
+
+                        if ((regionRestriction?.Allowed != null && !regionRestriction.Allowed.Contains(regionInfo.TwoLetterISORegionName))
+                            || (regionRestriction?.Blocked != null && regionRestriction.Blocked.Contains(regionInfo.TwoLetterISORegionName)))
+                        {
+                            _irc.SendPublicChatMessage($"Your song request is blocked in this broadcaster's country. Please request a different song");
+                            return DateTime.Now;
+                        }
+
                         string videoDuration = video.ContentDetails.Duration;
 
                         // Check if time limit has been reached
@@ -799,7 +812,7 @@ namespace TwitchBot.Commands
                         else
                         {
                             int timeIndex = videoDuration.IndexOf("T") + 1;
-                            string parsedDuration = videoDuration.Substring(timeIndex).TrimEnd('S');
+                            string parsedDuration = videoDuration.Substring(timeIndex);
                             int minIndex = parsedDuration.IndexOf("M");
 
                             string videoMin = "0";
@@ -810,7 +823,8 @@ namespace TwitchBot.Commands
                             if (minIndex > 0)
                                 videoMin = parsedDuration.Substring(0, minIndex);
 
-                            videoSec = parsedDuration.Substring(minIndex + 1);
+                            if (parsedDuration.IndexOf("S") > 0)
+                                videoSec = parsedDuration.Substring(minIndex + 1).TrimEnd('S');
 
                             if (Convert.ToInt32(videoMin) >= videoMinLimit && Convert.ToInt32(videoSec) >= videoSecLimit)
                             {
