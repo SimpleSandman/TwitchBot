@@ -23,6 +23,7 @@ namespace TwitchBot.Threads
         private static int _broadcasterId;
         private static string _twitchClientId;
         private int? _gameId;
+        private int _lastSecCountdownReminder;
         private static List<Reminder> _reminders;
         private GameDirectoryService _gameDirectory;
 
@@ -33,6 +34,7 @@ namespace TwitchBot.Threads
             _connStr = connStr;
             _twitchClientId = twitchClientId;
             _gameDirectory = gameDirectory;
+            _lastSecCountdownReminder = -15;
             _refreshReminders = false;
             _chatReminderThread = new Thread (new ThreadStart (this.Run));
         }
@@ -63,8 +65,8 @@ namespace TwitchBot.Threads
                 foreach (Reminder reminder in _reminders.OrderBy(m => m.RemindEveryMin))
                 {
                     if (IsEveryMinReminder(reminder)) continue;
-
-                    AddDayOfReminder(reminder);
+                    else if (IsCountdownEvent(reminder)) continue;
+                    else AddDayOfReminder(reminder);
                 }
 
                 if (_refreshReminders)
@@ -135,8 +137,11 @@ namespace TwitchBot.Threads
                                         reader["reminderSec5"].ToString().ToNullableInt()
                                     },
                                     TimeOfEvent = reader["timeOfEventUtc"].ToString().ToNullableTimeSpan(),
+                                    ExpirationDate = reader["expirationDateUtc"].ToString().ToNullableDateTime(),
                                     RemindEveryMin = reader["remindEveryMin"].ToString().ToNullableInt(),
-                                    Message = reader["message"].ToString()
+                                    Message = reader["message"].ToString(),
+                                    IsCountdownEvent = bool.Parse(reader["isCountdownEvent"].ToString()),
+                                    HasCountdownTicker = bool.Parse(reader["hasCountdownTicker"].ToString())
                                 });
                             }
                         }
@@ -158,6 +163,64 @@ namespace TwitchBot.Threads
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Add up to 5 reminders at user-defined seconds before the event happens
+        /// </summary>
+        /// <param name="reminder"></param>
+        /// <param name="dateTimeOfEvent"></param>
+        private void AddCustomReminderSeconds(Reminder reminder, DateTime dateTimeOfEvent)
+        {
+            foreach (int? reminderSecond in reminder.ReminderSeconds)
+            {
+                if (reminderSecond == null || reminderSecond <= 0) continue;
+
+                if (reminder.HasCountdownTicker && reminderSecond <= Math.Abs(_lastSecCountdownReminder)) continue;
+
+                DateTime reminderTime = dateTimeOfEvent.AddSeconds(-(double)reminderSecond);
+                TimeSpan timeSpan = dateTimeOfEvent.Subtract(reminderTime);
+
+                if (DateTime.Now < reminderTime)
+                {
+                    Program.DelayedMessages.Add(new DelayedMessage
+                    {
+                        ReminderId = reminder.Id,
+                        Message = $"{timeSpan.ToReadableString()} until \"{reminder.Message}\"",
+                        SendDate = reminderTime
+                    });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Add a preset decremental countdown if ticker set (starting 10 seconds before the event begins)
+        /// </summary>
+        /// <param name="reminder"></param>
+        /// <param name="dateTimeOfEvent"></param>
+        private void AddPresetCountdownSeconds(Reminder reminder, DateTime dateTimeOfEvent)
+        {
+            if (reminder.HasCountdownTicker)
+            {
+                // last second reminder before countdown begins
+                Program.DelayedMessages.Add(new DelayedMessage
+                {
+                    ReminderId = reminder.Id,
+                    Message = $"{Math.Abs(_lastSecCountdownReminder)} seconds until \"{reminder.Message}\"",
+                    SendDate = dateTimeOfEvent.AddSeconds(_lastSecCountdownReminder)
+                });
+
+                // set up countdown messages
+                for (int i = 10; i > 0; i--)
+                {
+                    Program.DelayedMessages.Add(new DelayedMessage
+                    {
+                        ReminderId = reminder.Id,
+                        Message = $"{i}",
+                        SendDate = dateTimeOfEvent.AddSeconds(-i)
+                    });
+                }
+            }
         }
 
         /// <summary>
@@ -221,27 +284,7 @@ namespace TwitchBot.Threads
                 return; // do not display reminder
             }
 
-            // add up to 5 reminders before the event happens
-            foreach (int? reminderSecond in reminder.ReminderSeconds)
-            {
-                if (reminderSecond == null || reminderSecond <= 0)
-                {
-                    continue;
-                }
-
-                DateTime reminderTime = dateTimeOfEvent.AddSeconds(-(double)reminderSecond);
-                TimeSpan timeSpan = dateTimeOfEvent.Subtract(reminderTime);
-
-                if (DateTime.Now < reminderTime)
-                {
-                    Program.DelayedMessages.Add(new DelayedMessage
-                    {
-                        ReminderId = reminder.Id,
-                        Message = $"{timeSpan.ToReadableString()} until \"{reminder.Message}\"",
-                        SendDate = reminderTime
-                    });
-                }
-            }
+            AddCustomReminderSeconds(reminder, dateTimeOfEvent);
 
             // announce event
             Program.DelayedMessages.Add(new DelayedMessage
@@ -250,6 +293,39 @@ namespace TwitchBot.Threads
                 Message = $"It's time for \"{reminder.Message}\"",
                 SendDate = dateTimeOfEvent
             });
+        }
+
+        /// <summary>
+        /// Add reminder if set to a single time and set up the countdown reminders
+        /// </summary>
+        /// <param name="reminder"></param>
+        private bool IsCountdownEvent(Reminder reminder)
+        {
+            if (reminder.ExpirationDate == null || !reminder.IsCountdownEvent) return false;
+
+            /* Set countdown event time */
+            DateTime dateTimeOfEvent = DateTime.SpecifyKind(reminder.ExpirationDate.Value, DateTimeKind.Utc).ToLocalTime();
+
+            if (dateTimeOfEvent < DateTime.Now
+                || Program.DelayedMessages.Any(m => m.Message.Contains(reminder.Message))
+                || (reminder.GameId != null && !IsGameReminderBasedOnSetGame(reminder)))
+            {
+                return false; // do not display countdown
+            }
+
+            AddCustomReminderSeconds(reminder, dateTimeOfEvent);
+
+            AddPresetCountdownSeconds(reminder, dateTimeOfEvent);
+
+            // announce event
+            Program.DelayedMessages.Add(new DelayedMessage
+            {
+                ReminderId = reminder.Id,
+                Message = $"It's time for \"{reminder.Message}\"",
+                SendDate = dateTimeOfEvent
+            });
+
+            return true;
         }
     }
 }

@@ -15,5 +15,8 @@ namespace TwitchBot.Models
         public int?[] ReminderSeconds { get; set; }
         public int? RemindEveryMin { get; set; }
         public string Message { get; set; }
+        public DateTime? ExpirationDate { get; set; }
+        public bool IsCountdownEvent { get; set; }
+        public bool HasCountdownTicker { get; set; }
     }
 }
