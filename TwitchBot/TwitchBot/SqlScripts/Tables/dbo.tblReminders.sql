@@ -24,7 +24,7 @@ CREATE TABLE [dbo].[tblReminders] (
     [reminderSec5]       INT           NULL,
     [remindEveryMin]     INT           NULL,
     [timeOfEventUtc]     TIME (7)      NULL,
-    [expirationDateUtc]  DATETIME      DEFAULT (getdate()) NULL,
+    [expirationDateUtc]  DATETIME      NULL,
     [isCountdownEvent]   BIT           DEFAULT ((0)) NOT NULL,
     [hasCountdownTicker] BIT           DEFAULT ((0)) NOT NULL,
     [message]            VARCHAR (150) NOT NULL,

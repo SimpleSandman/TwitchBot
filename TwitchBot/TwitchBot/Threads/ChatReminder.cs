@@ -224,6 +224,21 @@ namespace TwitchBot.Threads
         }
 
         /// <summary>
+        /// Add the announcement message at the event time specified
+        /// </summary>
+        /// <param name="reminder"></param>
+        /// <param name="dateTimeOfEvent"></param>
+        private void AddAnnouncementMessage(Reminder reminder, DateTime dateTimeOfEvent)
+        {
+            Program.DelayedMessages.Add(new DelayedMessage
+            {
+                ReminderId = reminder.Id,
+                Message = $"It's time for \"{reminder.Message}\"",
+                SendDate = dateTimeOfEvent
+            });
+        }
+
+        /// <summary>
         /// Check if reminder is on a certain minute-based interval.
         /// If so, add it to delayed messages queue
         /// </summary>
@@ -285,14 +300,8 @@ namespace TwitchBot.Threads
             }
 
             AddCustomReminderSeconds(reminder, dateTimeOfEvent);
-
-            // announce event
-            Program.DelayedMessages.Add(new DelayedMessage
-            {
-                ReminderId = reminder.Id,
-                Message = $"It's time for \"{reminder.Message}\"",
-                SendDate = dateTimeOfEvent
-            });
+            AddPresetCountdownSeconds(reminder, dateTimeOfEvent);
+            AddAnnouncementMessage(reminder, dateTimeOfEvent);
         }
 
         /// <summary>
@@ -314,16 +323,8 @@ namespace TwitchBot.Threads
             }
 
             AddCustomReminderSeconds(reminder, dateTimeOfEvent);
-
             AddPresetCountdownSeconds(reminder, dateTimeOfEvent);
-
-            // announce event
-            Program.DelayedMessages.Add(new DelayedMessage
-            {
-                ReminderId = reminder.Id,
-                Message = $"It's time for \"{reminder.Message}\"",
-                SendDate = dateTimeOfEvent
-            });
+            AddAnnouncementMessage(reminder, dateTimeOfEvent);
 
             return true;
         }
