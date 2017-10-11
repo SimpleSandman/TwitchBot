@@ -237,7 +237,6 @@
     <Compile Include="Models\SongRequestBlacklistItem.cs" />
     <Compile Include="Modules\TwitchBotModule.cs" />
     <Compile Include="Repositories\BankRepository.cs" />
-    <Compile Include="Repositories\CountdownRepository.cs" />
     <Compile Include="Repositories\FollowerRepository.cs" />
     <Compile Include="Commands\CmdBrdCstr.cs" />
     <Compile Include="Commands\CmdGen.cs" />
@@ -251,7 +250,6 @@
     <Compile Include="Repositories\SongRequestBlacklistRepository.cs" />
     <Compile Include="Repositories\ManualSongRequestRepository.cs" />
     <Compile Include="Services\BankService.cs" />
-    <Compile Include="Services\CountdownService.cs" />
     <Compile Include="Services\FollowerService.cs" />
     <Compile Include="Services\GameDirectoryService.cs" />
     <Compile Include="Services\GiveawayService.cs" />
@@ -314,7 +312,6 @@
     <Content Include="SqlScripts\Tables\dbo.tblBank.sql" />
     <Content Include="SqlScripts\Tables\dbo.tblBankHeistSettings.sql" />
     <Content Include="SqlScripts\Tables\dbo.tblBroadcasters.sql" />
-    <Content Include="SqlScripts\Tables\dbo.tblCountdown.sql" />
     <Content Include="SqlScripts\Tables\dbo.tblErrorLog.sql" />
     <Content Include="SqlScripts\Tables\dbo.tblGameList.sql" />
     <Content Include="SqlScripts\Tables\dbo.tblGiveaway.sql" />

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -26,7 +25,6 @@ namespace TwitchBot.Commands
         private int _broadcasterId;
         private SongRequestBlacklistService _songRequest;
         private TwitchInfoService _twitchInfo;
-        private CountdownService _countdown;
         private GiveawayService _giveaway;
         private TwitterClient _twitter = TwitterClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
@@ -34,7 +32,7 @@ namespace TwitchBot.Commands
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, 
             System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo,
-            CountdownService countdown, GiveawayService giveaway)
+            GiveawayService giveaway)
         {
             _irc = irc;
             _botConfig = botConfig;
@@ -43,7 +41,6 @@ namespace TwitchBot.Commands
             _appConfig = appConfig;
             _songRequest = songRequest;
             _twitchInfo = twitchInfo;
-            _countdown = countdown;
             _giveaway = giveaway;
         }
 
@@ -316,118 +313,6 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListMod()", false, "!listmod");
-            }
-        }
-
-        /// <summary>
-        /// Add a custom countdown for a user to post in the chat
-        /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        public void CmdAddCountdown(string message)
-        {
-            try
-            {
-                // get due date of countdown
-                string countdownInput = message.Substring(14, 20); // MM-DD-YY hh:mm:ss [AM/PM]
-                DateTime countdownDuration = Convert.ToDateTime(countdownInput);
-
-                // get message of countdown
-                string countdownMsg = message.Substring(34);
-
-                // log new countdown into db
-                _countdown.AddCountdown(countdownMsg, countdownDuration, _broadcasterId);
-
-                Console.WriteLine("Countdown added!");
-                _irc.SendPublicChatMessage($"Countdown added @{_botConfig.Broadcaster}");
-            }
-            catch (Exception ex)
-            {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddCountdown(string)", false, "!addcountdown");
-            }
-        }
-
-        /// <summary>
-        /// Edit countdown details (for either date and time or message)
-        /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        public void CmdEditCountdown(string message)
-        {
-            try
-            {
-                int reqCountdownId = -1;
-                string msgCountdownId = message.Substring(18, message.GetNthCharIndex(' ', 2) - message.GetNthCharIndex(' ', 1) - 1);
-                bool isValidCountdownId = int.TryParse(msgCountdownId, out reqCountdownId);
-
-                // validate requested countdown ID
-                if (!isValidCountdownId || reqCountdownId < 0)
-                    _irc.SendPublicChatMessage("Please use a positive whole number to find your countdown ID");
-                else
-                {
-                    // check if countdown ID exists
-                    int responseCountdownId = _countdown.GetCountdownId(reqCountdownId, _broadcasterId);
-
-                    // check if countdown ID was retrieved
-                    if (responseCountdownId == -1)
-                        _irc.SendPublicChatMessage($"Cannot find the countdown ID: {reqCountdownId}");
-                    else
-                    {
-                        int inputType = -1; // check if input is in the correct format
-                        DateTime countdownDuration = new DateTime();
-                        string countdownInput = message.Substring(message.GetNthCharIndex(' ', 2) + 1);
-
-                        /* Check if user wants to edit the date and time or message */
-                        if (message.StartsWith("!editcountdownDTE"))
-                        {
-                            // get new due date of countdown
-                            bool hasValidCountdownDuration = DateTime.TryParse(countdownInput, out countdownDuration);
-
-                            if (!hasValidCountdownDuration)
-                                _irc.SendPublicChatMessage($"Please enter a valid date and time @{_botConfig.Broadcaster}");
-                            else
-                                inputType = 1;
-                        }
-                        else if (message.StartsWith("!editcountdownMSG"))
-                        {
-                            // get new message of countdown
-                            if (string.IsNullOrWhiteSpace(countdownInput))
-                                _irc.SendPublicChatMessage($"Please enter a valid message @{_botConfig.Broadcaster}");
-                            else
-                                inputType = 2;
-                        }
-
-                        // if input is correct update db
-                        if (inputType > 0)
-                        {
-                            _countdown.UpdateCountdown(inputType, countdownDuration, countdownInput, responseCountdownId, _broadcasterId);
-
-                            _irc.SendPublicChatMessage($"Changes to countdown ID: {reqCountdownId} have been made @{_botConfig.Broadcaster}");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string)", false, "!editcountdown");
-            }
-        }
-
-        /// <summary>
-        /// List all of the countdowns the broadcaster has set
-        /// </summary>
-        public void CmdListCountdown()
-        {
-            try
-            {
-                string countdownListMsg = _countdown.ListCountdowns(_broadcasterId);
-
-                if (!string.IsNullOrEmpty(countdownListMsg))
-                    _irc.SendPublicChatMessage(countdownListMsg);
-                else
-                    _irc.SendPublicChatMessage($"No countdown messages are set at the moment @{_botConfig.Broadcaster}");
-            }
-            catch (Exception ex)
-            {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListCountdown()", false, "!listcountdown");
             }
         }
 

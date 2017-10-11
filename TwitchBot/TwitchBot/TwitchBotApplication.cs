@@ -51,7 +51,6 @@ namespace TwitchBot
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
         private QuoteService _quote;
-        private CountdownService _countdown;
         private GiveawayService _giveaway;
         private BankHeist _bankHeist;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
@@ -62,7 +61,7 @@ namespace TwitchBot
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
-            GameDirectoryService gameDirectory, QuoteService quote, CountdownService countdown, GiveawayService giveaway, BankHeist bankHeist)
+            GameDirectoryService gameDirectory, QuoteService quote, GiveawayService giveaway, BankHeist bankHeist)
         {
             _appConfig = appConfig;
             _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program.ConnStrType].ConnectionString;
@@ -86,7 +85,6 @@ namespace TwitchBot
             _partyUp = partyUp;
             _gameDirectory = gameDirectory;
             _quote = quote;
-            _countdown = countdown;
             _giveaway = giveaway;
             _bankHeist = bankHeist;
         }
@@ -175,7 +173,7 @@ namespace TwitchBot
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower, 
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist, 
-                    _twitchInfo, _countdown, _giveaway);
+                    _twitchInfo, _giveaway);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo, 
                     _manualSongRequest, _quote, _partyUp);
 
@@ -389,21 +387,6 @@ namespace TwitchBot
                                 /* List bot moderators */
                                 else if (message.Equals("!listmod"))
                                     _cmdBrdCstr.CmdListMod();
-
-                                /* Add countdown */
-                                // Usage: !addcountdown [MM-DD-YY] [hh:mm:ss] [AM/PM] [message]
-                                else if (message.StartsWith("!addcountdown "))
-                                    _cmdBrdCstr.CmdAddCountdown(message);
-
-                                /* Edit countdown details (for either date and time or message) */
-                                // Usage (message): !editcountdownMSG [countdown id] [message]
-                                // Usage (date and time): !editcountdownDTE [countdown id] [MM-DD-YY] [hh:mm:ss] [AM/PM]
-                                else if (message.StartsWith("!editcountdown"))
-                                    _cmdBrdCstr.CmdEditCountdown(message);
-
-                                /* List all of the countdowns the broadcaster has set */
-                                else if (message.Equals("!listcountdown"))
-                                    _cmdBrdCstr.CmdListCountdown();
 
                                 /* Add giveaway */
                                 // Usage (Keyword = 1): !addgiveaway [MM-DD-YY] [hh:mm:ss] [AM/PM] [mods] [regulars] [subscribers] [users] [giveawaytype] [keyword] [message]
