@@ -730,8 +730,20 @@ namespace TwitchBot
 
                                 /* Play russian roulette */
                                 // Note: Chat moderators cannot be timed out by the bot (reason for being excluded)
-                                else if (message.Equals("!roulette") && !_modInstance.ListMods.Contains(username.ToLower()))
-                                    _cmdGen.CmdRussianRoulette(username, ref _rouletteUsers);
+                                else if (message.Equals("!roulette") && !IsUserOnCooldown(username, "!roulette"))
+                                {
+                                    DateTime cooldown = _cmdGen.CmdRussianRoulette(username, ref _rouletteUsers);
+                                    if (cooldown > DateTime.Now)
+                                    {
+                                        _cooldownUsers.Add(new CooldownUser
+                                        {
+                                            Username = username,
+                                            Cooldown = cooldown,
+                                            Command = "!roulette",
+                                            Warned = false
+                                        });
+                                    }
+                                }
 
                                 /* Show the users that want to play with the broadcaster */
                                 else if (message.Equals("!listgotnext"))

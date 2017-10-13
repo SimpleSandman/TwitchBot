@@ -38,6 +38,7 @@ namespace TwitchBot.Commands
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
         private QuoteService _quote;
+        private Moderator _modInstance = Moderator.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private BankHeistSettings _heistSettingsInstance = BankHeistSettings.Instance;
@@ -1054,7 +1055,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <param name="rouletteUsers">List of roulette users that have attempted and survived</param>
-        public void CmdRussianRoulette(string username, ref List<RouletteUser> rouletteUsers)
+        public DateTime CmdRussianRoulette(string username, ref List<RouletteUser> rouletteUsers)
         {
             try
             {
@@ -1068,9 +1069,15 @@ namespace TwitchBot.Commands
                     if (rouletteUser != null)
                         rouletteUsers.Remove(rouletteUser);
 
+                    if (_modInstance.ListMods.Contains(username) || _botConfig.Broadcaster.ToLower().Equals(username))
+                    {
+                        _irc.SendPublicChatMessage($"Enjoy your 15 minutes without russian roulette @{username}");
+                        return DateTime.Now.AddMinutes(15);
+                    }
+
                     _irc.SendChatTimeout(username, 300); // 5 minute timeout
                     _irc.SendPublicChatMessage($"You are dead @{username}. Enjoy your 5 minutes in limbo (cannot talk)");
-                    return;
+                    return DateTime.Now;
                 }
 
                 if (rouletteUser == null) // new roulette user
@@ -1121,6 +1128,8 @@ namespace TwitchBot.Commands
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdRussianRoulette(string, ref List<RouletteUser>)", false, "!roulette");
             }
+
+            return DateTime.Now;
         }
 
         public void CmdListGotNextGame(string username, Queue<string> gameQueueUsers)
