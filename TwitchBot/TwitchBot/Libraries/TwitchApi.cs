@@ -17,14 +17,24 @@ namespace TwitchBot.Libraries
     {
         private static Broadcaster _broadcasterInstance = Broadcaster.Instance;
 
-        public static async Task<ChannelJSON> GetChannelById(string clientId)
+        public static async Task<ChannelJSON> GetBroadcasterChannelById(string clientId)
         {
             return await GetRequestExecuteTaskAsync<ChannelJSON>("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId, clientId);
         }
 
-        public static async Task<RootStreamJSON> GetStream(string clientId)
+        public static async Task<ChannelJSON> GetUserChannelById(string userId, string clientId)
+        {
+            return await GetRequestExecuteTaskAsync<ChannelJSON>("https://api.twitch.tv/kraken/channels/" + userId, clientId);
+        }
+
+        public static async Task<RootStreamJSON> GetBroadcasterStream(string clientId)
         {
             return await GetRequestExecuteTaskAsync<RootStreamJSON>("https://api.twitch.tv/kraken/streams/" + _broadcasterInstance.TwitchId, clientId);
+        }
+
+        public static async Task<RootStreamJSON> GetUserStream(string userId, string clientId)
+        {
+            return await GetRequestExecuteTaskAsync<RootStreamJSON>("https://api.twitch.tv/kraken/streams/" + userId, clientId);
         }
 
         public static async Task<RootUserJSON> GetUsersByLoginName(string loginName, string clientId)

@@ -809,7 +809,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                RootStreamJSON streamJSON = await _twitchInfo.GetStream();
+                RootStreamJSON streamJSON = await _twitchInfo.GetBroadcasterStream();
 
                 if (streamJSON.Stream == null)
                     _irc.SendPublicChatMessage("This channel is not streaming right now");

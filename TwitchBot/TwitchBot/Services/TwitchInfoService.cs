@@ -81,14 +81,24 @@ namespace TwitchBot.Services
             return availChatterList;
         }
 
-        public async Task<ChannelJSON> GetChannelById()
+        public async Task<ChannelJSON> GetBroadcasterChannelById()
         {
-            return await TwitchApi.GetChannelById(_botConfig.TwitchClientId);
+            return await TwitchApi.GetBroadcasterChannelById(_botConfig.TwitchClientId);
         }
 
-        public async Task<RootStreamJSON> GetStream()
+        public async Task<ChannelJSON> GetUserChannelById(string userId)
         {
-            return await TwitchApi.GetStream(_botConfig.TwitchClientId);
+            return await TwitchApi.GetUserChannelById(userId, _botConfig.TwitchClientId);
+        }
+
+        public async Task<RootStreamJSON> GetBroadcasterStream()
+        {
+            return await TwitchApi.GetBroadcasterStream(_botConfig.TwitchClientId);
+        }
+
+        public async Task<RootStreamJSON> GetUserStream(string userId)
+        {
+            return await TwitchApi.GetUserStream(userId, _botConfig.TwitchClientId);
         }
 
         public async Task<RootUserJSON> GetUsersByLoginName(string loginName)

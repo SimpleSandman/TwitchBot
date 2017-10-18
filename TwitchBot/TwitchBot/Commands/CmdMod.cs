@@ -12,6 +12,7 @@ using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Services;
+using TwitchBot.Models.JSON;
 
 namespace TwitchBot.Commands
 {
@@ -694,6 +695,45 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetGotNextGame(string, Queue<string>)", false, "!resetgotnext");
+            }
+        }
+
+        public async Task CmdPromoteStreamer(string message, string username)
+        {
+            try
+            {
+                string streamerUsername = message.Substring(message.IndexOf("@") + 1);
+
+                RootUserJSON userInfo = await _twitchInfo.GetUsersByLoginName(streamerUsername);
+                if (userInfo.Users.Count == 0)
+                {
+                    _irc.SendPublicChatMessage($"Cannot find the requested user @{username}");
+                    return;
+                }
+
+                string userId = userInfo.Users.First().Id;
+                string promotionMessage = $"Hey everyone! Check out {streamerUsername}'s channel at https://www.twitch.tv/" + streamerUsername 
+                    + " and slam that follow button!";
+                RootStreamJSON userStreamInfo = await _twitchInfo.GetUserStream(userId);
+
+                if (userStreamInfo.Stream == null)
+                {
+                    ChannelJSON channelInfo = await _twitchInfo.GetUserChannelById(userId);
+
+                    if (!string.IsNullOrEmpty(channelInfo.Game))
+                        promotionMessage += $" They were last seen playing \"{channelInfo.Game}\"";
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(userStreamInfo.Stream.Game))
+                        promotionMessage += $" Right now, they're playing \"{userStreamInfo.Stream.Game}\"";
+                }
+
+                _irc.SendPublicChatMessage(promotionMessage);
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetGotNextGame(string, string)", false, "!streamer");
             }
         }
     }

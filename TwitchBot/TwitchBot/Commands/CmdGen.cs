@@ -117,7 +117,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                RootStreamJSON streamJson = await _twitchInfo.GetStream();
+                RootStreamJSON streamJson = await _twitchInfo.GetBroadcasterStream();
 
                 // Check if the channel is live
                 if (streamJson.Stream != null)
@@ -393,7 +393,7 @@ namespace TwitchBot.Commands
                 else
                 {
                     // get current game info
-                    ChannelJSON json = await _twitchInfo.GetChannelById();
+                    ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                     string gameTitle = json.Game;
                     string partyMember = message.Substring(inputIndex);
                     int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
@@ -436,7 +436,7 @@ namespace TwitchBot.Commands
             try
             {
                 // get current game info
-                ChannelJSON json = await _twitchInfo.GetChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = json.Game;
                 int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
 
@@ -459,7 +459,7 @@ namespace TwitchBot.Commands
             try
             {
                 // get current game info
-                ChannelJSON json = await _twitchInfo.GetChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = json.Game;
                 int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
 
@@ -1284,7 +1284,7 @@ namespace TwitchBot.Commands
         private bool IsMultiplayerGame(string username)
         {
             // Get current game name
-            ChannelJSON json = _twitchInfo.GetChannelById().Result;
+            ChannelJSON json = _twitchInfo.GetBroadcasterChannelById().Result;
             string gameTitle = json.Game;
 
             // Grab game id in order to find party member

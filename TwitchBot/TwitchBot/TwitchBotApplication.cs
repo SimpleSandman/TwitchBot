@@ -517,6 +517,11 @@ namespace TwitchBot
                                     else if (message.Equals("!resetgotnext"))
                                         _cmdMod.CmdResetGotNextGame(username, ref _gameQueueUsers);
 
+                                    /* Display the streamer's channel and game status */
+                                    // Usage: !streamer @[username]
+                                    else if (message.StartsWith("!streamer @"))
+                                        await _cmdMod.CmdPromoteStreamer(message, username);
+
                                     /* insert moderator commands here */
                                 }
 

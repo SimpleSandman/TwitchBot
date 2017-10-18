@@ -34,7 +34,7 @@ namespace TwitchBot.Threads
             _connStr = connStr;
             _twitchClientId = twitchClientId;
             _gameDirectory = gameDirectory;
-            _lastSecCountdownReminder = -15;
+            _lastSecCountdownReminder = -10;
             _refreshReminders = false;
             _chatReminderThread = new Thread (new ThreadStart (this.Run));
         }
@@ -52,7 +52,7 @@ namespace TwitchBot.Threads
 
             while (true)
             {
-                ChannelJSON channelJSON = await TwitchApi.GetChannelById(_twitchClientId);
+                ChannelJSON channelJSON = await TwitchApi.GetBroadcasterChannelById(_twitchClientId);
                 string gameTitle = channelJSON.Game;
                 if (_gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer) == 0)
                     _gameId = null;
@@ -211,7 +211,7 @@ namespace TwitchBot.Threads
                 });
 
                 // set up countdown messages
-                for (int i = 10; i > 0; i--)
+                for (int i = 5; i > 0; i--)
                 {
                     Program.DelayedMessages.Add(new DelayedMessage
                     {
