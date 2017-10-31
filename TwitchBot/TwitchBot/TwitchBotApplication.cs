@@ -433,7 +433,7 @@ namespace TwitchBot
                                 /* insert more broadcaster commands here */
                             }
 
-                            if (!IsUserTimedout(username))
+                            if (!IsUserTimedout(message, username))
                             {
                                 /*
                                  * Moderator commands (also checks if user has been timed out from using a command)
@@ -459,8 +459,8 @@ namespace TwitchBot
                                         _cmdMod.CmdPopPartyUpRequest();
 
                                     /* Bot-specific timeout on a user for a set amount of time */
-                                    // Usage: !addtimeout [seconds] @[username]
-                                    else if (message.StartsWith("!addtimeout ") && message.Contains("@"))
+                                    // Usage: !timeout [seconds] @[username]
+                                    else if (message.StartsWith("!timeout ") && message.Contains("@"))
                                         _cmdMod.CmdAddTimeout(message, username);
 
                                     /* Remove bot-specific timeout on a user for a set amount of time */
@@ -785,26 +785,38 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, string, bool)", true);
+                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, bool, string, bool, bool)", true);
             }
         }
 
-        private bool IsUserTimedout(string username)
+        /// <summary>
+        /// Checks if a user is timed out from all bot commands
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="username"></param>
+        /// <returns></returns>
+        private bool IsUserTimedout(string message, string username)
         {
-            if (_timeout.TimeoutKeyValues.ContainsKey(username))
+            TimeoutUser user = _timeout.TimedoutUsers.FirstOrDefault(u => u.Username.Equals(username));
+
+            if (user == null) return false;
+            else if (user.TimeoutExpiration < DateTime.UtcNow)
             {
+                _timeout.DeleteTimeoutFromList(username, _broadcasterInstance.DatabaseId, _connStr);
+                return false;
+            }
+            else if (!user.HasBeenWarned)
+            {
+                user.HasBeenWarned = true; // prevent spamming timeout message
                 string timeout = _timeout.GetTimeoutFromUser(username, _broadcasterInstance.DatabaseId, _connStr);
 
                 if (timeout.Equals("0 seconds"))
-                    _irc.SendPublicChatMessage("You are now allowed to talk to me again @" + username
-                        + ". Please try the requested command once more");
+                    return false;
                 else
-                    _irc.SendPublicChatMessage("I am not allowed to talk to you for " + timeout);
-
-                return true;
+                    _irc.SendPublicChatMessage("FYI: I am not allowed to talk to you for " + timeout);
             }
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -938,8 +950,6 @@ namespace TwitchBot
                     cmd.ExecuteNonQuery();
                 }
 
-                Dictionary<string, DateTime> timeoutKeyValues = new Dictionary<string, DateTime>();
-
                 using (SqlConnection conn = new SqlConnection(_connStr))
                 {
                     conn.Open();
@@ -952,14 +962,17 @@ namespace TwitchBot
                             {
                                 while (reader.Read())
                                 {
-                                    timeoutKeyValues.Add(reader["username"].ToString(), Convert.ToDateTime(reader["timeout"]));
+                                    _timeout.TimedoutUsers.Add(new TimeoutUser
+                                    {
+                                        Username = reader["username"].ToString(),
+                                        TimeoutExpiration = Convert.ToDateTime(reader["timeout"]),
+                                        HasBeenWarned = false
+                                    });
                                 }
                             }
                         }
                     }
                 }
-
-                _timeout.TimeoutKeyValues = timeoutKeyValues;
             }
             catch (Exception ex)
             {

@@ -310,20 +310,20 @@ namespace TwitchBot.Commands
         {
             try
             {
-                if (message.StartsWith("!addtimeout @"))
-                    _irc.SendPublicChatMessage("I cannot make a user not talk to me without this format '!addtimeout [seconds] @[username]'");
+                if (message.StartsWith("!timeout @"))
+                    _irc.SendPublicChatMessage("I cannot make a user not talk to me without this format '!timeout [seconds] @[username]'");
                 else if (message.ToLower().Contains(_botConfig.Broadcaster.ToLower()))
                     _irc.SendPublicChatMessage("I cannot betray @" + _botConfig.Broadcaster + " by not allowing him to communicate with me @" + username);
                 else if (message.ToLower().Contains(_botConfig.BotName.ToLower()))
                     _irc.SendPublicChatMessage("You can't time me out @" + username);
                 else
                 {
-                    int indexAction = 12;
+                    int indexAction = 9;
                     string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
                     double seconds = -1;
-                    bool isValidDeposit = double.TryParse(message.Substring(indexAction, message.IndexOf("@") - indexAction - 1), out seconds);
+                    bool isValidTimeout = double.TryParse(message.Substring(indexAction, message.IndexOf("@") - indexAction - 1), out seconds);
 
-                    if (!isValidDeposit || seconds < 0.00)
+                    if (!isValidTimeout || seconds < 0.00)
                         _irc.SendPublicChatMessage("The timeout amount wasn't accepted. Please try again with positive seconds only");
                     else if (seconds < 15.00)
                         _irc.SendPublicChatMessage("The duration needs to be at least 15 seconds long. Please try again");
@@ -331,13 +331,13 @@ namespace TwitchBot.Commands
                     {
                         _timeout.AddTimeoutToList(recipient, _broadcasterId, seconds, _connStr);
 
-                        _irc.SendPublicChatMessage("I am told not to talk to you for " + seconds + " seconds @" + recipient);
+                        _irc.SendPublicChatMessage($"I'm told not to talk to you for {seconds} second(s) @{recipient}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddTimeout(string, string)", false, "!addtimeout");
+                _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddTimeout(string, string)", false, "!timeout");
             }
         }
 

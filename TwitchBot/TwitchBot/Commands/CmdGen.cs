@@ -1119,6 +1119,13 @@ namespace TwitchBot.Commands
                         rouletteUsers.RemoveAll(u => u.Username.Equals(username));
 
                         responseMessage = $"Congrats on surviving russian roulette. Here's {reward} {_botConfig.CurrencyType}!";
+
+                        // Special cooldown for moderators/broadcasters after they win
+                        if (_modInstance.ListMods.Contains(username) || _botConfig.Broadcaster.ToLower().Equals(username))
+                        {
+                            _irc.SendPublicChatMessage(responseMessage);
+                            return DateTime.Now.AddMinutes(5);
+                        }
                     }
 
                     _irc.SendPublicChatMessage(responseMessage);

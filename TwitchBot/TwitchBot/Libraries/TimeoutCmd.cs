@@ -2,17 +2,20 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
+
+using TwitchBot.Models;
 
 namespace TwitchBot.Libraries
 {
     public class TimeoutCmd
     {
-        private Dictionary<string, DateTime> _timeoutKeyValues = new Dictionary<string, DateTime>();
+        private List<TimeoutUser> _timedoutUsers = new List<TimeoutUser>();
 
-        public Dictionary<string, DateTime> TimeoutKeyValues
+        public List<TimeoutUser> TimedoutUsers
         {
-            get { return _timeoutKeyValues; }
-            set { _timeoutKeyValues = value; }
+            get { return _timedoutUsers; }
+            set { _timedoutUsers = value; }
         }
 
         public void AddTimeoutToList(string recipient, int broadcasterId, double seconds, string connStr)
@@ -33,10 +36,14 @@ namespace TwitchBot.Libraries
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
-                    conn.Close();
                 }
 
-                _timeoutKeyValues.Add(recipient, timeoutDuration);
+                _timedoutUsers.Add(new TimeoutUser
+                {
+                    Username = recipient,
+                    TimeoutExpiration = timeoutDuration,
+                    HasBeenWarned = false
+                });
             }
             catch (Exception ex)
             {
@@ -61,7 +68,7 @@ namespace TwitchBot.Libraries
                     cmd.ExecuteNonQuery();
                 }
 
-                _timeoutKeyValues.Remove(recipient);
+                _timedoutUsers.RemoveAll(r => r.Username == recipient);
             }
             catch (Exception ex)
             {
@@ -73,15 +80,16 @@ namespace TwitchBot.Libraries
         {
             try
             {
-                if (_timeoutKeyValues.ContainsKey(recipient))
+                TimeoutUser timeoutUser = _timedoutUsers.FirstOrDefault(r => r.Username == recipient);
+                if (timeoutUser != null)
                 {
-                    if (_timeoutKeyValues[recipient] < DateTime.UtcNow)
+                    if (timeoutUser.TimeoutExpiration < DateTime.UtcNow)
                     {
                         DeleteTimeoutFromList(recipient, broadcasterId, connStr);
                     }
                     else
                     {
-                        TimeSpan timeout = _timeoutKeyValues[recipient] - DateTime.UtcNow;
+                        TimeSpan timeout = timeoutUser.TimeoutExpiration - DateTime.UtcNow;
                         return timeout.ToString(@"hh\:mm\:ss");
                     }
                 }
