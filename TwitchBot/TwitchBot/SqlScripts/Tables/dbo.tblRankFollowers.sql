@@ -12,7 +12,9 @@ CREATE TABLE [dbo].[tblRankFollowers] (
     [Id]          INT          IDENTITY (1, 1) NOT NULL,
     [username]    VARCHAR (30) NOT NULL,
     [exp]         INT          NOT NULL,
-    [broadcaster] INT          NOT NULL
+    [broadcaster] INT          NOT NULL,
+	PRIMARY KEY CLUSTERED ([Id] ASC),
+	CONSTRAINT [FK_tblRankFollowers_tblBroadcasters] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[tblBroadcasters] ([Id])
 );
 
 
