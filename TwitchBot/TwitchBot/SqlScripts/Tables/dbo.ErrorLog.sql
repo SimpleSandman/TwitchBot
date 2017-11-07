@@ -8,7 +8,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[tblErrorLog] (
+CREATE TABLE [dbo].[ErrorLog] (
     [ID]          INT            IDENTITY (1, 1) NOT NULL,
     [errorTime]   DATETIME       NOT NULL,
     [errorLine]   INT            NOT NULL,
@@ -19,7 +19,6 @@ CREATE TABLE [dbo].[tblErrorLog] (
     [command]     VARCHAR (50)   NULL,
     [userMsg]     VARCHAR (500)  NULL,
     PRIMARY KEY CLUSTERED ([ID] ASC),
-    CONSTRAINT [FK_tblErrorLog_tblBroadcaster] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[tblBroadcasters] ([Id])
+    CONSTRAINT [FK_tblErrorLog_tblBroadcaster] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[Broadcasters] ([Id])
 );
-
 

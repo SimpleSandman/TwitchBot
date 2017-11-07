@@ -24,7 +24,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUpRequests "
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM PartyUpRequests "
                     + "WHERE broadcaster = @broadcaster AND game = @game AND username = @username", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
@@ -57,7 +57,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblPartyUp WHERE broadcaster = @broadcaster AND game = @game", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM PartyUp WHERE broadcaster = @broadcaster AND game = @game", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     cmd.Parameters.Add("@game", SqlDbType.Int).Value = gameId;
@@ -84,7 +84,7 @@ namespace TwitchBot.Repositories
 
         public void AddPartyMember(string username, string partyMember, int gameId, int broadcasterId)
         {
-            string query = "INSERT INTO tblPartyUpRequests (username, partyMember, timeRequested, broadcaster, game) "
+            string query = "INSERT INTO PartyUpRequests (username, partyMember, timeRequested, broadcaster, game) "
                                 + "VALUES (@username, @partyMember, @timeRequested, @broadcaster, @game)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
@@ -108,7 +108,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT partyMember FROM tblPartyUp WHERE game = @game AND broadcaster = @broadcaster ORDER BY partyMember", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT partyMember FROM PartyUp WHERE game = @game AND broadcaster = @broadcaster ORDER BY partyMember", conn))
                 {
                     cmd.Parameters.Add("@game", SqlDbType.Int).Value = gameId;
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
@@ -143,7 +143,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT username, partyMember FROM tblPartyUpRequests "
+                using (SqlCommand cmd = new SqlCommand("SELECT username, partyMember FROM PartyUpRequests "
                     + "WHERE game = @game AND broadcaster = @broadcaster ORDER BY Id", conn))
                 {
                     cmd.Parameters.Add("@game", SqlDbType.Int).Value = gameId;
@@ -179,7 +179,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) partyMember, username FROM tblPartyUpRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) partyMember, username FROM PartyUpRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
                 {
                     cmd.Parameters.AddWithValue("@broadcaster", broadcasterId);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -201,7 +201,7 @@ namespace TwitchBot.Repositories
 
         public void PopRequestedPartyMember(int broadcasterId)
         {
-            string query = "WITH T AS (SELECT TOP(1) * FROM tblPartyUpRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
+            string query = "WITH T AS (SELECT TOP(1) * FROM PartyUpRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))

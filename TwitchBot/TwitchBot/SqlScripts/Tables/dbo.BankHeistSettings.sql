@@ -8,7 +8,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[tblBankHeistSettings] (
+CREATE TABLE [dbo].[BankHeistSettings] (
     [Id]                 INT            IDENTITY (1, 1) NOT NULL,
     [broadcaster]        INT            NOT NULL,
     [cooldownPeriodMin]  INT            DEFAULT ((10)) NOT NULL,
@@ -52,6 +52,6 @@ CREATE TABLE [dbo].[tblBankHeistSettings] (
     [payoutSuccessRate5] DECIMAL (5, 2) DEFAULT ((32.40)) NOT NULL,
     [payoutMultiplier5]  DECIMAL (3, 2) DEFAULT ((2.75)) NOT NULL,
     PRIMARY KEY CLUSTERED ([Id] ASC),
-    CONSTRAINT [FK_tblBankHeistSettings_tblBroadcaster] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[tblBroadcasters] ([Id])
+    CONSTRAINT [FK_tblBankHeistSettings_tblBroadcaster] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[Broadcasters] ([Id])
 );
 

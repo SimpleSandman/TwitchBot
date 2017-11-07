@@ -22,7 +22,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT title, artist FROM tblSongRequestBlacklist WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT title, artist FROM SongRequestBlacklist WHERE broadcaster = @broadcaster", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -47,7 +47,7 @@ namespace TwitchBot.Repositories
 
         public int AddArtistToBlacklist(string artist, int broadcasterId)
         {
-            string query = "INSERT INTO tblSongRequestBlacklist (artist, broadcaster) VALUES (@artist, @broadcaster)";
+            string query = "INSERT INTO SongRequestBlacklist (artist, broadcaster) VALUES (@artist, @broadcaster)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -62,7 +62,7 @@ namespace TwitchBot.Repositories
 
         public int AddSongToBlacklist(string title, string artist, int broadcasterId)
         {
-            string query = "INSERT INTO tblSongRequestBlacklist (title, artist, broadcaster) VALUES (@title, @artist, @broadcaster)";
+            string query = "INSERT INTO SongRequestBlacklist (title, artist, broadcaster) VALUES (@title, @artist, @broadcaster)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -78,7 +78,7 @@ namespace TwitchBot.Repositories
 
         public int DeleteArtistFromBlacklist(string artist, int broadcasterId)
         {
-            string query = "DELETE FROM tblSongRequestBlacklist WHERE artist = @artist AND broadcaster = @broadcaster";
+            string query = "DELETE FROM SongRequestBlacklist WHERE artist = @artist AND broadcaster = @broadcaster";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -93,7 +93,7 @@ namespace TwitchBot.Repositories
 
         public int DeleteSongFromBlacklist(string title, string artist, int broadcasterId)
         {
-            string query = "DELETE FROM tblSongRequestBlacklist "
+            string query = "DELETE FROM SongRequestBlacklist "
                         + "WHERE title = @title AND artist = @artist AND broadcaster = @broadcaster";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
@@ -110,7 +110,7 @@ namespace TwitchBot.Repositories
 
         public int ResetBlacklist(int broadcasterId)
         {
-            string query = "DELETE FROM tblSongRequestBlacklist WHERE broadcaster = @broadcaster";
+            string query = "DELETE FROM SongRequestBlacklist WHERE broadcaster = @broadcaster";
 
             // Create connection and command
             using (SqlConnection conn = new SqlConnection(_connStr))

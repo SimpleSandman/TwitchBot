@@ -18,7 +18,7 @@ namespace TwitchBot.Repositories
 
         public void CreateAccount(string recipient, int broadcasterId, int deposit)
         {
-            string query = "INSERT INTO tblBank (username, wallet, broadcaster) VALUES (@username, @wallet, @broadcaster)";
+            string query = "INSERT INTO Bank (username, wallet, broadcaster) VALUES (@username, @wallet, @broadcaster)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -34,7 +34,7 @@ namespace TwitchBot.Repositories
 
         public void UpdateFunds(string walletOwner, int broadcasterId, int newWalletBalance)
         {
-            string query = "UPDATE tblBank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
+            string query = "UPDATE Bank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -54,7 +54,7 @@ namespace TwitchBot.Repositories
             DataTable resultTable = new DataTable();
 
             using (SqlConnection conn = new SqlConnection(_connStr))
-            using (SqlCommand cmd = new SqlCommand("uspUpdateCreateBalance", conn))
+            using (SqlCommand cmd = new SqlCommand("UpdateCreateBalance", conn))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
 
@@ -77,7 +77,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBank WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Bank WHERE broadcaster = @broadcaster", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -106,7 +106,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT TOP 3 * FROM tblBank " 
+                using (SqlCommand cmd = new SqlCommand("SELECT TOP 3 * FROM Bank " 
                     + "WHERE broadcaster = @broadcasterId AND username <> @broadcasterName AND username <> @botName " 
                     + "ORDER BY wallet DESC", conn))
                 {

@@ -8,14 +8,13 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[tblPartyUp] (
+CREATE TABLE [dbo].[PartyUp] (
     [Id]          INT           IDENTITY (1, 1) NOT NULL,
     [partyMember] VARCHAR (100) NOT NULL,
     [game]        INT           NOT NULL,
     [broadcaster] INT           NOT NULL,
     PRIMARY KEY CLUSTERED ([Id] ASC),
-    CONSTRAINT [FK_tblPartyUp_tblGameList] FOREIGN KEY ([game]) REFERENCES [dbo].[tblGameList] ([Id]),
-    CONSTRAINT [FK_tblPartyUps_tblBroadcaster] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[tblBroadcasters] ([Id])
+    CONSTRAINT [FK_tblPartyUp_tblGameList] FOREIGN KEY ([game]) REFERENCES [dbo].[GameList] ([Id]),
+    CONSTRAINT [FK_tblPartyUps_tblBroadcaster] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[Broadcasters] ([Id])
 );
-
 

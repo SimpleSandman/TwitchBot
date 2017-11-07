@@ -105,7 +105,7 @@ namespace TwitchBot.Threads
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblReminders WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Reminders WHERE broadcaster = @broadcaster", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())

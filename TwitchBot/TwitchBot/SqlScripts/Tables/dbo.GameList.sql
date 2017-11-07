@@ -8,11 +8,10 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[tblGameList] (
-    [Id]   INT           IDENTITY (1, 1) NOT NULL,
-    [name] VARCHAR (100) NOT NULL,
-    [multiplayer] BIT NOT NULL DEFAULT 0, 
+CREATE TABLE [dbo].[GameList] (
+    [Id]          INT           IDENTITY (1, 1) NOT NULL,
+    [name]        VARCHAR (100) NOT NULL,
+    [multiplayer] BIT           DEFAULT ((0)) NOT NULL,
     PRIMARY KEY CLUSTERED ([Id] ASC)
 );
-
 

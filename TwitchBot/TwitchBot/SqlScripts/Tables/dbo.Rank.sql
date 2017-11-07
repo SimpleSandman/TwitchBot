@@ -8,13 +8,12 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[tblRank] (
+CREATE TABLE [dbo].[Rank] (
     [Id]          INT          IDENTITY (1, 1) NOT NULL,
     [name]        VARCHAR (30) NOT NULL,
     [expCap]      INT          NOT NULL,
-    [broadcaster] INT          NOT NULL, 
-	PRIMARY KEY CLUSTERED ([Id] ASC),
-	CONSTRAINT [FK_tblRank_tblBroadcasters] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[tblBroadcasters] ([Id])
+    [broadcaster] INT          NOT NULL,
+    PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [FK_tblRank_tblBroadcasters] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[Broadcasters] ([Id])
 );
-
 

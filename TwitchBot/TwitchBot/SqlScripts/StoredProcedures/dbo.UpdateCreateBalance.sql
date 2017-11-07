@@ -1,5 +1,5 @@
-﻿CREATE PROCEDURE [dbo].[uspUpdateCreateBalance]
-	@tvpUsernames dbo.tblUsernames READONLY,
+﻿CREATE PROCEDURE [dbo].[UpdateCreateBalance]
+	@tvpUsernames dbo.Usernames READONLY,
 	@intDeposit INT,
 	@intBroadcasterID INT,
 	@bitShowOutput BIT = 0
@@ -10,7 +10,7 @@ AS
 		wallet INT NOT NULL
 	);
 
-	MERGE INTO dbo.tblBank WITH (HOLDLOCK) AS target
+	MERGE INTO dbo.Bank WITH (HOLDLOCK) AS target
 	USING @tvpUsernames AS source
 		ON target.username = source.username
 		AND target.broadcaster = @intBroadcasterID

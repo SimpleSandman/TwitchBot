@@ -8,7 +8,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[tblReminders] (
+CREATE TABLE [dbo].[Reminders] (
     [Id]                 INT           IDENTITY (1, 1) NOT NULL,
     [sunday]             BIT           DEFAULT ((0)) NOT NULL,
     [monday]             BIT           DEFAULT ((0)) NOT NULL,
@@ -31,6 +31,7 @@ CREATE TABLE [dbo].[tblReminders] (
     [broadcaster]        INT           NOT NULL,
     [game]               INT           NULL,
     PRIMARY KEY CLUSTERED ([Id] ASC),
-    CONSTRAINT [FK_tblReminders_tblGameList] FOREIGN KEY ([game]) REFERENCES [dbo].[tblGameList] ([Id]),
-    CONSTRAINT [FK_tblReminders_tblBroadcasters] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[tblBroadcasters] ([Id])
+    CONSTRAINT [FK_tblReminders_tblGameList] FOREIGN KEY ([game]) REFERENCES [dbo].[GameList] ([Id]),
+    CONSTRAINT [FK_tblReminders_tblBroadcasters] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[Broadcasters] ([Id])
 );
+

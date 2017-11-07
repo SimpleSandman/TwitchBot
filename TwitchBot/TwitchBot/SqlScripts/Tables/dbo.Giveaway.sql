@@ -8,7 +8,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[tblGiveaway] (
+CREATE TABLE [dbo].[Giveaway] (
     [Id]          INT          IDENTITY (1, 1) NOT NULL,
     [dueDate]     DATETIME     NOT NULL,
     [message]     VARCHAR (75) NOT NULL,
@@ -21,5 +21,4 @@ CREATE TABLE [dbo].[tblGiveaway] (
     [giveParam1]  VARCHAR (50) NOT NULL,
     [giveParam2]  VARCHAR (50) NULL
 );
-
 

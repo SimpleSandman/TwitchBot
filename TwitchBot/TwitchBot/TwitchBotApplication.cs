@@ -19,6 +19,7 @@ using TwitchBot.Models;
 using TwitchBot.Services;
 using TwitchBot.Threads;
 using TwitchBot.Models.JSON;
+using System.Configuration;
 
 namespace TwitchBot
 {
@@ -116,10 +117,10 @@ namespace TwitchBot
                 // Check for tables needed to start this application
                 // ToDo: Add more table names
                 List<string> dbTables = GetTables();
-                if (dbTables.Contains("tblBroadcasters")
-                    && dbTables.Contains("tblModerators")
-                    && dbTables.Contains("tblTimeout")
-                    && dbTables.Contains("tblErrorLog"))
+                if (dbTables.Contains("Broadcasters")
+                    && dbTables.Contains("Moderators")
+                    && dbTables.Contains("Timeout")
+                    && dbTables.Contains("ErrorLog"))
                 {
                     Console.WriteLine("Found database tables");
                     Console.WriteLine();
@@ -208,7 +209,10 @@ namespace TwitchBot
                         broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylist(defaultPlaylistName, "Songs requested from Twitch chatters");
 
                     _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
-                    _appConfig.Save();
+                    _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistId");
+                    _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistId", broadcasterPlaylist.Id);
+                    _appConfig.Save(ConfigurationSaveMode.Modified);
+                    ConfigurationManager.RefreshSection("TwitchBotConfiguration");
                 }
 
                 /* Start listening for delayed messages */
@@ -938,7 +942,7 @@ namespace TwitchBot
         {
             try
             {
-                string query = "DELETE FROM tblTimeout WHERE broadcaster = @broadcaster AND timeout < GETDATE()";
+                string query = "DELETE FROM Timeout WHERE broadcaster = @broadcaster AND timeout < GETDATE()";
 
                 // Create connection and command
                 using (SqlConnection conn = new SqlConnection(_connStr))
@@ -953,7 +957,7 @@ namespace TwitchBot
                 using (SqlConnection conn = new SqlConnection(_connStr))
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblTimeout WHERE broadcaster = @broadcaster", conn))
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM Timeout WHERE broadcaster = @broadcaster", conn))
                     {
                         cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterInstance.DatabaseId;
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -1011,7 +1015,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GreetNewUser(string)", false);
+                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GreetNewUser(string, string)", false);
             }
         }
     }

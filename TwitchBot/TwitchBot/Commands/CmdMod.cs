@@ -13,6 +13,7 @@ using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Services;
 using TwitchBot.Models.JSON;
+using System.Configuration;
 
 namespace TwitchBot.Commands
 {
@@ -379,7 +380,10 @@ namespace TwitchBot.Commands
                 else
                 {
                     _botConfig.StreamLatency = latency;
-                    _appConfig.Save();
+                    _appConfig.AppSettings.Settings.Remove("streamLatency");
+                    _appConfig.AppSettings.Settings.Add("streamLatency", latency.ToString());
+                    _appConfig.Save(ConfigurationSaveMode.Modified);
+                    ConfigurationManager.RefreshSection("TwitchBotConfiguration");
 
                     Console.WriteLine("Stream latency set to " + _botConfig.StreamLatency + " second(s)");
                     _irc.SendPublicChatMessage("Bot settings for stream latency set to " + _botConfig.StreamLatency + " second(s) @" + username);

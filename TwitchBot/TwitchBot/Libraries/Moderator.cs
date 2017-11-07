@@ -48,7 +48,7 @@ namespace TwitchBot.Libraries
                 using (SqlConnection conn = new SqlConnection(connStr))
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblModerators WHERE broadcaster = @broadcaster", conn))
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM Moderators WHERE broadcaster = @broadcaster", conn))
                     {
                         cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -74,7 +74,7 @@ namespace TwitchBot.Libraries
         {
             try
             {
-                string query = "INSERT INTO tblModerators (username, broadcaster) VALUES (@username, @broadcaster)";
+                string query = "INSERT INTO Moderators (username, broadcaster) VALUES (@username, @broadcaster)";
 
                 // Create connection and command
                 using (SqlConnection conn = new SqlConnection(connStr))
@@ -99,7 +99,7 @@ namespace TwitchBot.Libraries
         {
             try
             {
-                string query = "DELETE FROM tblModerators WHERE username = @username AND broadcaster = @broadcaster";
+                string query = "DELETE FROM Moderators WHERE username = @username AND broadcaster = @broadcaster";
 
                 // Create connection and command
                 using (SqlConnection conn = new SqlConnection(connStr))

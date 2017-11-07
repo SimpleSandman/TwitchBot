@@ -110,7 +110,7 @@ namespace TwitchBot.Models
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBankHeistSettings WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM BankHeistSettings WHERE broadcaster = @broadcaster", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -175,7 +175,7 @@ namespace TwitchBot.Models
 
         public void CreateSettings(int broadcasterId, string connStr)
         {
-            string query = "INSERT INTO tblBankHeistSettings (broadcaster) VALUES (@broadcaster)";
+            string query = "INSERT INTO BankHeistSettings (broadcaster) VALUES (@broadcaster)";
 
             using (SqlConnection conn = new SqlConnection(connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))

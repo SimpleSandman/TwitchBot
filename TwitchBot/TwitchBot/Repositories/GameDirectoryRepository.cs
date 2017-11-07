@@ -24,7 +24,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblGameList", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM GameList", conn))
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.HasRows)

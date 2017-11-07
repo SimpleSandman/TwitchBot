@@ -8,14 +8,12 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[tblBroadcasters] (
+CREATE TABLE [dbo].[Broadcasters] (
     [Id]        INT          IDENTITY (1, 1) NOT NULL,
     [username]  VARCHAR (30) NOT NULL,
     [timeAdded] DATETIME     DEFAULT (getdate()) NOT NULL,
-    [twitchId]  INT          NOT NULL DEFAULT 0,
+    [twitchId]  INT          DEFAULT ((0)) NOT NULL,
     PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [AK_username] UNIQUE NONCLUSTERED ([username] ASC)
 );
-
-
 

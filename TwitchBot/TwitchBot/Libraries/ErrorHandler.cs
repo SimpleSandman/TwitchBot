@@ -48,7 +48,7 @@ namespace TwitchBot.Libraries
                     using (SqlConnection conn = new SqlConnection(_connStr))
                     {
                         conn.Open();
-                        using (SqlCommand cmd = new SqlCommand("SELECT * FROM tblBroadcasters WHERE username = @username", conn))
+                        using (SqlCommand cmd = new SqlCommand("SELECT * FROM Broadcasters WHERE username = @username", conn))
                         {
                             cmd.Parameters.AddWithValue("@username", strBroadcaster);
                             using (SqlDataReader reader = cmd.ExecuteReader())
@@ -84,7 +84,7 @@ namespace TwitchBot.Libraries
                 }
 
                 /* Add song request to database */
-                string query = "INSERT INTO tblErrorLog (errorTime, errorLine, errorClass, errorMethod, errorMsg, broadcaster, command, userMsg) "
+                string query = "INSERT INTO ErrorLog (errorTime, errorLine, errorClass, errorMethod, errorMsg, broadcaster, command, userMsg) "
                     + "VALUES (@time, @lineNum, @class, @method, @msg, @broadcaster, @command, @userMsg)";
 
                 // Create connection and command

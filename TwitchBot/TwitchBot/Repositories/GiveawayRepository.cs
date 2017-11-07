@@ -20,7 +20,7 @@ namespace TwitchBot.Repositories
         public void AddGiveaway(DateTime giveawayDate, string giveawayText, int broadcasterId, int[] elgList, 
             int giveawayType, string giveawayParam, string minRandNum, string maxRandNum)
         {
-            string query = "INSERT INTO tblGiveaway (dueDate, message, broadcaster, elgMod, elgReg, elgSub, " 
+            string query = "INSERT INTO Giveaway (dueDate, message, broadcaster, elgMod, elgReg, elgSub, " 
                                + "elgUsr, giveType, giveParam1, giveParam2) " +
                            "VALUES (@dueDate, @message, @broadcaster, @elgMod, @elgReg, @elgSub, " 
                                + "@elgUsr, @giveType, @giveParam1, @giveParam2)";
@@ -60,7 +60,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT id, broadcaster FROM tblGiveaway "
+                using (SqlCommand cmd = new SqlCommand("SELECT id, broadcaster FROM Giveaway "
                     + "WHERE broadcaster = @broadcaster", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
@@ -90,12 +90,12 @@ namespace TwitchBot.Repositories
             string query = "";
 
             if (inputType == 1)
-                query = "UPDATE dbo.tblGiveaway SET dueDate = @dueDate WHERE (Id = @id AND broadcaster = @broadcaster)";
+                query = "UPDATE dbo.Giveaway SET dueDate = @dueDate WHERE (Id = @id AND broadcaster = @broadcaster)";
             else if (inputType == 2)
-                query = "UPDATE dbo.tblGiveaway SET message = @message WHERE (Id = @id AND broadcaster = @broadcaster)";
+                query = "UPDATE dbo.Giveaway SET message = @message WHERE (Id = @id AND broadcaster = @broadcaster)";
             else if (inputType == 3)
             {
-                query = "UPDATE dbo.tblGiveaway SET elgMod = @elgMod" +
+                query = "UPDATE dbo.Giveaway SET elgMod = @elgMod" +
                     ", elgReg = @elgReg" +
                     ", elgSub = @elgSub" +
                     ", elgUsr = @elgUsr" +
@@ -103,7 +103,7 @@ namespace TwitchBot.Repositories
             }
             else if (inputType == 4)
             {
-                query = "UPDATE dbo.tblGiveaway SET giveType = @giveType" +
+                query = "UPDATE dbo.Giveaway SET giveType = @giveType" +
                     ", giveParam1 = @giveParam1" +
                     ", giveParam2 = @giveParam2" +
                     " WHERE (Id = @id AND broadcaster = @broadcaster)";

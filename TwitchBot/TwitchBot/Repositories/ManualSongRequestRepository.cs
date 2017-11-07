@@ -19,7 +19,7 @@ namespace TwitchBot.Repositories
 
         public void AddSongRequest(string songRequestName, string username, int broadcasterId)
         {
-            string query = "INSERT INTO tblSongRequests (songRequests, broadcaster, chatter) VALUES (@song, @broadcaster, @chatter)";
+            string query = "INSERT INTO SongRequests (songRequests, broadcaster, chatter) VALUES (@song, @broadcaster, @chatter)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -40,7 +40,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM SongRequests WHERE broadcaster = @broadcaster", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -83,7 +83,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) songRequests FROM tblSongRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) songRequests FROM SongRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
                 {
                     cmd.Parameters.AddWithValue("@broadcaster", broadcasterId);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -105,7 +105,7 @@ namespace TwitchBot.Repositories
 
         public void PopSongRequest(int broadcasterId)
         {
-            string query = "WITH T AS (SELECT TOP(1) * FROM tblSongRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
+            string query = "WITH T AS (SELECT TOP(1) * FROM SongRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))

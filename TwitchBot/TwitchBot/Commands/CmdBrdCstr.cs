@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -91,7 +92,10 @@ namespace TwitchBot.Commands
                 else
                 {
                     _botConfig.EnableTweets = true;
-                    _appConfig.Save();
+                    _appConfig.AppSettings.Settings.Remove("enableTweets");
+                    _appConfig.AppSettings.Settings.Add("enableTweets", "true");
+                    _appConfig.Save(ConfigurationSaveMode.Modified);
+                    ConfigurationManager.RefreshSection("TwitchBotConfiguration");
 
                     Console.WriteLine("Auto publish tweets is set to [" + _botConfig.EnableTweets + "]");
                     _irc.SendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
@@ -116,7 +120,10 @@ namespace TwitchBot.Commands
                 else
                 {
                     _botConfig.EnableTweets = false;
-                    _appConfig.Save();
+                    _appConfig.AppSettings.Settings.Remove("enableTweets");
+                    _appConfig.AppSettings.Settings.Add("enableTweets", "false");
+                    _appConfig.Save(ConfigurationSaveMode.Modified);
+                    ConfigurationManager.RefreshSection("TwitchBotConfiguration");
 
                     Console.WriteLine("Auto publish tweets is set to [" + _botConfig.EnableTweets + "]");
                     _irc.SendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
@@ -224,7 +231,10 @@ namespace TwitchBot.Commands
             try
             {
                 _botConfig.EnableDisplaySong = true;
-                _appConfig.Save();
+                _appConfig.AppSettings.Settings.Remove("enableDisplaySong");
+                _appConfig.AppSettings.Settings.Add("enableDisplaySong", "true");
+                _appConfig.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
 
                 Console.WriteLine("Auto display songs is set to [" + _botConfig.EnableDisplaySong + "]");
                 _irc.SendPublicChatMessage(_botConfig.Broadcaster + ": Automatic display Spotify songs is set to \"" + _botConfig.EnableDisplaySong + "\"");
@@ -243,7 +253,10 @@ namespace TwitchBot.Commands
             try
             {
                 _botConfig.EnableDisplaySong = false;
-                _appConfig.Save();
+                _appConfig.AppSettings.Settings.Remove("enableDisplaySong");
+                _appConfig.AppSettings.Settings.Add("enableDisplaySong", "false");
+                _appConfig.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
 
                 Console.WriteLine("Auto display songs is set to [" + _botConfig.EnableDisplaySong + "]");
                 _irc.SendPublicChatMessage(_botConfig.Broadcaster + ": Automatic display Spotify songs is set to \"" + _botConfig.EnableDisplaySong + "\"");

@@ -8,13 +8,12 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[tblModerators] (
+CREATE TABLE [dbo].[Moderators] (
     [Id]          INT          IDENTITY (1, 1) NOT NULL,
     [username]    VARCHAR (30) NOT NULL,
     [broadcaster] INT          NOT NULL,
     [timeAdded]   DATETIME     DEFAULT (getdate()) NOT NULL,
     PRIMARY KEY CLUSTERED ([Id] ASC),
-    CONSTRAINT [FK_tblModerators_tblBroadcasters] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[tblBroadcasters] ([Id])
+    CONSTRAINT [FK_tblModerators_tblBroadcasters] FOREIGN KEY ([broadcaster]) REFERENCES [dbo].[Broadcasters] ([Id])
 );
-
 
