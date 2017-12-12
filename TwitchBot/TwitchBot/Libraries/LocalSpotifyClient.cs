@@ -43,7 +43,8 @@ namespace TwitchBot.Libraries
 
                 if (!SpotifyLocalAPI.IsSpotifyWebHelperRunning())
                 {
-                    Console.WriteLine("SpotifyWebHelper isn't running!");
+                    Console.WriteLine("SpotifyWebHelper isn't running! " 
+                        + "If this error persists, please try reinstalling Spotify to the latest version");
                     return;
                 }
 

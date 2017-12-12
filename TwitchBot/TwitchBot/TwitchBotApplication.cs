@@ -486,7 +486,7 @@ namespace TwitchBot
                                     else if (message.Equals("!modafk"))
                                         _cmdMod.CmdModAfk(username);
 
-                                    /* Tell the stream the specified moderator will be AFK */
+                                    /* Tell the stream the specified moderator has returned */
                                     else if (message.Equals("!modback"))
                                         _cmdMod.CmdModBack(username);
 
@@ -766,6 +766,10 @@ namespace TwitchBot
                                 // Usage: !bankheist [currency]
                                 else if (message.StartsWith("!bankheist "))
                                     _cmdGen.CmdBankHeist(message, username);
+
+                                /* Show the subscribe link (if broadcaster is either Affiliate/Partnered) */
+                                else if (message.Equals("!sub"))
+                                    await _cmdGen.CmdSubscribe();
 
                                 /* add more general commands here */
                             }

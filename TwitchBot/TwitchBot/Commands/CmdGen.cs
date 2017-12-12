@@ -1288,6 +1288,30 @@ namespace TwitchBot.Commands
             }
         }
 
+        public async Task CmdSubscribe()
+        {
+            try
+            {
+                // Get broadcaster type
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                string broadcasterType = json.BroadcasterType;
+
+                if (broadcasterType.Equals("partner") || broadcasterType.Equals("affiliate"))
+                {
+                    _irc.SendPublicChatMessage("Subscribe here! https://www.twitch.tv/subs/" + _botConfig.Broadcaster);
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"{_botConfig.Broadcaster} is not a Twitch Affiliate/Partner. "
+                        + "Please stick around and make their dream not a meme Kappa");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdSubscribe()", false, "!sub");
+            }
+        }
+
         private bool IsMultiplayerGame(string username)
         {
             // Get current game name
