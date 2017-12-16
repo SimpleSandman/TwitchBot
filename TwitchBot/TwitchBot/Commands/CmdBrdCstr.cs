@@ -830,7 +830,8 @@ namespace TwitchBot.Commands
                     _irc.SendPublicChatMessage("Tweets are disabled at the moment");
                 else if (_botConfig.EnableTweets && hasTwitterInfo)
                 {
-                    _twitter.SendTweet($"Live on Twitch! Now Playing: \"{streamJSON.Stream.Game}\" http://goo.gl/SNyDFD"
+                    _twitter.SendTweet($"Live on Twitch! Now Playing: \"{streamJSON.Stream.Game}\" " 
+                        + "https://www.twitch.tv/" + _botConfig.Broadcaster
                         + Environment.NewLine + "#twitch #gaming #streaming");
 
                     _irc.SendPublicChatMessage($"Announcement tweet has been published @{_botConfig.Broadcaster}");
