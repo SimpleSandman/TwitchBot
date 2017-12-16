@@ -42,6 +42,7 @@ namespace TwitchBot.Commands
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private BankHeistSettings _heistSettingsInstance = BankHeistSettings.Instance;
+        private BossFightSettings _bossSettingsInstance = BossFightSettings.Instance;
 
         public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId,
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
@@ -1309,6 +1310,77 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdSubscribe()", false, "!sub");
+            }
+        }
+
+        public void CmdBossFight(string message, string username)
+        {
+            try
+            {
+                BossFight bossFight = new BossFight();
+                int funds = _bank.CheckBalance(username, _broadcasterId);
+
+                if (_bossSettingsInstance.IsBossFightOnCooldown())
+                {
+                    TimeSpan cooldown = _bossSettingsInstance.CooldownTimePeriod.Subtract(DateTime.Now);
+
+                    if (cooldown.Minutes >= 1)
+                    {
+                        _irc.SendPublicChatMessage(_bossSettingsInstance.CooldownEntry
+                            .Replace("@timeleft@", cooldown.Minutes.ToString()));
+                    }
+                    else
+                    {
+                        _irc.SendPublicChatMessage(_bossSettingsInstance.CooldownEntry
+                            .Replace("@timeleft@", cooldown.Seconds.ToString())
+                            .Replace("minutes", "seconds"));
+                    }
+
+                    return;
+                }
+
+                if (bossFight.HasFighterAlreadyEntered(username))
+                {
+                    _irc.SendPublicChatMessage($"You are already in this fight @{username}");
+                    return;
+                }
+
+                if (funds < _bossSettingsInstance.SetGamble)
+                {
+                    _irc.SendPublicChatMessage($"You do not have enough to gamble {_bossSettingsInstance.SetGamble} {_botConfig.CurrencyType} @{username}");
+                    return;
+                }
+
+                if (!bossFight.IsEntryPeriodOver())
+                {
+                    // make boss fight announcement if first fighter and start recruiting members
+                    if (_bossSettingsInstance.Fighters.Count == 0)
+                    {
+                        _bossSettingsInstance.EntryPeriod = DateTime.Now.AddSeconds(_bossSettingsInstance.EntryPeriodSeconds);
+                        _irc.SendPublicChatMessage(_bossSettingsInstance.EntryMessage.Replace("user@", username));
+                    }
+
+                    // join boss fight
+                    BossFighter fighter = new BossFighter { Username = username, Gamble = _bossSettingsInstance.SetGamble };
+                    bossFight.Produce(fighter);
+                    _bank.UpdateFunds(username, _broadcasterId, funds - _bossSettingsInstance.SetGamble);
+
+                    // display new boss level
+                    if (!string.IsNullOrEmpty(bossFight.NextLevelMessage()))
+                    {
+                        _irc.SendPublicChatMessage(bossFight.NextLevelMessage());
+                    }
+
+                    // display if more than one fighter joins
+                    if (_bossSettingsInstance.Fighters.Count > 1)
+                    {
+                        _irc.SendPublicChatMessage($"@{username} has joined the heist");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdBossFight(string, string)", false, "!bossfight");
             }
         }
 

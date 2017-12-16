@@ -229,6 +229,8 @@
     <Compile Include="Libraries\Broadcaster.cs" />
     <Compile Include="Models\BankHeistSettings.cs" />
     <Compile Include="Models\BankRobber.cs" />
+    <Compile Include="Models\BossFighter.cs" />
+    <Compile Include="Models\BossFightSettings.cs" />
     <Compile Include="Models\CooldownUser.cs" />
     <Compile Include="Models\DelayedMessage.cs" />
     <Compile Include="Models\Follower.cs" />
@@ -263,6 +265,7 @@
     <Compile Include="Services\ManualSongRequestService.cs" />
     <Compile Include="Services\TwitchInfoService.cs" />
     <Compile Include="Threads\BankHeist.cs" />
+    <Compile Include="Threads\BossFight.cs" />
     <Compile Include="Threads\DelayMsg.cs" />
     <Compile Include="Models\JSON\ErrMsgJSON.cs" />
     <Compile Include="Libraries\ErrorHandler.cs" />

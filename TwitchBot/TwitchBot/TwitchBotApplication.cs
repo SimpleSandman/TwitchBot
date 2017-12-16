@@ -771,6 +771,10 @@ namespace TwitchBot
                                 else if (message.Equals("!sub"))
                                     await _cmdGen.CmdSubscribe();
 
+                                /* Join the boss fight with a pre-defined amount of currency set by broadcaster */
+                                else if (message.Equals("!bossfight"))
+                                    _cmdGen.CmdBossFight(message, username);
+
                                 /* add more general commands here */
                             }
                         }
