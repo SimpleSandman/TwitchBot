@@ -77,15 +77,15 @@ namespace TwitchBot.Threads
 
         public void Consume()
         {
-            BossFightLevel bossLevel = _bossSettings.Levels[BossLevel() - 1];
+            Boss bossLevel = _bossSettings.Bosses[BossLevel() - 1];
             BossFightPayout payout = _bossSettings.Payouts[BossLevel() - 1];
 
             _irc.SendPublicChatMessage(_bossSettings.GameStart
-                .Replace("@bankname@", bossLevel.LevelBankName));
+                .Replace("@bankname@", bossLevel.Name));
 
             Thread.Sleep(5000); // wait in anticipation
 
-
+            // ToDo: Set up gameplay and calculations for boss fight
 
             //Random rnd = new Random();
             //int chance = rnd.Next(1, 101); // 1 - 100
@@ -165,13 +165,13 @@ namespace TwitchBot.Threads
 
         public int BossLevel()
         {
-            if (_bossSettings.Fighters.Count <= _bossSettings.Levels[0].MaxUsers)
+            if (_bossSettings.Fighters.Count <= _bossSettings.Bosses[0].MaxUsers)
                 return 1;
-            else if (_bossSettings.Fighters.Count <= _bossSettings.Levels[1].MaxUsers)
+            else if (_bossSettings.Fighters.Count <= _bossSettings.Bosses[1].MaxUsers)
                 return 2;
-            else if (_bossSettings.Fighters.Count <= _bossSettings.Levels[2].MaxUsers)
+            else if (_bossSettings.Fighters.Count <= _bossSettings.Bosses[2].MaxUsers)
                 return 3;
-            else if (_bossSettings.Fighters.Count <= _bossSettings.Levels[3].MaxUsers)
+            else if (_bossSettings.Fighters.Count <= _bossSettings.Bosses[3].MaxUsers)
                 return 4;
             else
                 return 5;
@@ -179,13 +179,13 @@ namespace TwitchBot.Threads
 
         public string NextLevelMessage()
         {
-            if (_bossSettings.Fighters.Count == _bossSettings.Levels[0].MaxUsers + 1)
+            if (_bossSettings.Fighters.Count == _bossSettings.Bosses[0].MaxUsers + 1)
                 return _bossSettings.NextLevelMessages[0];
-            else if (_bossSettings.Fighters.Count == _bossSettings.Levels[1].MaxUsers + 1)
+            else if (_bossSettings.Fighters.Count == _bossSettings.Bosses[1].MaxUsers + 1)
                 return _bossSettings.NextLevelMessages[1];
-            else if (_bossSettings.Fighters.Count == _bossSettings.Levels[2].MaxUsers + 1)
+            else if (_bossSettings.Fighters.Count == _bossSettings.Bosses[2].MaxUsers + 1)
                 return _bossSettings.NextLevelMessages[2];
-            else if (_bossSettings.Fighters.Count == _bossSettings.Levels[3].MaxUsers + 1)
+            else if (_bossSettings.Fighters.Count == _bossSettings.Bosses[3].MaxUsers + 1)
                 return _bossSettings.NextLevelMessages[3];
 
             return "";

@@ -43,7 +43,7 @@ namespace TwitchBot.Models
         public FighterClass[] ClassStats { get; set; }
 
         // Game Levels (Level 1-5)
-        public BossFightLevel[] Levels { get; set; }
+        public Boss[] Bosses { get; set; }
 
         // Payouts
         public BossFightPayout[] Payouts { get; set; }
@@ -92,13 +92,13 @@ namespace TwitchBot.Models
         {
             // refresh arrays and lists
             NextLevelMessages = new string[4];
-            Levels = new BossFightLevel[]
+            Bosses = new Boss[]
             {
-                new BossFightLevel { },
-                new BossFightLevel { },
-                new BossFightLevel { },
-                new BossFightLevel { },
-                new BossFightLevel { }
+                new Boss { },
+                new Boss { },
+                new Boss { },
+                new Boss { },
+                new Boss { }
             };
             Payouts = new BossFightPayout[]
             {
@@ -153,17 +153,6 @@ namespace TwitchBot.Models
                                 Success34 = reader["success34"].ToString();
                                 Success1 = reader["success1"].ToString();
                                 Success0 = reader["success0"].ToString();
-                                // game levels
-                                Levels[0].LevelBankName = reader["levelName1"].ToString();
-                                Levels[0].MaxUsers = int.Parse(reader["levelMaxUsers1"].ToString());
-                                Levels[1].LevelBankName = reader["levelName2"].ToString();
-                                Levels[1].MaxUsers = int.Parse(reader["levelMaxUsers2"].ToString());
-                                Levels[2].LevelBankName = reader["levelName3"].ToString();
-                                Levels[2].MaxUsers = int.Parse(reader["levelMaxUsers3"].ToString());
-                                Levels[3].LevelBankName = reader["levelName4"].ToString();
-                                Levels[3].MaxUsers = int.Parse(reader["levelMaxUsers4"].ToString());
-                                Levels[4].LevelBankName = reader["levelName5"].ToString();
-                                Levels[4].MaxUsers = int.Parse(reader["levelMaxUsers5"].ToString());
                                 // payout
                                 Payouts[0].SuccessRate = decimal.Parse(reader["payoutSuccessRate1"].ToString());
                                 Payouts[0].WinMultiplier = decimal.Parse(reader["payoutMultiplier1"].ToString());
@@ -207,6 +196,92 @@ namespace TwitchBot.Models
                         }
                     }
                 }
+
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM BossFightClassStats WHERE broadcaster = @broadcaster", conn))
+                {
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                // fighter class stats
+                                ClassStats[0].ChatterType = Enums.ChatterType.Viewer;
+                                ClassStats[0].Attack = int.Parse(reader["viewerAttack"].ToString());
+                                ClassStats[0].Defense = int.Parse(reader["viewerDefense"].ToString());
+                                ClassStats[0].Evasion = int.Parse(reader["viewerEvasion"].ToString());
+                                ClassStats[0].Health = int.Parse(reader["viewerHealth"].ToString());
+                                ClassStats[1].ChatterType = Enums.ChatterType.Follower;
+                                ClassStats[1].Attack = int.Parse(reader["followerAttack"].ToString());
+                                ClassStats[1].Defense = int.Parse(reader["followerDefense"].ToString());
+                                ClassStats[1].Evasion = int.Parse(reader["followerEvasion"].ToString());
+                                ClassStats[1].Health = int.Parse(reader["followerHealth"].ToString());
+                                ClassStats[2].ChatterType = Enums.ChatterType.Regular;
+                                ClassStats[2].Attack = int.Parse(reader["regularAttack"].ToString());
+                                ClassStats[2].Defense = int.Parse(reader["regularDefense"].ToString());
+                                ClassStats[2].Evasion = int.Parse(reader["regularEvasion"].ToString());
+                                ClassStats[2].Health = int.Parse(reader["regularHealth"].ToString());
+                                ClassStats[3].ChatterType = Enums.ChatterType.Moderator;
+                                ClassStats[3].Attack = int.Parse(reader["moderatorAttack"].ToString());
+                                ClassStats[3].Defense = int.Parse(reader["moderatorDefense"].ToString());
+                                ClassStats[3].Evasion = int.Parse(reader["moderatorEvasion"].ToString());
+                                ClassStats[3].Health = int.Parse(reader["moderatorHealth"].ToString());
+                                ClassStats[4].ChatterType = Enums.ChatterType.Subscriber;
+                                ClassStats[4].Attack = int.Parse(reader["subscriberAttack"].ToString());
+                                ClassStats[4].Defense = int.Parse(reader["subscriberDefense"].ToString());
+                                ClassStats[4].Evasion = int.Parse(reader["subscriberEvasion"].ToString());
+                                ClassStats[4].Health = int.Parse(reader["subscriberHealth"].ToString());
+
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM BossFightBossStats WHERE broadcaster = @broadcaster", conn))
+                {
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                // boss stats
+                                Bosses[0].Name = reader["name1"].ToString();
+                                Bosses[0].MaxUsers = int.Parse(reader["maxUsers1"].ToString());
+                                Bosses[0].Attack = int.Parse(reader["attack1"].ToString());
+                                Bosses[0].Defense = int.Parse(reader["defense1"].ToString());
+                                Bosses[0].Health = int.Parse(reader["health1"].ToString());
+                                Bosses[1].Name = reader["name2"].ToString();
+                                Bosses[1].MaxUsers = int.Parse(reader["maxUsers2"].ToString());
+                                Bosses[1].Attack = int.Parse(reader["attack2"].ToString());
+                                Bosses[1].Defense = int.Parse(reader["defense2"].ToString());
+                                Bosses[1].Health = int.Parse(reader["health2"].ToString());
+                                Bosses[2].Name = reader["name3"].ToString();
+                                Bosses[2].MaxUsers = int.Parse(reader["maxUsers3"].ToString());
+                                Bosses[2].Attack = int.Parse(reader["attack3"].ToString());
+                                Bosses[2].Defense = int.Parse(reader["defense3"].ToString());
+                                Bosses[2].Health = int.Parse(reader["health3"].ToString());
+                                Bosses[3].Name = reader["name4"].ToString();
+                                Bosses[3].MaxUsers = int.Parse(reader["maxUsers4"].ToString());
+                                Bosses[3].Attack = int.Parse(reader["attack4"].ToString());
+                                Bosses[3].Defense = int.Parse(reader["defense4"].ToString());
+                                Bosses[3].Health = int.Parse(reader["health4"].ToString());
+                                Bosses[4].Name = reader["name5"].ToString();
+                                Bosses[4].MaxUsers = int.Parse(reader["maxUsers5"].ToString());
+                                Bosses[4].Attack = int.Parse(reader["attack5"].ToString());
+                                Bosses[4].Defense = int.Parse(reader["defense5"].ToString());
+                                Bosses[4].Health = int.Parse(reader["health5"].ToString());
+
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -222,13 +297,38 @@ namespace TwitchBot.Models
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
+
+            query = "INSERT INTO BossFightClassStats (broadcaster) VALUES (@broadcaster)";
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+
+            query = "INSERT INTO BossFightBossStats (broadcaster) VALUES (@broadcaster)";
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
         }
     }
 
-    public class BossFightLevel
+    public class Boss
     {
-        public string LevelBankName { get; set; }
+        public string Name { get; set; }
         public int MaxUsers { get; set; }
+        public int Attack { get; set; }
+        public int Defense { get; set; }
+        public int Health { get; set; }
     }
 
     public class BossFightPayout

@@ -1361,7 +1361,7 @@ namespace TwitchBot.Commands
                     }
 
                     // join boss fight
-                    FighterClass fighterClass = new FighterClass { };
+                    FighterClass fighterClass = new FighterClass { }; // ToDo: Find out what type of chatter the user is
                     BossFighter fighter = new BossFighter { Username = username, Gamble = _bossSettingsInstance.SetGamble, FighterClass = fighterClass };
                     bossFight.Produce(fighter);
                     _bank.UpdateFunds(username, _broadcasterId, funds - _bossSettingsInstance.SetGamble);
