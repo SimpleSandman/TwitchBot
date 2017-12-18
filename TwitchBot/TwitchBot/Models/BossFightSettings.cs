@@ -39,6 +39,9 @@ namespace TwitchBot.Models
         public string Success1 { get; set; }
         public string Success0 { get; set; }
 
+        // Fighter Classes
+        public FighterClass[] ClassStats { get; set; }
+
         // Game Levels (Level 1-5)
         public BossFightLevel[] Levels { get; set; }
 
@@ -105,6 +108,14 @@ namespace TwitchBot.Models
                 new BossFightPayout{ },
                 new BossFightPayout{ }
             };
+            ClassStats = new FighterClass[]
+            {
+                new FighterClass { },
+                new FighterClass { },
+                new FighterClass { },
+                new FighterClass { },
+                new FighterClass { }
+            };
             Fighters = new BlockingCollection<BossFighter>();
 
             using (SqlConnection conn = new SqlConnection(connStr))
@@ -164,6 +175,32 @@ namespace TwitchBot.Models
                                 Payouts[3].WinMultiplier = decimal.Parse(reader["payoutMultiplier4"].ToString());
                                 Payouts[4].SuccessRate = decimal.Parse(reader["payoutSuccessRate5"].ToString());
                                 Payouts[4].WinMultiplier = decimal.Parse(reader["payoutMultiplier5"].ToString());
+                                // class stats
+                                ClassStats[0].ChatterType = Enums.ChatterType.Viewer;
+                                ClassStats[0].Attack = int.Parse(reader["classStatsAttack1"].ToString());
+                                ClassStats[0].Defense = int.Parse(reader["classStatsDefense1"].ToString());
+                                ClassStats[0].Evasion = int.Parse(reader["classStatsEvasion1"].ToString());
+                                ClassStats[0].Health = int.Parse(reader["classStatsHealth1"].ToString());
+                                ClassStats[1].ChatterType = Enums.ChatterType.Follower;
+                                ClassStats[1].Attack = int.Parse(reader["classStatsAttack2"].ToString());
+                                ClassStats[1].Defense = int.Parse(reader["classStatsDefense2"].ToString());
+                                ClassStats[1].Evasion = int.Parse(reader["classStatsEvasion2"].ToString());
+                                ClassStats[1].Health = int.Parse(reader["classStatsHealth2"].ToString());
+                                ClassStats[2].ChatterType = Enums.ChatterType.Regular;
+                                ClassStats[2].Attack = int.Parse(reader["classStatsAttack3"].ToString());
+                                ClassStats[2].Defense = int.Parse(reader["classStatsDefense3"].ToString());
+                                ClassStats[2].Evasion = int.Parse(reader["classStatsEvasion3"].ToString());
+                                ClassStats[2].Health = int.Parse(reader["classStatsHealth3"].ToString());
+                                ClassStats[3].ChatterType = Enums.ChatterType.Moderator;
+                                ClassStats[3].Attack = int.Parse(reader["classStatsAttack4"].ToString());
+                                ClassStats[3].Defense = int.Parse(reader["classStatsDefense4"].ToString());
+                                ClassStats[3].Evasion = int.Parse(reader["classStatsEvasion4"].ToString());
+                                ClassStats[3].Health = int.Parse(reader["classStatsHealth4"].ToString());
+                                ClassStats[4].ChatterType = Enums.ChatterType.Subscriber;
+                                ClassStats[4].Attack = int.Parse(reader["classStatsAttack5"].ToString());
+                                ClassStats[4].Defense = int.Parse(reader["classStatsDefense5"].ToString());
+                                ClassStats[4].Evasion = int.Parse(reader["classStatsEvasion5"].ToString());
+                                ClassStats[4].Health = int.Parse(reader["classStatsHealth5"].ToString());
 
                                 break;
                             }

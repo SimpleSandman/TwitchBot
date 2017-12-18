@@ -85,67 +85,69 @@ namespace TwitchBot.Threads
 
             Thread.Sleep(5000); // wait in anticipation
 
-            Random rnd = new Random();
-            int chance = rnd.Next(1, 101); // 1 - 100
 
-            if (chance >= payout.SuccessRate) // failed
-            {
-                if (_bossSettings.Fighters.Count == 1)
-                {
-                    _irc.SendPublicChatMessage(_bossSettings.SingleUserFail
-                        .Replace("user@", _bossSettings.Fighters.First().Username)
-                        .Replace("@bankname@", bossLevel.LevelBankName));
-                }
-                else
-                {
-                    _irc.SendPublicChatMessage(_bossSettings.Success0);
-                }
 
-                return;
-            }
+            //Random rnd = new Random();
+            //int chance = rnd.Next(1, 101); // 1 - 100
 
-            int numWinners = (int)Math.Ceiling(_bossSettings.Fighters.Count * (payout.SuccessRate / 100));
-            IEnumerable<BossFighter> winners = _bossSettings.Fighters.OrderBy(x => rnd.Next()).Take(numWinners);
+            //if (chance >= payout.SuccessRate) // failed
+            //{
+            //    if (_bossSettings.Fighters.Count == 1)
+            //    {
+            //        _irc.SendPublicChatMessage(_bossSettings.SingleUserFail
+            //            .Replace("user@", _bossSettings.Fighters.First().Username)
+            //            .Replace("@bankname@", bossLevel.LevelBankName));
+            //    }
+            //    else
+            //    {
+            //        _irc.SendPublicChatMessage(_bossSettings.Success0);
+            //    }
 
-            foreach (BossFighter winner in winners)
-            {
-                int funds = _bank.CheckBalance(winner.Username.ToLower(), _broadcasterId);
-                decimal earnings = Math.Ceiling(winner.Gamble * payout.WinMultiplier);
+            //    return;
+            //}
 
-                _bank.UpdateFunds(winner.Username.ToLower(), _broadcasterId, (int)earnings + funds);
+            //int numWinners = (int)Math.Ceiling(_bossSettings.Fighters.Count * (payout.SuccessRate / 100));
+            //IEnumerable<BossFighter> winners = _bossSettings.Fighters.OrderBy(x => rnd.Next()).Take(numWinners);
 
-                _resultMessage += $" {winner.Username} ({(int)earnings} {_botConfig.CurrencyType}),";
-            }
+            //foreach (BossFighter winner in winners)
+            //{
+            //    int funds = _bank.CheckBalance(winner.Username.ToLower(), _broadcasterId);
+            //    decimal earnings = Math.Ceiling(winner.Gamble * payout.WinMultiplier);
 
-            // remove extra ","
-            _resultMessage = _resultMessage.Remove(_resultMessage.LastIndexOf(','), 1);
+            //    _bank.UpdateFunds(winner.Username.ToLower(), _broadcasterId, (int)earnings + funds);
 
-            decimal numWinnersPercentage = numWinners / (decimal)_bossSettings.Fighters.Count;
+            //    _resultMessage += $" {winner.Username} ({(int)earnings} {_botConfig.CurrencyType}),";
+            //}
 
-            // display success outcome
-            if (winners.Count() == 1)
-            {
-                BossFighter onlyWinner = winners.First();
-                int earnings = (int)Math.Ceiling(onlyWinner.Gamble * payout.WinMultiplier);
+            //// remove extra ","
+            //_resultMessage = _resultMessage.Remove(_resultMessage.LastIndexOf(','), 1);
 
-                _irc.SendPublicChatMessage(_bossSettings.SingleUserSuccess
-                    .Replace("user@", onlyWinner.Username)
-                    .Replace("@bankname@", bossLevel.LevelBankName)
-                    .Replace("@winamount@", earnings.ToString())
-                    .Replace("@pointsname@", _botConfig.CurrencyType));
-            }
-            else if (numWinners == _bossSettings.Fighters.Count)
-            {
-                _irc.SendPublicChatMessage(_bossSettings.Success100 + " " + _resultMessage);
-            }
-            else if (numWinnersPercentage >= 0.34m)
-            {
-                _irc.SendPublicChatMessage(_bossSettings.Success34 + " " + _resultMessage);
-            }
-            else if (numWinnersPercentage > 0)
-            {
-                _irc.SendPublicChatMessage(_bossSettings.Success1 + " " + _resultMessage);
-            }
+            //decimal numWinnersPercentage = numWinners / (decimal)_bossSettings.Fighters.Count;
+
+            //// display success outcome
+            //if (winners.Count() == 1)
+            //{
+            //    BossFighter onlyWinner = winners.First();
+            //    int earnings = (int)Math.Ceiling(onlyWinner.Gamble * payout.WinMultiplier);
+
+            //    _irc.SendPublicChatMessage(_bossSettings.SingleUserSuccess
+            //        .Replace("user@", onlyWinner.Username)
+            //        .Replace("@bankname@", bossLevel.LevelBankName)
+            //        .Replace("@winamount@", earnings.ToString())
+            //        .Replace("@pointsname@", _botConfig.CurrencyType));
+            //}
+            //else if (numWinners == _bossSettings.Fighters.Count)
+            //{
+            //    _irc.SendPublicChatMessage(_bossSettings.Success100 + " " + _resultMessage);
+            //}
+            //else if (numWinnersPercentage >= 0.34m)
+            //{
+            //    _irc.SendPublicChatMessage(_bossSettings.Success34 + " " + _resultMessage);
+            //}
+            //else if (numWinnersPercentage > 0)
+            //{
+            //    _irc.SendPublicChatMessage(_bossSettings.Success1 + " " + _resultMessage);
+            //}
 
             // show in case Twitch deletes the message because of exceeding character length
             Console.WriteLine("\n" + _resultMessage + "\n");

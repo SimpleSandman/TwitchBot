@@ -1361,7 +1361,8 @@ namespace TwitchBot.Commands
                     }
 
                     // join boss fight
-                    BossFighter fighter = new BossFighter { Username = username, Gamble = _bossSettingsInstance.SetGamble };
+                    FighterClass fighterClass = new FighterClass { };
+                    BossFighter fighter = new BossFighter { Username = username, Gamble = _bossSettingsInstance.SetGamble, FighterClass = fighterClass };
                     bossFight.Produce(fighter);
                     _bank.UpdateFunds(username, _broadcasterId, funds - _bossSettingsInstance.SetGamble);
 
