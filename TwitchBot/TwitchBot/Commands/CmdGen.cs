@@ -651,7 +651,7 @@ namespace TwitchBot.Commands
                         // Grab the follower's associated rank
                         if (currExp > -1)
                         {
-                            List<Rank> rankList = _follower.GetRankList(_broadcasterId);
+                            IEnumerable<Rank> rankList = _follower.GetRankList(_broadcasterId);
                             Rank currFollowerRank = _follower.GetCurrentRank(rankList, currExp);
                             decimal hoursWatched = _follower.GetHoursWatched(currExp);
 
@@ -1013,15 +1013,15 @@ namespace TwitchBot.Commands
         {
             try
             {
-                List<Follower> highestRankedFollowers = _follower.GetFollowersLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
+                IEnumerable<Follower> highestRankedFollowers = _follower.GetFollowersLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
 
-                if (highestRankedFollowers.Count == 0)
+                if (highestRankedFollowers.Count() == 0)
                 {
                     _irc.SendPublicChatMessage($"There's no one in your ranks. Start recruiting today! @{username}");
                     return;
                 }
 
-                List<Rank> rankList = _follower.GetRankList(_broadcasterId);
+                IEnumerable<Rank> rankList = _follower.GetRankList(_broadcasterId);
 
                 string resultMsg = "";
                 foreach (Follower follower in highestRankedFollowers)
@@ -1035,12 +1035,12 @@ namespace TwitchBot.Commands
                 resultMsg = resultMsg.Remove(resultMsg.Length - 2); // remove extra ","
 
                 // improve list grammar
-                if (highestRankedFollowers.Count == 2)
+                if (highestRankedFollowers.Count() == 2)
                     resultMsg = resultMsg.ReplaceLastOccurrence(", ", " and ");
-                else if (highestRankedFollowers.Count > 2)
+                else if (highestRankedFollowers.Count() > 2)
                     resultMsg = resultMsg.ReplaceLastOccurrence(", ", ", and ");
 
-                if (highestRankedFollowers.Count == 1)
+                if (highestRankedFollowers.Count() == 1)
                     _irc.SendPublicChatMessage($"This leader's highest ranking member is {resultMsg}");
                 else
                     _irc.SendPublicChatMessage($"This leader's highest ranking members are: {resultMsg}");

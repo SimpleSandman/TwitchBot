@@ -71,17 +71,19 @@ namespace TwitchBot.Threads
                     Thread.Sleep(1000);
                 }
 
-                List<string> availableChatters = _twitchChatterListInstance.ChattersByName;
-                if (availableChatters == null || availableChatters.Count == 0)
+                IEnumerable<string> availableChatters = _twitchChatterListInstance.ChattersByName;
+                if (availableChatters == null || availableChatters.Count() == 0)
                 {
                     return;
                 }
 
-                List<Rank> rankList = _follower.GetRankList(_broadcasterId);
+                IEnumerable<Rank> rankList = _follower.GetRankList(_broadcasterId);
 
                 // Check for existing or new followers
-                foreach (string chatter in availableChatters)
+                for (int i = 0; i < availableChatters.Count(); i++)
                 {
+                    string chatter = availableChatters.ElementAt(i);
+
                     // skip bot and broadcaster
                     if (string.Equals(chatter, _botConfig.BotName, StringComparison.CurrentCultureIgnoreCase)
                         || string.Equals(chatter, _botConfig.Broadcaster, StringComparison.CurrentCultureIgnoreCase))
@@ -148,11 +150,28 @@ namespace TwitchBot.Threads
                         string body = await message.Content.ReadAsStringAsync();
                         FollowingSinceJSON response = JsonConvert.DeserializeObject<FollowingSinceJSON>(body);
                         DateTime startedFollowing = Convert.ToDateTime(response.CreatedAt);
-                        TimeSpan followerTimeSpan = DateTime.UtcNow - startedFollowing;
+                        TimeSpan followerTimeSpan = DateTime.Now - startedFollowing;
 
                         // check if user is a new follower
-                        if (followerTimeSpan.Seconds < 60)
-                            _irc.SendPublicChatMessage($"Welcome @{chatter} to the Salt Army! Join us as we raid the seven seas of Twitch!");
+                        // if so, give them their sign-on bonus
+                        if (followerTimeSpan.TotalSeconds < 60)
+                        {
+                            string welcomeMessage = $"Welcome @{chatter} to the Salt Army! ";
+
+                            if (funds > -1)
+                            {
+                                funds += 500;
+                                _bank.UpdateFunds(chatter, _broadcasterId, funds);
+                                welcomeMessage += $"You now have {funds} {_botConfig.CurrencyType} to gamble!";
+                            }
+                            else
+                            {
+                                _bank.CreateAccount(chatter, _broadcasterId, 500);
+                                welcomeMessage += $"You now have 500 {_botConfig.CurrencyType} to gamble!";
+                            }
+
+                            _irc.SendPublicChatMessage(welcomeMessage);
+                        }
                     }
                 }
             }

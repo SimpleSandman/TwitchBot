@@ -31,12 +31,12 @@ namespace TwitchBot.Services
             _followerDb.EnlistRecruit(chatter, broadcasterId);
         }
 
-        public List<Rank> GetRankList(int broadcasterId)
+        public IEnumerable<Rank> GetRankList(int broadcasterId)
         {
             return _followerDb.GetRankList(broadcasterId);
         }
 
-        public Rank GetCurrentRank(List<Rank> rankList, int currExp)
+        public Rank GetCurrentRank(IEnumerable<Rank> rankList, int currExp)
         {
             Rank currentRank = new Rank();
 
@@ -64,7 +64,7 @@ namespace TwitchBot.Services
             return Math.Round(Convert.ToDecimal(currExp) / (decimal)60.0, 2);
         }
 
-        public List<Follower> GetFollowersLeaderboard(string broadcasterName, int broadcasterId, string botName)
+        public IEnumerable<Follower> GetFollowersLeaderboard(string broadcasterName, int broadcasterId, string botName)
         {
             return _followerDb.GetFollowersLeaderboard(broadcasterName, broadcasterId, botName);
         }
