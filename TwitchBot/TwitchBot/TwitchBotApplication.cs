@@ -54,6 +54,7 @@ namespace TwitchBot
         private QuoteService _quote;
         private GiveawayService _giveaway;
         private BankHeist _bankHeist;
+        private TwitchChatterListener _twitchChatterListener;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
@@ -62,7 +63,7 @@ namespace TwitchBot
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
-            GameDirectoryService gameDirectory, QuoteService quote, GiveawayService giveaway, BankHeist bankHeist)
+            GameDirectoryService gameDirectory, QuoteService quote, GiveawayService giveaway, BankHeist bankHeist, TwitchChatterListener twitchChatterListener)
         {
             _appConfig = appConfig;
             _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program.ConnStrType].ConnectionString;
@@ -88,6 +89,7 @@ namespace TwitchBot
             _quote = quote;
             _giveaway = giveaway;
             _bankHeist = bankHeist;
+            _twitchChatterListener = twitchChatterListener;
         }
 
         public async Task RunAsync()
@@ -218,6 +220,9 @@ namespace TwitchBot
                 /* Start listening for delayed messages */
                 DelayMsg delayMsg = new DelayMsg(_irc);
                 delayMsg.Start();
+
+                /* Grab list of chatters from channel */
+                _twitchChatterListener.Start();
 
                 /* Pull list of mods from database */
                 _modInstance.SetModeratorList(_connStr, _broadcasterInstance.DatabaseId);
@@ -492,7 +497,7 @@ namespace TwitchBot
 
                                     /* Gives every viewer a set amount of currency */
                                     else if (message.StartsWith("!bonusall "))
-                                        await _cmdMod.CmdBonusAll(message, username);
+                                        _cmdMod.CmdBonusAll(message, username);
 
                                     /* Add MultiStream user to link */
                                     // Usage: !addmsl @[username]
@@ -577,7 +582,7 @@ namespace TwitchBot
                                 // Usage: !slap @[username]
                                 else if (message.StartsWith("!slap @") && !IsUserOnCooldown(username, "!slap"))
                                 {
-                                    DateTime cooldown = await _cmdGen.CmdSlap(message, username);
+                                    DateTime cooldown = _cmdGen.CmdSlap(message, username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
@@ -594,7 +599,7 @@ namespace TwitchBot
                                 // Usage: !stab @[username]
                                 else if (message.StartsWith("!stab @") && !IsUserOnCooldown(username, "!stab"))
                                 {
-                                    DateTime cooldown = await _cmdGen.CmdStab(message, username);
+                                    DateTime cooldown = _cmdGen.CmdStab(message, username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
@@ -611,7 +616,7 @@ namespace TwitchBot
                                 // Usage !shoot @[username]
                                 else if (message.StartsWith("!shoot @") && !IsUserOnCooldown(username, "!shoot"))
                                 {
-                                    DateTime cooldown = await _cmdGen.CmdShoot(message, username);
+                                    DateTime cooldown = _cmdGen.CmdShoot(message, username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
@@ -628,7 +633,7 @@ namespace TwitchBot
                                 // Usage: !throw [item] @username
                                 else if (message.StartsWith("!throw ") && message.Contains("@") && !IsUserOnCooldown(username, "!throw"))
                                 {
-                                    DateTime cooldown = await _cmdGen.CmdThrow(message, username);
+                                    DateTime cooldown = _cmdGen.CmdThrow(message, username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser

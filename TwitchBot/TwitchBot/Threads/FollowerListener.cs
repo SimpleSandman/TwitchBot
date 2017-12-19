@@ -5,9 +5,12 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json;
+
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
+using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 
 namespace TwitchBot.Threads
@@ -22,6 +25,8 @@ namespace TwitchBot.Threads
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
         private BankService _bank;
+        private FollowerList _followerListInstance = FollowerList.Instance;
+        private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
         // Empty constructor makes instance of Thread
         public FollowerListener(TwitchBotConfigurationSection botConfig, string connStr, TwitchInfoService twitchInfo, FollowerService follower, BankService bank)
@@ -47,22 +52,27 @@ namespace TwitchBot.Threads
         /// <summary>
         /// Check if follower is watching. If so, give following viewer experience every iteration
         /// </summary>
-        public void Run()
+        private void Run()
         {
             while (true)
             {
                 CheckFollowers().Wait();
-                Thread.Sleep(300000); // 5 minutes
+                Thread.Sleep(60000); // 1 minute
             }
         }
 
-        public async Task CheckFollowers()
+        private async Task CheckFollowers()
         {
             try
             {
-                // Grab user's chatter info (viewers, mods, etc.)
-                List<List<string>> availChatterTypeList = await _twitchInfo.GetChatterListByType();
-                if (availChatterTypeList.Count == 0)
+                // Wait until chatter lists are available
+                while (!_twitchChatterListInstance.ListsAvailable)
+                {
+                    Thread.Sleep(1000);
+                }
+
+                List<string> availableChatters = _twitchChatterListInstance.ChattersByName;
+                if (availableChatters == null || availableChatters.Count == 0)
                 {
                     return;
                 }
@@ -70,65 +80,79 @@ namespace TwitchBot.Threads
                 List<Rank> rankList = _follower.GetRankList(_broadcasterId);
 
                 // Check for existing or new followers
-                for (int i = 0; i < availChatterTypeList.Count; i++)
+                foreach (string chatter in availableChatters)
                 {
-                    foreach (string chatter in availChatterTypeList[i])
+                    // skip bot and broadcaster
+                    if (string.Equals(chatter, _botConfig.BotName, StringComparison.CurrentCultureIgnoreCase)
+                        || string.Equals(chatter, _botConfig.Broadcaster, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        // skip bot and broadcaster
-                        if (string.Equals(chatter, _botConfig.BotName, StringComparison.CurrentCultureIgnoreCase)
-                            || string.Equals(chatter, _botConfig.Broadcaster, StringComparison.CurrentCultureIgnoreCase))
+                        continue;
+                    }
+
+                    // get chatter info
+                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(chatter);
+
+                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
+                    {
+                        // check if chatter is a follower
+                        if (!message.IsSuccessStatusCode)
                         {
+                            // check if user was a follower but isn't anymore
+                            if (_followerListInstance.TwitchFollowers.Any(c => c.Equals(chatter)))
+                                _followerListInstance.TwitchFollowers.Remove(chatter);
+
                             continue;
                         }
 
-                        // get chatter info
-                        var rootUserJSON = await _twitchInfo.GetUsersByLoginName(chatter);
+                        // add follower to global instance
+                        if (!_followerListInstance.TwitchFollowers.Any(c => c.Equals(chatter)))
+                            _followerListInstance.TwitchFollowers.Add(chatter);
 
-                        using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
+                        // check if follower has experience
+                        int currentExp = _follower.CurrentExp(chatter, _broadcasterId);
+
+                        if (currentExp > -1)
                         {
-                            // check if chatter is a follower
-                            if (!message.IsSuccessStatusCode)
+                            _follower.UpdateExp(chatter, _broadcasterId, currentExp);
+
+                            // check if user has been promoted
+                            currentExp++; // ToDo: Update current users' rank exp via multiplication by 5 in DB
+                            Rank capRank = rankList.FirstOrDefault(r => r.ExpCap == currentExp);
+
+                            if (capRank != null)
                             {
-                                continue;
+                                Rank currentRank = _follower.GetCurrentRank(rankList, currentExp);
+                                decimal hoursWatched = _follower.GetHoursWatched(currentExp);
+
+                                _irc.SendPublicChatMessage($"@{chatter} has been promoted to \"{currentRank.Name}\" "
+                                    + $"with {currentExp}/{currentRank.ExpCap} EXP ({hoursWatched} hours watched)");
                             }
-
-                            // check if follower has experience
-                            int currExp = _follower.CurrExp(chatter, _broadcasterId);
-
-                            if (currExp > -1)
-                            {
-                                _follower.UpdateExp(chatter, _broadcasterId, currExp);
-
-                                // check if user has been promoted
-                                currExp++;
-                                Rank capRank = rankList.FirstOrDefault(r => r.ExpCap == currExp);
-
-                                if (capRank != null)
-                                {
-                                    Rank currRank = _follower.GetCurrRank(rankList, currExp);
-                                    decimal hoursWatched = _follower.GetHoursWatched(currExp);
-
-                                    _irc.SendPublicChatMessage($"@{chatter} has been promoted to \"{currRank.Name}\" "
-                                        + $"with {currExp}/{currRank.ExpCap} EXP ({hoursWatched} hours watched)");
-                                }
-                            }
-                            else
-                            {
-                                // add new user to the ranks
-                                _follower.EnlistRecruit(chatter, _broadcasterId);
-                            }
-
-                            // check if follower has a stream currency account
-                            int funds = _bank.CheckBalance(chatter, _broadcasterId);
-
-                            if (funds > -1)
-                            {
-                                funds += 50; // deposit 50 stream currency for each iteration
-                                _bank.UpdateFunds(chatter, _broadcasterId, funds);
-                            }
-                            else // ToDo: Make currency auto-increment setting
-                                _bank.CreateAccount(chatter, _broadcasterId, 10);
                         }
+                        else
+                        {
+                            // add new user to the ranks
+                            _follower.EnlistRecruit(chatter, _broadcasterId);
+                        }
+
+                        // check if follower has a stream currency account
+                        int funds = _bank.CheckBalance(chatter, _broadcasterId);
+
+                        if (funds > -1)
+                        {
+                            funds += 10; // deposit 10 stream currency for each iteration
+                            _bank.UpdateFunds(chatter, _broadcasterId, funds);
+                        }
+                        else // ToDo: Make currency auto-increment setting
+                            _bank.CreateAccount(chatter, _broadcasterId, 10);
+
+                        string body = await message.Content.ReadAsStringAsync();
+                        FollowingSinceJSON response = JsonConvert.DeserializeObject<FollowingSinceJSON>(body);
+                        DateTime startedFollowing = Convert.ToDateTime(response.CreatedAt);
+                        TimeSpan followerTimeSpan = DateTime.UtcNow - startedFollowing;
+
+                        // check if user is a new follower
+                        if (followerTimeSpan.Seconds < 60)
+                            _irc.SendPublicChatMessage($"Welcome @{chatter} to the Salt Army! Join us as we raid the seven seas of Twitch!");
                     }
                 }
             }

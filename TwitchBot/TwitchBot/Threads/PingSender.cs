@@ -32,7 +32,7 @@ namespace TwitchBot.Threads
         }
 
         // Send PING to irc server every 5 minutes
-        public void Run()
+        private void Run()
         {
             while (true)
             {

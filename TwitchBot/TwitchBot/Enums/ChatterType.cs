@@ -12,6 +12,9 @@ namespace TwitchBot.Enums
         Follower,
         Regular,
         Moderator,
-        Subscriber
+        Subscriber,
+        GlobalModerator,
+        Admin,
+        Staff
     }
 }

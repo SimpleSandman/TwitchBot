@@ -25,7 +25,7 @@ namespace TwitchBot.Threads
             _msgSender.Start();
         }
 
-        public void Run()
+        private void Run()
         {
             try
             {

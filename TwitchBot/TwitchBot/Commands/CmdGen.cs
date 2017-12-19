@@ -43,6 +43,7 @@ namespace TwitchBot.Commands
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private BankHeistSettings _heistSettingsInstance = BankHeistSettings.Instance;
         private BossFightSettings _bossSettingsInstance = BossFightSettings.Instance;
+        private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
         public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId,
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
@@ -253,12 +254,12 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public async Task<DateTime> CmdSlap(string message, string username)
+        public DateTime CmdSlap(string message, string username)
         {
             try
             {
                 string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                await ReactionCmd(username, recipient, "Stop smacking yourself", "slaps", Effectiveness());
+                ReactionCmd(username, recipient, "Stop smacking yourself", "slaps", Effectiveness());
                 return DateTime.Now.AddSeconds(20);
             }
             catch (Exception ex)
@@ -274,12 +275,12 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public async Task<DateTime> CmdStab(string message, string username)
+        public DateTime CmdStab(string message, string username)
         {
             try
             {
                 string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                await ReactionCmd(username, recipient, "Stop stabbing yourself! You'll bleed out", "stabs", Effectiveness());
+                ReactionCmd(username, recipient, "Stop stabbing yourself! You'll bleed out", "stabs", Effectiveness());
                 return DateTime.Now.AddSeconds(20);
             }
             catch (Exception ex)
@@ -295,7 +296,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public async Task<DateTime> CmdShoot(string message, string username)
+        public DateTime CmdShoot(string message, string username)
         {
             try
             {
@@ -334,7 +335,7 @@ namespace TwitchBot.Commands
                     }
                     else // viewer is the target
                     {
-                        await ReactionCmd(username, recipient, "You just shot your " + bodyPart.Replace("'s ", ""), "shoots", bodyPart);
+                        ReactionCmd(username, recipient, "You just shot your " + bodyPart.Replace("'s ", ""), "shoots", bodyPart);
                         return DateTime.Now.AddSeconds(20);
                     }
                 }
@@ -352,7 +353,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public async Task<DateTime> CmdThrow(string message, string username)
+        public DateTime CmdThrow(string message, string username)
         {
             try
             {
@@ -365,7 +366,7 @@ namespace TwitchBot.Commands
                     string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
                     string item = message.Substring(indexAction, message.IndexOf("@") - indexAction - 1);
 
-                    await ReactionCmd(username, recipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + Effectiveness());
+                    ReactionCmd(username, recipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + Effectiveness());
                     return DateTime.Now.AddSeconds(20);
                 }
             }
@@ -610,7 +611,6 @@ namespace TwitchBot.Commands
                         string body = await message.Content.ReadAsStringAsync();
                         FollowingSinceJSON response = JsonConvert.DeserializeObject<FollowingSinceJSON>(body);
                         DateTime startedFollowing = Convert.ToDateTime(response.CreatedAt);
-                        //TimeSpan howLong = DateTime.Now - startedFollowing;
                         _irc.SendPublicChatMessage($"@{username} has been following since {startedFollowing.ToLongDateString()}");
                     }
                     else
@@ -646,13 +646,13 @@ namespace TwitchBot.Commands
                 {
                     if (message.IsSuccessStatusCode)
                     {
-                        int currExp = _follower.CurrExp(username, _broadcasterId);
+                        int currExp = _follower.CurrentExp(username, _broadcasterId);
 
                         // Grab the follower's associated rank
                         if (currExp > -1)
                         {
                             List<Rank> rankList = _follower.GetRankList(_broadcasterId);
-                            Rank currFollowerRank = _follower.GetCurrRank(rankList, currExp);
+                            Rank currFollowerRank = _follower.GetCurrentRank(rankList, currExp);
                             decimal hoursWatched = _follower.GetHoursWatched(currExp);
 
                             _irc.SendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" "
@@ -1026,7 +1026,7 @@ namespace TwitchBot.Commands
                 string resultMsg = "";
                 foreach (Follower follower in highestRankedFollowers)
                 {
-                    Rank currFollowerRank = _follower.GetCurrRank(rankList, follower.Exp);
+                    Rank currFollowerRank = _follower.GetCurrentRank(rankList, follower.Exp);
                     decimal hoursWatched = _follower.GetHoursWatched(follower.Exp);
 
                     resultMsg += $"\"{currFollowerRank.Name} {follower.Username}\" with {hoursWatched} hour(s), ";
@@ -1409,7 +1409,7 @@ namespace TwitchBot.Commands
             return true;
         }
 
-        private async Task<bool> ReactionCmd(string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
+        private bool ReactionCmd(string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
         {
             // check if user is trying to use a command on themselves
             if (origUser.Equals(recipient))
@@ -1419,7 +1419,7 @@ namespace TwitchBot.Commands
             }
 
             // check if recipient is the broadcaster before checking the viewer channel
-            if (await ChatterValid(origUser, recipient))
+            if (ChatterValid(origUser, recipient))
             {
                 _irc.SendPublicChatMessage(origUser + " " + action + " @" + recipient + " " + addlMsg);
                 return true;
@@ -1428,29 +1428,32 @@ namespace TwitchBot.Commands
             return false;
         }
 
-        private async Task<bool> ChatterValid(string origUser, string recipient)
+        private bool ChatterValid(string origUser, string recipient)
         {
             // Check if the requested user is this bot
             if (recipient.Equals(_botConfig.BotName.ToLower()) || recipient.Equals(_botConfig.Broadcaster.ToLower()))
                 return true;
 
+            // Wait until chatter lists are available
+            while (!_twitchChatterListInstance.ListsAvailable)
+            {
+                
+            }
+
             // Grab user's chatter info (viewers, mods, etc.)
-            List<List<string>> availChatterTypeList = await _twitchInfo.GetChatterListByType();
-            if (availChatterTypeList.Count > 0)
+            List<string> chatterList = _twitchChatterListInstance.ChattersByName;
+            if (chatterList.Count > 0)
             {
                 // Search for user
-                for (int i = 0; i < availChatterTypeList.Count(); i++)
+                foreach (string chatter in chatterList)
                 {
-                    foreach (string chatter in availChatterTypeList[i])
-                    {
-                        if (chatter.Equals(recipient.ToLower()))
-                            return true;
-                    }
+                    if (chatter.Equals(recipient.ToLower()))
+                        return true;
                 }
             }
 
             // finished searching with no results
-            _irc.SendPublicChatMessage("@" + origUser + ": I cannot find the user you wanted to interact with. Perhaps the user left us?");
+            _irc.SendPublicChatMessage($"@{origUser}: I cannot find the user you wanted to interact with. Perhaps the user left us?");
             return false;
         }
 

@@ -224,6 +224,8 @@
     <Compile Include="Extensions\IntExtensions.cs" />
     <Compile Include="Extensions\ListStringExtensions.cs" />
     <Compile Include="Extensions\TimeSpanExtensions.cs" />
+    <Compile Include="Libraries\TwitchChatterList.cs" />
+    <Compile Include="Threads\TwitchChatterListener.cs" />
     <Compile Include="Libraries\TwitterClient.cs" />
     <Compile Include="Libraries\YouTubeClient.cs" />
     <Compile Include="Models\BalanceResult.cs" />
@@ -242,6 +244,7 @@
     <Compile Include="Models\RouletteUser.cs" />
     <Compile Include="Models\SongRequestBlacklistItem.cs" />
     <Compile Include="Models\TimeoutUser.cs" />
+    <Compile Include="Models\TwitchChatterType.cs" />
     <Compile Include="Modules\TwitchBotModule.cs" />
     <Compile Include="Repositories\BankRepository.cs" />
     <Compile Include="Repositories\FollowerRepository.cs" />
@@ -285,6 +288,7 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Libraries\TwitchApi.cs" />
     <Compile Include="Libraries\TimeoutCmd.cs" />
+    <Compile Include="Libraries\FollowerList.cs" />
     <Compile Include="TwitchBotApplication.cs" />
   </ItemGroup>
   <ItemGroup>

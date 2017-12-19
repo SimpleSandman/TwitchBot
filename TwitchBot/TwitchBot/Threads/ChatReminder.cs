@@ -45,7 +45,7 @@ namespace TwitchBot.Threads
             _chatReminderThread.Start(); 
         }
 
-        public async void Run()
+        private async void Run()
         {
             LoadReminderContext(); // initial load
             DateTime midnightNextDay = DateTime.Today.AddDays(1);

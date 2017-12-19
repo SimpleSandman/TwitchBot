@@ -34,6 +34,7 @@ namespace TwitchBot.Commands
         private Moderator _modInstance = Moderator.Instance;
         private TwitterClient _twitter = TwitterClient.Instance;
         private Broadcaster _broadcasterInstance = Broadcaster.Instance;
+        private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
         public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, 
             System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo, ManualSongRequestService manualSongRequest,
@@ -209,7 +210,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message"></param>
         /// <param name="username"></param>
-        public async Task CmdBonusAll(string message, string username)
+        public void CmdBonusAll(string message, string username)
         {
             try
             {
@@ -230,7 +231,13 @@ namespace TwitchBot.Commands
                         _irc.SendPublicChatMessage("The bulk deposit wasn't accepted. Please try again with positive whole amount (no decimals)");
                     else
                     {
-                        List<string> chatterList = await _twitchInfo.GetChatterList();
+                        // Wait until chatter lists are available
+                        while (!_twitchChatterListInstance.ListsAvailable)
+                        {
+
+                        }
+
+                        List<string> chatterList = _twitchChatterListInstance.ChattersByName;
 
                         // exclude broadcaster, bot, and the moderator executing this command
                         chatterList = chatterList.Where(t => t != username.ToLower() && t != _botConfig.BotName.ToLower()).ToList();

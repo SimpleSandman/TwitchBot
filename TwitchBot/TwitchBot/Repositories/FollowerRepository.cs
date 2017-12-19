@@ -19,7 +19,7 @@ namespace TwitchBot.Repositories
             _connStr = connStr;
         }
 
-        public int CurrExp(string chatter, int broadcasterId)
+        public int CurrentExp(string chatter, int broadcasterId)
         {
             using (SqlConnection conn = new SqlConnection(_connStr))
             {

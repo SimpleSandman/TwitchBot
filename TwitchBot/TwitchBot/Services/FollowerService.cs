@@ -16,9 +16,9 @@ namespace TwitchBot.Services
             _followerDb = followerDb;
         }
 
-        public int CurrExp(string chatter, int broadcasterId)
+        public int CurrentExp(string chatter, int broadcasterId)
         {
-            return _followerDb.CurrExp(chatter, broadcasterId);
+            return _followerDb.CurrentExp(chatter, broadcasterId);
         }
 
         public void UpdateExp(string chatter, int broadcasterId, int currExp)
@@ -36,9 +36,9 @@ namespace TwitchBot.Services
             return _followerDb.GetRankList(broadcasterId);
         }
 
-        public Rank GetCurrRank(List<Rank> rankList, int currExp)
+        public Rank GetCurrentRank(List<Rank> rankList, int currExp)
         {
-            Rank currRank = new Rank();
+            Rank currentRank = new Rank();
 
             // find the user's current rank by experience cap
             foreach (Rank rank in rankList.OrderBy(r => r.ExpCap))
@@ -50,18 +50,18 @@ namespace TwitchBot.Services
                 }
                 else
                 {
-                    currRank.Name = rank.Name;
-                    currRank.ExpCap = rank.ExpCap;
+                    currentRank.Name = rank.Name;
+                    currentRank.ExpCap = rank.ExpCap;
                     break;
                 }
             }
 
-            return currRank;
+            return currentRank;
         }
 
         public decimal GetHoursWatched(int currExp)
         {
-            return Math.Round(Convert.ToDecimal(currExp) / (decimal)12.0, 2);
+            return Math.Round(Convert.ToDecimal(currExp) / (decimal)60.0, 2);
         }
 
         public List<Follower> GetFollowersLeaderboard(string broadcasterName, int broadcasterId, string botName)

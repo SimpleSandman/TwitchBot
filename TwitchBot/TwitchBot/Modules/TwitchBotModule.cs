@@ -45,7 +45,9 @@ namespace TwitchBot.Modules
 
             // threads
             builder.RegisterType<FollowerListener>().WithParameter(ParamConnStr);
+            builder.RegisterType<TwitchChatterListener>();
             builder.RegisterType<BankHeist>().WithParameter(ParamConnStr);
+            builder.RegisterType<BossFight>().WithParameter(ParamConnStr);
         }
     }
 }
