@@ -8,13 +8,14 @@ namespace TwitchBot.Enums
 {
     public enum ChatterType
     {
+        DoesNotExist,
         Viewer,
         Follower,
-        Regular,
+        RegularFollower,
         Moderator,
-        Subscriber,
         GlobalModerator,
         Admin,
-        Staff
+        Staff,
+        Subscriber
     }
 }

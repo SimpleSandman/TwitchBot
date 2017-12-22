@@ -1369,9 +1369,19 @@ namespace TwitchBot.Commands
                     }
 
                     // join boss fight
-                    // ToDo: check chatter types in this order (subscribers, moderators, regulars, followers, viewers)
-                    ChatterType chatterType = _twitchChatterListInstance.ChattersByType.First(c => c.TwitchChatters.Equals(username)).ChatterType;
-                    FighterClass fighterClass = _bossSettingsInstance.ClassStats.Single(c => c.ChatterType.Equals(chatterType));
+                    ChatterType chatterType = CheckUserChatterType(username);
+                    if (chatterType == ChatterType.DoesNotExist)
+                    {
+                        _irc.SendPublicChatMessage($"I'm not able to find you in the chatter list. Please try again in 15 seconds @{username}");
+                        return;
+                    }
+
+                    if (chatterType == ChatterType.Staff || chatterType == ChatterType.Admin || chatterType == ChatterType.GlobalModerator)
+                    {
+                        chatterType = ChatterType.Moderator;
+                    }
+
+                    FighterClass fighterClass = _bossSettingsInstance.ClassStats.Single(c => c.ChatterType == chatterType);
                     BossFighter fighter = new BossFighter { Username = username, FighterClass = fighterClass };
                     bossFight.Produce(fighter);
                     _bank.UpdateFunds(username, _broadcasterId, funds - _bossSettingsInstance.Cost);
@@ -1393,6 +1403,23 @@ namespace TwitchBot.Commands
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdBossFight(string, string)", false, "!bossfight");
             }
+        }
+
+        private ChatterType CheckUserChatterType(string username)
+        {
+            // wait until lists are available
+            while (!_twitchChatterListInstance.AreListsAvailable)
+            {
+
+            }
+
+            foreach (var chatterType in _twitchChatterListInstance.ChattersByType.OrderByDescending(t => t.ChatterType))
+            {
+                if (chatterType.TwitchChatters.Any(u => u.Username.Equals(username)))
+                    return chatterType.ChatterType;
+            }
+
+            return ChatterType.DoesNotExist;
         }
 
         private bool IsMultiplayerGame(string username)

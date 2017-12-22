@@ -52,10 +52,11 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.SendPublicChatMessage("Auto tweets set to \"" + _botConfig.EnableTweets + "\" "
-                    + ">< Auto display songs set to \"" + _botConfig.EnableDisplaySong + "\" "
-                    + ">< Currency set to \"" + _botConfig.CurrencyType + "\" "
-                    + ">< Stream Latency set to \"" + _botConfig.StreamLatency + " second(s)\"");
+                _irc.SendPublicChatMessage($"Auto tweets set to \"{_botConfig.EnableTweets}\" "
+                    + $">< Auto display songs set to \"{_botConfig.EnableDisplaySong}\" "
+                    + $">< Currency set to \"{_botConfig.CurrencyType}\" "
+                    + $">< Stream Latency set to \"{_botConfig.StreamLatency} second(s)\" "
+                    + $">< Regular follower hours set to \"{_botConfig.RegularFollowerHours}\"");
             }
             catch (Exception ex)
             {
@@ -852,6 +853,38 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRefreshReminders()", false, "!refreshreminders");
+            }
+        }
+
+        public void CmdSetRegularFollowerHours(string message)
+        {
+            try
+            {
+                bool validInput = int.TryParse(message.Substring(17), out int regularHours);
+                if (!validInput)
+                {
+                    _irc.SendPublicChatMessage($"I can't process the time you've entered. " + 
+                        $"Please insert positive hours @{_botConfig.Broadcaster}");
+                    return;
+                }
+                else if (regularHours < 1)
+                {
+                    _irc.SendPublicChatMessage($"Please insert positive hours @{_botConfig.Broadcaster}");
+                    return;
+                }
+
+                _botConfig.RegularFollowerHours = regularHours;
+                _appConfig.AppSettings.Settings.Remove("regularFollowerHours");
+                _appConfig.AppSettings.Settings.Add("regularFollowerHours", regularHours.ToString());
+                _appConfig.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+
+                Console.WriteLine($"Regular followers are set to {_botConfig.RegularFollowerHours}");
+                _irc.SendPublicChatMessage($"{_botConfig.Broadcaster} : Regular followers now need {_botConfig.RegularFollowerHours} hours");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdSetRegularHours(string)", false, "!setregularhours");
             }
         }
     }

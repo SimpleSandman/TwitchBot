@@ -69,6 +69,9 @@ namespace TwitchBot.Configuration
         private static readonly ConfigurationProperty _manualSongRequestLink =
             new ConfigurationProperty("manualSongRequestLink", typeof(string), "", ConfigurationPropertyOptions.None);
 
+        private static readonly ConfigurationProperty _regularFollowerHours =
+            new ConfigurationProperty("regularFollowerHours", typeof(int), 30, ConfigurationPropertyOptions.None);
+
         public TwitchBotConfigurationSection()
         {
             _properties = new ConfigurationPropertyCollection();
@@ -92,6 +95,7 @@ namespace TwitchBot.Configuration
             _properties.Add(_youTubeBroadcasterPlaylistId);
             _properties.Add(_youTubeBroadcasterPlaylistName);
             _properties.Add(_manualSongRequestLink);
+            _properties.Add(_regularFollowerHours);
         }
 
         protected override ConfigurationPropertyCollection Properties
@@ -325,5 +329,14 @@ namespace TwitchBot.Configuration
             }
         }
 
+        public int RegularFollowerHours
+        {
+            get { return (int)this["regularFollowerHours"]; }
+            set
+            {
+                ThrowIfReadOnly("RegularFollowerHours");
+                this["regularFollowerHours"] = value;
+            }
+        }
     }
 }

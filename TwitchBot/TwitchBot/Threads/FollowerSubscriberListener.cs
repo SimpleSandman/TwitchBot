@@ -68,7 +68,7 @@ namespace TwitchBot.Threads
                 // Wait until chatter lists are available
                 while (!_twitchChatterListInstance.AreListsAvailable)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
                 }
 
                 IEnumerable<string> availableChatters = _twitchChatterListInstance.ChattersByName;
@@ -115,6 +115,7 @@ namespace TwitchBot.Threads
 
             // check if follower has experience
             int currentExp = _follower.CurrentExp(chatter, _broadcasterId);
+            decimal hoursWatched = 0.0m;
 
             if (currentExp > -1)
             {
@@ -123,11 +124,18 @@ namespace TwitchBot.Threads
                 // check if user has been promoted
                 currentExp++; // ToDo: Update current users' rank exp via multiplication by 5 in DB
                 Rank capRank = _rankList.FirstOrDefault(r => r.ExpCap == currentExp);
+                hoursWatched = _follower.GetHoursWatched(currentExp);
 
-                if (capRank != null)
+                if (hoursWatched == _botConfig.RegularFollowerHours)
                 {
                     Rank currentRank = _follower.GetCurrentRank(_rankList, currentExp);
-                    decimal hoursWatched = _follower.GetHoursWatched(currentExp);
+
+                    _irc.SendPublicChatMessage($"{currentRank.Name} {chatter} has achieved the salty equlibrium " 
+                        + "needed to become a regular soldier in the salt army");
+                }
+                else if (capRank != null)
+                {
+                    Rank currentRank = _follower.GetCurrentRank(_rankList, currentExp);
 
                     _irc.SendPublicChatMessage($"@{chatter} has been promoted to \"{currentRank.Name}\" "
                         + $"with {currentExp}/{currentRank.ExpCap} EXP ({hoursWatched} hours watched)");
@@ -144,7 +152,16 @@ namespace TwitchBot.Threads
 
             if (funds > -1)
             {
-                funds += 10; // deposit 10 stream currency for each iteration
+                if (hoursWatched >= _botConfig.RegularFollowerHours)
+                {
+                    funds += 15;
+
+                    if (!_twitchChatterListInstance.TwitchRegularFollowers.Any(c => c.Username.Equals(chatter)))
+                        _twitchChatterListInstance.TwitchRegularFollowers.Add(follower);
+                }
+                else
+                    funds += 10;
+
                 _bank.UpdateFunds(chatter, _broadcasterId, funds);
             }
             else // ToDo: Make currency auto-increment setting
@@ -178,12 +195,15 @@ namespace TwitchBot.Threads
         {
             TwitchChatter subscriber = await GetTwitchSubscriberInfo(chatter);
 
+            if (subscriber == null)
+                return;
+
             TimeSpan subscriberTimeSpan = DateTime.Now - (DateTime)subscriber.CreatedAt;
 
             // check if user is a new subscriber
             if (subscriberTimeSpan.TotalSeconds < 60)
             {
-                string welcomeMessage = $"Thank you so much on becoming my secret NaCl agent @{chatter} . "
+                string welcomeMessage = $"Thank you so much on becoming a secret NaCl agent @{chatter} . "
                     + $"Your dedication will allow @{_botConfig.Broadcaster} to continue commanding the Salt Army!";
 
                 _irc.SendPublicChatMessage(welcomeMessage);
@@ -204,8 +224,11 @@ namespace TwitchBot.Threads
                 if (!message.IsSuccessStatusCode)
                 {
                     // check if user was a follower but isn't anymore
-                    if (_twitchChatterListInstance.TwitchFollowers.Any(c => c.Equals(chatter)))
+                    if (_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username.Equals(chatter)))
+                    {
                         _twitchChatterListInstance.TwitchFollowers.RemoveAll(c => c.Username.Equals(chatter));
+                        _twitchChatterListInstance.TwitchRegularFollowers.RemoveAll(c => c.Username.Equals(chatter));
+                    }
 
                     return null;
                 }
@@ -216,8 +239,7 @@ namespace TwitchBot.Threads
 
                 follower = new TwitchChatter { Username = chatter, CreatedAt = startedFollowing };
 
-                // add follower to global instance
-                if (!_twitchChatterListInstance.TwitchFollowers.Any(c => c.Equals(chatter)))
+                if (!_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username.Equals(chatter)))
                     _twitchChatterListInstance.TwitchFollowers.Add(follower);
             }
 

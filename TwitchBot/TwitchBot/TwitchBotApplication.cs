@@ -173,21 +173,22 @@ namespace TwitchBot
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
                 _irc = new IrcClient("irc.twitch.tv", 6667, _botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
-                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower, 
+                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
-                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist, 
+                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
                     _twitchInfo, _giveaway);
-                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo, 
+                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
                     _manualSongRequest, _quote, _partyUp);
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine();
                 Console.WriteLine("---> Extra Bot Settings <---");
-                Console.WriteLine("Discord link: " + _botConfig.DiscordLink);
-                Console.WriteLine("Currency type: " + _botConfig.CurrencyType);
-                Console.WriteLine("Enable Auto Tweets: " + _botConfig.EnableTweets);
-                Console.WriteLine("Enable Auto Display Songs: " + _botConfig.EnableDisplaySong);
-                Console.WriteLine("Stream latency: " + _botConfig.StreamLatency + " second(s)");
+                Console.WriteLine($"Discord link: {_botConfig.DiscordLink}");
+                Console.WriteLine($"Currency type: {_botConfig.CurrencyType}");
+                Console.WriteLine($"Enable Auto Tweets: {_botConfig.EnableTweets}");
+                Console.WriteLine($"Enable Auto Display Songs: {_botConfig.EnableDisplaySong}");
+                Console.WriteLine($"Stream latency: {_botConfig.StreamLatency} second(s)");
+                Console.WriteLine($"Regular follower hours: {_botConfig.RegularFollowerHours}");
                 Console.WriteLine();
 
                 /* Pull YouTube response tokens from user's account (request permission if needed) */
@@ -438,6 +439,10 @@ namespace TwitchBot
                                 /* Manually refreshes reminders */
                                 else if (message.Equals("!refreshreminders"))
                                     _cmdBrdCstr.CmdRefreshReminders();
+
+                                /* Set regular follower hours for dedicated followers */
+                                else if (message.StartsWith("!setregularhours"))
+                                    _cmdBrdCstr.CmdSetRegularFollowerHours(message);
 
                                 /* insert more broadcaster commands here */
                             }

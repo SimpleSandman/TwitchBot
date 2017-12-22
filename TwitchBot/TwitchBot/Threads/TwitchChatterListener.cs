@@ -133,6 +133,43 @@ namespace TwitchBot.Threads
                         }
                     );
                 }
+
+                // Set followers, regular followers, and subscribers
+                if (_twitchChatterListInstance.TwitchFollowers.Count > 0)
+                {
+                    _twitchChatterListInstance.ChattersByType.Add
+                    (
+                        new TwitchChatterType
+                        {
+                            TwitchChatters = _twitchChatterListInstance.TwitchFollowers,
+                            ChatterType = ChatterType.Follower
+                        }
+                    );
+                }
+
+                if (_twitchChatterListInstance.TwitchRegularFollowers.Count > 0)
+                {
+                    _twitchChatterListInstance.ChattersByType.Add
+                    (
+                        new TwitchChatterType
+                        {
+                            TwitchChatters = _twitchChatterListInstance.TwitchRegularFollowers,
+                            ChatterType = ChatterType.RegularFollower
+                        }
+                    );
+                }
+
+                if (_twitchChatterListInstance.TwitchSubscribers.Count > 0)
+                {
+                    _twitchChatterListInstance.ChattersByType.Add
+                    (
+                        new TwitchChatterType
+                        {
+                            TwitchChatters = _twitchChatterListInstance.TwitchSubscribers,
+                            ChatterType = ChatterType.Subscriber
+                        }
+                    );
+                }
             }
         }
 

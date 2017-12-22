@@ -167,7 +167,7 @@ namespace TwitchBot.Models
                                 ClassStats[1].Defense = int.Parse(reader["followerDefense"].ToString());
                                 ClassStats[1].Evasion = int.Parse(reader["followerEvasion"].ToString());
                                 ClassStats[1].Health = int.Parse(reader["followerHealth"].ToString());
-                                ClassStats[2].ChatterType = Enums.ChatterType.Regular;
+                                ClassStats[2].ChatterType = Enums.ChatterType.RegularFollower;
                                 ClassStats[2].Attack = int.Parse(reader["regularAttack"].ToString());
                                 ClassStats[2].Defense = int.Parse(reader["regularDefense"].ToString());
                                 ClassStats[2].Evasion = int.Parse(reader["regularEvasion"].ToString());
