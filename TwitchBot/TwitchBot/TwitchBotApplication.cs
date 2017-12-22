@@ -45,7 +45,7 @@ namespace TwitchBot
         private LocalSpotifyClient _spotify;
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
-        private FollowerListener _followerListener;
+        private FollowerSubscriberListener _followerSubscriberListener;
         private BankService _bank;
         private SongRequestBlacklistService _songRequestBlacklist;
         private ManualSongRequestService _manualSongRequest;
@@ -62,7 +62,7 @@ namespace TwitchBot
         private BankHeistSettings _bankHeistInstance = BankHeistSettings.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
-            FollowerService follower, BankService bank, FollowerListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
+            FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
             GameDirectoryService gameDirectory, QuoteService quote, GiveawayService giveaway, BankHeist bankHeist, TwitchChatterListener twitchChatterListener)
         {
             _appConfig = appConfig;
@@ -80,7 +80,7 @@ namespace TwitchBot
             _gameQueueUsers = new Queue<string>();
             _twitchInfo = twitchInfo;
             _follower = follower;
-            _followerListener = followerListener;
+            _followerSubscriberListener = followerListener;
             _bank = bank;
             _songRequestBlacklist = songRequestBlacklist;
             _manualSongRequest = manualSongRequest;
@@ -228,7 +228,7 @@ namespace TwitchBot
                 _modInstance.SetModeratorList(_connStr, _broadcasterInstance.DatabaseId);
 
                 /* Pull list of followers and check experience points for stream leveling */
-                _followerListener.Start(_irc, _broadcasterInstance.DatabaseId);
+                _followerSubscriberListener.Start(_irc, _broadcasterInstance.DatabaseId);
 
                 /* Get list of timed out users from database */
                 SetListTimeouts();
@@ -686,11 +686,11 @@ namespace TwitchBot
 
                                 /* Display how long a user has been following the broadcaster */
                                 else if (message.Equals("!followsince"))
-                                    await _cmdGen.CmdFollowSince(username);
+                                    _cmdGen.CmdFollowSince(username);
 
                                 /* Display follower's stream rank */
                                 else if (message.Equals("!rank"))
-                                    await _cmdGen.CmdViewRank(username);
+                                    _cmdGen.CmdViewRank(username);
 
                                 /* Add song request to YouTube playlist */
                                 // Usage: !ytsr [video title/YouTube link]
@@ -775,6 +775,10 @@ namespace TwitchBot
                                 /* Show the subscribe link (if broadcaster is either Affiliate/Partnered) */
                                 else if (message.Equals("!sub"))
                                     await _cmdGen.CmdSubscribe();
+
+                                /* Display how long a user has been subscribed to the broadcaster */
+                                else if (message.Equals("!subsince"))
+                                    _cmdGen.CmdSubscribeSince(username);
 
                                 /* Join the boss fight with a pre-defined amount of currency set by broadcaster */
                                 else if (message.Equals("!bossfight"))

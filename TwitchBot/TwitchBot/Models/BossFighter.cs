@@ -11,7 +11,6 @@ namespace TwitchBot.Models
     public class BossFighter
     {
         public string Username { get; set; }
-        public int Gamble { get; set; }
         public FighterClass FighterClass { get; set; }
     }
 

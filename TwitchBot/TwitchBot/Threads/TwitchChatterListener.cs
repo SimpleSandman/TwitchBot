@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-using TwitchBot.Configuration;
 using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
@@ -50,10 +48,9 @@ namespace TwitchBot.Threads
         {
             try
             {
-                _twitchChatterListInstance.ListsAvailable = false;
-                await ResetChatterListByType();
-                ResetChatterListByName();
-                _twitchChatterListInstance.ListsAvailable = true;
+                _twitchChatterListInstance.AreListsAvailable = false;
+                await ResetChatterLists();
+                _twitchChatterListInstance.AreListsAvailable = true;
             }
             catch (Exception ex)
             {
@@ -68,8 +65,9 @@ namespace TwitchBot.Threads
         /// <summary>
         /// Set a full list of chatters broken up by each type
         /// </summary>
-        private async Task ResetChatterListByType()
+        private async Task ResetChatterLists()
         {
+            _twitchChatterListInstance.ChattersByName.Clear();
             _twitchChatterListInstance.ChattersByType.Clear();
 
             // Grab user's chatter info (viewers, mods, etc.)
@@ -77,54 +75,60 @@ namespace TwitchBot.Threads
 
             if (chatterInfo.ChatterCount > 0)
             {
-                Chatters chatters = chatterInfo.Chatters; // get list of chatters
+                Chatters chatters = chatterInfo.Chatters;
 
+                // Grab and divide chatters from tmi.twitch.tv
                 if (chatters.Viewers.Count() > 0)
                 {
-                    _twitchChatterListInstance.ChattersByType.Add(
+                    _twitchChatterListInstance.ChattersByType.Add
+                    (
                         new TwitchChatterType
                         {
-                            Usernames = chatters.Viewers,
+                            TwitchChatters = GroupTmiTwitchChatters(chatters.Viewers),
                             ChatterType = ChatterType.Viewer
                         }
                     );
                 }
                 if (chatters.Moderators.Count() > 0)
                 {
-                    _twitchChatterListInstance.ChattersByType.Add(
+                    _twitchChatterListInstance.ChattersByType.Add
+                    (
                         new TwitchChatterType
                         {
-                            Usernames = chatters.Moderators,
+                            TwitchChatters = GroupTmiTwitchChatters(chatters.Moderators),
                             ChatterType = ChatterType.Moderator
                         }
                     );
                 }
                 if (chatters.GlobalMods.Count() > 0)
                 {
-                    _twitchChatterListInstance.ChattersByType.Add(
+                    _twitchChatterListInstance.ChattersByType.Add
+                    (
                         new TwitchChatterType
                         {
-                            Usernames = chatters.GlobalMods,
+                            TwitchChatters = GroupTmiTwitchChatters(chatters.GlobalMods),
                             ChatterType = ChatterType.GlobalModerator
                         }
                     );
                 }
                 if (chatters.Admins.Count() > 0)
                 {
-                    _twitchChatterListInstance.ChattersByType.Add(
+                    _twitchChatterListInstance.ChattersByType.Add
+                    (
                         new TwitchChatterType
                         {
-                            Usernames = chatters.Admins,
+                            TwitchChatters = GroupTmiTwitchChatters(chatters.Admins),
                             ChatterType = ChatterType.Admin
                         }
                     );
                 }
                 if (chatters.Staff.Count() > 0)
                 {
-                    _twitchChatterListInstance.ChattersByType.Add(
+                    _twitchChatterListInstance.ChattersByType.Add
+                    (
                         new TwitchChatterType
                         {
-                            Usernames = chatters.Staff,
+                            TwitchChatters = GroupTmiTwitchChatters(chatters.Staff),
                             ChatterType = ChatterType.Staff
                         }
                     );
@@ -132,23 +136,20 @@ namespace TwitchBot.Threads
             }
         }
 
-        /// <summary>
-        /// Set a full list of chatters by name
-        /// </summary>
-        private void ResetChatterListByName()
+        private List<TwitchChatter> GroupTmiTwitchChatters(List<string> usernamesByType)
         {
-            _twitchChatterListInstance.ChattersByName.Clear();
+            List<TwitchChatter> listChattersByViewers = new List<TwitchChatter>();
 
-            if (_twitchChatterListInstance.ChattersByType.Count > 0)
+            foreach (string username in usernamesByType)
             {
-                foreach (TwitchChatterType chatterType in _twitchChatterListInstance.ChattersByType)
-                {
-                    foreach (string chatter in chatterType.Usernames)
-                    {
-                        _twitchChatterListInstance.ChattersByName.Add(chatter);
-                    }
-                }
+                TwitchChatter chatter = new TwitchChatter { Username = username, CreatedAt = null };
+
+                _twitchChatterListInstance.ChattersByName.Add(username);
+
+                listChattersByViewers.Add(chatter); // used for organizing ChattersByType list
             }
+
+            return listChattersByViewers;
         }
     }
 }

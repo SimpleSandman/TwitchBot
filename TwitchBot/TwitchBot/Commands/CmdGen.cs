@@ -20,6 +20,7 @@ using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 using TwitchBot.Threads;
+using TwitchBot.Enums;
 
 namespace TwitchBot.Commands
 {
@@ -597,31 +598,20 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <returns></returns>
-        public async Task CmdFollowSince(string username)
+        public void CmdFollowSince(string username)
         {
             try
             {
-                // get chatter info
-                var rootUserJSON = await _twitchInfo.GetUsersByLoginName(username);
+                TwitchChatter chatter = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username.Equals(username));
 
-                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
+                if (chatter != null)
                 {
-                    if (message.IsSuccessStatusCode)
-                    {
-                        string body = await message.Content.ReadAsStringAsync();
-                        FollowingSinceJSON response = JsonConvert.DeserializeObject<FollowingSinceJSON>(body);
-                        DateTime startedFollowing = Convert.ToDateTime(response.CreatedAt);
-                        _irc.SendPublicChatMessage($"@{username} has been following since {startedFollowing.ToLongDateString()}");
-                    }
-                    else
-                    {
-                        string body = await message.Content.ReadAsStringAsync();
-                        ErrMsgJSON response = JsonConvert.DeserializeObject<ErrMsgJSON>(body);
-                        if (response.Message.Contains("is not following"))
-                            _irc.SendPublicChatMessage($"{username} is not following {_botConfig.Broadcaster.ToLower()}");
-                        else
-                            _irc.SendPublicChatMessage(response.Message);
-                    }
+                    DateTime startedFollowing = Convert.ToDateTime(chatter.CreatedAt);
+                    _irc.SendPublicChatMessage($"@{username} has been following since {startedFollowing.ToLongDateString()}");
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"{username} is not following {_botConfig.Broadcaster.ToLower()}");
                 }
             }
             catch (Exception ex)
@@ -635,45 +625,36 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <returns></returns>
-        public async Task CmdViewRank(string username)
+        public void CmdViewRank(string username)
         {
             try
             {
-                // get chatter info
-                var rootUserJSON = await _twitchInfo.GetUsersByLoginName(username);
+                TwitchChatter chatter = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username.Equals(username));
 
-                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
+                if (chatter != null)
                 {
-                    if (message.IsSuccessStatusCode)
+                    int currExp = _follower.CurrentExp(username, _broadcasterId);
+
+                    // Grab the follower's associated rank
+                    if (currExp > -1)
                     {
-                        int currExp = _follower.CurrentExp(username, _broadcasterId);
+                        IEnumerable<Rank> rankList = _follower.GetRankList(_broadcasterId);
+                        Rank currFollowerRank = _follower.GetCurrentRank(rankList, currExp);
+                        decimal hoursWatched = _follower.GetHoursWatched(currExp);
 
-                        // Grab the follower's associated rank
-                        if (currExp > -1)
-                        {
-                            IEnumerable<Rank> rankList = _follower.GetRankList(_broadcasterId);
-                            Rank currFollowerRank = _follower.GetCurrentRank(rankList, currExp);
-                            decimal hoursWatched = _follower.GetHoursWatched(currExp);
-
-                            _irc.SendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" "
-                                + $"{currExp}/{currFollowerRank.ExpCap} EXP ({hoursWatched} hours watched)");
-                        }
-                        else
-                        {
-                            _follower.EnlistRecruit(username, _broadcasterId);
-
-                            _irc.SendPublicChatMessage($"Welcome to the army @{username}. View your new rank using !rank");
-                        }
+                        _irc.SendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" "
+                            + $"{currExp}/{currFollowerRank.ExpCap} EXP ({hoursWatched} hours watched)");
                     }
                     else
                     {
-                        string body = await message.Content.ReadAsStringAsync();
-                        ErrMsgJSON response = JsonConvert.DeserializeObject<ErrMsgJSON>(body);
-                        if (response.Message.Contains("is not following"))
-                            _irc.SendPublicChatMessage($"{username} is not following {_botConfig.Broadcaster.ToLower()}");
-                        else
-                            _irc.SendPublicChatMessage(response.Message);
+                        _follower.EnlistRecruit(username, _broadcasterId);
+
+                        _irc.SendPublicChatMessage($"Welcome to the army @{username}. View your new rank using !rank");
                     }
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"{username} is not following {_botConfig.Broadcaster.ToLower()}");
                 }
             }
             catch (Exception ex)
@@ -1313,6 +1294,33 @@ namespace TwitchBot.Commands
             }
         }
 
+        /// <summary>
+        /// Tell the user how long they have been subscribing to the broadcaster
+        /// </summary>
+        /// <param name="username">User that sent the message</param>
+        /// <returns></returns>
+        public void CmdSubscribeSince(string username)
+        {
+            try
+            {
+                TwitchChatter chatter = _twitchChatterListInstance.TwitchSubscribers.FirstOrDefault(c => c.Username.Equals(username));
+
+                if (chatter != null)
+                {
+                    DateTime startedSubscribing = Convert.ToDateTime(chatter.CreatedAt);
+                    _irc.SendPublicChatMessage($"@{username} has been a subscriber since {startedSubscribing.ToLongDateString()}");
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"{username} is not subscriber to {_botConfig.Broadcaster.ToLower()}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdSubscribeSince(string)", false, "!subsince");
+            }
+        }
+
         public void CmdBossFight(string message, string username)
         {
             try
@@ -1345,9 +1353,9 @@ namespace TwitchBot.Commands
                     return;
                 }
 
-                if (funds < _bossSettingsInstance.SetGamble)
+                if (funds < _bossSettingsInstance.Cost)
                 {
-                    _irc.SendPublicChatMessage($"You do not have enough to gamble {_bossSettingsInstance.SetGamble} {_botConfig.CurrencyType} @{username}");
+                    _irc.SendPublicChatMessage($"You do need {_bossSettingsInstance.Cost} {_botConfig.CurrencyType} to enter this fight @{username}");
                     return;
                 }
 
@@ -1361,10 +1369,12 @@ namespace TwitchBot.Commands
                     }
 
                     // join boss fight
-                    FighterClass fighterClass = new FighterClass { }; // ToDo: Find out what type of chatter the user is
-                    BossFighter fighter = new BossFighter { Username = username, Gamble = _bossSettingsInstance.SetGamble, FighterClass = fighterClass };
+                    // ToDo: check chatter types in this order (subscribers, moderators, regulars, followers, viewers)
+                    ChatterType chatterType = _twitchChatterListInstance.ChattersByType.First(c => c.TwitchChatters.Equals(username)).ChatterType;
+                    FighterClass fighterClass = _bossSettingsInstance.ClassStats.Single(c => c.ChatterType.Equals(chatterType));
+                    BossFighter fighter = new BossFighter { Username = username, FighterClass = fighterClass };
                     bossFight.Produce(fighter);
-                    _bank.UpdateFunds(username, _broadcasterId, funds - _bossSettingsInstance.SetGamble);
+                    _bank.UpdateFunds(username, _broadcasterId, funds - _bossSettingsInstance.Cost);
 
                     // display new boss level
                     if (!string.IsNullOrEmpty(bossFight.NextLevelMessage()))
@@ -1375,7 +1385,7 @@ namespace TwitchBot.Commands
                     // display if more than one fighter joins
                     if (_bossSettingsInstance.Fighters.Count > 1)
                     {
-                        _irc.SendPublicChatMessage($"@{username} has joined the heist");
+                        _irc.SendPublicChatMessage($"@{username} has joined the fight");
                     }
                 }
             }
@@ -1435,7 +1445,7 @@ namespace TwitchBot.Commands
                 return true;
 
             // Wait until chatter lists are available
-            while (!_twitchChatterListInstance.ListsAvailable)
+            while (!_twitchChatterListInstance.AreListsAvailable)
             {
                 
             }

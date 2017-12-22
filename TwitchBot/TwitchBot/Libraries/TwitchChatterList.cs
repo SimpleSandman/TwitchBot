@@ -16,7 +16,10 @@ namespace TwitchBot.Libraries
         private List<TwitchChatterType> _chattersByType = new List<TwitchChatterType>();
         private List<string> _chattersByName = new List<string>();
 
-        public bool ListsAvailable { get; set; } = false;
+        private List<TwitchChatter> _twitchFollowers = new List<TwitchChatter>();
+        private List<TwitchChatter> _twitchSubscribers = new List<TwitchChatter>();
+
+        public bool AreListsAvailable { get; set; } = false;
 
         public List<TwitchChatterType> ChattersByType
         {
@@ -26,6 +29,16 @@ namespace TwitchBot.Libraries
         public List<string> ChattersByName
         {
             get { return _chattersByName; }
+        }
+
+        public List<TwitchChatter> TwitchFollowers
+        {
+            get { return _twitchFollowers; }
+        }
+
+        public List<TwitchChatter> TwitchSubscribers
+        {
+            get { return _twitchSubscribers; }
         }
 
         private TwitchChatterList() { }

@@ -1,12 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
-using TwitchBot.Enums;
 using TwitchBot.Libraries;
-using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 
 namespace TwitchBot.Services
@@ -53,6 +50,11 @@ namespace TwitchBot.Services
         public async Task<ChatterInfoJSON> GetChatters()
         {
             return await TwitchApi.GetChatters(_botConfig.TwitchClientId);
+        }
+
+        public async Task<HttpResponseMessage> CheckSubscriberStatus(string userId)
+        {
+            return await TwitchApi.CheckSubscriberStatus(userId, _botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
         }
     }
 }

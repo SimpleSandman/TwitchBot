@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
+
 using RestSharp;
 
 using TwitchBot.Models.JSON;
-using System.Threading;
 
 namespace TwitchBot.Libraries
 {
@@ -83,6 +84,20 @@ namespace TwitchBot.Libraries
             }
         }
 
+        public static async Task<HttpResponseMessage> CheckSubscriberStatus(string userTwitchId, string clientId, string accessToken)
+        {
+            string apiUriCall = "https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId
+                + "/subscriptions/" + userTwitchId + "?client_id=" + clientId;
+
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders
+                  .Accept
+                  .Add(new MediaTypeWithQualityHeaderValue("application/vnd.twitchtv.v5+json"));
+            client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
+
+            return await client.GetAsync(apiUriCall);
+        }
+
         private static async Task<T> GetRequestExecuteTaskAsync<T>(string basicUrl, string clientId)
         {
             try
@@ -91,6 +106,40 @@ namespace TwitchBot.Libraries
                 RestRequest request = new RestRequest(Method.GET);
                 request.AddHeader("Cache-Control", "no-cache");
                 request.AddHeader("Content-Type", "application/json");
+                request.AddHeader("Accept", "application/vnd.twitchtv.v5+json");
+                request.AddHeader("Client-ID", clientId);
+
+                var cancellationToken = new CancellationTokenSource();
+
+                try
+                {
+                    IRestResponse<T> response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
+
+                    return JsonConvert.DeserializeObject<T>(response.Content);
+                }
+                catch (WebException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+            catch (WebException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return default(T);
+        }
+
+        private static async Task<T> GetRequestWithOAuthExecuteTaskAsync<T>(string basicUrl, string accessToken, string clientId)
+        {
+            try
+            {
+                // Send HTTP method PUT to base URI in order to change the game
+                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId);
+                RestRequest request = new RestRequest(Method.PUT);
+                request.AddHeader("Cache-Control", "no-cache");
+                request.AddHeader("Content-Type", "application/json");
+                request.AddHeader("Authorization", "OAuth " + accessToken);
                 request.AddHeader("Accept", "application/vnd.twitchtv.v5+json");
                 request.AddHeader("Client-ID", clientId);
 

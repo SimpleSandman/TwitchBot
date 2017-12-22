@@ -17,12 +17,10 @@ namespace TwitchBot.Models
         public int EntryPeriodSeconds { get; set; }
         public DateTime CooldownTimePeriod { get; set; }
         public DateTime EntryPeriod { get; set; }
+        public int Cost { get; set; }
 
         // Entry Messages
         public string EntryMessage { get; set; }
-        public int SetGamble { get; set; }
-        public string MaxGambleText { get; set; }
-        public string EntryInstructions { get; set; }
         public string CooldownEntry { get; set; }
         public string CooldownOver { get; set; }
 
@@ -44,9 +42,6 @@ namespace TwitchBot.Models
 
         // Game Levels (Level 1-5)
         public Boss[] Bosses { get; set; }
-
-        // Payouts
-        public BossFightPayout[] Payouts { get; set; }
 
         /* Singleton Instance */
         private static volatile BossFightSettings _instance;
@@ -100,14 +95,6 @@ namespace TwitchBot.Models
                 new Boss { },
                 new Boss { }
             };
-            Payouts = new BossFightPayout[]
-            {
-                new BossFightPayout{ },
-                new BossFightPayout{ },
-                new BossFightPayout{ },
-                new BossFightPayout{ },
-                new BossFightPayout{ }
-            };
             ClassStats = new FighterClass[]
             {
                 new FighterClass { },
@@ -130,13 +117,11 @@ namespace TwitchBot.Models
                         {
                             while (reader.Read())
                             {
-                                // entry messages
+                                // entry messages and initial settings
                                 CooldownTimePeriodMinutes = int.Parse(reader["cooldownPeriodMin"].ToString());
                                 EntryPeriodSeconds = int.Parse(reader["entryPeriodSec"].ToString());
                                 EntryMessage = reader["entryMessage"].ToString();
-                                SetGamble = int.Parse(reader["setGamble"].ToString());
-                                MaxGambleText = reader["maxGambleText"].ToString();
-                                EntryInstructions = reader["entryInstructions"].ToString();
+                                Cost = int.Parse(reader["cost"].ToString());
                                 CooldownEntry = reader["cooldownEntry"].ToString();
                                 CooldownOver = reader["cooldownOver"].ToString();
                                 // next level messages
@@ -153,43 +138,6 @@ namespace TwitchBot.Models
                                 Success34 = reader["success34"].ToString();
                                 Success1 = reader["success1"].ToString();
                                 Success0 = reader["success0"].ToString();
-                                // payout
-                                Payouts[0].SuccessRate = decimal.Parse(reader["payoutSuccessRate1"].ToString());
-                                Payouts[0].WinMultiplier = decimal.Parse(reader["payoutMultiplier1"].ToString());
-                                Payouts[1].SuccessRate = decimal.Parse(reader["payoutSuccessRate2"].ToString());
-                                Payouts[1].WinMultiplier = decimal.Parse(reader["payoutMultiplier2"].ToString());
-                                Payouts[2].SuccessRate = decimal.Parse(reader["payoutSuccessRate3"].ToString());
-                                Payouts[2].WinMultiplier = decimal.Parse(reader["payoutMultiplier3"].ToString());
-                                Payouts[3].SuccessRate = decimal.Parse(reader["payoutSuccessRate4"].ToString());
-                                Payouts[3].WinMultiplier = decimal.Parse(reader["payoutMultiplier4"].ToString());
-                                Payouts[4].SuccessRate = decimal.Parse(reader["payoutSuccessRate5"].ToString());
-                                Payouts[4].WinMultiplier = decimal.Parse(reader["payoutMultiplier5"].ToString());
-                                // class stats
-                                ClassStats[0].ChatterType = Enums.ChatterType.Viewer;
-                                ClassStats[0].Attack = int.Parse(reader["classStatsAttack1"].ToString());
-                                ClassStats[0].Defense = int.Parse(reader["classStatsDefense1"].ToString());
-                                ClassStats[0].Evasion = int.Parse(reader["classStatsEvasion1"].ToString());
-                                ClassStats[0].Health = int.Parse(reader["classStatsHealth1"].ToString());
-                                ClassStats[1].ChatterType = Enums.ChatterType.Follower;
-                                ClassStats[1].Attack = int.Parse(reader["classStatsAttack2"].ToString());
-                                ClassStats[1].Defense = int.Parse(reader["classStatsDefense2"].ToString());
-                                ClassStats[1].Evasion = int.Parse(reader["classStatsEvasion2"].ToString());
-                                ClassStats[1].Health = int.Parse(reader["classStatsHealth2"].ToString());
-                                ClassStats[2].ChatterType = Enums.ChatterType.Regular;
-                                ClassStats[2].Attack = int.Parse(reader["classStatsAttack3"].ToString());
-                                ClassStats[2].Defense = int.Parse(reader["classStatsDefense3"].ToString());
-                                ClassStats[2].Evasion = int.Parse(reader["classStatsEvasion3"].ToString());
-                                ClassStats[2].Health = int.Parse(reader["classStatsHealth3"].ToString());
-                                ClassStats[3].ChatterType = Enums.ChatterType.Moderator;
-                                ClassStats[3].Attack = int.Parse(reader["classStatsAttack4"].ToString());
-                                ClassStats[3].Defense = int.Parse(reader["classStatsDefense4"].ToString());
-                                ClassStats[3].Evasion = int.Parse(reader["classStatsEvasion4"].ToString());
-                                ClassStats[3].Health = int.Parse(reader["classStatsHealth4"].ToString());
-                                ClassStats[4].ChatterType = Enums.ChatterType.Subscriber;
-                                ClassStats[4].Attack = int.Parse(reader["classStatsAttack5"].ToString());
-                                ClassStats[4].Defense = int.Parse(reader["classStatsDefense5"].ToString());
-                                ClassStats[4].Evasion = int.Parse(reader["classStatsEvasion5"].ToString());
-                                ClassStats[4].Health = int.Parse(reader["classStatsHealth5"].ToString());
 
                                 break;
                             }
@@ -197,6 +145,7 @@ namespace TwitchBot.Models
                     }
                 }
 
+                // ToDo: Select where FK equals BossFightSettings Id instead of broadcaster
                 conn.Open();
                 using (SqlCommand cmd = new SqlCommand("SELECT * FROM BossFightClassStats WHERE broadcaster = @broadcaster", conn))
                 {
@@ -240,6 +189,7 @@ namespace TwitchBot.Models
                     }
                 }
 
+                // ToDo: Select where FK equals BossFightSettings Id instead of broadcaster
                 conn.Open();
                 using (SqlCommand cmd = new SqlCommand("SELECT * FROM BossFightBossStats WHERE broadcaster = @broadcaster", conn))
                 {
@@ -256,26 +206,41 @@ namespace TwitchBot.Models
                                 Bosses[0].Attack = int.Parse(reader["attack1"].ToString());
                                 Bosses[0].Defense = int.Parse(reader["defense1"].ToString());
                                 Bosses[0].Health = int.Parse(reader["health1"].ToString());
+                                Bosses[0].TurnLimit = int.Parse(reader["turnLimit1"].ToString());
+                                Bosses[0].Loot = int.Parse(reader["loot1"].ToString());
+                                Bosses[0].LastAttackBonus = int.Parse(reader["lastAttackBonus1"].ToString());
                                 Bosses[1].Name = reader["name2"].ToString();
                                 Bosses[1].MaxUsers = int.Parse(reader["maxUsers2"].ToString());
                                 Bosses[1].Attack = int.Parse(reader["attack2"].ToString());
                                 Bosses[1].Defense = int.Parse(reader["defense2"].ToString());
                                 Bosses[1].Health = int.Parse(reader["health2"].ToString());
+                                Bosses[1].TurnLimit = int.Parse(reader["turnLimit2"].ToString());
+                                Bosses[1].Loot = int.Parse(reader["loot2"].ToString());
+                                Bosses[1].LastAttackBonus = int.Parse(reader["lastAttackBonus2"].ToString());
                                 Bosses[2].Name = reader["name3"].ToString();
                                 Bosses[2].MaxUsers = int.Parse(reader["maxUsers3"].ToString());
                                 Bosses[2].Attack = int.Parse(reader["attack3"].ToString());
                                 Bosses[2].Defense = int.Parse(reader["defense3"].ToString());
                                 Bosses[2].Health = int.Parse(reader["health3"].ToString());
+                                Bosses[2].TurnLimit = int.Parse(reader["turnLimit3"].ToString());
+                                Bosses[2].Loot = int.Parse(reader["loot3"].ToString());
+                                Bosses[2].LastAttackBonus = int.Parse(reader["lastAttackBonus3"].ToString());
                                 Bosses[3].Name = reader["name4"].ToString();
                                 Bosses[3].MaxUsers = int.Parse(reader["maxUsers4"].ToString());
                                 Bosses[3].Attack = int.Parse(reader["attack4"].ToString());
                                 Bosses[3].Defense = int.Parse(reader["defense4"].ToString());
                                 Bosses[3].Health = int.Parse(reader["health4"].ToString());
+                                Bosses[3].TurnLimit = int.Parse(reader["turnLimit4"].ToString());
+                                Bosses[3].Loot = int.Parse(reader["loot4"].ToString());
+                                Bosses[3].LastAttackBonus = int.Parse(reader["lastAttackBonus4"].ToString());
                                 Bosses[4].Name = reader["name5"].ToString();
                                 Bosses[4].MaxUsers = int.Parse(reader["maxUsers5"].ToString());
                                 Bosses[4].Attack = int.Parse(reader["attack5"].ToString());
                                 Bosses[4].Defense = int.Parse(reader["defense5"].ToString());
                                 Bosses[4].Health = int.Parse(reader["health5"].ToString());
+                                Bosses[4].TurnLimit = int.Parse(reader["turnLimit5"].ToString());
+                                Bosses[4].Loot = int.Parse(reader["loot5"].ToString());
+                                Bosses[4].LastAttackBonus = int.Parse(reader["lastAttackBonus5"].ToString());
 
                                 break;
                             }
@@ -297,6 +262,8 @@ namespace TwitchBot.Models
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
+
+            // ToDo: Get record ID from BossFightSettings and make foreign key for below tables
 
             query = "INSERT INTO BossFightClassStats (broadcaster) VALUES (@broadcaster)";
 
@@ -329,11 +296,8 @@ namespace TwitchBot.Models
         public int Attack { get; set; }
         public int Defense { get; set; }
         public int Health { get; set; }
-    }
-
-    public class BossFightPayout
-    {
-        public decimal SuccessRate { get; set; }
-        public decimal WinMultiplier { get; set; }
+        public int TurnLimit { get; set; }
+        public int Loot { get; set; }
+        public int LastAttackBonus { get; set; }
     }
 }

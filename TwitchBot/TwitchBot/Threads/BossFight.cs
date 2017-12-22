@@ -77,77 +77,114 @@ namespace TwitchBot.Threads
 
         public void Consume()
         {
-            Boss bossLevel = _bossSettings.Bosses[BossLevel() - 1];
-            BossFightPayout payout = _bossSettings.Payouts[BossLevel() - 1];
+            Boss boss = _bossSettings.Bosses[BossLevel() - 1];
 
             _irc.SendPublicChatMessage(_bossSettings.GameStart
-                .Replace("@bankname@", bossLevel.Name));
+                .Replace("@bossname@", boss.Name));
 
             Thread.Sleep(5000); // wait in anticipation
 
-            // ToDo: Set up gameplay and calculations for boss fight
+            // Raid the boss
+            bool isBossAlive = true;
+            string lastAttackFighter = "";
 
-            //Random rnd = new Random();
-            //int chance = rnd.Next(1, 101); // 1 - 100
+            for (int turn = 0; turn < boss.TurnLimit; turn++)
+            {
+                foreach (BossFighter fighter in _bossSettings.Fighters)
+                {
+                    if (fighter.FighterClass.Health <= 0)
+                        continue;
 
-            //if (chance >= payout.SuccessRate) // failed
-            //{
-            //    if (_bossSettings.Fighters.Count == 1)
-            //    {
-            //        _irc.SendPublicChatMessage(_bossSettings.SingleUserFail
-            //            .Replace("user@", _bossSettings.Fighters.First().Username)
-            //            .Replace("@bankname@", bossLevel.LevelBankName));
-            //    }
-            //    else
-            //    {
-            //        _irc.SendPublicChatMessage(_bossSettings.Success0);
-            //    }
+                    if (fighter.FighterClass.Attack > boss.Defense)
+                        boss.Health = fighter.FighterClass.Attack - boss.Defense;
 
-            //    return;
-            //}
+                    if (boss.Health <= 0)
+                    {
+                        lastAttackFighter = fighter.Username;
+                        isBossAlive = false;
+                        break;
+                    }
 
-            //int numWinners = (int)Math.Ceiling(_bossSettings.Fighters.Count * (payout.SuccessRate / 100));
-            //IEnumerable<BossFighter> winners = _bossSettings.Fighters.OrderBy(x => rnd.Next()).Take(numWinners);
+                    if (boss.Attack > fighter.FighterClass.Defense)
+                    {
+                        Random rnd = new Random(DateTime.Now.Millisecond);
+                        int chance = rnd.Next(1, 101); // 1 - 100
 
-            //foreach (BossFighter winner in winners)
-            //{
-            //    int funds = _bank.CheckBalance(winner.Username.ToLower(), _broadcasterId);
-            //    decimal earnings = Math.Ceiling(winner.Gamble * payout.WinMultiplier);
+                        // check if fighter dodged the attack
+                        if (chance <= fighter.FighterClass.Evasion)
+                            continue;
 
-            //    _bank.UpdateFunds(winner.Username.ToLower(), _broadcasterId, (int)earnings + funds);
+                        fighter.FighterClass.Health = boss.Attack - fighter.FighterClass.Defense;
+                    }
+                }
 
-            //    _resultMessage += $" {winner.Username} ({(int)earnings} {_botConfig.CurrencyType}),";
-            //}
+                if (!isBossAlive) break;
+            }
 
-            //// remove extra ","
-            //_resultMessage = _resultMessage.Remove(_resultMessage.LastIndexOf(','), 1);
+            // Evaluate the fight
+            if (isBossAlive)
+            {
+                if (_bossSettings.Fighters.Count == 1)
+                {
+                    _irc.SendPublicChatMessage(_bossSettings.SingleUserFail
+                        .Replace("user@", _bossSettings.Fighters.First().Username)
+                        .Replace("@bossname@", boss.Name));
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage(_bossSettings.Success0);
+                }
 
-            //decimal numWinnersPercentage = numWinners / (decimal)_bossSettings.Fighters.Count;
+                return;
+            }
 
-            //// display success outcome
-            //if (winners.Count() == 1)
-            //{
-            //    BossFighter onlyWinner = winners.First();
-            //    int earnings = (int)Math.Ceiling(onlyWinner.Gamble * payout.WinMultiplier);
+            // Calculate surviving raid party earnings
+            IEnumerable<BossFighter> survivors = _bossSettings.Fighters.Where(f => f.FighterClass.Health > 0);
+            int numSurvivors = survivors.Count();
+            foreach (BossFighter champion in survivors)
+            {
+                int funds = _bank.CheckBalance(champion.Username.ToLower(), _broadcasterId);
 
-            //    _irc.SendPublicChatMessage(_bossSettings.SingleUserSuccess
-            //        .Replace("user@", onlyWinner.Username)
-            //        .Replace("@bankname@", bossLevel.LevelBankName)
-            //        .Replace("@winamount@", earnings.ToString())
-            //        .Replace("@pointsname@", _botConfig.CurrencyType));
-            //}
-            //else if (numWinners == _bossSettings.Fighters.Count)
-            //{
-            //    _irc.SendPublicChatMessage(_bossSettings.Success100 + " " + _resultMessage);
-            //}
-            //else if (numWinnersPercentage >= 0.34m)
-            //{
-            //    _irc.SendPublicChatMessage(_bossSettings.Success34 + " " + _resultMessage);
-            //}
-            //else if (numWinnersPercentage > 0)
-            //{
-            //    _irc.SendPublicChatMessage(_bossSettings.Success1 + " " + _resultMessage);
-            //}
+                decimal earnings = Math.Ceiling(boss.Loot / (decimal)numSurvivors);
+
+                // give last attack bonus to specified fighter
+                if (champion.Equals(lastAttackFighter)) 
+                    earnings += boss.LastAttackBonus;
+
+                _bank.UpdateFunds(champion.Username.ToLower(), _broadcasterId, (int)earnings + funds);
+
+                _resultMessage += $" {champion.Username} ({(int)earnings} {_botConfig.CurrencyType}),";
+            }
+
+            // remove extra ","
+            _resultMessage = _resultMessage.Remove(_resultMessage.LastIndexOf(','), 1);
+
+            decimal survivorsPercentage = numSurvivors / (decimal)_bossSettings.Fighters.Count;
+
+            // Display success outcome
+            if (numSurvivors == 1)
+            {
+                BossFighter onlyWinner = _bossSettings.Fighters.First();
+                int earnings = boss.Loot;
+
+                _irc.SendPublicChatMessage(_bossSettings.SingleUserSuccess
+                    .Replace("user@", onlyWinner.Username)
+                    .Replace("@bossname@", boss.Name)
+                    .Replace("@winamount@", earnings.ToString())
+                    .Replace("@pointsname@", _botConfig.CurrencyType));
+            }
+            else if (survivorsPercentage == 1.0m)
+            {
+                _irc.SendPublicChatMessage(_bossSettings.Success100 + " " + _resultMessage);
+            }
+            else if (survivorsPercentage >= 0.34m)
+            {
+                _irc.SendPublicChatMessage(_bossSettings.Success34 + " " + _resultMessage);
+            }
+            else if (survivorsPercentage > 0)
+            {
+                _irc.SendPublicChatMessage(_bossSettings.Success1 + " " + _resultMessage);
+            }
 
             // show in case Twitch deletes the message because of exceeding character length
             Console.WriteLine("\n" + _resultMessage + "\n");

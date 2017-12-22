@@ -10,7 +10,7 @@ namespace TwitchBot.Models
 {
     public class TwitchChatterType
     {
-        public List<string> Usernames { get; set; }
+        public List<TwitchChatter> TwitchChatters { get; set; }
         public ChatterType ChatterType { get; set; }
     }
 }

@@ -232,7 +232,7 @@ namespace TwitchBot.Commands
                     else
                     {
                         // Wait until chatter lists are available
-                        while (!_twitchChatterListInstance.ListsAvailable)
+                        while (!_twitchChatterListInstance.AreListsAvailable)
                         {
 
                         }
