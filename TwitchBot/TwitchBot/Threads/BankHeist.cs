@@ -178,13 +178,21 @@ namespace TwitchBot.Threads
         public string NextLevelMessage()
         {
             if (_heistSettings.Robbers.Count == _heistSettings.Levels[0].MaxUsers + 1)
-                return _heistSettings.NextLevelMessages[0];
+                return _heistSettings.NextLevelMessages[0]
+                    .Replace("@bankname@", _heistSettings.Levels[1].LevelBankName)
+                    .Replace("@nextbankname@", _heistSettings.Levels[2].LevelBankName);
             else if (_heistSettings.Robbers.Count == _heistSettings.Levels[1].MaxUsers + 1)
-                return _heistSettings.NextLevelMessages[1];
+                return _heistSettings.NextLevelMessages[1]
+                    .Replace("@bankname@", _heistSettings.Levels[2].LevelBankName)
+                    .Replace("@nextbankname@", _heistSettings.Levels[3].LevelBankName);
             else if (_heistSettings.Robbers.Count == _heistSettings.Levels[2].MaxUsers + 1)
-                return _heistSettings.NextLevelMessages[2];
+                return _heistSettings.NextLevelMessages[2]
+                    .Replace("@bankname@", _heistSettings.Levels[3].LevelBankName)
+                    .Replace("@nextbankname@", _heistSettings.Levels[4].LevelBankName);
             else if (_heistSettings.Robbers.Count == _heistSettings.Levels[3].MaxUsers + 1)
-                return _heistSettings.NextLevelMessages[3];
+                return _heistSettings.NextLevelMessages[3]
+                    .Replace("@bankname@", _heistSettings.Levels[4].LevelBankName)
+                    .Replace("@nextbankname@", _heistSettings.Levels[5].LevelBankName);
 
             return "";
         }

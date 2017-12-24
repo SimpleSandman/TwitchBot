@@ -96,7 +96,14 @@ namespace TwitchBot.Threads
                         continue;
 
                     if (fighter.FighterClass.Attack > boss.Defense)
-                        boss.Health = fighter.FighterClass.Attack - boss.Defense;
+                    {
+                        Random rnd = new Random(DateTime.Now.Millisecond);
+                        int chance = rnd.Next(1, 101); // 1 - 100
+
+                        // check if boss dodged the attack
+                        if (boss.Evasion <= chance)
+                            boss.Health -= fighter.FighterClass.Attack - boss.Defense;
+                    }
 
                     if (boss.Health <= 0)
                     {
@@ -111,10 +118,8 @@ namespace TwitchBot.Threads
                         int chance = rnd.Next(1, 101); // 1 - 100
 
                         // check if fighter dodged the attack
-                        if (chance <= fighter.FighterClass.Evasion)
-                            continue;
-
-                        fighter.FighterClass.Health = boss.Attack - fighter.FighterClass.Defense;
+                        if (fighter.FighterClass.Evasion <= chance)
+                            fighter.FighterClass.Health -= boss.Attack - fighter.FighterClass.Defense;
                     }
                 }
 
@@ -148,7 +153,7 @@ namespace TwitchBot.Threads
                 decimal earnings = Math.Ceiling(boss.Loot / (decimal)numSurvivors);
 
                 // give last attack bonus to specified fighter
-                if (champion.Equals(lastAttackFighter)) 
+                if (champion.Username.Equals(lastAttackFighter)) 
                     earnings += boss.LastAttackBonus;
 
                 _bank.UpdateFunds(champion.Username.ToLower(), _broadcasterId, (int)earnings + funds);
@@ -171,11 +176,13 @@ namespace TwitchBot.Threads
                     .Replace("user@", onlyWinner.Username)
                     .Replace("@bossname@", boss.Name)
                     .Replace("@winamount@", earnings.ToString())
-                    .Replace("@pointsname@", _botConfig.CurrencyType));
+                    .Replace("@pointsname@", _botConfig.CurrencyType)
+                    .Replace("@lastattackbonus@", boss.LastAttackBonus.ToString()));
             }
             else if (survivorsPercentage == 1.0m)
             {
-                _irc.SendPublicChatMessage(_bossSettings.Success100 + " " + _resultMessage);
+                _irc.SendPublicChatMessage(_bossSettings.Success100.Replace("@bossname@", boss.Name) 
+                    + " " + _resultMessage);
             }
             else if (survivorsPercentage >= 0.34m)
             {
@@ -217,13 +224,21 @@ namespace TwitchBot.Threads
         public string NextLevelMessage()
         {
             if (_bossSettings.Fighters.Count == _bossSettings.Bosses[0].MaxUsers + 1)
-                return _bossSettings.NextLevelMessages[0];
+                return _bossSettings.NextLevelMessages[0]
+                    .Replace("@bossname@", _bossSettings.Bosses[1].Name)
+                    .Replace("@nextbossname@", _bossSettings.Bosses[2].Name);
             else if (_bossSettings.Fighters.Count == _bossSettings.Bosses[1].MaxUsers + 1)
-                return _bossSettings.NextLevelMessages[1];
+                return _bossSettings.NextLevelMessages[1]
+                    .Replace("@bossname@", _bossSettings.Bosses[2].Name)
+                    .Replace("@nextbossname@", _bossSettings.Bosses[3].Name);
             else if (_bossSettings.Fighters.Count == _bossSettings.Bosses[2].MaxUsers + 1)
-                return _bossSettings.NextLevelMessages[2];
+                return _bossSettings.NextLevelMessages[2]
+                    .Replace("@bossname@", _bossSettings.Bosses[3].Name)
+                    .Replace("@nextbossname@", _bossSettings.Bosses[4].Name);
             else if (_bossSettings.Fighters.Count == _bossSettings.Bosses[3].MaxUsers + 1)
-                return _bossSettings.NextLevelMessages[3];
+                return _bossSettings.NextLevelMessages[3]
+                    .Replace("@bossname@", _bossSettings.Bosses[4].Name)
+                    .Replace("@nextbossname@", _bossSettings.Bosses[5].Name);
 
             return "";
         }

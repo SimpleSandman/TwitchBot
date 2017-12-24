@@ -307,6 +307,7 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <Content Include="SqlScripts\Tables\dbo.BossFightBossStats.sql" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6">
@@ -324,6 +325,8 @@
     <Content Include="SqlScripts\StoredProcedures\dbo.UpdateCreateBalance.sql" />
     <Content Include="SqlScripts\Tables\dbo.Bank.sql" />
     <Content Include="SqlScripts\Tables\dbo.BankHeistSettings.sql" />
+    <Content Include="SqlScripts\Tables\dbo.BossFightClassStats.sql" />
+    <Content Include="SqlScripts\Tables\dbo.BossFightSettings.sql" />
     <Content Include="SqlScripts\Tables\dbo.Broadcasters.sql" />
     <Content Include="SqlScripts\Tables\dbo.ErrorLog.sql" />
     <Content Include="SqlScripts\Tables\dbo.GameList.sql" />

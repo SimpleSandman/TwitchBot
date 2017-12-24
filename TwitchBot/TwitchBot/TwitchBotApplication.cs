@@ -54,16 +54,19 @@ namespace TwitchBot
         private QuoteService _quote;
         private GiveawayService _giveaway;
         private BankHeist _bankHeist;
+        private BossFight _bossFight;
         private TwitchChatterListener _twitchChatterListener;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private Broadcaster _broadcasterInstance = Broadcaster.Instance;
         private BankHeistSettings _bankHeistInstance = BankHeistSettings.Instance;
+        private BossFightSettings _bossFightInstance = BossFightSettings.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
-            GameDirectoryService gameDirectory, QuoteService quote, GiveawayService giveaway, BankHeist bankHeist, TwitchChatterListener twitchChatterListener)
+            GameDirectoryService gameDirectory, QuoteService quote, GiveawayService giveaway, BankHeist bankHeist, TwitchChatterListener twitchChatterListener,
+            BossFight bossFight)
         {
             _appConfig = appConfig;
             _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program.ConnStrType].ConnectionString;
@@ -90,6 +93,7 @@ namespace TwitchBot
             _giveaway = giveaway;
             _bankHeist = bankHeist;
             _twitchChatterListener = twitchChatterListener;
+            _bossFight = bossFight;
         }
 
         public async Task RunAsync()
@@ -234,13 +238,28 @@ namespace TwitchBot
                 /* Get list of timed out users from database */
                 SetListTimeouts();
 
-                /* Load/create settings and start the heist */
+                /* Load/create settings and start the queue for the heist */
                 _bankHeistInstance.LoadSettings(_broadcasterInstance.DatabaseId, _connStr);
 
                 if (_bankHeistInstance.CooldownTimePeriodMinutes == 0)
                     _bankHeistInstance.CreateSettings(_broadcasterInstance.DatabaseId, _connStr);
 
                 _bankHeist.Start(_irc, _broadcasterInstance.DatabaseId);
+
+                /* Load/create settings and start the queue for the boss fight */
+                // Get current game name
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                string gameTitle = json.Game;
+
+                // Grab game id in order to find party member
+                int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
+
+                _bossFightInstance.LoadSettings(_broadcasterInstance.DatabaseId, _connStr, gameId);
+
+                if (_bossFightInstance.CooldownTimePeriodMinutes == 0)
+                    _bossFightInstance.CreateSettings(_broadcasterInstance.DatabaseId, _connStr);
+
+                _bossFight.Start(_irc, _broadcasterInstance.DatabaseId);
 
                 /* Ping to twitch server to prevent auto-disconnect */
                 PingSender ping = new PingSender(_irc);
@@ -786,7 +805,7 @@ namespace TwitchBot
                                     _cmdGen.CmdSubscribeSince(username);
 
                                 /* Join the boss fight with a pre-defined amount of currency set by broadcaster */
-                                else if (message.Equals("!bossfight"))
+                                else if (message.Equals("!raid"))
                                     _cmdGen.CmdBossFight(message, username);
 
                                 /* add more general commands here */

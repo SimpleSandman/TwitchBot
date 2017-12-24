@@ -40,12 +40,14 @@ namespace TwitchBot.Models
         // Fighter Classes
         public FighterClass[] ClassStats { get; set; }
 
-        // Game Levels (Level 1-5)
+        // Boss Levels (Level 1-5)
         public Boss[] Bosses { get; set; }
 
         /* Singleton Instance */
         private static volatile BossFightSettings _instance;
         private static object _syncRoot = new Object();
+
+        private int _settingsId { get; set; }
 
         private BossFightSettings() { }
 
@@ -79,11 +81,12 @@ namespace TwitchBot.Models
         }
 
         /// <summary>
-        /// Load all of the settings from the database for the bank heist mini-game
+        /// Load all of the settings from the database for the boss fight mini-game
         /// </summary>
         /// <param name="broadcasterId"></param>
         /// <param name="connStr"></param>
-        public void LoadSettings(int broadcasterId, string connStr)
+        /// <param name="gameId"></param>
+        public void LoadSettings(int broadcasterId, string connStr, int gameId)
         {
             // refresh arrays and lists
             NextLevelMessages = new string[4];
@@ -117,6 +120,8 @@ namespace TwitchBot.Models
                         {
                             while (reader.Read())
                             {
+                                _settingsId = int.Parse(reader["Id"].ToString());
+
                                 // entry messages and initial settings
                                 CooldownTimePeriodMinutes = int.Parse(reader["cooldownPeriodMin"].ToString());
                                 EntryPeriodSeconds = int.Parse(reader["entryPeriodSec"].ToString());
@@ -144,12 +149,12 @@ namespace TwitchBot.Models
                         }
                     }
                 }
+                conn.Close();
 
-                // ToDo: Select where FK equals BossFightSettings Id instead of broadcaster
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM BossFightClassStats WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM BossFightClassStats WHERE settingsId = @settingsId", conn))
                 {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+                    cmd.Parameters.Add("@settingsId", SqlDbType.Int).Value = _settingsId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.HasRows)
@@ -188,64 +193,56 @@ namespace TwitchBot.Models
                         }
                     }
                 }
+                conn.Close();
 
-                // ToDo: Select where FK equals BossFightSettings Id instead of broadcaster
+                bool hasBossStatsBasedGame = false;
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM BossFightBossStats WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM BossFightBossStats WHERE settingsId = @settingsId " 
+                    + "AND gameId = @gameId", conn))
                 {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+                    cmd.Parameters.Add("@settingsId", SqlDbType.Int).Value = _settingsId;
+
+                    if (gameId == 0)
+                        cmd.Parameters.Add("@gameId", SqlDbType.Int).Value = DBNull.Value;
+                    else
+                        cmd.Parameters.Add("@gameId", SqlDbType.Int).Value = gameId;
+
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.HasRows)
                         {
                             while (reader.Read())
                             {
-                                // boss stats
-                                Bosses[0].Name = reader["name1"].ToString();
-                                Bosses[0].MaxUsers = int.Parse(reader["maxUsers1"].ToString());
-                                Bosses[0].Attack = int.Parse(reader["attack1"].ToString());
-                                Bosses[0].Defense = int.Parse(reader["defense1"].ToString());
-                                Bosses[0].Health = int.Parse(reader["health1"].ToString());
-                                Bosses[0].TurnLimit = int.Parse(reader["turnLimit1"].ToString());
-                                Bosses[0].Loot = int.Parse(reader["loot1"].ToString());
-                                Bosses[0].LastAttackBonus = int.Parse(reader["lastAttackBonus1"].ToString());
-                                Bosses[1].Name = reader["name2"].ToString();
-                                Bosses[1].MaxUsers = int.Parse(reader["maxUsers2"].ToString());
-                                Bosses[1].Attack = int.Parse(reader["attack2"].ToString());
-                                Bosses[1].Defense = int.Parse(reader["defense2"].ToString());
-                                Bosses[1].Health = int.Parse(reader["health2"].ToString());
-                                Bosses[1].TurnLimit = int.Parse(reader["turnLimit2"].ToString());
-                                Bosses[1].Loot = int.Parse(reader["loot2"].ToString());
-                                Bosses[1].LastAttackBonus = int.Parse(reader["lastAttackBonus2"].ToString());
-                                Bosses[2].Name = reader["name3"].ToString();
-                                Bosses[2].MaxUsers = int.Parse(reader["maxUsers3"].ToString());
-                                Bosses[2].Attack = int.Parse(reader["attack3"].ToString());
-                                Bosses[2].Defense = int.Parse(reader["defense3"].ToString());
-                                Bosses[2].Health = int.Parse(reader["health3"].ToString());
-                                Bosses[2].TurnLimit = int.Parse(reader["turnLimit3"].ToString());
-                                Bosses[2].Loot = int.Parse(reader["loot3"].ToString());
-                                Bosses[2].LastAttackBonus = int.Parse(reader["lastAttackBonus3"].ToString());
-                                Bosses[3].Name = reader["name4"].ToString();
-                                Bosses[3].MaxUsers = int.Parse(reader["maxUsers4"].ToString());
-                                Bosses[3].Attack = int.Parse(reader["attack4"].ToString());
-                                Bosses[3].Defense = int.Parse(reader["defense4"].ToString());
-                                Bosses[3].Health = int.Parse(reader["health4"].ToString());
-                                Bosses[3].TurnLimit = int.Parse(reader["turnLimit4"].ToString());
-                                Bosses[3].Loot = int.Parse(reader["loot4"].ToString());
-                                Bosses[3].LastAttackBonus = int.Parse(reader["lastAttackBonus4"].ToString());
-                                Bosses[4].Name = reader["name5"].ToString();
-                                Bosses[4].MaxUsers = int.Parse(reader["maxUsers5"].ToString());
-                                Bosses[4].Attack = int.Parse(reader["attack5"].ToString());
-                                Bosses[4].Defense = int.Parse(reader["defense5"].ToString());
-                                Bosses[4].Health = int.Parse(reader["health5"].ToString());
-                                Bosses[4].TurnLimit = int.Parse(reader["turnLimit5"].ToString());
-                                Bosses[4].Loot = int.Parse(reader["loot5"].ToString());
-                                Bosses[4].LastAttackBonus = int.Parse(reader["lastAttackBonus5"].ToString());
-
+                                SetBosses(reader);
+                                hasBossStatsBasedGame = true;
                                 break;
                             }
                         }
                     }
+                }
+                conn.Close();
+
+                if (!hasBossStatsBasedGame)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM BossFightBossStats WHERE settingsId = @settingsId "
+                        + "AND gameId IS NULL", conn))
+                    {
+                        cmd.Parameters.Add("@settingsId", SqlDbType.Int).Value = _settingsId;
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    SetBosses(reader);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    conn.Close();
                 }
             }
         }
@@ -263,29 +260,99 @@ namespace TwitchBot.Models
                 cmd.ExecuteNonQuery();
             }
 
-            // ToDo: Get record ID from BossFightSettings and make foreign key for below tables
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT Id FROM BossFightSettings WHERE broadcaster = @broadcaster", conn))
+                {
+                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                _settingsId = int.Parse(reader["Id"].ToString());
 
-            query = "INSERT INTO BossFightClassStats (broadcaster) VALUES (@broadcaster)";
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            query = "INSERT INTO BossFightClassStats (settingsId) VALUES (@settingsId)";
 
             using (SqlConnection conn = new SqlConnection(connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
             {
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+                cmd.Parameters.Add("@settingsId", SqlDbType.Int).Value = _settingsId;
 
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
 
-            query = "INSERT INTO BossFightBossStats (broadcaster) VALUES (@broadcaster)";
+            query = "INSERT INTO BossFightBossStats (settingsId, gameId) VALUES (@settingsId, @gameId)";
 
             using (SqlConnection conn = new SqlConnection(connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
             {
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+                cmd.Parameters.Add("@settingsId", SqlDbType.Int).Value = _settingsId;
+                cmd.Parameters.Add("@gameId", SqlDbType.Int).Value = DBNull.Value;
 
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
+        }
+
+        private void SetBosses(SqlDataReader reader)
+        {
+            // boss stats
+            Bosses[0].Name = reader["name1"].ToString();
+            Bosses[0].MaxUsers = int.Parse(reader["maxUsers1"].ToString());
+            Bosses[0].Attack = int.Parse(reader["attack1"].ToString());
+            Bosses[0].Defense = int.Parse(reader["defense1"].ToString());
+            Bosses[0].Evasion = int.Parse(reader["evasion1"].ToString());
+            Bosses[0].Health = int.Parse(reader["health1"].ToString());
+            Bosses[0].TurnLimit = int.Parse(reader["turnLimit1"].ToString());
+            Bosses[0].Loot = int.Parse(reader["loot1"].ToString());
+            Bosses[0].LastAttackBonus = int.Parse(reader["lastAttackBonus1"].ToString());
+            Bosses[1].Name = reader["name2"].ToString();
+            Bosses[1].MaxUsers = int.Parse(reader["maxUsers2"].ToString());
+            Bosses[1].Attack = int.Parse(reader["attack2"].ToString());
+            Bosses[1].Defense = int.Parse(reader["defense2"].ToString());
+            Bosses[1].Evasion = int.Parse(reader["evasion2"].ToString());
+            Bosses[1].Health = int.Parse(reader["health2"].ToString());
+            Bosses[1].TurnLimit = int.Parse(reader["turnLimit2"].ToString());
+            Bosses[1].Loot = int.Parse(reader["loot2"].ToString());
+            Bosses[1].LastAttackBonus = int.Parse(reader["lastAttackBonus2"].ToString());
+            Bosses[2].Name = reader["name3"].ToString();
+            Bosses[2].MaxUsers = int.Parse(reader["maxUsers3"].ToString());
+            Bosses[2].Attack = int.Parse(reader["attack3"].ToString());
+            Bosses[2].Defense = int.Parse(reader["defense3"].ToString());
+            Bosses[2].Evasion = int.Parse(reader["evasion3"].ToString());
+            Bosses[2].Health = int.Parse(reader["health3"].ToString());
+            Bosses[2].TurnLimit = int.Parse(reader["turnLimit3"].ToString());
+            Bosses[2].Loot = int.Parse(reader["loot3"].ToString());
+            Bosses[2].LastAttackBonus = int.Parse(reader["lastAttackBonus3"].ToString());
+            Bosses[3].Name = reader["name4"].ToString();
+            Bosses[3].MaxUsers = int.Parse(reader["maxUsers4"].ToString());
+            Bosses[3].Attack = int.Parse(reader["attack4"].ToString());
+            Bosses[3].Defense = int.Parse(reader["defense4"].ToString());
+            Bosses[3].Evasion = int.Parse(reader["evasion4"].ToString());
+            Bosses[3].Health = int.Parse(reader["health4"].ToString());
+            Bosses[3].TurnLimit = int.Parse(reader["turnLimit4"].ToString());
+            Bosses[3].Loot = int.Parse(reader["loot4"].ToString());
+            Bosses[3].LastAttackBonus = int.Parse(reader["lastAttackBonus4"].ToString());
+            Bosses[4].Name = reader["name5"].ToString();
+            Bosses[4].MaxUsers = int.Parse(reader["maxUsers5"].ToString());
+            Bosses[4].Attack = int.Parse(reader["attack5"].ToString());
+            Bosses[4].Defense = int.Parse(reader["defense5"].ToString());
+            Bosses[4].Evasion = int.Parse(reader["evasion5"].ToString());
+            Bosses[4].Health = int.Parse(reader["health5"].ToString());
+            Bosses[4].TurnLimit = int.Parse(reader["turnLimit5"].ToString());
+            Bosses[4].Loot = int.Parse(reader["loot5"].ToString());
+            Bosses[4].LastAttackBonus = int.Parse(reader["lastAttackBonus5"].ToString());
         }
     }
 
@@ -295,6 +362,7 @@ namespace TwitchBot.Models
         public int MaxUsers { get; set; }
         public int Attack { get; set; }
         public int Defense { get; set; }
+        public int Evasion { get; set; }
         public int Health { get; set; }
         public int TurnLimit { get; set; }
         public int Loot { get; set; }

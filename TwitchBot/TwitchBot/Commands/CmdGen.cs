@@ -1361,13 +1361,6 @@ namespace TwitchBot.Commands
 
                 if (!bossFight.IsEntryPeriodOver())
                 {
-                    // make boss fight announcement if first fighter and start recruiting members
-                    if (_bossSettingsInstance.Fighters.Count == 0)
-                    {
-                        _bossSettingsInstance.EntryPeriod = DateTime.Now.AddSeconds(_bossSettingsInstance.EntryPeriodSeconds);
-                        _irc.SendPublicChatMessage(_bossSettingsInstance.EntryMessage.Replace("user@", username));
-                    }
-
                     // join boss fight
                     ChatterType chatterType = CheckUserChatterType(username);
                     if (chatterType == ChatterType.DoesNotExist)
@@ -1379,6 +1372,13 @@ namespace TwitchBot.Commands
                     if (chatterType == ChatterType.Staff || chatterType == ChatterType.Admin || chatterType == ChatterType.GlobalModerator)
                     {
                         chatterType = ChatterType.Moderator;
+                    }
+
+                    // make boss fight announcement if first fighter and start recruiting members
+                    if (_bossSettingsInstance.Fighters.Count == 0)
+                    {
+                        _bossSettingsInstance.EntryPeriod = DateTime.Now.AddSeconds(_bossSettingsInstance.EntryPeriodSeconds);
+                        _irc.SendPublicChatMessage(_bossSettingsInstance.EntryMessage.Replace("user@", username));
                     }
 
                     FighterClass fighterClass = _bossSettingsInstance.ClassStats.Single(c => c.ChatterType == chatterType);
@@ -1401,7 +1401,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdBossFight(string, string)", false, "!bossfight");
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdBossFight(string, string)", false, "!raid");
             }
         }
 
