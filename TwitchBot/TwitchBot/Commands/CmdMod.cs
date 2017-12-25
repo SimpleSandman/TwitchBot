@@ -176,7 +176,9 @@ namespace TwitchBot.Commands
                             if (balResultList.Count > 1)
                             {
                                 foreach (BalanceResult userResult in balResultList)
-                                    responseMsg += $"@{userResult.Username} ";
+                                    responseMsg += $"{userResult.Username}, ";
+
+                                responseMsg = responseMsg.ReplaceLastOccurrence(", ", "");
                             }
                             else if (balResultList.Count == 1)
                             {
