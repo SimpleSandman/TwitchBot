@@ -122,7 +122,7 @@ namespace TwitchBot.Threads
                 _follower.UpdateExp(chatter, _broadcasterId, currentExp);
 
                 // check if user has been promoted
-                currentExp++; // ToDo: Update current users' rank exp via multiplication by 5 in DB
+                currentExp++;
                 Rank capRank = _rankList.FirstOrDefault(r => r.ExpCap == currentExp);
                 hoursWatched = _follower.GetHoursWatched(currentExp);
 
