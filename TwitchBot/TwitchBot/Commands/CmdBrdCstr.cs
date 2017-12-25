@@ -27,13 +27,15 @@ namespace TwitchBot.Commands
         private SongRequestBlacklistService _songRequest;
         private TwitchInfoService _twitchInfo;
         private GiveawayService _giveaway;
+        private GameDirectoryService _gameDirectory;
         private TwitterClient _twitter = TwitterClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Broadcaster _broadcasterInstance = Broadcaster.Instance;
+        private BossFightSettings _bossFightSettingsInstance = BossFightSettings.Instance;
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, 
             System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo,
-            GiveawayService giveaway)
+            GiveawayService giveaway, GameDirectoryService gameDirectory)
         {
             _irc = irc;
             _botConfig = botConfig;
@@ -43,6 +45,7 @@ namespace TwitchBot.Commands
             _songRequest = songRequest;
             _twitchInfo = twitchInfo;
             _giveaway = giveaway;
+            _gameDirectory = gameDirectory;
         }
 
         /// <summary>
@@ -853,6 +856,37 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRefreshReminders()", false, "!refreshreminders");
+            }
+        }
+
+        public async Task CmdRefreshBossFight()
+        {
+            try
+            {
+                // Check if any fighters are queued or fighting
+                if (_bossFightSettingsInstance.Fighters.Count > 0)
+                {
+                    _irc.SendPublicChatMessage($"A boss fight is either queued or in progress @{_botConfig.Broadcaster}");
+                    return;
+                }
+
+                // Get current game name
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                string gameTitle = json.Game;
+
+                // Grab game id in order to find party member
+                int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
+
+                // During refresh, make sure no fighters can join
+                _bossFightSettingsInstance.RefreshBossFight = true;
+                _bossFightSettingsInstance.LoadSettings(_broadcasterId, _connStr, gameId);
+                _bossFightSettingsInstance.RefreshBossFight = false;
+
+                _irc.SendPublicChatMessage($"Boss fight settings refreshed @{_botConfig.Broadcaster}");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRefreshBossFight()", false, "!refreshbossfight");
             }
         }
 

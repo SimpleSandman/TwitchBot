@@ -180,7 +180,7 @@ namespace TwitchBot
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
-                    _twitchInfo, _giveaway);
+                    _twitchInfo, _giveaway, _gameDirectory);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
                     _manualSongRequest, _quote, _partyUp);
 
@@ -455,13 +455,17 @@ namespace TwitchBot
                                 else if (message.Equals("!live"))
                                     await _cmdBrdCstr.CmdLive(hasTwitterInfo);
 
-                                /* Manually refreshes reminders */
+                                /* Manually refresh reminders */
                                 else if (message.Equals("!refreshreminders"))
                                     _cmdBrdCstr.CmdRefreshReminders();
 
                                 /* Set regular follower hours for dedicated followers */
                                 else if (message.StartsWith("!setregularhours"))
                                     _cmdBrdCstr.CmdSetRegularFollowerHours(message);
+
+                                /* Manually refresh boss fight */
+                                else if (message.Equals("!refreshbossfight"))
+                                    await _cmdBrdCstr.CmdRefreshBossFight();
 
                                 /* insert more broadcaster commands here */
                             }

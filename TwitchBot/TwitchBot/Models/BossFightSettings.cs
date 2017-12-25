@@ -18,6 +18,7 @@ namespace TwitchBot.Models
         public DateTime CooldownTimePeriod { get; set; }
         public DateTime EntryPeriod { get; set; }
         public int Cost { get; set; }
+        public bool RefreshBossFight { get; set; } = false;
 
         // Entry Messages
         public string EntryMessage { get; set; }

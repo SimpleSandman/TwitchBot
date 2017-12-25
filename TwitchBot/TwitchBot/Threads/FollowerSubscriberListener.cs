@@ -198,7 +198,7 @@ namespace TwitchBot.Threads
             if (subscriber == null)
                 return;
 
-            TimeSpan subscriberTimeSpan = DateTime.Now - (DateTime)subscriber.CreatedAt;
+            TimeSpan subscriberTimeSpan = DateTime.Now - Convert.ToDateTime(subscriber.CreatedAt).ToLocalTime();
 
             // check if user is a new subscriber
             if (subscriberTimeSpan.TotalSeconds < 60)

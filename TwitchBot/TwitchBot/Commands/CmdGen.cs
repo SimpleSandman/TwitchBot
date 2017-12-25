@@ -1347,6 +1347,12 @@ namespace TwitchBot.Commands
                     return;
                 }
 
+                if (_bossSettingsInstance.RefreshBossFight)
+                {
+                    _irc.SendPublicChatMessage($"The boss fight is currently being refreshed with new settings @{username}");
+                    return;
+                }
+
                 if (bossFight.HasFighterAlreadyEntered(username))
                 {
                     _irc.SendPublicChatMessage($"You are already in this fight @{username}");
