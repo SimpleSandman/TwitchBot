@@ -722,7 +722,8 @@ namespace TwitchBot
 
                                 /* Add song request to YouTube playlist */
                                 // Usage: !ytsr [video title/YouTube link]
-                                else if (message.StartsWith("!ytsr ") && !IsUserOnCooldown(username, "!ytsr"))
+                                else if ((message.StartsWith("!ytsr ") || message.StartsWith("!sr ") || message.StartsWith("!songrequest ")) 
+                                        && !IsUserOnCooldown(username, "!ytsr"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdYouTubeSongRequest(message, username, hasYouTubeAuth, isYouTubeSongRequestAvail);
                                     if (cooldown > DateTime.Now)

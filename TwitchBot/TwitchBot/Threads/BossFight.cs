@@ -167,7 +167,7 @@ namespace TwitchBot.Threads
             decimal survivorsPercentage = numSurvivors / (decimal)_bossSettings.Fighters.Count;
 
             // Display success outcome
-            if (numSurvivors == 1)
+            if (numSurvivors == 1 && numSurvivors == _bossSettings.Fighters.Count)
             {
                 BossFighter onlyWinner = _bossSettings.Fighters.First();
                 int earnings = boss.Loot;

@@ -5,11 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using System.Net.Http;
 
 using Google.Apis.YouTube.v3.Data;
-
-using Newtonsoft.Json;
 
 using SpotifyAPI.Local.Models;
 
@@ -698,6 +695,7 @@ namespace TwitchBot.Commands
                 else
                 {
                     string videoId = "";
+                    int spaceIndex = message.IndexOf(" ");
 
                     // Parse video ID based on different types of requests
                     if (message.Contains("youtube.com/watch?v=")) // full URL
@@ -720,15 +718,15 @@ namespace TwitchBot.Commands
                         else
                             videoId = message.Substring(videoIdIndex, addParam - videoIdIndex);
                     }
-                    else if (message.Replace("!ytsr ", "").Length == 11
-                        && message.Replace("!ytsr ", "").IndexOf(" ") == -1
+                    else if (message.Substring(spaceIndex + 1).Length == 11
+                        && message.Substring(spaceIndex + 1).IndexOf(" ") == -1
                         && Regex.Match(message, @"[\w\-]").Success) // assume only video ID
                     {
-                        videoId = message.Replace("!ytsr ", "");
+                        videoId = message.Substring(spaceIndex + 1);
                     }
                     else // search by keyword
                     {
-                        string videoKeyword = message.Substring(6);
+                        string videoKeyword = message.Substring(spaceIndex + 1);
                         videoId = await _youTubeClientInstance.SearchVideoByKeyword(videoKeyword, 3);
                     }
 
@@ -1399,10 +1397,10 @@ namespace TwitchBot.Commands
                     }
 
                     // display if more than one fighter joins
-                    if (_bossSettingsInstance.Fighters.Count > 1)
-                    {
-                        _irc.SendPublicChatMessage($"@{username} has joined the fight");
-                    }
+                    //if (_bossSettingsInstance.Fighters.Count > 1)
+                    //{
+                    //    _irc.SendPublicChatMessage($"@{username} has joined the fight");
+                    //}
                 }
             }
             catch (Exception ex)

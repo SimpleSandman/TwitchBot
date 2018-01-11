@@ -91,9 +91,13 @@ namespace TwitchBot.Threads
                         continue;
                     }
 
+                    // get chatter info
+                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(chatter);
+                    string userTwitchId = rootUserJSON.Users.First().Id;
+
                     // check for follower and/or subscriber and add then to their respective lists
-                    await CheckFollower(chatter);
-                    await CheckSubscriber(chatter);
+                    await CheckFollower(chatter, userTwitchId);
+                    await CheckSubscriber(chatter, userTwitchId);
                 }
             }
             catch (Exception ex)
@@ -106,176 +110,212 @@ namespace TwitchBot.Threads
             }
         }
 
-        private async Task CheckFollower(string chatter)
+        private async Task CheckFollower(string chatter, string userTwitchId)
         {
-            TwitchChatter follower = await GetTwitchFollowerInfo(chatter);
-
-            if (follower == null)
-                return;
-
-            // check if follower has experience
-            int currentExp = _follower.CurrentExp(chatter, _broadcasterId);
-            decimal hoursWatched = 0.0m;
-
-            if (currentExp > -1)
+            try
             {
-                _follower.UpdateExp(chatter, _broadcasterId, currentExp);
+                TwitchChatter follower = await GetTwitchFollowerInfo(chatter, userTwitchId);
 
-                // check if user has been promoted
-                currentExp++;
-                Rank capRank = _rankList.FirstOrDefault(r => r.ExpCap == currentExp);
-                hoursWatched = _follower.GetHoursWatched(currentExp);
+                if (follower == null)
+                    return;
 
-                if (hoursWatched == _botConfig.RegularFollowerHours)
+                // check if follower has experience
+                int currentExp = _follower.CurrentExp(chatter, _broadcasterId);
+                decimal hoursWatched = 0.0m;
+
+                if (currentExp > -1)
                 {
-                    Rank currentRank = _follower.GetCurrentRank(_rankList, currentExp);
+                    _follower.UpdateExp(chatter, _broadcasterId, currentExp);
 
-                    _irc.SendPublicChatMessage($"{currentRank.Name} {chatter} has achieved the salty equlibrium " 
-                        + "needed to become a regular soldier in the salt army");
-                }
-                else if (capRank != null)
-                {
-                    Rank currentRank = _follower.GetCurrentRank(_rankList, currentExp);
+                    // check if user has been promoted
+                    currentExp++;
+                    Rank capRank = _rankList.FirstOrDefault(r => r.ExpCap == currentExp);
+                    hoursWatched = _follower.GetHoursWatched(currentExp);
 
-                    _irc.SendPublicChatMessage($"@{chatter} has been promoted to \"{currentRank.Name}\" "
-                        + $"with {currentExp}/{currentRank.ExpCap} EXP ({hoursWatched} hours watched)");
-                }
-            }
-            else
-            {
-                // add new user to the ranks
-                _follower.EnlistRecruit(chatter, _broadcasterId);
-            }
+                    if (hoursWatched == _botConfig.RegularFollowerHours)
+                    {
+                        Rank currentRank = _follower.GetCurrentRank(_rankList, currentExp);
 
-            // check if follower has a stream currency account
-            int funds = _bank.CheckBalance(chatter, _broadcasterId);
+                        _irc.SendPublicChatMessage($"{currentRank.Name} {chatter} has achieved the salty equlibrium "
+                            + "needed to become a regular soldier in the salt army");
+                    }
+                    else if (capRank != null)
+                    {
+                        Rank currentRank = _follower.GetCurrentRank(_rankList, currentExp);
 
-            if (funds > -1)
-            {
-                if (hoursWatched >= _botConfig.RegularFollowerHours)
-                {
-                    funds += 15;
-
-                    if (!_twitchChatterListInstance.TwitchRegularFollowers.Any(c => c.Username.Equals(chatter)))
-                        _twitchChatterListInstance.TwitchRegularFollowers.Add(follower);
+                        _irc.SendPublicChatMessage($"@{chatter} has been promoted to \"{currentRank.Name}\" "
+                            + $"with {currentExp}/{currentRank.ExpCap} EXP ({hoursWatched} hours watched)");
+                    }
                 }
                 else
-                    funds += 10;
+                {
+                    // add new user to the ranks
+                    _follower.EnlistRecruit(chatter, _broadcasterId);
+                }
 
-                _bank.UpdateFunds(chatter, _broadcasterId, funds);
-            }
-            else // ToDo: Make currency auto-increment setting
-                _bank.CreateAccount(chatter, _broadcasterId, 10);
-
-            // check if user is a new follower
-            // if so, give them their sign-on bonus
-            TimeSpan followerTimeSpan = DateTime.Now - (DateTime)follower.CreatedAt;
-
-            if (followerTimeSpan.TotalSeconds < 60)
-            {
-                string welcomeMessage = $"Welcome @{chatter} to the Salt Army! ";
+                // check if follower has a stream currency account
+                int funds = _bank.CheckBalance(chatter, _broadcasterId);
 
                 if (funds > -1)
                 {
-                    funds += 500;
+                    if (hoursWatched >= _botConfig.RegularFollowerHours)
+                    {
+                        funds += 15;
+
+                        if (!_twitchChatterListInstance.TwitchRegularFollowers.Any(c => c.Username.Equals(chatter)))
+                            _twitchChatterListInstance.TwitchRegularFollowers.Add(follower);
+                    }
+                    else
+                        funds += 10;
+
                     _bank.UpdateFunds(chatter, _broadcasterId, funds);
-                    welcomeMessage += $"You now have {funds} {_botConfig.CurrencyType} to gamble!";
                 }
-                else
+                else // ToDo: Make currency auto-increment setting
+                    _bank.CreateAccount(chatter, _broadcasterId, 10);
+
+                // check if user is a new follower
+                // if so, give them their sign-on bonus
+                TimeSpan followerTimeSpan = DateTime.Now - Convert.ToDateTime(follower.CreatedAt).ToLocalTime();
+
+                if (followerTimeSpan.TotalSeconds < 60)
                 {
-                    _bank.CreateAccount(chatter, _broadcasterId, 500);
-                    welcomeMessage += $"You now have 500 {_botConfig.CurrencyType} to gamble!";
+                    string welcomeMessage = $"Welcome @{chatter} to the Salt Army! ";
+
+                    if (funds > -1)
+                    {
+                        funds += 500;
+                        _bank.UpdateFunds(chatter, _broadcasterId, funds);
+                        welcomeMessage += $"You now have {funds} {_botConfig.CurrencyType} to gamble!";
+                    }
+                    else
+                    {
+                        _bank.CreateAccount(chatter, _broadcasterId, 500);
+                        welcomeMessage += $"You now have 500 {_botConfig.CurrencyType} to gamble!";
+                    }
+
+                    _irc.SendPublicChatMessage(welcomeMessage);
                 }
-
-                _irc.SendPublicChatMessage(welcomeMessage);
             }
-        }
-
-        private async Task CheckSubscriber(string chatter)
-        {
-            TwitchChatter subscriber = await GetTwitchSubscriberInfo(chatter);
-
-            if (subscriber == null)
-                return;
-
-            TimeSpan subscriberTimeSpan = DateTime.Now - Convert.ToDateTime(subscriber.CreatedAt).ToLocalTime();
-
-            // check if user is a new subscriber
-            if (subscriberTimeSpan.TotalSeconds < 60)
+            catch (Exception ex)
             {
-                string welcomeMessage = $"Thank you so much on becoming a secret NaCl agent @{chatter} . "
-                    + $"Your dedication will allow @{_botConfig.Broadcaster} to continue commanding the Salt Army!";
-
-                _irc.SendPublicChatMessage(welcomeMessage);
+                Console.WriteLine("Error inside FollowerSubscriberListener.CheckFollower(string, string): " + ex.Message);
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
             }
         }
 
-        private async Task<TwitchChatter> GetTwitchFollowerInfo(string chatter)
+        private async Task CheckSubscriber(string chatter, string userTwitchId)
+        {
+            try
+            {
+                TwitchChatter subscriber = await GetTwitchSubscriberInfo(chatter, userTwitchId);
+
+                if (subscriber == null)
+                    return;
+
+                TimeSpan subscriberTimeSpan = DateTime.Now - Convert.ToDateTime(subscriber.CreatedAt).ToLocalTime();
+
+                // check if user is a new subscriber
+                if (subscriberTimeSpan.TotalSeconds < 60)
+                {
+                    string welcomeMessage = $"Thank you so much on becoming a secret NaCl agent @{chatter} . "
+                        + $"Your dedication will allow @{_botConfig.Broadcaster} to continue commanding the Salt Army!";
+
+                    _irc.SendPublicChatMessage(welcomeMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error inside FollowerSubscriberListener.CheckSubscriber(string, string): " + ex.Message);
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+            }
+        }
+
+        private async Task<TwitchChatter> GetTwitchFollowerInfo(string chatter, string userTwitchId)
         {
             TwitchChatter follower = null;
 
-            // get chatter info
-            RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(chatter);
-            string userTwitchId = rootUserJSON.Users.First().Id;
-
-            using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(userTwitchId))
+            try
             {
-                // check if chatter is a follower
-                if (!message.IsSuccessStatusCode)
+                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(userTwitchId))
                 {
-                    // check if user was a follower but isn't anymore
-                    if (_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username.Equals(chatter)))
+                    // check if chatter is a follower
+                    if (!message.IsSuccessStatusCode)
                     {
-                        _twitchChatterListInstance.TwitchFollowers.RemoveAll(c => c.Username.Equals(chatter));
-                        _twitchChatterListInstance.TwitchRegularFollowers.RemoveAll(c => c.Username.Equals(chatter));
+                        // check if user was a follower but isn't anymore
+                        if (_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username.Equals(chatter)))
+                        {
+                            _twitchChatterListInstance.TwitchFollowers.RemoveAll(c => c.Username.Equals(chatter));
+                            _twitchChatterListInstance.TwitchRegularFollowers.RemoveAll(c => c.Username.Equals(chatter));
+                        }
+
+                        return null;
                     }
 
-                    return null;
+                    string body = await message.Content.ReadAsStringAsync();
+                    FollowingSinceJSON response = JsonConvert.DeserializeObject<FollowingSinceJSON>(body);
+                    DateTime startedFollowing = Convert.ToDateTime(response.CreatedAt);
+
+                    follower = new TwitchChatter { Username = chatter, CreatedAt = startedFollowing };
+
+                    if (!_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username.Equals(chatter)))
+                        _twitchChatterListInstance.TwitchFollowers.Add(follower);
                 }
-
-                string body = await message.Content.ReadAsStringAsync();
-                FollowingSinceJSON response = JsonConvert.DeserializeObject<FollowingSinceJSON>(body);
-                DateTime startedFollowing = Convert.ToDateTime(response.CreatedAt);
-
-                follower = new TwitchChatter { Username = chatter, CreatedAt = startedFollowing };
-
-                if (!_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username.Equals(chatter)))
-                    _twitchChatterListInstance.TwitchFollowers.Add(follower);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error inside FollowerSubscriberListener.GetTwitchFollowerInfo(string, string): " + ex.Message);
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
             }
 
             return follower;
         }
 
-        private async Task<TwitchChatter> GetTwitchSubscriberInfo(string chatter)
+        private async Task<TwitchChatter> GetTwitchSubscriberInfo(string chatter, string userTwitchId)
         {
             TwitchChatter subscriber = null;
 
-            // get chatter info
-            RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(chatter);
-            string userTwitchId = rootUserJSON.Users.First().Id;
-
-            using (HttpResponseMessage message = await _twitchInfo.CheckSubscriberStatus(userTwitchId))
+            try
             {
-                // check if chatter is a subscriber
-                if (!message.IsSuccessStatusCode)
+                using (HttpResponseMessage message = await _twitchInfo.CheckSubscriberStatus(userTwitchId))
                 {
-                    // check if user was a subscriber but isn't anymore
-                    if (_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Equals(chatter)))
-                        _twitchChatterListInstance.TwitchSubscribers.RemoveAll(c => c.Username.Equals(chatter));
+                    // check if chatter is a subscriber
+                    if (!message.IsSuccessStatusCode)
+                    {
+                        // check if user was a subscriber but isn't anymore
+                        if (_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Equals(chatter)))
+                            _twitchChatterListInstance.TwitchSubscribers.RemoveAll(c => c.Username.Equals(chatter));
 
-                    return null;
+                        return null;
+                    }
+
+                    string body = await message.Content.ReadAsStringAsync();
+                    SubscribedUserJSON response = JsonConvert.DeserializeObject<SubscribedUserJSON>(body);
+                    DateTime startedSubscribing = Convert.ToDateTime(response.CreatedAt);
+
+                    subscriber = new TwitchChatter { Username = chatter, CreatedAt = startedSubscribing };
+
+                    // add subscriber to global instance
+                    if (!_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Equals(chatter)))
+                    {
+                        _twitchChatterListInstance.TwitchSubscribers.Add(subscriber);
+                    }
                 }
-
-                string body = await message.Content.ReadAsStringAsync();
-                SubscribedUserJSON response = JsonConvert.DeserializeObject<SubscribedUserJSON>(body);
-                DateTime startedSubscribing = Convert.ToDateTime(response.CreatedAt);
-
-                subscriber = new TwitchChatter { Username = chatter, CreatedAt = startedSubscribing };
-
-                // add subscriber to global instance
-                if (!_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Equals(chatter)))
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error inside FollowerSubscriberListener.GetTwitchSubscriberInfo(string, string): " + ex.Message);
+                if (ex.InnerException != null)
                 {
-                    _twitchChatterListInstance.TwitchSubscribers.Add(subscriber);
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
                 }
             }
 
