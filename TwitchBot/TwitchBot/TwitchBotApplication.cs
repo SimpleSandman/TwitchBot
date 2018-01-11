@@ -722,7 +722,7 @@ namespace TwitchBot
 
                                 /* Add song request to YouTube playlist */
                                 // Usage: !ytsr [video title/YouTube link]
-                                else if ((message.StartsWith("!ytsr ") || message.StartsWith("!sr ") || message.StartsWith("!songrequest ")) 
+                                else if ((message.StartsWith("!ytsr ") || message.StartsWith("!sr ") || message.StartsWith("!songrequest "))
                                         && !IsUserOnCooldown(username, "!ytsr"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdYouTubeSongRequest(message, username, hasYouTubeAuth, isYouTubeSongRequestAvail);
@@ -812,6 +812,14 @@ namespace TwitchBot
                                 /* Join the boss fight with a pre-defined amount of currency set by broadcaster */
                                 else if (message.Equals("!raid"))
                                     _cmdGen.CmdBossFight(message, username);
+
+                                /* Tell the broadcaster a user is lurking */
+                                else if (message.Equals("!lurk"))
+                                    _cmdGen.CmdLurk(username);
+
+                                /* Tell the broadcaster a user is no longer lurking */
+                                else if (message.Equals("!unlurk"))
+                                    _cmdGen.CmdUnlurk(username);
 
                                 /* add more general commands here */
                             }

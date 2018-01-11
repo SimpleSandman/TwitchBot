@@ -67,108 +67,120 @@ namespace TwitchBot.Threads
         /// </summary>
         private async Task ResetChatterLists()
         {
-            _twitchChatterListInstance.ChattersByName.Clear();
-            _twitchChatterListInstance.ChattersByType.Clear();
-
-            // Grab user's chatter info (viewers, mods, etc.)
-            ChatterInfoJSON chatterInfo = await _twitchInfo.GetChatters();
-
-            if (chatterInfo.ChatterCount > 0)
+            try
             {
-                Chatters chatters = chatterInfo.Chatters;
+                // Grab user's chatter info (viewers, mods, etc.)
+                ChatterInfoJSON chatterInfo = await _twitchInfo.GetChatters();
 
-                // Grab and divide chatters from tmi.twitch.tv
-                if (chatters.Viewers.Count() > 0)
-                {
-                    _twitchChatterListInstance.ChattersByType.Add
-                    (
-                        new TwitchChatterType
-                        {
-                            TwitchChatters = GroupTmiTwitchChatters(chatters.Viewers),
-                            ChatterType = ChatterType.Viewer
-                        }
-                    );
-                }
-                if (chatters.Moderators.Count() > 0)
-                {
-                    _twitchChatterListInstance.ChattersByType.Add
-                    (
-                        new TwitchChatterType
-                        {
-                            TwitchChatters = GroupTmiTwitchChatters(chatters.Moderators),
-                            ChatterType = ChatterType.Moderator
-                        }
-                    );
-                }
-                if (chatters.GlobalMods.Count() > 0)
-                {
-                    _twitchChatterListInstance.ChattersByType.Add
-                    (
-                        new TwitchChatterType
-                        {
-                            TwitchChatters = GroupTmiTwitchChatters(chatters.GlobalMods),
-                            ChatterType = ChatterType.GlobalModerator
-                        }
-                    );
-                }
-                if (chatters.Admins.Count() > 0)
-                {
-                    _twitchChatterListInstance.ChattersByType.Add
-                    (
-                        new TwitchChatterType
-                        {
-                            TwitchChatters = GroupTmiTwitchChatters(chatters.Admins),
-                            ChatterType = ChatterType.Admin
-                        }
-                    );
-                }
-                if (chatters.Staff.Count() > 0)
-                {
-                    _twitchChatterListInstance.ChattersByType.Add
-                    (
-                        new TwitchChatterType
-                        {
-                            TwitchChatters = GroupTmiTwitchChatters(chatters.Staff),
-                            ChatterType = ChatterType.Staff
-                        }
-                    );
-                }
+                // Clear lists if chatters were successfully retrieved
+                _twitchChatterListInstance.ChattersByName.Clear();
+                _twitchChatterListInstance.ChattersByType.Clear();
 
-                // Set followers, regular followers, and subscribers
-                if (_twitchChatterListInstance.TwitchFollowers.Count > 0)
+                if (chatterInfo.ChatterCount > 0)
                 {
-                    _twitchChatterListInstance.ChattersByType.Add
-                    (
-                        new TwitchChatterType
-                        {
-                            TwitchChatters = _twitchChatterListInstance.TwitchFollowers,
-                            ChatterType = ChatterType.Follower
-                        }
-                    );
-                }
+                    Chatters chatters = chatterInfo.Chatters;
 
-                if (_twitchChatterListInstance.TwitchRegularFollowers.Count > 0)
-                {
-                    _twitchChatterListInstance.ChattersByType.Add
-                    (
-                        new TwitchChatterType
-                        {
-                            TwitchChatters = _twitchChatterListInstance.TwitchRegularFollowers,
-                            ChatterType = ChatterType.RegularFollower
-                        }
-                    );
-                }
+                    // Grab and divide chatters from tmi.twitch.tv
+                    if (chatters.Viewers.Count() > 0)
+                    {
+                        _twitchChatterListInstance.ChattersByType.Add
+                        (
+                            new TwitchChatterType
+                            {
+                                TwitchChatters = GroupTmiTwitchChatters(chatters.Viewers),
+                                ChatterType = ChatterType.Viewer
+                            }
+                        );
+                    }
+                    if (chatters.Moderators.Count() > 0)
+                    {
+                        _twitchChatterListInstance.ChattersByType.Add
+                        (
+                            new TwitchChatterType
+                            {
+                                TwitchChatters = GroupTmiTwitchChatters(chatters.Moderators),
+                                ChatterType = ChatterType.Moderator
+                            }
+                        );
+                    }
+                    if (chatters.GlobalMods.Count() > 0)
+                    {
+                        _twitchChatterListInstance.ChattersByType.Add
+                        (
+                            new TwitchChatterType
+                            {
+                                TwitchChatters = GroupTmiTwitchChatters(chatters.GlobalMods),
+                                ChatterType = ChatterType.GlobalModerator
+                            }
+                        );
+                    }
+                    if (chatters.Admins.Count() > 0)
+                    {
+                        _twitchChatterListInstance.ChattersByType.Add
+                        (
+                            new TwitchChatterType
+                            {
+                                TwitchChatters = GroupTmiTwitchChatters(chatters.Admins),
+                                ChatterType = ChatterType.Admin
+                            }
+                        );
+                    }
+                    if (chatters.Staff.Count() > 0)
+                    {
+                        _twitchChatterListInstance.ChattersByType.Add
+                        (
+                            new TwitchChatterType
+                            {
+                                TwitchChatters = GroupTmiTwitchChatters(chatters.Staff),
+                                ChatterType = ChatterType.Staff
+                            }
+                        );
+                    }
 
-                if (_twitchChatterListInstance.TwitchSubscribers.Count > 0)
+                    // Set followers, regular followers, and subscribers
+                    if (_twitchChatterListInstance.TwitchFollowers.Count > 0)
+                    {
+                        _twitchChatterListInstance.ChattersByType.Add
+                        (
+                            new TwitchChatterType
+                            {
+                                TwitchChatters = _twitchChatterListInstance.TwitchFollowers,
+                                ChatterType = ChatterType.Follower
+                            }
+                        );
+                    }
+
+                    if (_twitchChatterListInstance.TwitchRegularFollowers.Count > 0)
+                    {
+                        _twitchChatterListInstance.ChattersByType.Add
+                        (
+                            new TwitchChatterType
+                            {
+                                TwitchChatters = _twitchChatterListInstance.TwitchRegularFollowers,
+                                ChatterType = ChatterType.RegularFollower
+                            }
+                        );
+                    }
+
+                    if (_twitchChatterListInstance.TwitchSubscribers.Count > 0)
+                    {
+                        _twitchChatterListInstance.ChattersByType.Add
+                        (
+                            new TwitchChatterType
+                            {
+                                TwitchChatters = _twitchChatterListInstance.TwitchSubscribers,
+                                ChatterType = ChatterType.Subscriber
+                            }
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error inside TwitchChatterListener ResetChatterLists(): " + ex.Message);
+                if (ex.InnerException != null)
                 {
-                    _twitchChatterListInstance.ChattersByType.Add
-                    (
-                        new TwitchChatterType
-                        {
-                            TwitchChatters = _twitchChatterListInstance.TwitchSubscribers,
-                            ChatterType = ChatterType.Subscriber
-                        }
-                    );
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
                 }
             }
         }

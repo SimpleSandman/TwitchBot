@@ -1409,6 +1409,30 @@ namespace TwitchBot.Commands
             }
         }
 
+        public void CmdLurk(string username)
+        {
+            try
+            {
+                _irc.SendPublicChatMessage($"Okay {username}! I'll be waiting for you TPFufun @{_botConfig.Broadcaster}");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdLurk(string)", false, "!lurk");
+            }
+        }
+
+        public void CmdUnlurk(string username)
+        {
+            try
+            {
+                _irc.SendPublicChatMessage($"Welcome back {username}! KonCha @{_botConfig.Broadcaster}");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdUnlurk(string)", false, "!unlurk");
+            }
+        }
+
         private ChatterType CheckUserChatterType(string username)
         {
             // wait until lists are available
