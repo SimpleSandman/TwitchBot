@@ -81,7 +81,7 @@ namespace TwitchBot.Threads
                     Chatters chatters = chatterInfo.Chatters;
 
                     // Grab and divide chatters from tmi.twitch.tv
-                    if (chatters.Viewers.Count() > 0)
+                    if (chatters.Viewers.Count > 0)
                     {
                         _twitchChatterListInstance.ChattersByType.Add
                         (
@@ -92,7 +92,7 @@ namespace TwitchBot.Threads
                             }
                         );
                     }
-                    if (chatters.Moderators.Count() > 0)
+                    if (chatters.Moderators.Count > 0)
                     {
                         _twitchChatterListInstance.ChattersByType.Add
                         (
@@ -103,7 +103,7 @@ namespace TwitchBot.Threads
                             }
                         );
                     }
-                    if (chatters.GlobalMods.Count() > 0)
+                    if (chatters.GlobalMods.Count > 0)
                     {
                         _twitchChatterListInstance.ChattersByType.Add
                         (
@@ -114,7 +114,7 @@ namespace TwitchBot.Threads
                             }
                         );
                     }
-                    if (chatters.Admins.Count() > 0)
+                    if (chatters.Admins.Count > 0)
                     {
                         _twitchChatterListInstance.ChattersByType.Add
                         (
@@ -125,7 +125,7 @@ namespace TwitchBot.Threads
                             }
                         );
                     }
-                    if (chatters.Staff.Count() > 0)
+                    if (chatters.Staff.Count > 0)
                     {
                         _twitchChatterListInstance.ChattersByType.Add
                         (

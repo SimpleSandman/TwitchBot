@@ -1409,28 +1409,34 @@ namespace TwitchBot.Commands
             }
         }
 
-        public void CmdLurk(string username)
+        public DateTime CmdLurk(string username)
         {
             try
             {
-                _irc.SendPublicChatMessage($"Okay {username}! I'll be waiting for you TPFufun @{_botConfig.Broadcaster}");
+                _irc.SendPublicChatMessage($"Okay {username}! @{_botConfig.Broadcaster} will be waiting for you TPFufun");
+                return DateTime.Now.AddMinutes(5);
             }
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdLurk(string)", false, "!lurk");
             }
+
+            return DateTime.Now;
         }
 
-        public void CmdUnlurk(string username)
+        public DateTime CmdUnlurk(string username)
         {
             try
             {
-                _irc.SendPublicChatMessage($"Welcome back {username}! KonCha @{_botConfig.Broadcaster}");
+                _irc.SendPublicChatMessage($"Welcome back {username}! KonCha I'll let @{_botConfig.Broadcaster} know you're here!");
+                return DateTime.Now.AddMinutes(5);
             }
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdUnlurk(string)", false, "!unlurk");
             }
+
+            return DateTime.Now;
         }
 
         private ChatterType CheckUserChatterType(string username)

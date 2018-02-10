@@ -814,12 +814,36 @@ namespace TwitchBot
                                     _cmdGen.CmdBossFight(message, username);
 
                                 /* Tell the broadcaster a user is lurking */
-                                else if (message.Equals("!lurk"))
-                                    _cmdGen.CmdLurk(username);
+                                else if (message.Equals("!lurk") && !IsUserOnCooldown(username, "!lurk"))
+                                {
+                                    DateTime cooldown = _cmdGen.CmdLurk(username);
+                                    if (cooldown > DateTime.Now)
+                                    {
+                                        _cooldownUsers.Add(new CooldownUser
+                                        {
+                                            Username = username,
+                                            Cooldown = cooldown,
+                                            Command = "!lurk",
+                                            Warned = false
+                                        });
+                                    }
+                                }
 
                                 /* Tell the broadcaster a user is no longer lurking */
-                                else if (message.Equals("!unlurk"))
-                                    _cmdGen.CmdUnlurk(username);
+                                else if (message.Equals("!unlurk") && !IsUserOnCooldown(username, "!unlurk"))
+                                {
+                                    DateTime cooldown = _cmdGen.CmdUnlurk(username);
+                                    if (cooldown > DateTime.Now)
+                                    {
+                                        _cooldownUsers.Add(new CooldownUser
+                                        {
+                                            Username = username,
+                                            Cooldown = cooldown,
+                                            Command = "!unlurk",
+                                            Warned = false
+                                        });
+                                    }
+                                }
 
                                 /* add more general commands here */
                             }
