@@ -845,6 +845,10 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Tell the chat about your amazing community */
+                                else if (message.Equals("!community"))
+                                    _cmdGen.CmdCommunity();
+
                                 /* add more general commands here */
                             }
                         }

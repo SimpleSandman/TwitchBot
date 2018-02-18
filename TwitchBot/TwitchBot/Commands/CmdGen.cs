@@ -1439,6 +1439,20 @@ namespace TwitchBot.Commands
             return DateTime.Now;
         }
 
+        public void CmdCommunity()
+        {
+            try
+            {
+                _irc.SendPublicChatMessage("Do you consider yourself an anime/manga nerd (i.e. an Otaku)? " + 
+                    "Then come on by the Otaku Lounge where it's the most comfortable Twitch community for fellow Otakus " +
+                    "https://www.twitch.tv/communities/otakulounge");
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdCommunity()", false, "!community");
+            }
+        }
+
         private ChatterType CheckUserChatterType(string username)
         {
             // wait until lists are available
