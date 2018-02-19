@@ -487,7 +487,7 @@ namespace TwitchBot.Commands
                 if (balance == -1)
                     _irc.SendPublicChatMessage("You are not currently banking with us at the moment. Please talk to a moderator about acquiring " + _botConfig.CurrencyType);
                 else
-                    _irc.SendPublicChatMessage("@" + username + " currently has " + balance.ToString() + " " + _botConfig.CurrencyType);
+                    _irc.SendPublicChatMessage($"@{username} currently has {balance.ToString()} {_botConfig.CurrencyType}");
             }
             catch (Exception ex)
             {
@@ -1119,6 +1119,11 @@ namespace TwitchBot.Commands
             return DateTime.Now;
         }
 
+        /// <summary>
+        /// Show a list of users that are queued to play with the broadcaster
+        /// </summary>
+        /// <param name="username">User that sent the message</param>
+        /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
         public void CmdListGotNextGame(string username, Queue<string> gameQueueUsers)
         {
             try
@@ -1148,6 +1153,11 @@ namespace TwitchBot.Commands
             }
         }
 
+        /// <summary>
+        /// Add a user to the queue of users that want to play with the broadcaster
+        /// </summary>
+        /// <param name="username">User that sent the message</param>
+        /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
         public void CmdGotNextGame(string username, ref Queue<string> gameQueueUsers)
         {
             try
@@ -1174,6 +1184,11 @@ namespace TwitchBot.Commands
             }
         }
 
+        /// <summary>
+        /// Engage in the bank heist minigame
+        /// </summary>
+        /// <param name="message">Chat message from the user</param>
+        /// <param name="username">User that sent the message</param>
         public void CmdBankHeist(string message, string username)
         {
             try
@@ -1268,6 +1283,10 @@ namespace TwitchBot.Commands
             }
         }
 
+        /// <summary>
+        /// Display the broadcaster's subscriber link (if they're an Affiliate/Partner)
+        /// </summary>
+        /// <returns></returns>
         public async Task CmdSubscribe()
         {
             try
@@ -1319,6 +1338,11 @@ namespace TwitchBot.Commands
             }
         }
 
+        /// <summary>
+        /// Engage in the boss fight minigame
+        /// </summary>
+        /// <param name="message">Chat message from the user</param>
+        /// <param name="username">User that sent the message</param>
         public void CmdBossFight(string message, string username)
         {
             try
@@ -1409,6 +1433,11 @@ namespace TwitchBot.Commands
             }
         }
 
+        /// <summary>
+        /// Tell the streamer the user is lurking
+        /// </summary>
+        /// <param name="username">User that sent the message</param>
+        /// <returns></returns>
         public DateTime CmdLurk(string username)
         {
             try
@@ -1424,6 +1453,11 @@ namespace TwitchBot.Commands
             return DateTime.Now;
         }
 
+        /// <summary>
+        /// Tell the streamer the user is back from lurking
+        /// </summary>
+        /// <param name="username">User that sent the message</param>
+        /// <returns></returns>
         public DateTime CmdUnlurk(string username)
         {
             try
@@ -1439,10 +1473,14 @@ namespace TwitchBot.Commands
             return DateTime.Now;
         }
 
+        /// <summary>
+        /// Display a link to the broadcaster's community
+        /// </summary>
         public void CmdCommunity()
         {
             try
             {
+                // ToDo: Make message a variable that is pulled from DB or local settings
                 _irc.SendPublicChatMessage("Do you consider yourself an anime/manga nerd (i.e. an Otaku)? " + 
                     "Then come on by the Otaku Lounge where it's the most comfortable Twitch community for fellow Otakus " +
                     "https://www.twitch.tv/communities/otakulounge");
@@ -1450,6 +1488,55 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdCommunity()", false, "!community");
+            }
+        }
+
+        /// <summary>
+        /// Let a user give an amount of their funds to another chatter
+        /// </summary>
+        /// <param name="message">Chat message from the user</param>
+        /// <param name="username">User that sent the message</param>
+        public void CmdGiveFunds(string message, string username)
+        {
+            try
+            {
+                if (message.StartsWith("!give @"))
+                {
+                    _irc.SendPublicChatMessage($"Please enter a valid amount @{username} (ex: !give [amount] @[username])");
+                    return;
+                }
+
+                int balance = _bank.CheckBalance(username, _broadcasterId);
+                bool validGiftAmount = int.TryParse(message.Substring(message.IndexOf(" ") + 1, message.GetNthCharIndex(' ', 2) - message.IndexOf(" ") - 1), out int giftAmount);
+                string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+
+                if (balance == -1)
+                    _irc.SendPublicChatMessage($"You are not currently banking with us. Please talk to a moderator about acquiring {_botConfig.CurrencyType}");
+                else if (string.IsNullOrEmpty(recipient))
+                    _irc.SendPublicChatMessage($"I don't know who I'm supposed to send this to. Please specify a recipient @{username}");
+                else if (!validGiftAmount || giftAmount < 1)
+                    _irc.SendPublicChatMessage($"That is not a valid amount of {_botConfig.CurrencyType} to give. Please try again with a positive whole amount (no decimals)");
+                else if (balance < giftAmount)
+                    _irc.SendPublicChatMessage($"You do not have enough to give {giftAmount} {_botConfig.CurrencyType} @{username}");
+                else
+                {
+                    // make sure the user exists in the database to prevent fake accounts from being created
+                    int recipientBalance = _bank.CheckBalance(recipient, _broadcasterId);
+
+                    if (recipientBalance == -1)
+                        _irc.SendPublicChatMessage($"The user \"{recipient}\" is currently not banking with us. Please talk to a moderator about creating their account @{username}");
+                    else
+                    {
+                        _bank.UpdateFunds(username, _broadcasterId, balance - giftAmount); // take away from sender
+                        _bank.UpdateFunds(recipient, _broadcasterId, giftAmount + recipientBalance); // give to recipient
+
+                        _irc.SendPublicChatMessage($"@{username} gave {giftAmount} {_botConfig.CurrencyType} to @{recipient}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _errHndlrInstance.LogError(ex, "CmdGen", "CmdGiveFunds(string, string)", false, "!give");
             }
         }
 

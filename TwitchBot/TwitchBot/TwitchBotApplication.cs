@@ -849,6 +849,11 @@ namespace TwitchBot
                                 else if (message.Equals("!community"))
                                     _cmdGen.CmdCommunity();
 
+                                /* Give funds to another chatter */
+                                // Usage: !give [amount] @[username]
+                                else if (message.StartsWith("!give"))
+                                    _cmdGen.CmdGiveFunds(message, username);
+
                                 /* add more general commands here */
                             }
                         }

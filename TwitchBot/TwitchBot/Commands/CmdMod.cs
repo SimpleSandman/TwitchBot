@@ -81,7 +81,7 @@ namespace TwitchBot.Commands
             try
             {
                 if (message.StartsWith("!charge @"))
-                    _irc.SendPublicChatMessage("Please enter a valid amount to a user @" + username);
+                    _irc.SendPublicChatMessage($"Please enter a valid amount @{username}");
                 else
                 {
                     int indexAction = 8;
@@ -164,7 +164,7 @@ namespace TwitchBot.Commands
                         _irc.SendPublicChatMessage("Please insert a positive whole amount (no decimals) " 
                             + " or use the !charge command to remove " + _botConfig.CurrencyType + " from a user");
                     else if (!isValidDeposit)
-                        _irc.SendPublicChatMessage("The deposit wasn't accepted. Please try again with positive whole amount (no decimals)");
+                        _irc.SendPublicChatMessage("The deposit wasn't accepted. Please try again with a positive whole amount (no decimals)");
                     else
                     {
                         if (userList.Count > 0)
