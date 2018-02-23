@@ -11,7 +11,8 @@ namespace TwitchBot.Models.JSON
     public class ChannelJSON
     {
         //public bool mature { get; set; }
-        //public string status { get; set; }
+        [JsonProperty("status")]
+        public string Status { get; set; }
         //public string broadcaster_language { get; set; }
         //public string display_name { get; set; }
         [JsonProperty("game")]

@@ -56,32 +56,17 @@ namespace TwitchBot.Libraries
             return await client.GetAsync(apiUriCall);
         }
 
-        public static async Task<ChatterInfoJSON> GetChatters(string clientId)
+        public static async Task<HttpResponseMessage> GetChatters(string clientId)
         {
-            try
-            {
-                string body = await Program.HttpClient.GetStringAsync("https://tmi.twitch.tv/group/user/" 
-                    + _broadcasterInstance.Username + "/chatters?client_id=" + clientId);
+            string apiUriCall = "https://tmi.twitch.tv/group/user/" + _broadcasterInstance.Username 
+                + "/chatters?client_id=" + clientId;
 
-                ChatterInfoJSON response = JsonConvert.DeserializeObject<ChatterInfoJSON>(body);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return new ChatterInfoJSON
-                {
-                    Chatters = new Chatters
-                    {
-                        Viewers = new List<string>(),
-                        Moderators = new List<string>(),
-                        Admins = new List<string>(),
-                        GlobalMods = new List<string>(),
-                        Staff = new List<string>()
-                    },
-                    ChatterCount = 0
-                };
-            }
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders
+                    .Accept
+                    .Add(new MediaTypeWithQualityHeaderValue("application/vnd.twitchtv.v5+json"));
+
+            return await client.GetAsync(apiUriCall);
         }
 
         public static async Task<HttpResponseMessage> CheckSubscriberStatus(string userTwitchId, string clientId, string accessToken)

@@ -47,7 +47,7 @@ namespace TwitchBot.Services
             return await TwitchApi.GetFollowerStatus(username, _botConfig.TwitchClientId);
         }
 
-        public async Task<ChatterInfoJSON> GetChatters()
+        public async Task<HttpResponseMessage> GetChatters()
         {
             return await TwitchApi.GetChatters(_botConfig.TwitchClientId);
         }
