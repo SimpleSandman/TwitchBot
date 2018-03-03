@@ -225,7 +225,7 @@
     <Compile Include="Extensions\ListStringExtensions.cs" />
     <Compile Include="Extensions\TimeSpanExtensions.cs" />
     <Compile Include="Libraries\TwitchChatterList.cs" />
-    <Compile Include="Models\JSON\SubscribedUserJSON.cs" />
+    <Compile Include="Models\JSON\SubscriptionJSON.cs" />
     <Compile Include="Models\TwitchChatter.cs" />
     <Compile Include="Threads\TwitchChatterListener.cs" />
     <Compile Include="Libraries\TwitterClient.cs" />
@@ -276,7 +276,7 @@
     <Compile Include="Models\JSON\ErrMsgJSON.cs" />
     <Compile Include="Libraries\ErrorHandler.cs" />
     <Compile Include="Threads\FollowerSubscriberListener.cs" />
-    <Compile Include="Models\JSON\FollowingSinceJSON.cs" />
+    <Compile Include="Models\JSON\FollowerJSON.cs" />
     <Compile Include="Libraries\IrcClient.cs" />
     <Compile Include="Libraries\Moderator.cs" />
     <Compile Include="Threads\PingSender.cs" />

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -41,6 +40,22 @@ namespace TwitchBot.Libraries
         public static async Task<RootUserJSON> GetUsersByLoginName(string loginName, string clientId)
         {
             return await GetRequestExecuteTaskAsync<RootUserJSON>("https://api.twitch.tv/kraken/users?login=" + loginName, clientId);
+        }
+
+        public static async Task<RootSubscriptionJSON> GetSubscribersByChannel(string clientId, string accessToken)
+        {
+            string apiUriBaseCall = "https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId 
+                + "/subscriptions?limit=50&direction=desc"; // get 50 newest subscribers
+
+            return await GetRequestWithOAuthExecuteTaskAsync<RootSubscriptionJSON>(apiUriBaseCall, accessToken, clientId);
+        }
+
+        public static async Task<RootFollowerJSON> GetFollowersByChannel(string clientId)
+        {
+            string apiUriBaseCall = "https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId
+                + "/follows?limit=50&direction=desc"; // get 50 newest followers
+
+            return await GetRequestExecuteTaskAsync<RootFollowerJSON>(apiUriBaseCall, clientId);
         }
 
         public static async Task<HttpResponseMessage> GetFollowerStatus(string chatterTwitchId, string clientId)
@@ -119,9 +134,8 @@ namespace TwitchBot.Libraries
         {
             try
             {
-                // Send HTTP method PUT to base URI in order to change the game
-                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId);
-                RestRequest request = new RestRequest(Method.PUT);
+                RestClient client = new RestClient(basicUrl);
+                RestRequest request = new RestRequest(Method.GET);
                 request.AddHeader("Cache-Control", "no-cache");
                 request.AddHeader("Content-Type", "application/json");
                 request.AddHeader("Authorization", "OAuth " + accessToken);

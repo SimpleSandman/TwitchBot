@@ -42,6 +42,16 @@ namespace TwitchBot.Services
             return await TwitchApi.GetUsersByLoginName(loginName, _botConfig.TwitchClientId);
         }
 
+        public async Task<RootSubscriptionJSON> GetSubscribersByChannel()
+        {
+            return await TwitchApi.GetSubscribersByChannel(_botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
+        }
+
+        public async Task<RootFollowerJSON> GetFollowersByChannel()
+        {
+            return await TwitchApi.GetFollowersByChannel(_botConfig.TwitchClientId);
+        }
+
         public async Task<HttpResponseMessage> CheckFollowerStatus(string username)
         {
             return await TwitchApi.GetFollowerStatus(username, _botConfig.TwitchClientId);

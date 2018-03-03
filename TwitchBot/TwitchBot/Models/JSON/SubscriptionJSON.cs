@@ -8,10 +8,10 @@ using Newtonsoft.Json;
 
 namespace TwitchBot.Models.JSON
 {
-    public class SubscribedUserJSON
+    public class SubscriptionJSON
     {
         [JsonProperty("created_at")]
-        public DateTime CreatedAt { get; set; }
+        public string CreatedAt { get; set; }
         //public string _id { get; set; }
         //public string sub_plan { get; set; }
         [JsonProperty("sub_plan_name")]
@@ -20,5 +20,12 @@ namespace TwitchBot.Models.JSON
         [JsonProperty("user")]
         public UserJSON User { get; set; }
         //public object sender { get; set; }
+    }
+
+    public class RootSubscriptionJSON
+    {
+        //public int _total { get; set; }
+        [JsonProperty("subscriptions")]
+        public List<SubscriptionJSON> Subscriptions { get; set; }
     }
 }

@@ -1291,7 +1291,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                // Get broadcaster type
+                // Get broadcaster type and check if they can have subscribers
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string broadcasterType = json.BroadcasterType;
 

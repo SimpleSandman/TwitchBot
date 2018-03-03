@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 using TwitchBot.Configuration;
+using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
@@ -56,12 +57,107 @@ namespace TwitchBot.Threads
         {
             while (true)
             {
-                CheckFollowersSubscribers().Wait();
+                CheckNewFollowersSubscribers().Wait();
+                CheckChatterFollowersSubscribers().Wait();
                 Thread.Sleep(60000); // 1 minute
             }
         }
 
-        private async Task CheckFollowersSubscribers()
+        /// <summary>
+        /// Check broadcaster's info via API for newest followers or subscribers
+        /// </summary>
+        /// <returns></returns>
+        private async Task CheckNewFollowersSubscribers()
+        {
+            try
+            {
+                // Get broadcaster type and check if they can have subscribers
+                ChannelJSON channelJson = await _twitchInfo.GetBroadcasterChannelById();
+                string broadcasterType = channelJson.BroadcasterType;
+
+                if (broadcasterType.Equals("partner") || broadcasterType.Equals("affiliate"))
+                {
+                    // Check for new subscribers
+                    RootSubscriptionJSON rootSubscriptionJson = await _twitchInfo.GetSubscribersByChannel();
+                    IEnumerable<string> freshSubscribers = rootSubscriptionJson.Subscriptions
+                        ?.Where(u => Convert.ToDateTime(u.CreatedAt).ToLocalTime() > DateTime.Now.AddSeconds(-60))
+                        .Select(u => u.User.Name);
+
+                    if (freshSubscribers?.Count() > 0)
+                    {
+                        string subscriberUsername = "";
+                        string subscriberRoleplayName = "";
+
+                        if (freshSubscribers.Count() == 1)
+                        {
+                            subscriberUsername = $"@{freshSubscribers.First()}";
+                            subscriberRoleplayName = "a NaCl agent";
+                        }
+                        else if (freshSubscribers.Count() > 1)
+                        {
+                            subscriberRoleplayName = "NaCl agents";
+
+                            foreach (string subscriber in freshSubscribers)
+                            {
+                                subscriberUsername += $"{subscriber}, ";
+                            }
+
+                            subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", ""); // replace trailing ","
+                            subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", " & "); // replacing joining ","
+                        }
+
+                        string welcomeMessage = $"Thank you so much {subscriberUsername} on becoming {subscriberRoleplayName}! "
+                            + $"That dedication will give @{_botConfig.Broadcaster} the edge they need to lead the charge " 
+                            + "into the seven salty seas of Twitch! SwiftRage";
+
+                        _irc.SendPublicChatMessage(welcomeMessage);
+                    }
+                }
+
+                // Check for new followers
+                RootFollowerJSON rootFollowerJson = await _twitchInfo.GetFollowersByChannel();
+                IEnumerable<string> freshFollowers = rootFollowerJson.Followers
+                    ?.Where(u => Convert.ToDateTime(u.CreatedAt).ToLocalTime() > DateTime.Now.AddSeconds(-60))
+                    .Select(u => u.User.Name);
+
+                if (freshFollowers?.Count() > 0)
+                {
+                    string followerUsername = "";
+
+                    if (freshFollowers.Count() == 1)
+                    {
+                        followerUsername = $"@{freshFollowers.First()}";
+                    }
+                    else if (freshFollowers.Count() > 1)
+                    {
+                        foreach (string follower in freshFollowers)
+                        {
+                            followerUsername += $"{follower}, ";
+                        }
+
+                        followerUsername = followerUsername.ReplaceLastOccurrence(", ", ""); // replace trailing ","
+                        followerUsername = followerUsername.ReplaceLastOccurrence(", ", " & "); // replacing joining ","
+                    }
+
+                    _irc.SendPublicChatMessage($"Welcome {followerUsername} to the Salt Army! " 
+                        + $"With @{_botConfig.Broadcaster} we will pillage the seven salty seas of Twitch together!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error inside FollowerSubscriberListener.CheckNewFollowersSubscribers(): " + ex.Message);
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Check the chatter list for any followers or subscribers
+        /// </summary>
+        /// <returns></returns>
+        private async Task CheckChatterFollowersSubscribers()
         {
             try
             {
@@ -102,7 +198,7 @@ namespace TwitchBot.Threads
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error inside FollowerSubscriberListener.CheckFollowersSubscribers(): " + ex.Message);
+                Console.WriteLine("Error inside FollowerSubscriberListener.CheckChatterFollowersSubscribers(): " + ex.Message);
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
@@ -172,29 +268,6 @@ namespace TwitchBot.Threads
                 }
                 else // ToDo: Make currency auto-increment setting
                     _bank.CreateAccount(chatter, _broadcasterId, 10);
-
-                // check if user is a new follower
-                // if so, give them their sign-on bonus
-                TimeSpan followerTimeSpan = DateTime.Now - Convert.ToDateTime(follower.CreatedAt).ToLocalTime();
-
-                if (followerTimeSpan.TotalSeconds < 60)
-                {
-                    string welcomeMessage = $"Welcome @{chatter} to the Salt Army! ";
-
-                    if (funds > -1)
-                    {
-                        funds += 500;
-                        _bank.UpdateFunds(chatter, _broadcasterId, funds);
-                        welcomeMessage += $"You now have {funds} {_botConfig.CurrencyType} to gamble!";
-                    }
-                    else
-                    {
-                        _bank.CreateAccount(chatter, _broadcasterId, 500);
-                        welcomeMessage += $"You now have 500 {_botConfig.CurrencyType} to gamble!";
-                    }
-
-                    _irc.SendPublicChatMessage(welcomeMessage);
-                }
             }
             catch (Exception ex)
             {
@@ -210,21 +283,7 @@ namespace TwitchBot.Threads
         {
             try
             {
-                TwitchChatter subscriber = await GetTwitchSubscriberInfo(chatter, userTwitchId);
-
-                if (subscriber == null)
-                    return;
-
-                TimeSpan subscriberTimeSpan = DateTime.Now - Convert.ToDateTime(subscriber.CreatedAt).ToLocalTime();
-
-                // check if user is a new subscriber
-                if (subscriberTimeSpan.TotalSeconds < 60)
-                {
-                    string welcomeMessage = $"Thank you so much on becoming a secret NaCl agent @{chatter} . "
-                        + $"Your dedication will allow @{_botConfig.Broadcaster} to continue commanding the Salt Army!";
-
-                    _irc.SendPublicChatMessage(welcomeMessage);
-                }
+                await GetTwitchSubscriberInfo(chatter, userTwitchId);
             }
             catch (Exception ex)
             {
@@ -258,7 +317,7 @@ namespace TwitchBot.Threads
                     }
 
                     string body = await message.Content.ReadAsStringAsync();
-                    FollowingSinceJSON response = JsonConvert.DeserializeObject<FollowingSinceJSON>(body);
+                    FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
                     DateTime startedFollowing = Convert.ToDateTime(response.CreatedAt);
 
                     follower = new TwitchChatter { Username = chatter, CreatedAt = startedFollowing };
@@ -298,7 +357,7 @@ namespace TwitchBot.Threads
                     }
 
                     string body = await message.Content.ReadAsStringAsync();
-                    SubscribedUserJSON response = JsonConvert.DeserializeObject<SubscribedUserJSON>(body);
+                    SubscriptionJSON response = JsonConvert.DeserializeObject<SubscriptionJSON>(body);
                     DateTime startedSubscribing = Convert.ToDateTime(response.CreatedAt);
 
                     subscriber = new TwitchChatter { Username = chatter, CreatedAt = startedSubscribing };
