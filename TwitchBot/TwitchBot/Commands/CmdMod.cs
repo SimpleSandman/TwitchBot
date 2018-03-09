@@ -241,7 +241,7 @@ namespace TwitchBot.Commands
 
                         List<string> chatterList = _twitchChatterListInstance.ChattersByName;
 
-                        // exclude broadcaster, bot, and the moderator executing this command
+                        // exclude bot and the moderator/broadcaster executing this command
                         chatterList = chatterList.Where(t => t != username.ToLower() && t != _botConfig.BotName.ToLower()).ToList();
 
                         if (chatterList != null && chatterList.Count > 0)

@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 
 using TwitchBot.Configuration;
@@ -57,6 +56,7 @@ namespace TwitchBot.Threads
                 }
                 else if (_bossSettings.Fighters.Count > 0 && _bossSettings.IsEntryPeriodOver())
                 {
+                    //AddTestFighters(); // debugging only
                     _bossSettings.Fighters.CompleteAdding();
                     Consume();
 
@@ -87,23 +87,21 @@ namespace TwitchBot.Threads
             // Raid the boss
             bool isBossAlive = true;
             string lastAttackFighter = "";
+            int turn;
 
-            for (int turn = 0; turn < boss.TurnLimit; turn++)
+            for (turn = 0; turn < boss.TurnLimit; turn++)
             {
                 foreach (BossFighter fighter in _bossSettings.Fighters)
                 {
                     if (fighter.FighterClass.Health <= 0)
                         continue;
 
-                    if (fighter.FighterClass.Attack > boss.Defense)
-                    {
-                        Random rnd = new Random(DateTime.Now.Millisecond);
-                        int chance = rnd.Next(1, 101); // 1 - 100
+                    Random rnd = new Random(DateTime.Now.Millisecond);
+                    int chance = rnd.Next(1, 101); // 1 - 100
 
-                        // check if boss dodged the attack
-                        if (boss.Evasion <= chance)
-                            boss.Health -= fighter.FighterClass.Attack - boss.Defense;
-                    }
+                    // check if boss dodged the attack
+                    if (boss.Evasion <= chance && fighter.FighterClass.Attack - boss.Defense > 0)
+                        boss.Health -= fighter.FighterClass.Attack - boss.Defense;
 
                     if (boss.Health <= 0)
                     {
@@ -112,15 +110,12 @@ namespace TwitchBot.Threads
                         break;
                     }
 
-                    if (boss.Attack > fighter.FighterClass.Defense)
-                    {
-                        Random rnd = new Random(DateTime.Now.Millisecond);
-                        int chance = rnd.Next(1, 101); // 1 - 100
+                    rnd = new Random(DateTime.Now.Millisecond);
+                    chance = rnd.Next(1, 101); // 1 - 100
 
-                        // check if fighter dodged the attack
-                        if (fighter.FighterClass.Evasion <= chance)
-                            fighter.FighterClass.Health -= boss.Attack - fighter.FighterClass.Defense;
-                    }
+                    // check if fighter dodged the attack
+                    if (fighter.FighterClass.Evasion <= chance && boss.Attack - fighter.FighterClass.Defense > 0)
+                        fighter.FighterClass.Health -= boss.Attack - fighter.FighterClass.Defense;
                 }
 
                 if (!isBossAlive) break;
@@ -129,16 +124,25 @@ namespace TwitchBot.Threads
             // Evaluate the fight
             if (isBossAlive)
             {
-                if (_bossSettings.Fighters.Count == 1)
+                string bossAliveMessage = "";
+
+                if (turn == boss.TurnLimit)
                 {
-                    _irc.SendPublicChatMessage(_bossSettings.SingleUserFail
+                    // ToDo: Add boss alive message to database
+                    bossAliveMessage = $"It took too long to kill {boss.Name}. Gas floods the room, killing the entire raid party.";
+                }
+                else if (_bossSettings.Fighters.Count == 1)
+                {
+                    bossAliveMessage = _bossSettings.SingleUserFail
                         .Replace("user@", _bossSettings.Fighters.First().Username)
-                        .Replace("@bossname@", boss.Name));
+                        .Replace("@bossname@", boss.Name);
                 }
                 else
                 {
-                    _irc.SendPublicChatMessage(_bossSettings.Success0);
+                    bossAliveMessage = _bossSettings.Success0;
                 }
+
+                _irc.SendPublicChatMessage(bossAliveMessage);
 
                 return;
             }
@@ -181,7 +185,7 @@ namespace TwitchBot.Threads
             }
             else if (survivorsPercentage == 1.0m)
             {
-                _irc.SendPublicChatMessage(_bossSettings.Success100.Replace("@bossname@", boss.Name) 
+                _irc.SendPublicChatMessage(_bossSettings.Success100.Replace("@bossname@", boss.Name)
                     + " " + _resultMessage);
             }
             else if (survivorsPercentage >= 0.34m)
@@ -241,6 +245,100 @@ namespace TwitchBot.Threads
                     .Replace("@nextbossname@", _bossSettings.Bosses[5].Name);
 
             return "";
+        }
+
+        /// <summary>
+        /// Used for debugging/testing only
+        /// </summary>
+        public void AddTestFighters()
+        {
+            _bossSettings.Fighters.Take();
+
+            int numMods = 2;
+            int numSubs = 1;
+            int numRegFols = 0;
+            int numFols = 2;
+            int numVews = 2;
+
+            for (int i = 0; i < numMods; i++)
+            {
+                _bossSettings.Fighters.Add(new BossFighter
+                {
+                    FighterClass = new FighterClass
+                    {
+                        Attack = 50,
+                        ChatterType = Enums.ChatterType.Moderator,
+                        Defense = 12,
+                        Evasion = 40,
+                        Health = 270
+                    },
+                    Username = "testMod" + (i + 1)
+                });
+            }
+
+            for (int i = 0; i < numSubs; i++)
+            {
+                _bossSettings.Fighters.Add(new BossFighter
+                {
+                    FighterClass = new FighterClass
+                    {
+                        Attack = 20,
+                        ChatterType = Enums.ChatterType.Subscriber,
+                        Defense = 17,
+                        Evasion = 25,
+                        Health = 400
+                    },
+                    Username = "testSub" + (i + 1)
+                });
+            }
+
+            for (int i = 0; i < numRegFols; i++)
+            {
+                _bossSettings.Fighters.Add(new BossFighter
+                {
+                    FighterClass = new FighterClass
+                    {
+                        Attack = 35,
+                        ChatterType = Enums.ChatterType.RegularFollower,
+                        Defense = 13,
+                        Evasion = 27,
+                        Health = 250
+                    },
+                    Username = "testRegFol" + (i + 1)
+                });
+            }
+
+            for (int i = 0; i < numFols; i++)
+            {
+                _bossSettings.Fighters.Add(new BossFighter
+                {
+                    FighterClass = new FighterClass
+                    {
+                        Attack = 30,
+                        ChatterType = Enums.ChatterType.Follower,
+                        Defense = 9,
+                        Evasion = 22,
+                        Health = 180
+                    },
+                    Username = "testFol" + (i + 1)
+                });
+            }
+
+            for (int i = 0; i < numVews; i++)
+            {
+                _bossSettings.Fighters.Add(new BossFighter
+                {
+                    FighterClass = new FighterClass
+                    {
+                        Attack = 25,
+                        ChatterType = Enums.ChatterType.Viewer,
+                        Defense = 6,
+                        Evasion = 35,
+                        Health = 125
+                    },
+                    Username = "testVewr" + (i + 1)
+                });
+            }
         }
     }
 }

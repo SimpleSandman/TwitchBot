@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
 using System.Threading;
 
 using TwitchBot.Extensions;
@@ -104,8 +103,12 @@ namespace TwitchBot.Threads
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
+                // do not show any expired reminders
+                string query = "SELECT * FROM Reminders " 
+                    + "WHERE broadcaster = @broadcaster " 
+                        + "AND (expirationDateUtc IS NULL OR expirationDateUtc > GETDATE())";
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Reminders WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
