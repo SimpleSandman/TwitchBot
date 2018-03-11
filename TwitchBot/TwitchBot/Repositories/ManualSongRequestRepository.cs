@@ -19,12 +19,12 @@ namespace TwitchBot.Repositories
 
         public void AddSongRequest(string songRequestName, string username, int broadcasterId)
         {
-            string query = "INSERT INTO SongRequests (songRequests, broadcaster, chatter) VALUES (@song, @broadcaster, @chatter)";
+            string query = "INSERT INTO SongRequests (Requests, broadcaster, chatter) VALUES (@song, @broadcaster, @chatter)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
             {
-                cmd.Parameters.Add("@song", SqlDbType.VarChar, 200).Value = songRequestName;
+                cmd.Parameters.Add("@song", SqlDbType.VarChar, 100).Value = songRequestName;
                 cmd.Parameters.Add("@broadcaster", SqlDbType.VarChar, 200).Value = broadcasterId;
                 cmd.Parameters.Add("@chatter", SqlDbType.VarChar, 200).Value = username;
 
@@ -40,7 +40,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT songRequests FROM SongRequests WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT Requests FROM SongRequests WHERE broadcaster = @broadcaster", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -83,7 +83,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) songRequests FROM SongRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) Requests FROM SongRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
                 {
                     cmd.Parameters.AddWithValue("@broadcaster", broadcasterId);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -92,7 +92,7 @@ namespace TwitchBot.Repositories
                         {
                             while (reader.Read())
                             {
-                                firstSong = reader["songRequests"].ToString();
+                                firstSong = reader["Requests"].ToString();
                                 break;
                             }
                         }

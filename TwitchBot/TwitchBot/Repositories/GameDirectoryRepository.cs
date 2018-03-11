@@ -31,10 +31,10 @@ namespace TwitchBot.Repositories
                     {
                         while (reader.Read())
                         {
-                            if (gameTitle.Equals(reader["name"].ToString()))
+                            if (gameTitle.Equals(reader["Name"].ToString()))
                             {
-                                gameId = int.Parse(reader["id"].ToString());
-                                hasMultiplayer = bool.Parse(reader["multiplayer"].ToString());
+                                gameId = int.Parse(reader["Id"].ToString());
+                                hasMultiplayer = bool.Parse(reader["Multiplayer"].ToString());
                                 break;
                             }
                         }

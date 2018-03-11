@@ -18,7 +18,7 @@ namespace TwitchBot.Repositories
 
         public void CreateAccount(string recipient, int broadcasterId, int deposit)
         {
-            string query = "INSERT INTO Bank (username, wallet, broadcaster) VALUES (@username, @wallet, @broadcaster)";
+            string query = "INSERT INTO Bank (Username, Wallet, Broadcaster) VALUES (@username, @wallet, @broadcaster)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -34,7 +34,7 @@ namespace TwitchBot.Repositories
 
         public void UpdateFunds(string walletOwner, int broadcasterId, int newWalletBalance)
         {
-            string query = "UPDATE Bank SET wallet = @wallet WHERE (username = @username AND broadcaster = @broadcaster)";
+            string query = "UPDATE Bank SET Wallet = @wallet WHERE (Username = @username AND Broadcaster = @broadcaster)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -77,7 +77,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Bank WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Bank WHERE Broadcaster = @broadcaster", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -86,9 +86,9 @@ namespace TwitchBot.Repositories
                         {
                             while (reader.Read())
                             {
-                                if (username.Equals(reader["username"].ToString()))
+                                if (username.Equals(reader["Username"].ToString()))
                                 {
-                                    return int.Parse(reader["wallet"].ToString());
+                                    return int.Parse(reader["Wallet"].ToString());
                                 }
                             }
                         }
@@ -107,8 +107,8 @@ namespace TwitchBot.Repositories
             {
                 conn.Open();
                 using (SqlCommand cmd = new SqlCommand("SELECT TOP 3 * FROM Bank " 
-                    + "WHERE broadcaster = @broadcasterId AND username <> @broadcasterName AND username <> @botName " 
-                    + "ORDER BY wallet DESC", conn))
+                    + "WHERE Broadcaster = @broadcasterId AND Username <> @broadcasterName AND Username <> @botName "
+                    + "ORDER BY Wallet DESC", conn))
                 {
                     cmd.Parameters.Add("@broadcasterId", SqlDbType.Int).Value = broadcasterId;
                     cmd.Parameters.Add("@broadcasterName", SqlDbType.VarChar, 30).Value = broadcasterName;
@@ -122,8 +122,8 @@ namespace TwitchBot.Repositories
                                 balanceResult.Add(new BalanceResult
                                 {
                                     ActionType = "SELECT",
-                                    Username = reader["username"].ToString(),
-                                    Wallet = int.Parse(reader["wallet"].ToString())
+                                    Username = reader["Username"].ToString(),
+                                    Wallet = int.Parse(reader["Wallet"].ToString())
                                 });
                             }
                         }

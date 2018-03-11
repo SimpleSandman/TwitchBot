@@ -105,8 +105,8 @@ namespace TwitchBot.Threads
             {
                 // do not show any expired reminders
                 string query = "SELECT * FROM Reminders " 
-                    + "WHERE broadcaster = @broadcaster " 
-                        + "AND (expirationDateUtc IS NULL OR expirationDateUtc > GETDATE())";
+                    + "WHERE Broadcaster = @broadcaster " 
+                        + "AND (ExpirationDateUtc IS NULL OR ExpirationDateUtc > GETDATE())";
                 conn.Open();
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -120,31 +120,31 @@ namespace TwitchBot.Threads
                                 _reminders.Add(new Reminder
                                 {
                                     Id = int.Parse(reader["Id"].ToString()),
-                                    GameId = reader["game"].ToString().ToNullableInt(),
+                                    GameId = reader["Game"].ToString().ToNullableInt(),
                                     IsReminderDay = new bool[7]
                                     {
-                                        bool.Parse(reader["sunday"].ToString()),
-                                        bool.Parse(reader["monday"].ToString()),
-                                        bool.Parse(reader["tuesday"].ToString()),
-                                        bool.Parse(reader["wednesday"].ToString()),
-                                        bool.Parse(reader["thursday"].ToString()),
-                                        bool.Parse(reader["friday"].ToString()),
-                                        bool.Parse(reader["saturday"].ToString())
+                                        bool.Parse(reader["Sunday"].ToString()),
+                                        bool.Parse(reader["Monday"].ToString()),
+                                        bool.Parse(reader["Tuesday"].ToString()),
+                                        bool.Parse(reader["Wednesday"].ToString()),
+                                        bool.Parse(reader["Thursday"].ToString()),
+                                        bool.Parse(reader["Friday"].ToString()),
+                                        bool.Parse(reader["Saturday"].ToString())
                                     },
                                     ReminderSeconds = new int?[]
                                     {
-                                        reader["reminderSec1"].ToString().ToNullableInt(),
-                                        reader["reminderSec2"].ToString().ToNullableInt(),
-                                        reader["reminderSec3"].ToString().ToNullableInt(),
-                                        reader["reminderSec4"].ToString().ToNullableInt(),
-                                        reader["reminderSec5"].ToString().ToNullableInt()
+                                        reader["ReminderSec1"].ToString().ToNullableInt(),
+                                        reader["ReminderSec2"].ToString().ToNullableInt(),
+                                        reader["ReminderSec3"].ToString().ToNullableInt(),
+                                        reader["ReminderSec4"].ToString().ToNullableInt(),
+                                        reader["ReminderSec5"].ToString().ToNullableInt()
                                     },
-                                    TimeOfEvent = reader["timeOfEventUtc"].ToString().ToNullableTimeSpan(),
-                                    ExpirationDate = reader["expirationDateUtc"].ToString().ToNullableDateTime(),
-                                    RemindEveryMin = reader["remindEveryMin"].ToString().ToNullableInt(),
-                                    Message = reader["message"].ToString(),
-                                    IsCountdownEvent = bool.Parse(reader["isCountdownEvent"].ToString()),
-                                    HasCountdownTicker = bool.Parse(reader["hasCountdownTicker"].ToString())
+                                    TimeOfEvent = reader["TimeOfEventUtc"].ToString().ToNullableTimeSpan(),
+                                    ExpirationDate = reader["ExpirationDateUtc"].ToString().ToNullableDateTime(),
+                                    RemindEveryMin = reader["RemindEveryMin"].ToString().ToNullableInt(),
+                                    Message = reader["Message"].ToString(),
+                                    IsCountdownEvent = bool.Parse(reader["IsCountdownEvent"].ToString()),
+                                    HasCountdownTicker = bool.Parse(reader["HasCountdownTicker"].ToString())
                                 });
                             }
                         }

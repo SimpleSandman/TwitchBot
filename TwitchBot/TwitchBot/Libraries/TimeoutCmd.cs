@@ -22,7 +22,7 @@ namespace TwitchBot.Libraries
         {
             try
             {
-                string query = "INSERT INTO Timeout (username, broadcaster, timeout) VALUES (@username, @broadcaster, @timeout)";
+                string query = "INSERT INTO UserBotTimeout (Username, Broadcaster, Timeout) VALUES (@username, @broadcaster, @timeout)";
                 DateTime timeoutDuration = new DateTime();
                 timeoutDuration = DateTime.UtcNow.AddSeconds(seconds);
 
@@ -55,7 +55,7 @@ namespace TwitchBot.Libraries
         {
             try
             {
-                string query = "DELETE FROM Timeout WHERE username = @username AND broadcaster = @broadcaster";
+                string query = "DELETE FROM UserBotTimeout WHERE Username = @username AND Broadcaster = @broadcaster";
 
                 // Create connection and command
                 using (SqlConnection conn = new SqlConnection(connStr))

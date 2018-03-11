@@ -24,7 +24,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM RankFollowers WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM RankFollowers WHERE Broadcaster = @broadcaster", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -33,9 +33,9 @@ namespace TwitchBot.Repositories
                         {
                             while (reader.Read())
                             {
-                                if (chatter.Equals(reader["username"].ToString()))
+                                if (chatter.Equals(reader["Username"].ToString()))
                                 {
-                                    return int.Parse(reader["exp"].ToString());
+                                    return int.Parse(reader["Exp"].ToString());
                                 }
                             }
                         }
@@ -49,7 +49,7 @@ namespace TwitchBot.Repositories
         public void UpdateExp(string chatter, int broadcasterId, int currExp)
         {
             // Give follower experience for watching
-            string query = "UPDATE RankFollowers SET exp = @exp WHERE (username = @username AND broadcaster = @broadcaster)";
+            string query = "UPDATE RankFollowers SET Exp = @exp WHERE (Username = @username AND Broadcaster = @broadcaster)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -66,7 +66,7 @@ namespace TwitchBot.Repositories
         public void EnlistRecruit(string chatter, int broadcasterId)
         {
             // Add new follower to the ranks
-            string query = "INSERT INTO RankFollowers (username, exp, broadcaster) "
+            string query = "INSERT INTO RankFollowers (Username, Exp, Broadcaster) "
                 + "VALUES (@username, @exp, @broadcaster)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
@@ -89,7 +89,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Rank WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Rank WHERE Broadcaster = @broadcaster", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -100,8 +100,8 @@ namespace TwitchBot.Repositories
                             {
                                 ranksList.Add(new Rank()
                                 {
-                                    Name = reader["name"].ToString(),
-                                    ExpCap = int.Parse(reader["expCap"].ToString())
+                                    Name = reader["Name"].ToString(),
+                                    ExpCap = int.Parse(reader["ExpCap"].ToString())
                                 });
                             }
                         }
@@ -120,8 +120,8 @@ namespace TwitchBot.Repositories
             {
                 conn.Open();
                 using (SqlCommand cmd = new SqlCommand("SELECT TOP 3 * FROM RankFollowers "
-                    + "WHERE broadcaster = @broadcasterId AND username <> @broadcasterName AND username <> @botName "
-                    + "ORDER BY exp DESC", conn))
+                    + "WHERE Broadcaster = @broadcasterId AND Username <> @broadcasterName AND Username <> @botName "
+                    + "ORDER BY Exp DESC", conn))
                 {
                     cmd.Parameters.Add("@broadcasterId", SqlDbType.Int).Value = broadcasterId;
                     cmd.Parameters.Add("@broadcasterName", SqlDbType.VarChar, 30).Value = broadcasterName;
@@ -134,8 +134,8 @@ namespace TwitchBot.Repositories
                             {
                                 followerList.Add(new Follower()
                                 {
-                                    Username = reader["username"].ToString(),
-                                    Exp = int.Parse(reader["exp"].ToString())
+                                    Username = reader["Username"].ToString(),
+                                    Exp = int.Parse(reader["Exp"].ToString())
                                 });
                             }
                         }

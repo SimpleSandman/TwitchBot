@@ -43,7 +43,7 @@ namespace TwitchBot.Libraries
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Broadcasters WHERE username = @username", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Broadcasters WHERE Username = @username", conn))
                 {
                     cmd.Parameters.AddWithValue("@username", username);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -52,11 +52,11 @@ namespace TwitchBot.Libraries
                         {
                             while (reader.Read())
                             {
-                                if (username.Equals(reader["username"].ToString().ToLower()))
+                                if (username.Equals(reader["Username"].ToString().ToLower()))
                                 {
                                     Username = username;
-                                    DatabaseId = int.Parse(reader["id"].ToString());
-                                    TwitchId = reader["twitchId"].ToString();
+                                    DatabaseId = int.Parse(reader["Id"].ToString());
+                                    TwitchId = reader["TwitchId"].ToString();
 
                                     break;
                                 }
@@ -69,7 +69,7 @@ namespace TwitchBot.Libraries
 
         public void AddBroadcaster(string connStr)
         {
-            string query = "INSERT INTO Broadcasters (username, twitchId) VALUES (@username, @twitchId)";
+            string query = "INSERT INTO Broadcasters (Username, TwitchId) VALUES (@username, @twitchId)";
 
             using (SqlConnection conn = new SqlConnection(connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -84,7 +84,7 @@ namespace TwitchBot.Libraries
 
         public void UpdateTwitchId(string connStr)
         {
-            string query = "UPDATE Broadcasters SET twitchId = @twitchId WHERE username = @username";
+            string query = "UPDATE Broadcasters SET TwitchId = @twitchId WHERE Username = @username";
 
             using (SqlConnection conn = new SqlConnection(connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))

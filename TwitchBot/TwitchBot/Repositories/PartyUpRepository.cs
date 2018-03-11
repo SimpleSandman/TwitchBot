@@ -25,7 +25,7 @@ namespace TwitchBot.Repositories
             {
                 conn.Open();
                 using (SqlCommand cmd = new SqlCommand("SELECT * FROM PartyUpRequests "
-                    + "WHERE broadcaster = @broadcaster AND game = @game AND username = @username", conn))
+                    + "WHERE Broadcaster = @broadcaster AND Game = @game AND Username = @username", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     cmd.Parameters.Add("@game", SqlDbType.Int).Value = gameId;
@@ -36,7 +36,7 @@ namespace TwitchBot.Repositories
                         {
                             while (reader.Read())
                             {
-                                if (username.ToLower().Equals(reader["username"].ToString().ToLower()))
+                                if (username.ToLower().Equals(reader["Username"].ToString().ToLower()))
                                 {
                                     isDuplicateRequestor = true;
                                     break;
@@ -57,7 +57,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM PartyUp WHERE broadcaster = @broadcaster AND game = @game", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM PartyUp WHERE Broadcaster = @broadcaster AND Game = @game", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     cmd.Parameters.Add("@game", SqlDbType.Int).Value = gameId;
@@ -67,9 +67,9 @@ namespace TwitchBot.Repositories
                         {
                             while (reader.Read())
                             {
-                                if (partyMember.ToLower().Equals(reader["partyMember"].ToString().ToLower()))
+                                if (partyMember.ToLower().Equals(reader["PartyMember"].ToString().ToLower()))
                                 {
-                                    partyMember = reader["partyMember"].ToString();
+                                    partyMember = reader["PartyMember"].ToString();
                                     isPartyMemberFound = true;
                                     break;
                                 }
@@ -84,7 +84,7 @@ namespace TwitchBot.Repositories
 
         public void AddPartyMember(string username, string partyMember, int gameId, int broadcasterId)
         {
-            string query = "INSERT INTO PartyUpRequests (username, partyMember, timeRequested, broadcaster, game) "
+            string query = "INSERT INTO PartyUpRequests (Username, PartyMember, TimeRequested, Broadcaster, Game) "
                                 + "VALUES (@username, @partyMember, @timeRequested, @broadcaster, @game)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
@@ -108,7 +108,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT partyMember FROM PartyUp WHERE game = @game AND broadcaster = @broadcaster ORDER BY partyMember", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT PartyMember FROM PartyUp WHERE Game = @game AND Broadcaster = @broadcaster ORDER BY PartyMember", conn))
                 {
                     cmd.Parameters.Add("@game", SqlDbType.Int).Value = gameId;
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
@@ -118,7 +118,7 @@ namespace TwitchBot.Repositories
                         {
                             while (reader.Read())
                             {
-                                partyList += reader["partyMember"].ToString() + " >< ";
+                                partyList += reader["PartyMember"].ToString() + " >< ";
                             }
 
                             StringBuilder modPartyListMsg = new StringBuilder(partyList);
@@ -143,8 +143,8 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT username, partyMember FROM PartyUpRequests "
-                    + "WHERE game = @game AND broadcaster = @broadcaster ORDER BY Id", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT Username, PartyMember FROM PartyUpRequests "
+                    + "WHERE Game = @game AND Broadcaster = @broadcaster ORDER BY Id", conn))
                 {
                     cmd.Parameters.Add("@game", SqlDbType.Int).Value = gameId;
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
@@ -154,7 +154,7 @@ namespace TwitchBot.Repositories
                         {
                             while (reader.Read())
                             {
-                                partyRequestList += reader["partyMember"].ToString() + " <-- @" + reader["username"].ToString() + " // ";
+                                partyRequestList += reader["PartyMember"].ToString() + " <-- @" + reader["Username"].ToString() + " // ";
                             }
 
                             StringBuilder modPartyListMsg = new StringBuilder(partyRequestList);
@@ -179,7 +179,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) partyMember, username FROM PartyUpRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) PartyMember, Username FROM PartyUpRequests WHERE Broadcaster = @broadcaster ORDER BY Id", conn))
                 {
                     cmd.Parameters.AddWithValue("@broadcaster", broadcasterId);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -188,7 +188,7 @@ namespace TwitchBot.Repositories
                         {
                             while (reader.Read())
                             {
-                                removedPartyMember = reader["partyMember"].ToString();
+                                removedPartyMember = reader["PartyMember"].ToString();
                                 break;
                             }
                         }
@@ -201,7 +201,7 @@ namespace TwitchBot.Repositories
 
         public void PopRequestedPartyMember(int broadcasterId)
         {
-            string query = "WITH T AS (SELECT TOP(1) * FROM PartyUpRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
+            string query = "WITH T AS (SELECT TOP(1) * FROM PartyUpRequests WHERE Broadcaster = @broadcaster ORDER BY Id) DELETE FROM T";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))

@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Net;
 using System.Net.Sockets;
 using System.IO;
 
@@ -80,7 +74,7 @@ namespace TwitchBot.Libraries
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "IrcClient", "SendChatTimeout(string, string)", false);
+                _errHndlrInstance.LogError(ex, "IrcClient", "SendChatTimeout(string, int, string)", false);
             }
         }
 
@@ -92,7 +86,7 @@ namespace TwitchBot.Libraries
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "IrcClient", "ReadMessage(string)", true);
+                _errHndlrInstance.LogError(ex, "IrcClient", "ReadMessage()", true);
             }
 
             return "";

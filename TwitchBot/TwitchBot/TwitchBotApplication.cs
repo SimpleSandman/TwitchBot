@@ -125,7 +125,7 @@ namespace TwitchBot
                 List<string> dbTables = GetTables();
                 if (dbTables.Contains("Broadcasters")
                     && dbTables.Contains("Moderators")
-                    && dbTables.Contains("Timeout")
+                    && dbTables.Contains("UserBotTimeout")
                     && dbTables.Contains("ErrorLog"))
                 {
                     Console.WriteLine("Found database tables");
@@ -1029,7 +1029,7 @@ namespace TwitchBot
         {
             try
             {
-                string query = "DELETE FROM Timeout WHERE broadcaster = @broadcaster AND timeout < GETDATE()";
+                string query = "DELETE FROM UserBotTimeout WHERE Broadcaster = @broadcaster AND Timeout < GETDATE()";
 
                 // Create connection and command
                 using (SqlConnection conn = new SqlConnection(_connStr))
@@ -1044,7 +1044,7 @@ namespace TwitchBot
                 using (SqlConnection conn = new SqlConnection(_connStr))
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM Timeout WHERE broadcaster = @broadcaster", conn))
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM UserBotTimeout WHERE Broadcaster = @broadcaster", conn))
                     {
                         cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterInstance.DatabaseId;
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -1055,8 +1055,8 @@ namespace TwitchBot
                                 {
                                     _timeout.TimedoutUsers.Add(new TimeoutUser
                                     {
-                                        Username = reader["username"].ToString(),
-                                        TimeoutExpiration = Convert.ToDateTime(reader["timeout"]),
+                                        Username = reader["Username"].ToString(),
+                                        TimeoutExpiration = Convert.ToDateTime(reader["Timeout"]),
                                         HasBeenWarned = false
                                     });
                                 }

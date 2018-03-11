@@ -1,3 +1,3 @@
 ﻿CREATE TYPE [dbo].[Usernames] AS TABLE (
-	[username]    VARCHAR (30) NOT NULL
+	[Username]    VARCHAR (30) NOT NULL
 );

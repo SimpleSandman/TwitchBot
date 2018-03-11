@@ -26,7 +26,7 @@ namespace TwitchBot.Repositories
             using (SqlConnection conn = new SqlConnection(_connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Quote WHERE broadcaster = @broadcaster", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Quote WHERE Broadcaster = @broadcaster", conn))
                 {
                     cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -37,9 +37,9 @@ namespace TwitchBot.Repositories
                             {
                                 Quote quote = new Quote
                                 {
-                                    Message = reader["userQuote"].ToString(),
-                                    Author = reader["username"].ToString(),
-                                    TimeCreated = Convert.ToDateTime(reader["timeCreated"])
+                                    Message = reader["UserQuote"].ToString(),
+                                    Author = reader["Username"].ToString(),
+                                    TimeCreated = Convert.ToDateTime(reader["TimeCreated"])
                                 };
                                 quotes.Add(quote);
                             }
@@ -53,7 +53,7 @@ namespace TwitchBot.Repositories
 
         public void AddQuote(string quote, string username, int broadcasterId)
         {
-            string query = "INSERT INTO Quote (userQuote, username, timeCreated, broadcaster) VALUES (@userQuote, @username, @timeCreated, @broadcaster)";
+            string query = "INSERT INTO Quote (UserQuote, Username, TimeCreated, Broadcaster) VALUES (@userQuote, @username, @timeCreated, @broadcaster)";
 
             using (SqlConnection conn = new SqlConnection(_connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))

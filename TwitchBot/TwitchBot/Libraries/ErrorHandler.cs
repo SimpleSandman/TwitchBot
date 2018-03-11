@@ -44,22 +44,22 @@ namespace TwitchBot.Libraries
                 /* If username not available, grab default user to show local error after db connection */
                 if (_broadcasterId == 0)
                 {
-                    string strBroadcaster = "n/a";
+                    string broadcaster = "n/a";
                     using (SqlConnection conn = new SqlConnection(_connStr))
                     {
                         conn.Open();
-                        using (SqlCommand cmd = new SqlCommand("SELECT * FROM Broadcasters WHERE username = @username", conn))
+                        using (SqlCommand cmd = new SqlCommand("SELECT * FROM Broadcasters WHERE Username = @username", conn))
                         {
-                            cmd.Parameters.AddWithValue("@username", strBroadcaster);
+                            cmd.Parameters.AddWithValue("@username", broadcaster);
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.HasRows)
                                 {
                                     while (reader.Read())
                                     {
-                                        if (strBroadcaster.Equals(reader["username"].ToString().ToLower()))
+                                        if (broadcaster.Equals(reader["Username"].ToString().ToLower()))
                                         {
-                                            _broadcasterId = int.Parse(reader["id"].ToString());
+                                            _broadcasterId = int.Parse(reader["Id"].ToString());
                                             break;
                                         }
                                     }
@@ -84,7 +84,7 @@ namespace TwitchBot.Libraries
                 }
 
                 /* Add song request to database */
-                string query = "INSERT INTO ErrorLog (errorTime, errorLine, errorClass, errorMethod, errorMsg, broadcaster, command, userMsg) "
+                string query = "INSERT INTO ErrorLog (ErrorTime, ErrorLine, ErrorClass, ErrorMethod, ErrorMsg, Broadcaster, Command, UserMsg) "
                     + "VALUES (@time, @lineNum, @class, @method, @msg, @broadcaster, @command, @userMsg)";
 
                 // Create connection and command

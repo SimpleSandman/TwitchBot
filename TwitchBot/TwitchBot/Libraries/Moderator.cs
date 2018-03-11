@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TwitchBot.Libraries
 {
@@ -48,7 +45,7 @@ namespace TwitchBot.Libraries
                 using (SqlConnection conn = new SqlConnection(connStr))
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM Moderators WHERE broadcaster = @broadcaster", conn))
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM Moderators WHERE Broadcaster = @broadcaster", conn))
                     {
                         cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -57,7 +54,7 @@ namespace TwitchBot.Libraries
                             {
                                 while (reader.Read())
                                 {
-                                    _listMods.Add(reader["username"].ToString());
+                                    _listMods.Add(reader["Username"].ToString());
                                 }
                             }
                         }
@@ -74,7 +71,7 @@ namespace TwitchBot.Libraries
         {
             try
             {
-                string query = "INSERT INTO Moderators (username, broadcaster) VALUES (@username, @broadcaster)";
+                string query = "INSERT INTO Moderators (Username, Broadcaster) VALUES (@username, @broadcaster)";
 
                 // Create connection and command
                 using (SqlConnection conn = new SqlConnection(connStr))
@@ -99,7 +96,7 @@ namespace TwitchBot.Libraries
         {
             try
             {
-                string query = "DELETE FROM Moderators WHERE username = @username AND broadcaster = @broadcaster";
+                string query = "DELETE FROM Moderators WHERE Username = @username AND Broadcaster = @broadcaster";
 
                 // Create connection and command
                 using (SqlConnection conn = new SqlConnection(connStr))
