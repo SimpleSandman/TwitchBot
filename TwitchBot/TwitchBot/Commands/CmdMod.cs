@@ -653,9 +653,8 @@ namespace TwitchBot.Commands
                         _irc.SendPublicChatMessage($"Twitch channel game status updated to \"{game}\"");
                         if (_botConfig.EnableTweets && hasTwitterInfo)
                         {
-                            Console.WriteLine(_twitter.SendTweet("Watch me stream " + game + " on Twitch" + Environment.NewLine
-                                + "http://goo.gl/SNyDFD" + Environment.NewLine
-                                + "#twitch #gaming #streaming"));
+                            Console.WriteLine(_twitter.SendTweet($"Just switched to \"{game}\" on " 
+                                + $"twitch.tv/{_broadcasterInstance.Username}"));
                         }
                     }
                     else

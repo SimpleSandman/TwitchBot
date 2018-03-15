@@ -756,7 +756,8 @@ namespace TwitchBot.Commands
                                             && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
                                 ))
                             {
-                                _irc.SendPublicChatMessage($"This artist cannot be requested at this time @{username}");
+                                _irc.SendPublicChatMessage($"This artist/video cannot be requested at this time @{username}");
+                                return DateTime.Now;
                             }
                             // Check for song-specific blacklist
                             else if (blacklist.Any(
@@ -766,7 +767,8 @@ namespace TwitchBot.Commands
                                             && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // song in title and artist in channel title
                                 ))
                             {
-                                _irc.SendPublicChatMessage($"This song cannot be requested at this time @{username}");
+                                _irc.SendPublicChatMessage($"This song/video cannot be requested at this time @{username}");
+                                return DateTime.Now;
                             }
                         }
 

@@ -982,42 +982,36 @@ namespace TwitchBot
         {
             try
             {
-                _broadcasterInstance.FindBroadcaster(_botConfig.Broadcaster, _connStr);
+                RootUserJSON json = await _twitchInfo.GetUsersByLoginName(_botConfig.Broadcaster);
 
-                if (_broadcasterInstance.DatabaseId != 0 && !(string.IsNullOrEmpty(_broadcasterInstance.TwitchId) || _broadcasterInstance.TwitchId.Equals("0")))
+                if (json?.Users.Count == 0)
+                {
+                    Console.WriteLine("Error: Couldn't find Twitch login name from Twitch. If this persists, please contact my creator");
+                    Console.WriteLine("Shutting down now...");
+                    Thread.Sleep(3000);
+                    Environment.Exit(0);
+                }
+
+                if (_broadcasterInstance.FindBroadcasterByUserInfo(json.Users.First().Name, json.Users.First().Id, _connStr))
                 {
                     return;
                 }
 
-                if (_broadcasterInstance.DatabaseId == 0) // new user needs to be added
+                // check if user exists, but changed their username
+                if (_broadcasterInstance.FindBroadcasterByTwitchId(json.Users.First().Id, _connStr))
                 {
-                    RootUserJSON json = await _twitchInfo.GetUsersByLoginName(_botConfig.Broadcaster);
-                    if (json.Users.Count == 0)
-                    {
-                        Console.WriteLine("Error: Couldn't find Twitch login name from Twitch. If this persists, please contact my creator");
-                        Console.WriteLine("Shutting down now...");
-                        Thread.Sleep(3000);
-                        Environment.Exit(0);
-                    }
+                    _broadcasterInstance.UpdateBroadcasterUsername(_connStr);
+                }
+                else // add new user
+                {
+                    _broadcasterInstance.Username = json.Users.First().Name;
                     _broadcasterInstance.TwitchId = json.Users.First().Id;
 
                     _broadcasterInstance.AddBroadcaster(_connStr);
-                    _broadcasterInstance.UpdateTwitchId(_connStr);
                 }
-                else if (string.IsNullOrEmpty(_broadcasterInstance.TwitchId) || _broadcasterInstance.TwitchId.Equals("0")) // twitch id was not set
-                {
-                    RootUserJSON json = await _twitchInfo.GetUsersByLoginName(_botConfig.Broadcaster);
-                    if (json.Users.Count == 0)
-                    {
-                        Console.WriteLine("Error: Couldn't find Twitch login name from Twitch. If this persists, please contact my creator");
-                        Console.WriteLine("Shutting down now...");
-                        Thread.Sleep(3000);
-                        Environment.Exit(0);
-                    }
-                    _broadcasterInstance.TwitchId = json.Users.First().Id;
 
-                    _broadcasterInstance.UpdateTwitchId(_connStr);
-                }
+                // check if user was inserted/updated correctly
+                _broadcasterInstance.FindBroadcasterByUserInfo(_broadcasterInstance.Username, _broadcasterInstance.TwitchId, _connStr);
             }
             catch (Exception ex)
             {

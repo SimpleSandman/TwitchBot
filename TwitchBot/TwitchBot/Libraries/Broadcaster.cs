@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TwitchBot.Libraries
 {
@@ -38,33 +34,68 @@ namespace TwitchBot.Libraries
             }
         }
 
-        public void FindBroadcaster(string username, string connStr)
+        public bool FindBroadcasterByUserInfo(string username, string twitchId, string connStr)
         {
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Broadcasters WHERE Username = @username", conn))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Broadcasters WHERE Username = @username AND TwitchId = @twitchId", conn))
                 {
                     cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@twitchId", twitchId);
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.HasRows)
                         {
                             while (reader.Read())
                             {
-                                if (username.Equals(reader["Username"].ToString().ToLower()))
+                                if (username.Equals(reader["Username"].ToString().ToLower()) 
+                                    && twitchId.Equals(reader["TwitchId"].ToString().ToLower()))
                                 {
                                     Username = username;
+                                    TwitchId = twitchId;
                                     DatabaseId = int.Parse(reader["Id"].ToString());
-                                    TwitchId = reader["TwitchId"].ToString();
 
-                                    break;
+                                    return true;
                                 }
                             }
                         }
                     }
                 }
             }
+
+            return false;
+        }
+
+        public bool FindBroadcasterByTwitchId(string twitchId, string connStr)
+        {
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Broadcasters WHERE TwitchId = @twitchId", conn))
+                {
+                    cmd.Parameters.AddWithValue("@twitchId", twitchId);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                if (twitchId.Equals(reader["TwitchId"].ToString().ToLower()))
+                                {
+                                    TwitchId = twitchId;
+                                    DatabaseId = int.Parse(reader["Id"].ToString());
+                                    Username = reader["Username"].ToString();
+
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         public void AddBroadcaster(string connStr)
@@ -82,9 +113,9 @@ namespace TwitchBot.Libraries
             }
         }
 
-        public void UpdateTwitchId(string connStr)
+        public void UpdateBroadcasterUsername(string connStr)
         {
-            string query = "UPDATE Broadcasters SET TwitchId = @twitchId WHERE Username = @username";
+            string query = "UPDATE Broadcasters SET Username = @username WHERE TwitchId = @twitchId";
 
             using (SqlConnection conn = new SqlConnection(connStr))
             using (SqlCommand cmd = new SqlCommand(query, conn))

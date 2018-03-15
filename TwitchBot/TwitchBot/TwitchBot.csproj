@@ -323,6 +323,7 @@
   <ItemGroup>
     <Content Include="SqlScripts\StoredProcedures\dbo.UpdateCreateBalance.sql" />
     <Content Include="SqlScripts\Tables\InitialCreation.sql" />
+    <Content Include="SqlScripts\Tables\InsertDefaults.sql" />
     <Content Include="SqlScripts\UserTableTypes\dbo.Usernames.sql" />
   </ItemGroup>
   <ItemGroup />
