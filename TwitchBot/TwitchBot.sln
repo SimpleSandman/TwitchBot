@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2011
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchBot", "TwitchBot\TwitchBot.csproj", "{8AFAE9AC-93F0-4FBA-844A-4CA55D570948}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchBotApi", "TwitchBotApi\TwitchBotApi.csproj", "{B42D2C50-5D28-43C9-BAB2-7EC1DF6096ED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +17,15 @@ Global
 		{8AFAE9AC-93F0-4FBA-844A-4CA55D570948}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8AFAE9AC-93F0-4FBA-844A-4CA55D570948}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8AFAE9AC-93F0-4FBA-844A-4CA55D570948}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B42D2C50-5D28-43C9-BAB2-7EC1DF6096ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B42D2C50-5D28-43C9-BAB2-7EC1DF6096ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B42D2C50-5D28-43C9-BAB2-7EC1DF6096ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B42D2C50-5D28-43C9-BAB2-7EC1DF6096ED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2673A69A-8013-4237-841E-56D8319F9D86}
 	EndGlobalSection
 EndGlobal
