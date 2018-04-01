@@ -38,16 +38,16 @@ namespace TwitchBot.Libraries
         {
             var basicTweet = new object();
 
-            if (pendingMessage.Length <= 140)
+            if (pendingMessage.Length <= 280)
             {
                 basicTweet = Tweet.PublishTweet(pendingMessage);
                 return "Tweet successfully published!";
             }
             else
             {
-                int overCharLimit = pendingMessage.Length - 140;
+                int overCharLimit = pendingMessage.Length - 280;
                 return "The message you attempted to tweet had " + overCharLimit +
-                    " characters more than the 140 character limit. Please shorten your message and try again";
+                    " characters more than the 280 character limit. Please shorten your message and try again";
             }
         }
     }
