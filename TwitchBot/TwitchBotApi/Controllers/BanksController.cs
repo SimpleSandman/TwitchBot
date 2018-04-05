@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using Snickler.EFCore;
+
+using TwitchBotApi.DTO;
+using TwitchBotApi.Extensions;
 using TwitchBotApi.Models;
 
 namespace TwitchBotApi.Controllers
@@ -52,38 +56,22 @@ namespace TwitchBotApi.Controllers
         }
 
         // PUT: api/banks/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutBank([FromRoute] int id, [FromBody] Bank bank)
+        [HttpPut("{broadcasterId:int}")]
+        public async Task<IActionResult> PutBank([FromRoute] int broadcasterId, [FromQuery] int deposit, [FromQuery] bool showOutput, [FromBody] List<string> usernames)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            List<BalanceResult> results = new List<BalanceResult>();
 
-            if (id != bank.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(bank).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!BankExists(id))
+            await _context.LoadStoredProc("dbo.UpdateCreateBalance")
+                .WithSqlParam("tvpUsernames", usernames.ToDataTable())
+                .WithSqlParam("intDeposit", deposit)
+                .WithSqlParam("intBroadcasterID", broadcasterId)
+                .WithSqlParam("bitShowOutput", showOutput)
+                .ExecuteStoredProcAsync((handler) => 
                 {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+                    results = handler.ReadToList<BalanceResult>().ToList();
+                });
 
-            return NoContent();
+            return Ok(results);
         }
 
         // POST: api/banks
