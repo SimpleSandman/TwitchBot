@@ -28,6 +28,7 @@ namespace TwitchBotApi
         {
             services.AddDbContext<TwitchBotContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("TwitchBotContext")));
+
             services.AddMvc();
         }
 

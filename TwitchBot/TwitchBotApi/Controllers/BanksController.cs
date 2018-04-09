@@ -15,7 +15,7 @@ using TwitchBotApi.Models;
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     public class BanksController : Controller
     {
         private readonly TwitchBotContext _context;
@@ -25,17 +25,10 @@ namespace TwitchBotApi.Controllers
             _context = context;
         }
 
-        // GET: api/banks
-        //[HttpGet]
-        //public IEnumerable<Bank> GetBank()
-        //{
-        //    return _context.Bank;
-        //}
-
-        // GET: api/banks/5
-        // GET: api/banks/5?username=simple_sandman
+        // GET: api/banks/get/2
+        // GET: api/banks/get/2?username=simple_sandman
         [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> GetBank([FromRoute] int broadcasterId, [FromQuery] string username = "")
+        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] string username = "")
         {
             if (!ModelState.IsValid)
             {
@@ -47,7 +40,7 @@ namespace TwitchBotApi.Controllers
             if (!string.IsNullOrEmpty(username))
                 bank = bank.Where(m => m.Username == username).ToList();
 
-            if (bank == null)
+            if (bank == null || bank.Count == 0)
             {
                 return NotFound();
             }
@@ -55,10 +48,38 @@ namespace TwitchBotApi.Controllers
             return Ok(bank);
         }
 
-        // PUT: api/banks/5
+        // PUT: api/banks/updateaccount/2?deposit=5000&username=simple_sandman
         [HttpPut("{broadcasterId:int}")]
-        public async Task<IActionResult> PutBank([FromRoute] int broadcasterId, [FromQuery] int deposit, [FromQuery] bool showOutput, [FromBody] List<string> usernames)
+        public async Task<IActionResult> UpdateAccount([FromRoute] int broadcasterId, [FromQuery] int deposit, [FromQuery] string username)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            var bankAccount = _context.Bank.FirstOrDefault(t => t.Broadcaster == broadcasterId && t.Username == username);
+            if (bankAccount == null)
+            {
+                return NotFound();
+            }
+
+            bankAccount.Wallet += deposit;
+
+            _context.Bank.Update(bankAccount);
+            await _context.SaveChangesAsync();
+            return new NoContentResult();
+        }
+
+        // PUT: api/banks/updatecreateaccount/2?deposit=5000&showOutput=true
+        // Body (JSON): ["simple_sandman", "user1", "user2"]
+        [HttpPut("{broadcasterId:int}")]
+        public async Task<IActionResult> UpdateCreateAccount([FromRoute] int broadcasterId, [FromQuery] int deposit, [FromQuery] bool showOutput, [FromBody] List<string> usernames)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             List<BalanceResult> results = new List<BalanceResult>();
 
             await _context.LoadStoredProc("dbo.UpdateCreateBalance")
@@ -74,9 +95,10 @@ namespace TwitchBotApi.Controllers
             return Ok(results);
         }
 
-        // POST: api/banks
+        // POST: api/banks/createaccount
+        // Body (JSON): { "username": "user1", "wallet": 500, "broadcaster": 2 }
         [HttpPost]
-        public async Task<IActionResult> PostBank([FromBody] Bank bank)
+        public async Task<IActionResult> CreateAccount([FromBody] Bank bank)
         {
             if (!ModelState.IsValid)
             {
@@ -86,33 +108,7 @@ namespace TwitchBotApi.Controllers
             _context.Bank.Add(bank);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetBank", new { id = bank.Id }, bank);
-        }
-
-        //// DELETE: api/banks/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteBank([FromRoute] int id)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-
-        //    var bank = await _context.Bank.SingleOrDefaultAsync(m => m.Id == id);
-        //    if (bank == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _context.Bank.Remove(bank);
-        //    await _context.SaveChangesAsync();
-
-        //    return Ok(bank);
-        //}
-
-        private bool BankExists(int id)
-        {
-            return _context.Bank.Any(e => e.Id == id);
+            return CreatedAtAction("Get", new { broadcasterId = bank.Broadcaster }, bank);
         }
     }
 }
