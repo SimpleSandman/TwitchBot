@@ -35,7 +35,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var bank = await _context.Bank.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+            List<Bank> bank = await _context.Bank.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
 
             if (!string.IsNullOrEmpty(username))
                 bank = bank.Where(m => m.Username == username).ToList();
@@ -57,7 +57,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest();
             }
 
-            var bankAccount = _context.Bank.FirstOrDefault(t => t.Broadcaster == broadcasterId && t.Username == username);
+            Bank bankAccount = _context.Bank.FirstOrDefault(t => t.Broadcaster == broadcasterId && t.Username == username);
             if (bankAccount == null)
             {
                 return NotFound();
@@ -105,10 +105,45 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
+            if (BankExists(bank.Username, bank.Broadcaster))
+            {
+                return BadRequest();
+            }
+
             _context.Bank.Add(bank);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("Get", new { broadcasterId = bank.Broadcaster }, bank);
+        }
+
+        // GET: api/banks/getleaderboard/2?broadcastername=simple_sandman&botname=sandpaibot&topnumber=5
+        [HttpGet("{broadcasterId:int}")]
+        public async Task<IActionResult> GetLeaderboard([FromRoute] int broadcasterId, [FromQuery] BroadcasterConfig broadcasterConfig, [FromQuery] int topNumber = 3)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            List<Bank> bank = await _context.Bank
+                .Where(m => m.Broadcaster == broadcasterId
+                    && m.Username != broadcasterConfig.BroadcasterName
+                    && m.Username != broadcasterConfig.BotName)
+                .OrderByDescending(m => m.Wallet)
+                .Take(topNumber)
+                .ToListAsync();
+
+            if (bank == null || bank.Count == 0)
+            {
+                return NotFound();
+            }
+
+            return Ok(bank);
+        }
+
+        private bool BankExists(string username, int broadcasterId)
+        {
+            return _context.Bank.Any(e => e.Username == username && e.Broadcaster == broadcasterId);
         }
     }
 }
