@@ -20,15 +20,22 @@ namespace TwitchBotApi.Controllers
             _context = context;
         }
 
+        // GET: api/broadcasters/getuserinfo/12345678
+        // GET: api/broadcasters/getuserinfo/12345678?username=simple_sandman
         [HttpGet("{twitchId:int}")]
-        public async Task<IActionResult> GetByTwitchId([FromRoute] int twitchId)
+        public async Task<IActionResult> GetUserInfo([FromRoute] int twitchId, [FromQuery] string username = "")
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            Broadcasters broadcaster = await _context.Broadcasters.SingleOrDefaultAsync(m => m.TwitchId == twitchId);
+            Broadcasters broadcaster = new Broadcasters();
+
+            if (!string.IsNullOrEmpty(username))
+                broadcaster = await _context.Broadcasters.SingleOrDefaultAsync(m => m.Username == username && m.TwitchId == twitchId);
+            else
+                broadcaster = await _context.Broadcasters.SingleOrDefaultAsync(m => m.TwitchId == twitchId);
 
             if (broadcaster == null)
             {
@@ -38,40 +45,22 @@ namespace TwitchBotApi.Controllers
             return Ok(broadcaster);
         }
 
-        // GET: api/broadcasters/getbyuserinfo/simple_sandman
-        [HttpGet("{twitchId:int}")]
-        public async Task<IActionResult> GetByUserInfo([FromRoute] int twitchId, [FromQuery] string username)
+        // PUT: api/broadcasters/updateusername/12345678
+        // Body (JSON): { "id": 2, "username": "simple_sandman", "timeAdded": "1970-01-01T00:00:00.000", "twitchId": 12345678 }
+        [HttpPut("{twitchId:int}")]
+        public async Task<IActionResult> UpdateUsername([FromRoute] int twitchId, [FromBody] Broadcasters broadcaster)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            Broadcasters broadcaster = await _context.Broadcasters.SingleOrDefaultAsync(m => m.Username == username && m.TwitchId == twitchId);
-
-            if (broadcaster == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(broadcaster);
-        }
-
-        // PUT: api/Broadcasters/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutBroadcasters([FromRoute] int id, [FromBody] Broadcasters broadcasters)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (id != broadcasters.Id)
+            if (twitchId != broadcaster.TwitchId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(broadcasters).State = EntityState.Modified;
+            _context.Entry(broadcaster).State = EntityState.Modified;
 
             try
             {
@@ -79,7 +68,7 @@ namespace TwitchBotApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!BroadcastersExists(id))
+                if (!BroadcastersExists(twitchId))
                 {
                     return NotFound();
                 }
@@ -92,24 +81,25 @@ namespace TwitchBotApi.Controllers
             return NoContent();
         }
 
-        // POST: api/Broadcasters
+        // POST: api/broadcasters/create
+        // Body (JSON): { "username": "simple_sandman", "twitchId": 12345678 }
         [HttpPost]
-        public async Task<IActionResult> PostBroadcasters([FromBody] Broadcasters broadcasters)
+        public async Task<IActionResult> Create([FromBody] Broadcasters broadcaster)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            _context.Broadcasters.Add(broadcasters);
+            _context.Broadcasters.Add(broadcaster);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetBroadcasters", new { id = broadcasters.Id }, broadcasters);
+            return CreatedAtAction("GetUserInfo", new { twitchId = broadcaster.TwitchId }, broadcaster);
         }
 
-        private bool BroadcastersExists(int id)
+        private bool BroadcastersExists(int twitchId)
         {
-            return _context.Broadcasters.Any(e => e.Id == id);
+            return _context.Broadcasters.Any(e => e.TwitchId == twitchId);
         }
     }
 }

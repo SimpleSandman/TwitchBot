@@ -67,6 +67,7 @@ namespace TwitchBotApi.Controllers
 
             _context.Bank.Update(bankAccount);
             await _context.SaveChangesAsync();
+
             return new NoContentResult();
         }
 
