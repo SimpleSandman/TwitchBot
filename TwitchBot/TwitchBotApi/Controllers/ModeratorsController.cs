@@ -39,24 +39,25 @@ namespace TwitchBotApi.Controllers
             return Ok(moderators);
         }
 
-        // POST: api/moderators
+        // POST: api/moderators/create
+        // Body (JSON): { "username": "simple_sandman", "broadcaster": 2 }
         [HttpPost]
-        public async Task<IActionResult> PostModerators([FromBody] Moderators moderators)
+        public async Task<IActionResult> Create([FromBody] Moderators moderator)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            _context.Moderators.Add(moderators);
+            _context.Moderators.Add(moderator);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // DELETE: api/moderators/5?username=transformersblackops
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteModerators([FromRoute] int broadcasterId, [FromQuery] string username)
+        // DELETE: api/moderators/delete/2?username=simple_sandman
+        [HttpDelete("{broadcasterId:int}")]
+        public async Task<IActionResult> Delete([FromRoute] int broadcasterId, [FromQuery] string username)
         {
             if (!ModelState.IsValid)
             {
@@ -72,7 +73,7 @@ namespace TwitchBotApi.Controllers
             _context.Moderators.Remove(moderators);
             await _context.SaveChangesAsync();
 
-            return Ok(moderators);
+            return NoContent();
         }
     }
 }
