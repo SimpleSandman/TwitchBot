@@ -20,9 +20,9 @@ namespace TwitchBotApi.Controllers
             _context = context;
         }
 
-        // GET: api/PartyUpRequests/5
-        [HttpGet("{broadcasterId}")]
-        public async Task<IActionResult> GetPartyUpRequests([FromRoute] int broadcasterId)
+        // GET: api/partyuprequests/get/2
+        [HttpGet("{broadcasterId:int}")]
+        public async Task<IActionResult> Get([FromRoute] int broadcasterId)
         {
             if (!ModelState.IsValid)
             {
@@ -39,40 +39,55 @@ namespace TwitchBotApi.Controllers
             return Ok(partyUpRequests);
         }
 
-        // POST: api/PartyUpRequests
-        [HttpPost]
-        public async Task<IActionResult> PostPartyUpRequests([FromBody] PartyUpRequests partyUpRequests)
+        // POST: api/partyuprequests/create/2
+        [HttpPost("{broadcasterId:int}")]
+        public async Task<IActionResult> Create([FromBody] PartyUpRequests partyUpRequest)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            _context.PartyUpRequests.Add(partyUpRequests);
+            if (PartyUpRequestExists(partyUpRequest.Username, partyUpRequest.Broadcaster))
+            {
+                return BadRequest();
+            }
+
+            _context.PartyUpRequests.Add(partyUpRequest);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetPartyUpRequests", new { id = partyUpRequests.Id }, partyUpRequests);
+            return NoContent();
         }
 
-        // DELETE: api/PartyUpRequests/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePartyUpRequests([FromRoute] int id)
+        // DELETE: api/partyuprequests/deletetopone/2?gameid=2
+        [HttpDelete("{broadcasterId:int}")]
+        public async Task<IActionResult> DeleteTopOne([FromRoute] int broadcasterId, [FromQuery] int gameId)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var partyUpRequests = await _context.PartyUpRequests.SingleOrDefaultAsync(m => m.Id == id);
-            if (partyUpRequests == null)
+            PartyUpRequests requestToBeDeleted = await _context.PartyUpRequests
+                .Where(m => m.Broadcaster == broadcasterId && m.Game == gameId)
+                .OrderBy(m => m.TimeRequested)
+                .Take(1)
+                .SingleOrDefaultAsync();
+
+            if (requestToBeDeleted == null)
             {
                 return NotFound();
             }
 
-            _context.PartyUpRequests.Remove(partyUpRequests);
+            _context.PartyUpRequests.Remove(requestToBeDeleted);
             await _context.SaveChangesAsync();
 
-            return Ok(partyUpRequests);
+            return Ok(requestToBeDeleted);
+        }
+
+        private bool PartyUpRequestExists(string username, int broadcasterId)
+        {
+            return _context.PartyUpRequests.Any(e => e.Username == username && e.Broadcaster == broadcasterId);
         }
     }
 }

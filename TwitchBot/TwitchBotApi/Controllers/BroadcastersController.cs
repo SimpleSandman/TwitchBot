@@ -68,7 +68,7 @@ namespace TwitchBotApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!BroadcastersExists(twitchId))
+                if (!BroadcasterExists(twitchId))
                 {
                     return NotFound();
                 }
@@ -97,7 +97,7 @@ namespace TwitchBotApi.Controllers
             return CreatedAtAction("GetUserInfo", new { twitchId = broadcaster.TwitchId }, broadcaster);
         }
 
-        private bool BroadcastersExists(int twitchId)
+        private bool BroadcasterExists(int twitchId)
         {
             return _context.Broadcasters.Any(e => e.TwitchId == twitchId);
         }

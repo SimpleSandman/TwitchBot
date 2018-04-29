@@ -49,6 +49,11 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
+            if (ModeratorExists(moderator.Username, moderator.Broadcaster))
+            {
+                return BadRequest();
+            }
+
             _context.Moderators.Add(moderator);
             await _context.SaveChangesAsync();
 
@@ -74,6 +79,11 @@ namespace TwitchBotApi.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private bool ModeratorExists(string username, int broadcasterId)
+        {
+            return _context.Moderators.Any(e => e.Username == username && e.Broadcaster == broadcasterId);
         }
     }
 }
