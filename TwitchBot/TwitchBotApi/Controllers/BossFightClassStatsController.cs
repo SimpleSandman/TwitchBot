@@ -11,16 +11,16 @@ namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class BossFightBossStatsController : Controller
+    public class BossFightClassStatsController : Controller
     {
         private readonly TwitchBotContext _context;
 
-        public BossFightBossStatsController(TwitchBotContext context)
+        public BossFightClassStatsController(TwitchBotContext context)
         {
             _context = context;
         }
 
-        // GET: api/bossfightbossstats/get/1
+        // GET: api/bossfightclassstats/get/1
         [HttpGet("{settingsId:int}")]
         public async Task<IActionResult> Get([FromRoute] int settingsId)
         {
@@ -29,31 +29,31 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            BossFightBossStats bossFightBossStats = await _context.BossFightBossStats.SingleOrDefaultAsync(m => m.SettingsId == settingsId);
+            BossFightClassStats bossFightClassStats = await _context.BossFightClassStats.SingleOrDefaultAsync(m => m.SettingsId == settingsId);
 
-            if (bossFightBossStats == null)
+            if (bossFightClassStats == null)
             {
                 return NotFound();
             }
 
-            return Ok(bossFightBossStats);
+            return Ok(bossFightClassStats);
         }
 
-        // PUT: api/bossfightbossstats/update/1?id=1
+        // PUT: api/bossfightclassstats/update/1?id=1
         [HttpPut("{settingsId:int}")]
-        public async Task<IActionResult> Update([FromRoute] int settingsId, [FromQuery] int id, [FromBody] BossFightBossStats bossFightBossStats)
+        public async Task<IActionResult> Update([FromRoute] int settingsId, [FromQuery] int id, [FromBody] BossFightClassStats bossFightClassStats)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != bossFightBossStats.Id && settingsId != bossFightBossStats.SettingsId)
+            if (id != bossFightClassStats.Id || settingsId != bossFightClassStats.SettingsId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(bossFightBossStats).State = EntityState.Modified;
+            _context.Entry(bossFightClassStats).State = EntityState.Modified;
 
             try
             {
@@ -61,7 +61,7 @@ namespace TwitchBotApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!BossFightBossStatsExists(id))
+                if (!BossFightClassStatsExists(id))
                 {
                     return NotFound();
                 }
@@ -74,24 +74,24 @@ namespace TwitchBotApi.Controllers
             return NoContent();
         }
 
-        // POST: api/bossfightbossstats/create
+        // POST: api/bossfightclassstats/create
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] BossFightBossStats bossFightBossStats)
+        public async Task<IActionResult> Create([FromBody] BossFightClassStats bossFightClassStats)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            _context.BossFightBossStats.Add(bossFightBossStats);
+            _context.BossFightClassStats.Add(bossFightClassStats);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool BossFightBossStatsExists(int id)
+        private bool BossFightClassStatsExists(int id)
         {
-            return _context.BossFightBossStats.Any(e => e.Id == id);
+            return _context.BossFightClassStats.Any(e => e.Id == id);
         }
     }
 }

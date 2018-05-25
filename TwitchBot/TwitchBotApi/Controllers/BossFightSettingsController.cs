@@ -11,49 +11,49 @@ namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class BossFightBossStatsController : Controller
+    public class BossFightSettingsController : Controller
     {
         private readonly TwitchBotContext _context;
 
-        public BossFightBossStatsController(TwitchBotContext context)
+        public BossFightSettingsController(TwitchBotContext context)
         {
             _context = context;
         }
 
-        // GET: api/bossfightbossstats/get/1
-        [HttpGet("{settingsId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int settingsId)
+        // GET: api/bossfightsettings/get/2/id=1
+        [HttpGet("{broadcasterId:int}")]
+        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            BossFightBossStats bossFightBossStats = await _context.BossFightBossStats.SingleOrDefaultAsync(m => m.SettingsId == settingsId);
+            BossFightSettings bossFightSettings = await _context.BossFightSettings.SingleOrDefaultAsync(m => m.Id == id && m.Broadcaster == broadcasterId);
 
-            if (bossFightBossStats == null)
+            if (bossFightSettings == null)
             {
                 return NotFound();
             }
 
-            return Ok(bossFightBossStats);
+            return Ok(bossFightSettings);
         }
 
-        // PUT: api/bossfightbossstats/update/1?id=1
-        [HttpPut("{settingsId:int}")]
-        public async Task<IActionResult> Update([FromRoute] int settingsId, [FromQuery] int id, [FromBody] BossFightBossStats bossFightBossStats)
+        // PUT: api/bossfightsettings/update/2/id=1
+        [HttpPut("{broadcasterId:int}")]
+        public async Task<IActionResult> Update([FromRoute] int broadcasterId, [FromQuery] int id, [FromBody] BossFightSettings bossFightSettings)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != bossFightBossStats.Id && settingsId != bossFightBossStats.SettingsId)
+            if (id != bossFightSettings.Id || broadcasterId != bossFightSettings.Broadcaster)
             {
                 return BadRequest();
             }
 
-            _context.Entry(bossFightBossStats).State = EntityState.Modified;
+            _context.Entry(bossFightSettings).State = EntityState.Modified;
 
             try
             {
@@ -61,7 +61,7 @@ namespace TwitchBotApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!BossFightBossStatsExists(id))
+                if (!BossFightSettingsExists(id))
                 {
                     return NotFound();
                 }
@@ -74,24 +74,24 @@ namespace TwitchBotApi.Controllers
             return NoContent();
         }
 
-        // POST: api/bossfightbossstats/create
+        // POST: api/bossfightsettings/create
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] BossFightBossStats bossFightBossStats)
+        public async Task<IActionResult> Create([FromBody] BossFightSettings bossFightSettings)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            _context.BossFightBossStats.Add(bossFightBossStats);
+            _context.BossFightSettings.Add(bossFightSettings);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool BossFightBossStatsExists(int id)
+        private bool BossFightSettingsExists(int id)
         {
-            return _context.BossFightBossStats.Any(e => e.Id == id);
+            return _context.BossFightSettings.Any(e => e.Id == id);
         }
     }
 }
