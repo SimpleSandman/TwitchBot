@@ -714,11 +714,11 @@ namespace TwitchBot
 
                                 /* Display how long a user has been following the broadcaster */
                                 else if (message.Equals("!followsince"))
-                                    _cmdGen.CmdFollowSince(username);
+                                    await _cmdGen.CmdFollowSince(username);
 
                                 /* Display follower's stream rank */
                                 else if (message.Equals("!rank"))
-                                    _cmdGen.CmdViewRank(username);
+                                    await _cmdGen.CmdViewRank(username);
 
                                 /* Add song request to YouTube playlist */
                                 // Usage: !ytsr [video title/YouTube link]
