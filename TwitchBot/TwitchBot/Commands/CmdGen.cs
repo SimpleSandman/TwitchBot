@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
@@ -18,6 +19,7 @@ using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 using TwitchBot.Threads;
 using TwitchBot.Enums;
+using Newtonsoft.Json;
 
 namespace TwitchBot.Commands
 {
@@ -595,12 +597,28 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <returns></returns>
-        public void CmdFollowSince(string username)
+        public async Task CmdFollowSince(string username)
         {
             try
             {
                 TwitchChatter chatter = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username.Equals(username));
 
+                if (chatter == null)
+                {
+                    // get chatter info manually
+                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(username);
+
+                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
+                    {
+                        string body = await message.Content.ReadAsStringAsync();
+                        FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
+
+                        if (!string.IsNullOrEmpty(response.CreatedAt))
+                            chatter = new TwitchChatter { Username = username, CreatedAt = Convert.ToDateTime(response.CreatedAt) };
+                    }
+                }
+
+                // mainly used if chatter was originally null
                 if (chatter != null)
                 {
                     DateTime startedFollowing = Convert.ToDateTime(chatter.CreatedAt);
@@ -622,11 +640,26 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <returns></returns>
-        public void CmdViewRank(string username)
+        public async Task CmdViewRank(string username)
         {
             try
             {
                 TwitchChatter chatter = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username.Equals(username));
+
+                if (chatter == null)
+                {
+                    // get chatter info manually
+                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(username);
+
+                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
+                    {
+                        string body = await message.Content.ReadAsStringAsync();
+                        FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
+
+                        if (!string.IsNullOrEmpty(response.CreatedAt))
+                            chatter = new TwitchChatter { Username = username, CreatedAt = Convert.ToDateTime(response.CreatedAt) };
+                    }
+                }
 
                 if (chatter != null)
                 {
