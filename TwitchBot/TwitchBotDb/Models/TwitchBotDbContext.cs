@@ -2,11 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace TwitchBotApi.Models
+namespace TwitchBotDb.Models
 {
-    public partial class TwitchBotContext : DbContext
+    public partial class TwitchBotDbContext : DbContext
     {
-        public TwitchBotContext(DbContextOptions<TwitchBotContext> options) : base(options) { }
+        public TwitchBotDbContext(DbContextOptions<TwitchBotDbContext> options) : base(options) { }
 
         public virtual DbSet<Bank> Bank { get; set; }
         public virtual DbSet<BankHeistSettings> BankHeistSettings { get; set; }

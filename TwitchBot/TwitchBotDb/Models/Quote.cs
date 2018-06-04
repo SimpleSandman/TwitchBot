@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TwitchBotApi.Models
+namespace TwitchBotDb.Models
 {
-    public partial class Bank
+    public partial class Quote
     {
         public int Id { get; set; }
+        public string UserQuote { get; set; }
         public string Username { get; set; }
-        public int Wallet { get; set; }
+        public DateTime TimeCreated { get; set; }
         public int Broadcaster { get; set; }
-        public DateTime TimeAdded { get; set; }
 
         public Broadcasters BroadcasterNavigation { get; set; }
     }

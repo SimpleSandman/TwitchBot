@@ -10,7 +10,8 @@ using Snickler.EFCore;
 
 using TwitchBotApi.DTO;
 using TwitchBotApi.Extensions;
-using TwitchBotApi.Models;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
@@ -18,9 +19,9 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class BanksController : Controller
     {
-        private readonly TwitchBotContext _context;
+        private readonly TwitchBotDbContext _context;
 
-        public BanksController(TwitchBotContext context)
+        public BanksController(TwitchBotDbContext context)
         {
             _context = context;
         }

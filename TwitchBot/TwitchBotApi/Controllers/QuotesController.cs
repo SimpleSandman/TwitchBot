@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TwitchBotApi.Models;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
@@ -14,9 +15,9 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class QuotesController : Controller
     {
-        private readonly TwitchBotContext _context;
+        private readonly TwitchBotDbContext _context;
 
-        public QuotesController(TwitchBotContext context)
+        public QuotesController(TwitchBotDbContext context)
         {
             _context = context;
         }

@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TwitchBotApi.Models;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
@@ -13,9 +14,9 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class PartyUpsController : Controller
     {
-        private readonly TwitchBotContext _context;
+        private readonly TwitchBotDbContext _context;
 
-        public PartyUpsController(TwitchBotContext context)
+        public PartyUpsController(TwitchBotDbContext context)
         {
             _context = context;
         }

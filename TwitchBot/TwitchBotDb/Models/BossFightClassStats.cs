@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TwitchBotApi.Models
+namespace TwitchBotDb.Models
 {
     public partial class BossFightClassStats
     {

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TwitchBotApi.Models
+namespace TwitchBotDb.Models
 {
-    public partial class SongRequestBlacklist
+    public partial class SongRequests
     {
         public int Id { get; set; }
-        public string Artist { get; set; }
-        public string Title { get; set; }
+        public string Requests { get; set; }
+        public string Chatter { get; set; }
         public int Broadcaster { get; set; }
 
         public Broadcasters BroadcasterNavigation { get; set; }

@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-using TwitchBotApi.Models;
+using TwitchBotDb.Models;
 
 namespace TwitchBotApi
 {
@@ -26,8 +26,8 @@ namespace TwitchBotApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<TwitchBotContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("TwitchBotContext")));
+            services.AddDbContext<TwitchBotDbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("TwitchBotDbContext")));
 
             services.AddMvc();
         }

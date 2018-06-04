@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
 using TwitchBotApi.DTO;
-using TwitchBotApi.Models;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
@@ -14,9 +16,9 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class RankFollowersController : Controller
     {
-        private readonly TwitchBotContext _context;
+        private readonly TwitchBotDbContext _context;
 
-        public RankFollowersController(TwitchBotContext context)
+        public RankFollowersController(TwitchBotDbContext context)
         {
             _context = context;
         }
