@@ -1,19 +1,25 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 
 using TwitchBot.Extensions;
+using TwitchBot.Libraries;
 using TwitchBot.Models;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Repositories
 {
     public class BankRepository
     {
-        private string _connStr;
+        private readonly string _connStr;
+        private readonly string _twitchBotApiLink;
 
-        public BankRepository(string connStr)
+        public BankRepository(string connStr, string twitchBotApiLink)
         {
             _connStr = connStr;
+            _twitchBotApiLink = twitchBotApiLink;
         }
 
         public void CreateAccount(string recipient, int broadcasterId, int deposit)
@@ -72,28 +78,13 @@ namespace TwitchBot.Repositories
             return resultTable;
         }
 
-        public int CheckBalance(string username, int broadcasterId)
+        public async Task<int> CheckBalance(string username, int broadcasterId)
         {
-            using (SqlConnection conn = new SqlConnection(_connStr))
+            var response = await ApiRequest.GetBotExecuteTaskAsync<List<TwitchBotDb.Models.Bank>>(_twitchBotApiLink + $"banks/get/{broadcasterId}?username={username}");
+
+            if (response != null && response.Count > 0)
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Bank WHERE Broadcaster = @broadcaster", conn))
-                {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            while (reader.Read())
-                            {
-                                if (username.Equals(reader["Username"].ToString()))
-                                {
-                                    return int.Parse(reader["Wallet"].ToString());
-                                }
-                            }
-                        }
-                    }
-                }
+                return response.Find(m => m.Username == username).Wallet;
             }
 
             return -1;

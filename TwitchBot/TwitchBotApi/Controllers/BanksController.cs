@@ -36,10 +36,12 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            List<Bank> bank = await _context.Bank.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+            List<Bank> bank = new List<Bank>();
 
             if (!string.IsNullOrEmpty(username))
-                bank = bank.Where(m => m.Username == username).ToList();
+                bank = await _context.Bank.Where(m => m.Broadcaster == broadcasterId && m.Username == username).ToListAsync();
+            else
+                bank = await _context.Bank.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
 
             if (bank == null || bank.Count == 0)
             {

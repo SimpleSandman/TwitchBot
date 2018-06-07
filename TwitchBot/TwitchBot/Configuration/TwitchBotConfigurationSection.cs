@@ -18,6 +18,9 @@ namespace TwitchBot.Configuration
         private static readonly ConfigurationProperty _broadcaster =
             new ConfigurationProperty("broadcaster", typeof(string), "", ConfigurationPropertyOptions.None);
 
+        private static readonly ConfigurationProperty _twitchBotApiLink =
+            new ConfigurationProperty("twitchBotApiLink", typeof(string), "", ConfigurationPropertyOptions.None);
+
         private static readonly ConfigurationProperty _twitchOAuth =
             new ConfigurationProperty("twitchOAuth", typeof(string), "", ConfigurationPropertyOptions.None);
 
@@ -74,28 +77,30 @@ namespace TwitchBot.Configuration
 
         public TwitchBotConfigurationSection()
         {
-            _properties = new ConfigurationPropertyCollection();
-
-            _properties.Add(_botName);
-            _properties.Add(_broadcaster);
-            _properties.Add(_twitchOAuth);
-            _properties.Add(_twitchClientId);
-            _properties.Add(_twitchAccessToken);
-            _properties.Add(_twitterConsumerKey);
-            _properties.Add(_twitterConsumerSecret);
-            _properties.Add(_twitterAccessToken);
-            _properties.Add(_twitterAccessSecret);
-            _properties.Add(_discordLink);
-            _properties.Add(_currencyType);
-            _properties.Add(_enableTweet);
-            _properties.Add(_enableDisplaySong);
-            _properties.Add(_streamLatency);
-            _properties.Add(_youTubeClientId);
-            _properties.Add(_youTubeClientSecret);
-            _properties.Add(_youTubeBroadcasterPlaylistId);
-            _properties.Add(_youTubeBroadcasterPlaylistName);
-            _properties.Add(_manualSongRequestLink);
-            _properties.Add(_regularFollowerHours);
+            _properties = new ConfigurationPropertyCollection
+            {
+                _botName,
+                _broadcaster,
+                _twitchBotApiLink,
+                _twitchOAuth,
+                _twitchClientId,
+                _twitchAccessToken,
+                _twitterConsumerKey,
+                _twitterConsumerSecret,
+                _twitterAccessToken,
+                _twitterAccessSecret,
+                _discordLink,
+                _currencyType,
+                _enableTweet,
+                _enableDisplaySong,
+                _streamLatency,
+                _youTubeClientId,
+                _youTubeClientSecret,
+                _youTubeBroadcasterPlaylistId,
+                _youTubeBroadcasterPlaylistName,
+                _manualSongRequestLink,
+                _regularFollowerHours
+            };
         }
 
         protected override ConfigurationPropertyCollection Properties
@@ -147,6 +152,16 @@ namespace TwitchBot.Configuration
             {
                 ThrowIfReadOnly("Broadcaster");
                 this["broadcaster"] = value;
+            }
+        }
+
+        public string TwitchBotApiLink
+        {
+            get { return (string)this["twitchBotApiLink"]; }
+            set
+            {
+                ThrowIfReadOnly("TwitchBotApiLink");
+                this["twitchBotApiLink"] = value;
             }
         }
 

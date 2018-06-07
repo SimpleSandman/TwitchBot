@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-
+using System.Threading.Tasks;
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
@@ -75,7 +75,7 @@ namespace TwitchBot.Threads
             _heistSettings.Robbers.Add(robber);
         }
 
-        public void Consume()
+        public async void Consume()
         {
             BankHeistLevel heistLevel = _heistSettings.Levels[HeistLevel() - 1];
             BankHeistPayout payout = _heistSettings.Payouts[HeistLevel() - 1];
@@ -109,7 +109,7 @@ namespace TwitchBot.Threads
 
             foreach (BankRobber winner in winners)
             {
-                int funds = _bank.CheckBalance(winner.Username.ToLower(), _broadcasterId);
+                int funds = await _bank.CheckBalance(winner.Username.ToLower(), _broadcasterId);
                 decimal earnings = Math.Ceiling(winner.Gamble * payout.WinMultiplier);
 
                 _bank.UpdateFunds(winner.Username.ToLower(), _broadcasterId, (int)earnings + funds);

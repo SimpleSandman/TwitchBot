@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
@@ -19,7 +20,6 @@ using TwitchBot.Models;
 using TwitchBot.Services;
 using TwitchBot.Threads;
 using TwitchBot.Models.JSON;
-using System.Configuration;
 
 namespace TwitchBot
 {
@@ -41,7 +41,6 @@ namespace TwitchBot
         private List<string> _greetedUsers;
         private Queue<string> _gameQueueUsers;
         private List<CooldownUser> _cooldownUsers;
-        private List<RouletteUser> _rouletteUsers;
         private LocalSpotifyClient _spotify;
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
@@ -77,7 +76,6 @@ namespace TwitchBot
             _hasYouTubeAuth = false;
             _timeout = new TimeoutCmd();
             _cooldownUsers = new List<CooldownUser>();
-            _rouletteUsers = new List<RouletteUser>();
             _multiStreamUsers = new List<string>();
             _greetedUsers = new List<string>();
             _gameQueueUsers = new Queue<string>();
@@ -331,7 +329,7 @@ namespace TwitchBot
                             modifiedMessage.Remove(0, indexParseSign + 2); // remove unnecessary info before and including the parse symbol
                             message = modifiedMessage.ToString();
 
-                            GreetNewUser(username, message);
+                            await GreetNewUser(username, message);
 
                             /* 
                              * Broadcaster commands 
@@ -480,7 +478,7 @@ namespace TwitchBot
                                     /* Takes money away from a user */
                                     // Usage: !charge [-amount] @[username]
                                     if (message.StartsWith("!charge ") && message.Contains("@"))
-                                        _cmdMod.CmdCharge(message, username);
+                                        await _cmdMod.CmdCharge(message, username);
 
                                     /* Gives money to user */
                                     // Usage: !deposit [amount] @[username]
@@ -689,13 +687,13 @@ namespace TwitchBot
 
                                 /* Check user's account balance */
                                 else if (message.Equals($"!{_botConfig.CurrencyType.ToLower()}"))
-                                    _cmdGen.CmdCheckFunds(username);
+                                    await _cmdGen.CmdCheckFunds(username);
 
                                 /* Gamble money away */
                                 // Usage: !gamble [money]
                                 else if (message.StartsWith("!gamble ") && !IsUserOnCooldown(username, "!gamble"))
                                 {
-                                    DateTime cooldown = _cmdGen.CmdGamble(message, username);
+                                    DateTime cooldown = await _cmdGen.CmdGamble(message, username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
@@ -775,7 +773,7 @@ namespace TwitchBot
                                 // Note: Chat moderators cannot be timed out by the bot (reason for being excluded)
                                 else if (message.Equals("!roulette") && !IsUserOnCooldown(username, "!roulette"))
                                 {
-                                    DateTime cooldown = _cmdGen.CmdRussianRoulette(username, ref _rouletteUsers);
+                                    DateTime cooldown = await _cmdGen.CmdRussianRoulette(username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
@@ -799,7 +797,7 @@ namespace TwitchBot
                                 /* Join the heist and gamble your currency for a higher payout */
                                 // Usage: !bankheist [currency]
                                 else if (message.StartsWith("!bankheist "))
-                                    _cmdGen.CmdBankHeist(message, username);
+                                    await _cmdGen.CmdBankHeist(message, username);
 
                                 /* Show the subscribe link (if broadcaster is either Affiliate/Partnered) */
                                 else if (message.Equals("!sub"))
@@ -811,7 +809,7 @@ namespace TwitchBot
 
                                 /* Join the boss fight with a pre-defined amount of currency set by broadcaster */
                                 else if (message.Equals("!raid"))
-                                    _cmdGen.CmdBossFight(message, username);
+                                    await _cmdGen.CmdBossFight(message, username);
 
                                 /* Tell the broadcaster a user is lurking */
                                 else if (message.Equals("!lurk") && !IsUserOnCooldown(username, "!lurk"))
@@ -852,7 +850,7 @@ namespace TwitchBot
                                 /* Give funds to another chatter */
                                 // Usage: !give [amount] @[username]
                                 else if (message.StartsWith("!give"))
-                                    _cmdGen.CmdGiveFunds(message, username);
+                                    await _cmdGen.CmdGiveFunds(message, username);
 
                                 /* add more general commands here */
                             }
@@ -1070,14 +1068,14 @@ namespace TwitchBot
         /// </summary>
         /// <param name="username"></param>
         /// <param name="message"></param>
-        private void GreetNewUser(string username, string message)
+        private async Task GreetNewUser(string username, string message)
         {
             try
             {
                 if (!_greetedUsers.Any(u => u == username) && !username.Equals(_botConfig.Broadcaster.ToLower()) && message.Length > 1)
                 {
                     // check if user has a stream currency account
-                    int funds = _bank.CheckBalance(username, _broadcasterInstance.DatabaseId);
+                    int funds = await _bank.CheckBalance(username, _broadcasterInstance.DatabaseId);
                     int greetedDeposit = 500; // ToDo: Make greeted deposit config setting
 
                     if (funds > -1)

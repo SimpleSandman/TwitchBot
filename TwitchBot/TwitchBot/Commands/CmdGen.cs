@@ -480,11 +480,11 @@ namespace TwitchBot.Commands
         /// Check user's account balance
         /// </summary>
         /// <param name="username">User that sent the message</param>
-        public void CmdCheckFunds(string username)
+        public async Task CmdCheckFunds(string username)
         {
             try
             {
-                int balance = _bank.CheckBalance(username, _broadcasterId);
+                int balance = await _bank.CheckBalance(username, _broadcasterId);
 
                 if (balance == -1)
                     _irc.SendPublicChatMessage("You are not currently banking with us at the moment. Please talk to a moderator about acquiring " + _botConfig.CurrencyType);
@@ -502,13 +502,13 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public DateTime CmdGamble(string message, string username)
+        public async Task<DateTime> CmdGamble(string message, string username)
         {
             try
             {
                 int gambledMoney = 0; // Money put into the gambling system
                 bool isValidMsg = int.TryParse(message.Substring(message.IndexOf(" ") + 1), out gambledMoney);
-                int walletBalance = _bank.CheckBalance(username, _broadcasterId);
+                int walletBalance = await _bank.CheckBalance(username, _broadcasterId);
 
                 if (!isValidMsg || gambledMoney < 1)
                     _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{username}");
@@ -717,7 +717,7 @@ namespace TwitchBot.Commands
                     return DateTime.Now;
                 }
 
-                int funds = _bank.CheckBalance(username, _broadcasterId);
+                int funds = await _bank.CheckBalance(username, _broadcasterId);
                 int cost = 250; // ToDo: Set YTSR currency cost into settings
 
                 if (funds < cost)
@@ -1069,12 +1069,11 @@ namespace TwitchBot.Commands
         /// Play a friendly game of Russian Roulette and risk chat privileges for stream currency
         /// </summary>
         /// <param name="username">User that sent the message</param>
-        /// <param name="rouletteUsers">List of roulette users that have attempted and survived</param>
-        public DateTime CmdRussianRoulette(string username, ref List<RouletteUser> rouletteUsers)
+        public async Task<DateTime> CmdRussianRoulette(string username)
         {
             try
             {
-                RouletteUser rouletteUser = rouletteUsers.FirstOrDefault(u => u.Username.Equals(username));
+                RouletteUser rouletteUser = Program.RouletteUsers.FirstOrDefault(u => u.Username.Equals(username));
 
                 Random rnd = new Random(DateTime.Now.Millisecond);
                 int bullet = rnd.Next(6); // between 0 and 5
@@ -1082,7 +1081,7 @@ namespace TwitchBot.Commands
                 if (bullet == 0) // user was shot
                 {
                     if (rouletteUser != null)
-                        rouletteUsers.Remove(rouletteUser);
+                        Program.RouletteUsers.Remove(rouletteUser);
 
                     if (_modInstance.ListMods.Contains(username) || _botConfig.Broadcaster.ToLower().Equals(username))
                     {
@@ -1098,7 +1097,7 @@ namespace TwitchBot.Commands
                 if (rouletteUser == null) // new roulette user
                 {
                     rouletteUser = new RouletteUser() { Username = username, ShotsTaken = 1 };
-                    rouletteUsers.Add(rouletteUser);
+                    Program.RouletteUsers.Add(rouletteUser);
 
                     _irc.SendPublicChatMessage($"@{username} -> 1/6 attempts");
                 }
@@ -1106,7 +1105,7 @@ namespace TwitchBot.Commands
                 {
                     if (rouletteUser.ShotsTaken < 6)
                     {
-                        foreach (var user in rouletteUsers)
+                        foreach (RouletteUser user in Program.RouletteUsers)
                         {
                             if (user.Username.Equals(username))
                             {
@@ -1120,7 +1119,7 @@ namespace TwitchBot.Commands
 
                     if (rouletteUser.ShotsTaken == 6)
                     {
-                        int funds = _bank.CheckBalance(username, _broadcasterId);
+                        int funds = await _bank.CheckBalance(username, _broadcasterId);
                         int reward = 3000; // ToDo: Make roulette reward deposit config setting
 
                         if (funds > -1)
@@ -1131,7 +1130,7 @@ namespace TwitchBot.Commands
                         else
                             _bank.CreateAccount(username, _broadcasterId, reward);
 
-                        rouletteUsers.RemoveAll(u => u.Username.Equals(username));
+                        Program.RouletteUsers.RemoveAll(u => u.Username.Equals(username));
 
                         responseMessage = $"Congrats on surviving russian roulette. Here's {reward} {_botConfig.CurrencyType}!";
 
@@ -1224,12 +1223,12 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdBankHeist(string message, string username)
+        public async Task CmdBankHeist(string message, string username)
         {
             try
             {
                 BankHeist bankHeist = new BankHeist();
-                int funds = _bank.CheckBalance(username, _broadcasterId);
+                int funds = await _bank.CheckBalance(username, _broadcasterId);
                 bool isValid = int.TryParse(message.Substring(message.IndexOf(" ")), out int gamble);
 
                 if (_heistSettingsInstance.IsHeistOnCooldown())
@@ -1378,12 +1377,12 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdBossFight(string message, string username)
+        public async Task CmdBossFight(string message, string username)
         {
             try
             {
                 BossFight bossFight = new BossFight();
-                int funds = _bank.CheckBalance(username, _broadcasterId);
+                int funds = await _bank.CheckBalance(username, _broadcasterId);
 
                 if (_bossSettingsInstance.IsBossFightOnCooldown())
                 {
@@ -1531,7 +1530,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdGiveFunds(string message, string username)
+        public async Task CmdGiveFunds(string message, string username)
         {
             try
             {
@@ -1541,7 +1540,7 @@ namespace TwitchBot.Commands
                     return;
                 }
 
-                int balance = _bank.CheckBalance(username, _broadcasterId);
+                int balance = await _bank.CheckBalance(username, _broadcasterId);
                 bool validGiftAmount = int.TryParse(message.Substring(message.IndexOf(" ") + 1, message.GetNthCharIndex(' ', 2) - message.IndexOf(" ") - 1), out int giftAmount);
                 string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
 
@@ -1556,7 +1555,7 @@ namespace TwitchBot.Commands
                 else
                 {
                     // make sure the user exists in the database to prevent fake accounts from being created
-                    int recipientBalance = _bank.CheckBalance(recipient, _broadcasterId);
+                    int recipientBalance = await _bank.CheckBalance(recipient, _broadcasterId);
 
                     if (recipientBalance == -1)
                         _irc.SendPublicChatMessage($"The user \"{recipient}\" is currently not banking with us. Please talk to a moderator about creating their account @{username}");

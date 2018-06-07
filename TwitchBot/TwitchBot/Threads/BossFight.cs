@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-
+using System.Threading.Tasks;
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
@@ -75,7 +75,7 @@ namespace TwitchBot.Threads
             _bossSettings.Fighters.Add(fighter);
         }
 
-        public void Consume()
+        public async void Consume()
         {
             Boss boss = _bossSettings.Bosses[BossLevel() - 1];
 
@@ -152,7 +152,7 @@ namespace TwitchBot.Threads
             int numSurvivors = survivors.Count();
             foreach (BossFighter champion in survivors)
             {
-                int funds = _bank.CheckBalance(champion.Username.ToLower(), _broadcasterId);
+                int funds = await _bank.CheckBalance(champion.Username.ToLower(), _broadcasterId);
 
                 decimal earnings = Math.Ceiling(boss.Loot / (decimal)numSurvivors);
 

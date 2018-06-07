@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 
 using TwitchBot.Models;
 using TwitchBot.Repositories;
@@ -51,9 +52,9 @@ namespace TwitchBot.Services
             return updatedBalanceList;
         }
 
-        public int CheckBalance(string username, int broadcasterId)
+        public async Task<int> CheckBalance(string username, int broadcasterId)
         {
-            return _bank.CheckBalance(username, broadcasterId);
+            return await _bank.CheckBalance(username, broadcasterId);
         }
 
         public List<BalanceResult> GetCurrencyLeaderboard(string broadcasterName, int broadcasterId, string botName)

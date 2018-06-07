@@ -76,7 +76,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdCharge(string message, string username)
+        public async Task CmdCharge(string message, string username)
         {
             try
             {
@@ -88,7 +88,7 @@ namespace TwitchBot.Commands
                     int fee = -1;
                     bool isValidFee = int.TryParse(message.Substring(indexAction, message.IndexOf("@") - indexAction - 1), out fee);
                     string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                    int wallet = _bank.CheckBalance(recipient, _broadcasterId);
+                    int wallet = await _bank.CheckBalance(recipient, _broadcasterId);
 
                     // Check user's bank account exist or has currency
                     if (wallet == -1)

@@ -10,7 +10,8 @@ namespace TwitchBot.Modules
     public class TwitchBotModule : Module
     {
         public System.Configuration.Configuration AppConfig { get; set; }
-        public Autofac.Core.Parameter ParamConnStr { get; set; }
+        public Autofac.Core.Parameter ConnectionString { get; set; }
+        public Autofac.Core.Parameter TwitchBotApiLink { get; set; }
         public TwitchBotConfigurationSection TwitchBotConfigurationSection { get; set; }
 
         protected override void Load(ContainerBuilder builder)
@@ -23,14 +24,30 @@ namespace TwitchBot.Modules
             builder.RegisterType<TwitchBotApplication>();
 
             // repositories
-            builder.RegisterType<BankRepository>().WithParameter(ParamConnStr);
-            builder.RegisterType<FollowerRepository>().WithParameter(ParamConnStr);
-            builder.RegisterType<SongRequestBlacklistRepository>().WithParameter(ParamConnStr);
-            builder.RegisterType<ManualSongRequestRepository>().WithParameter(ParamConnStr);
-            builder.RegisterType<PartyUpRepository>().WithParameter(ParamConnStr);
-            builder.RegisterType<GameDirectoryRepository>().WithParameter(ParamConnStr);
-            builder.RegisterType<QuoteRepository>().WithParameter(ParamConnStr);
-            builder.RegisterType<GiveawayRepository>().WithParameter(ParamConnStr);
+            builder.RegisterType<BankRepository>()
+                .WithParameter(ConnectionString)
+                .WithParameter(TwitchBotApiLink);
+            builder.RegisterType<FollowerRepository>()
+                .WithParameter(ConnectionString)
+                .WithParameter(TwitchBotApiLink);
+            builder.RegisterType<SongRequestBlacklistRepository>()
+                .WithParameter(ConnectionString)
+                .WithParameter(TwitchBotApiLink);
+            builder.RegisterType<ManualSongRequestRepository>()
+                .WithParameter(ConnectionString)
+                .WithParameter(TwitchBotApiLink);
+            builder.RegisterType<PartyUpRepository>()
+                .WithParameter(ConnectionString)
+                .WithParameter(TwitchBotApiLink);
+            builder.RegisterType<GameDirectoryRepository>()
+                .WithParameter(ConnectionString)
+                .WithParameter(TwitchBotApiLink);
+            builder.RegisterType<QuoteRepository>()
+                .WithParameter(ConnectionString)
+                .WithParameter(TwitchBotApiLink);
+            builder.RegisterType<GiveawayRepository>()
+                .WithParameter(ConnectionString)
+                .WithParameter(TwitchBotApiLink);
 
             // services
             builder.RegisterType<BankService>();
@@ -44,10 +61,16 @@ namespace TwitchBot.Modules
             builder.RegisterType<TwitchInfoService>();
 
             // threads
-            builder.RegisterType<FollowerSubscriberListener>().WithParameter(ParamConnStr);
+            builder.RegisterType<FollowerSubscriberListener>()
+                .WithParameter(ConnectionString)
+                .WithParameter(TwitchBotApiLink);
             builder.RegisterType<TwitchChatterListener>();
-            builder.RegisterType<BankHeist>().WithParameter(ParamConnStr);
-            builder.RegisterType<BossFight>().WithParameter(ParamConnStr);
+            builder.RegisterType<BankHeist>()
+                .WithParameter(ConnectionString)
+                .WithParameter(TwitchBotApiLink);
+            builder.RegisterType<BossFight>()
+                .WithParameter(ConnectionString)
+                .WithParameter(TwitchBotApiLink);
         }
     }
 }

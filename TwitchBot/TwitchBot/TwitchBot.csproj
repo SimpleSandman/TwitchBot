@@ -200,6 +200,7 @@
     <Compile Include="Extensions\IntExtensions.cs" />
     <Compile Include="Extensions\ListStringExtensions.cs" />
     <Compile Include="Extensions\TimeSpanExtensions.cs" />
+    <Compile Include="Libraries\ApiRequest.cs" />
     <Compile Include="Libraries\TwitchChatterList.cs" />
     <Compile Include="Models\JSON\SubscriptionJSON.cs" />
     <Compile Include="Models\TwitchChatter.cs" />
@@ -300,7 +301,12 @@
     <Content Include="SqlScripts\Tables\InsertDefaults.sql" />
     <Content Include="SqlScripts\UserTableTypes\dbo.Usernames.sql" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\TwitchBotDb\TwitchBotDb.csproj">
+      <Project>{069bc4aa-b2ea-4400-bcde-8a6ac793da33}</Project>
+      <Name>TwitchBotDb</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

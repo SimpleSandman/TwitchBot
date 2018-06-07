@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Configuration;
 using System.Threading;
 using System.Net.Http;
+
 using Autofac;
 
 using TwitchBot.Configuration;
@@ -16,6 +17,7 @@ namespace TwitchBot
     {
         public static string ConnStrType = "TwitchBotConnStrPROD"; // assume prod connection string by default
         public static List<DelayedMessage> DelayedMessages = new List<DelayedMessage>(); // used to handle delayed msgs
+        public static List<RouletteUser> RouletteUsers = new List<RouletteUser>(); // used to handle russian roulette
         public static readonly HttpClient HttpClient = new HttpClient();
 
         static void Main(string[] args)
@@ -68,7 +70,8 @@ namespace TwitchBot
                 builder.RegisterModule(new TwitchBotModule()
                 {
                     AppConfig = appConfig,
-                    ParamConnStr = new NamedParameter("connStr", connectionStringSetting.ConnectionString),
+                    ConnectionString = new NamedParameter("connStr", connectionStringSetting.ConnectionString),
+                    TwitchBotApiLink = new NamedParameter("twitchBotApiLink", twitchBotConfigurationSection.TwitchBotApiLink),
                     TwitchBotConfigurationSection = twitchBotConfigurationSection
                 });
 

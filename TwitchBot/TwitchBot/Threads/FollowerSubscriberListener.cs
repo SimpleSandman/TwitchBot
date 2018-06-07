@@ -250,7 +250,7 @@ namespace TwitchBot.Threads
                 }
 
                 // check if follower has a stream currency account
-                int funds = _bank.CheckBalance(chatter, _broadcasterId);
+                int funds = await _bank.CheckBalance(chatter, _broadcasterId);
 
                 if (funds > -1)
                 {
