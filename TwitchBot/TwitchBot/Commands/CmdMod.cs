@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Net;
@@ -10,10 +11,10 @@ using RestSharp;
 using TwitchBot.Configuration;
 using TwitchBot.Extensions;
 using TwitchBot.Libraries;
-using TwitchBot.Models;
 using TwitchBot.Services;
 using TwitchBot.Models.JSON;
-using System.Configuration;
+
+using TwitchBotDb.DTO;
 
 namespace TwitchBot.Commands
 {

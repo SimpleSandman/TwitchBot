@@ -80,7 +80,7 @@ namespace TwitchBot.Repositories
 
         public async Task<int> CheckBalance(string username, int broadcasterId)
         {
-            var response = await ApiRequest.GetBotExecuteTaskAsync<List<TwitchBotDb.Models.Bank>>(_twitchBotApiLink + $"banks/get/{broadcasterId}?username={username}");
+            var response = await ApiRequest.GetBotExecuteTaskAsync<List<Bank>>(_twitchBotApiLink + $"banks/get/{broadcasterId}?username={username}");
 
             if (response != null && response.Count > 0)
             {
@@ -90,39 +90,16 @@ namespace TwitchBot.Repositories
             return -1;
         }
 
-        public List<BalanceResult> GetCurrencyLeaderboard(string broadcasterName, int broadcasterId, string botName)
+        public async Task<List<Bank>> GetCurrencyLeaderboard(string broadcasterName, int broadcasterId, string botName)
         {
-            List<BalanceResult> balanceResult = new List<BalanceResult>();
+            var response = await ApiRequest.GetBotExecuteTaskAsync<List<Bank>>(_twitchBotApiLink + $"banks/getleaderboard/{broadcasterId}?broadcastername={broadcasterName}&botname={botName}&topnumber=3");
 
-            using (SqlConnection conn = new SqlConnection(_connStr))
+            if (response != null && response.Count > 0)
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT TOP 3 * FROM Bank " 
-                    + "WHERE Broadcaster = @broadcasterId AND Username <> @broadcasterName AND Username <> @botName "
-                    + "ORDER BY Wallet DESC", conn))
-                {
-                    cmd.Parameters.Add("@broadcasterId", SqlDbType.Int).Value = broadcasterId;
-                    cmd.Parameters.Add("@broadcasterName", SqlDbType.VarChar, 30).Value = broadcasterName;
-                    cmd.Parameters.Add("@botName", SqlDbType.VarChar, 30).Value = botName;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            while (reader.Read())
-                            {
-                                balanceResult.Add(new BalanceResult
-                                {
-                                    ActionType = "SELECT",
-                                    Username = reader["Username"].ToString(),
-                                    Wallet = int.Parse(reader["Wallet"].ToString())
-                                });
-                            }
-                        }
-                    }
-                }
+                return response;
             }
 
-            return balanceResult;
+            return new List<Bank>();
         }
     }
 }

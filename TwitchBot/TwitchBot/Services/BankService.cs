@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 
-using TwitchBot.Models;
 using TwitchBot.Repositories;
+
+using TwitchBotDb.DTO;
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Services
 {
@@ -57,9 +59,9 @@ namespace TwitchBot.Services
             return await _bank.CheckBalance(username, broadcasterId);
         }
 
-        public List<BalanceResult> GetCurrencyLeaderboard(string broadcasterName, int broadcasterId, string botName)
+        public async Task<List<Bank>> GetCurrencyLeaderboard(string broadcasterName, int broadcasterId, string botName)
         {
-            return _bank.GetCurrencyLeaderboard(broadcasterName, broadcasterId, botName);
+            return await _bank.GetCurrencyLeaderboard(broadcasterName, broadcasterId, botName);
         }
     }
 }

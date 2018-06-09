@@ -763,7 +763,7 @@ namespace TwitchBot
 
                                 /* Disply the top 3 richest users */
                                 else if (message.Equals($"!{_botConfig.CurrencyType.ToLower()}top3"))
-                                    _cmdGen.CmdLeaderboardCurrency(username);
+                                    await _cmdGen.CmdLeaderboardCurrency(username);
 
                                 /* Display the top 3 highest ranking users */
                                 else if (message.Equals("!ranktop3"))

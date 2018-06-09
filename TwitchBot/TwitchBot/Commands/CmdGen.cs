@@ -9,17 +9,18 @@ using System.Text.RegularExpressions;
 
 using Google.Apis.YouTube.v3.Data;
 
+using Newtonsoft.Json;
+
 using SpotifyAPI.Local.Models;
 
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 using TwitchBot.Threads;
-using TwitchBot.Enums;
-using Newtonsoft.Json;
 
 namespace TwitchBot.Commands
 {
@@ -982,11 +983,11 @@ namespace TwitchBot.Commands
         /// Disply the top 3 richest users (if available)
         /// </summary>
         /// <param name="username">User that sent the message</param>
-        public void CmdLeaderboardCurrency(string username)
+        public async Task CmdLeaderboardCurrency(string username)
         {
             try
             {
-                List<BalanceResult> richestUsers = _bank.GetCurrencyLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
+                List<TwitchBotDb.Models.Bank> richestUsers = await _bank.GetCurrencyLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
 
                 if (richestUsers.Count == 0)
                 {
@@ -995,7 +996,7 @@ namespace TwitchBot.Commands
                 }
 
                 string resultMsg = "";
-                foreach (BalanceResult user in richestUsers)
+                foreach (TwitchBotDb.Models.Bank user in richestUsers)
                 {
                     resultMsg += $"\"{user.Username}\" with {user.Wallet} {_botConfig.CurrencyType}, ";
                 }

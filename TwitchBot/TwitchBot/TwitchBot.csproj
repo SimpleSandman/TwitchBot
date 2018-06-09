@@ -207,7 +207,6 @@
     <Compile Include="Threads\TwitchChatterListener.cs" />
     <Compile Include="Libraries\TwitterClient.cs" />
     <Compile Include="Libraries\YouTubeClient.cs" />
-    <Compile Include="Models\BalanceResult.cs" />
     <Compile Include="Libraries\Broadcaster.cs" />
     <Compile Include="Models\BankHeistSettings.cs" />
     <Compile Include="Models\BankRobber.cs" />

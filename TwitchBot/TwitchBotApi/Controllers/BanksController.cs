@@ -11,6 +11,7 @@ using Snickler.EFCore;
 using TwitchBotApi.DTO;
 using TwitchBotApi.Extensions;
 
+using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
