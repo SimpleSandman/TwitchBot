@@ -483,7 +483,7 @@ namespace TwitchBot
                                     /* Gives money to user */
                                     // Usage: !deposit [amount] @[username]
                                     else if (message.StartsWith("!deposit ") && message.Contains("@"))
-                                        _cmdMod.CmdDeposit(message, username);
+                                        await _cmdMod.CmdDeposit(message, username);
 
                                     /* Removes the first song in the queue of song requests */
                                     else if (message.Equals("!poprbsr"))
@@ -523,7 +523,7 @@ namespace TwitchBot
 
                                     /* Gives every viewer a set amount of currency */
                                     else if (message.StartsWith("!bonusall "))
-                                        _cmdMod.CmdBonusAll(message, username);
+                                        await _cmdMod.CmdBonusAll(message, username);
 
                                     /* Add MultiStream user to link */
                                     // Usage: !addmsl @[username]

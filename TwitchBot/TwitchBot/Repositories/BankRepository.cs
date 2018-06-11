@@ -3,10 +3,9 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 
-using TwitchBot.Extensions;
 using TwitchBot.Libraries;
-using TwitchBot.Models;
 
+using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
 namespace TwitchBot.Repositories
@@ -54,33 +53,17 @@ namespace TwitchBot.Repositories
             }
         }
 
-        public DataTable UpdateCreateBalance(List<string> usernameList, int broadcasterId, int deposit, bool showOutput = false)
+        public async Task<List<BalanceResult>> UpdateCreateBalance(List<string> usernameList, int broadcasterId, int deposit, bool showOutput = false)
         {
-            DataTable usernamesTable = usernameList.ToDataTable();
-            DataTable resultTable = new DataTable();
+            List<BalanceResult> response = 
+                await ApiBotRequest.PutExecuteTaskAsync<List<BalanceResult>>(_twitchBotApiLink + $"banks/updatecreateaccount/{broadcasterId}?deposit={deposit}&showOutput={showOutput}", usernameList);
 
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            using (SqlCommand cmd = new SqlCommand("UpdateCreateBalance", conn))
-            {
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                cmd.Parameters.Add(new SqlParameter("@tvpUsernames", SqlDbType.Structured)).Value = usernamesTable;
-                cmd.Parameters.Add("@intBroadcasterID", SqlDbType.Int).Value = broadcasterId;
-                cmd.Parameters.Add("@intDeposit", SqlDbType.Int).Value = deposit;
-                cmd.Parameters.Add("@bitShowOutput", SqlDbType.Bit).Value = showOutput;
-
-                using (SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd))
-                {
-                    dataAdapter.Fill(resultTable);
-                }
-            }
-
-            return resultTable;
+            return response;
         }
 
         public async Task<int> CheckBalance(string username, int broadcasterId)
         {
-            var response = await ApiRequest.GetBotExecuteTaskAsync<List<Bank>>(_twitchBotApiLink + $"banks/get/{broadcasterId}?username={username}");
+            var response = await ApiBotRequest.GetExecuteTaskAsync<List<Bank>>(_twitchBotApiLink + $"banks/get/{broadcasterId}?username={username}");
 
             if (response != null && response.Count > 0)
             {
@@ -92,7 +75,7 @@ namespace TwitchBot.Repositories
 
         public async Task<List<Bank>> GetCurrencyLeaderboard(string broadcasterName, int broadcasterId, string botName)
         {
-            var response = await ApiRequest.GetBotExecuteTaskAsync<List<Bank>>(_twitchBotApiLink + $"banks/getleaderboard/{broadcasterId}?broadcastername={broadcasterName}&botname={botName}&topnumber=3");
+            var response = await ApiBotRequest.GetExecuteTaskAsync<List<Bank>>(_twitchBotApiLink + $"banks/getleaderboard/{broadcasterId}?broadcastername={broadcasterName}&botname={botName}&topnumber=3");
 
             if (response != null && response.Count > 0)
             {

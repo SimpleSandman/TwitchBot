@@ -133,7 +133,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdDeposit(string message, string username)
+        public async Task CmdDeposit(string message, string username)
         {
             try
             {
@@ -170,7 +170,7 @@ namespace TwitchBot.Commands
                     {
                         if (userList.Count > 0)
                         {
-                            List<BalanceResult> balResultList = _bank.UpdateCreateBalance(userList, _broadcasterId, deposit, true);
+                            List<BalanceResult> balResultList = await _bank.UpdateCreateBalance(userList, _broadcasterId, deposit, true);
 
                             string responseMsg = $"Gave {deposit.ToString()} {_botConfig.CurrencyType} to ";
 
@@ -213,7 +213,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message"></param>
         /// <param name="username"></param>
-        public void CmdBonusAll(string message, string username)
+        public async Task CmdBonusAll(string message, string username)
         {
             try
             {
@@ -247,7 +247,7 @@ namespace TwitchBot.Commands
 
                         if (chatterList != null && chatterList.Count > 0)
                         {
-                            _bank.UpdateCreateBalance(chatterList, _broadcasterId, deposit);
+                            await _bank.UpdateCreateBalance(chatterList, _broadcasterId, deposit);
                             _irc.SendPublicChatMessage($"{deposit.ToString()} {_botConfig.CurrencyType} for everyone! "
                                 + $"Check your stream bank account with !{_botConfig.CurrencyType.ToLower()}");
                         }

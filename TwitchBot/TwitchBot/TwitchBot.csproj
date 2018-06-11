@@ -200,7 +200,8 @@
     <Compile Include="Extensions\IntExtensions.cs" />
     <Compile Include="Extensions\ListStringExtensions.cs" />
     <Compile Include="Extensions\TimeSpanExtensions.cs" />
-    <Compile Include="Libraries\ApiRequest.cs" />
+    <Compile Include="Libraries\ApiBotRequest.cs" />
+    <Compile Include="Libraries\ApiTwitchRequest.cs" />
     <Compile Include="Libraries\TwitchChatterList.cs" />
     <Compile Include="Models\JSON\SubscriptionJSON.cs" />
     <Compile Include="Models\TwitchChatter.cs" />
