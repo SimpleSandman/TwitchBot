@@ -37,28 +37,14 @@ namespace TwitchBot.Repositories
             }
         }
 
-        public void UpdateFunds(string walletOwner, int broadcasterId, int newWalletBalance)
+        public async Task UpdateAccount(string walletOwner, int broadcasterId, int newWalletBalance)
         {
-            string query = "UPDATE Bank SET Wallet = @wallet WHERE (Username = @username AND Broadcaster = @broadcaster)";
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            using (SqlCommand cmd = new SqlCommand(query, conn))
-            {
-                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = newWalletBalance;
-                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = walletOwner;
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
-
-                conn.Open();
-                cmd.ExecuteNonQuery();
-            }
+            await ApiBotRequest.PutExecuteTaskAsync<Bank>(_twitchBotApiLink + $"banks/updateaccount/{broadcasterId}?updatedwallet={newWalletBalance}&username={walletOwner}");
         }
 
         public async Task<List<BalanceResult>> UpdateCreateBalance(List<string> usernameList, int broadcasterId, int deposit, bool showOutput = false)
         {
-            List<BalanceResult> response = 
-                await ApiBotRequest.PutExecuteTaskAsync<List<BalanceResult>>(_twitchBotApiLink + $"banks/updatecreateaccount/{broadcasterId}?deposit={deposit}&showOutput={showOutput}", usernameList);
-
-            return response;
+            return await ApiBotRequest.PutExecuteTaskAsync<List<BalanceResult>>(_twitchBotApiLink + $"banks/updatecreateaccount/{broadcasterId}?deposit={deposit}&showOutput={showOutput}", usernameList);
         }
 
         public async Task<int> CheckBalance(string username, int broadcasterId)

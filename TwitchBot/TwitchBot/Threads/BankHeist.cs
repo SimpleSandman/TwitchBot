@@ -112,7 +112,7 @@ namespace TwitchBot.Threads
                 int funds = await _bank.CheckBalance(winner.Username.ToLower(), _broadcasterId);
                 decimal earnings = Math.Ceiling(winner.Gamble * payout.WinMultiplier);
 
-                _bank.UpdateFunds(winner.Username.ToLower(), _broadcasterId, (int)earnings + funds);
+                await _bank.UpdateFunds(winner.Username.ToLower(), _broadcasterId, (int)earnings + funds);
 
                 _resultMessage += $" {winner.Username} ({(int)earnings} {_botConfig.CurrencyType}),";
             }

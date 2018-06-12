@@ -24,9 +24,9 @@ namespace TwitchBot.Services
             _bank.CreateAccount(recipient, broadcasterId, deposit);
         }
 
-        public void UpdateFunds(string walletOwner, int broadcasterId, int newWalletBalance)
+        public async Task UpdateFunds(string walletOwner, int broadcasterId, int newWalletBalance)
         {
-            _bank.UpdateFunds(walletOwner, broadcasterId, newWalletBalance);
+            await _bank.UpdateAccount(walletOwner, broadcasterId, newWalletBalance);
         }
 
         public async Task<List<BalanceResult>> UpdateCreateBalance(List<string> usernameList, int broadcasterId, int deposit, bool showOutput = false)

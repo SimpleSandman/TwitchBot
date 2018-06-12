@@ -52,9 +52,9 @@ namespace TwitchBotApi.Controllers
             return Ok(bank);
         }
 
-        // PUT: api/banks/updateaccount/2?deposit=5000&username=simple_sandman
+        // PUT: api/banks/updateaccount/2?updatedwallet=5000&username=simple_sandman
         [HttpPut("{broadcasterId:int}")]
-        public async Task<IActionResult> UpdateAccount([FromRoute] int broadcasterId, [FromQuery] int deposit, [FromQuery] string username)
+        public async Task<IActionResult> UpdateAccount([FromRoute] int broadcasterId, [FromQuery] int updatedWallet, [FromQuery] string username)
         {
             if (!ModelState.IsValid)
             {
@@ -67,12 +67,12 @@ namespace TwitchBotApi.Controllers
                 return NotFound();
             }
 
-            bankAccount.Wallet += deposit;
+            bankAccount.Wallet = updatedWallet;
 
             _context.Bank.Update(bankAccount);
             await _context.SaveChangesAsync();
 
-            return new NoContentResult();
+            return NoContent();
         }
 
         // PUT: api/banks/updatecreateaccount/2?deposit=5000&showOutput=true

@@ -1081,7 +1081,7 @@ namespace TwitchBot
                     if (funds > -1)
                     {
                         funds += greetedDeposit; // deposit 500 stream currency
-                        _bank.UpdateFunds(username, _broadcasterInstance.DatabaseId, funds);
+                        await _bank.UpdateFunds(username, _broadcasterInstance.DatabaseId, funds);
                     }
                     else
                         _bank.CreateAccount(username, _broadcasterInstance.DatabaseId, greetedDeposit);

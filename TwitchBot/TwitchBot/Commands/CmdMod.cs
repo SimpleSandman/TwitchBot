@@ -110,7 +110,7 @@ namespace TwitchBot.Commands
                         if (wallet < 0)
                             wallet = 0;
 
-                        _bank.UpdateFunds(recipient, _broadcasterId, wallet);
+                        await _bank.UpdateFunds(recipient, _broadcasterId, wallet);
 
                         // Prompt user's balance
                         if (wallet == 0)

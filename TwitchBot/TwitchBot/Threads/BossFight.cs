@@ -160,7 +160,7 @@ namespace TwitchBot.Threads
                 if (champion.Username.Equals(lastAttackFighter)) 
                     earnings += boss.LastAttackBonus;
 
-                _bank.UpdateFunds(champion.Username.ToLower(), _broadcasterId, (int)earnings + funds);
+                await _bank.UpdateFunds(champion.Username.ToLower(), _broadcasterId, (int)earnings + funds);
 
                 _resultMessage += $" {champion.Username} ({(int)earnings} {_botConfig.CurrencyType}),";
             }

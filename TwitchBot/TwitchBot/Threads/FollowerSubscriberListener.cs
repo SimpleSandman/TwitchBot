@@ -264,7 +264,7 @@ namespace TwitchBot.Threads
                     else
                         funds += 10;
 
-                    _bank.UpdateFunds(chatter, _broadcasterId, funds);
+                    await _bank.UpdateFunds(chatter, _broadcasterId, funds);
                 }
                 else // ToDo: Make currency auto-increment setting
                     _bank.CreateAccount(chatter, _broadcasterId, 10);

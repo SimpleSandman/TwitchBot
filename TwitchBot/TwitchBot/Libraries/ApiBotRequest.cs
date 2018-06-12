@@ -44,20 +44,24 @@ namespace TwitchBot.Libraries
             return default(T);
         }
 
-        public static async Task<T> PutExecuteTaskAsync<T>(string apiUrlCall, List<string> updateListString)
+        public static async Task<T> PutExecuteTaskAsync<T>(string apiUrlCall, List<string> updateListString = null)
         {
             // Send HTTP method PUT to base URI in order to change the game
             RestClient client = new RestClient(apiUrlCall);
             RestRequest request = new RestRequest(Method.PUT);
             request.AddHeader("Cache-Control", "no-cache");
             request.AddHeader("Content-Type", "application/json");
-            request.AddParameter(new Parameter
+
+            if (updateListString?.Count > 0)
             {
-                ContentType = "application/json",
-                Name = "JSONPAYLOAD",
-                Type = ParameterType.RequestBody,
-                Value = JsonConvert.SerializeObject(updateListString)
-            });
+                request.AddParameter(new Parameter
+                {
+                    ContentType = "application/json",
+                    Name = "JSONPAYLOAD",
+                    Type = ParameterType.RequestBody,
+                    Value = JsonConvert.SerializeObject(updateListString)
+                });
+            }
 
             var cancellationToken = new CancellationTokenSource();
             IRestResponse response = null;

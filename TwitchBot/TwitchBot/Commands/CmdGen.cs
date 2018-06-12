@@ -545,7 +545,7 @@ namespace TwitchBot.Commands
                         result += $"won {gambledMoney * 3} {_botConfig.CurrencyType}";
                     }
 
-                    _bank.UpdateFunds(username, _broadcasterId, newBalance);
+                    await _bank.UpdateFunds(username, _broadcasterId, newBalance);
 
                     result += $" and now has {newBalance} {_botConfig.CurrencyType}";
 
@@ -850,7 +850,7 @@ namespace TwitchBot.Commands
                             else
                             {
                                 await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, username);
-                                _bank.UpdateFunds(username, _broadcasterId, funds - cost);
+                                await _bank.UpdateFunds(username, _broadcasterId, funds - cost);
 
                                 _irc.SendPublicChatMessage($"@{username} spent {cost} {_botConfig.CurrencyType} " + 
                                     $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested!");
@@ -1126,7 +1126,7 @@ namespace TwitchBot.Commands
                         if (funds > -1)
                         {
                             funds += reward; // deposit 500 stream currency
-                            _bank.UpdateFunds(username, _broadcasterId, funds);
+                            await _bank.UpdateFunds(username, _broadcasterId, funds);
                         }
                         else
                             _bank.CreateAccount(username, _broadcasterId, reward);
@@ -1297,7 +1297,7 @@ namespace TwitchBot.Commands
                     // join bank heist
                     BankRobber robber = new BankRobber { Username = username, Gamble = gamble };
                     bankHeist.Produce(robber);
-                    _bank.UpdateFunds(username, _broadcasterId, funds - gamble);
+                    await _bank.UpdateFunds(username, _broadcasterId, funds - gamble);
 
                     // display new heist level
                     if (!string.IsNullOrEmpty(bankHeist.NextLevelMessage()))
@@ -1447,7 +1447,7 @@ namespace TwitchBot.Commands
                     FighterClass fighterClass = _bossSettingsInstance.ClassStats.Single(c => c.ChatterType == chatterType);
                     BossFighter fighter = new BossFighter { Username = username, FighterClass = fighterClass };
                     bossFight.Produce(fighter);
-                    _bank.UpdateFunds(username, _broadcasterId, funds - _bossSettingsInstance.Cost);
+                    await _bank.UpdateFunds(username, _broadcasterId, funds - _bossSettingsInstance.Cost);
 
                     // display new boss level
                     if (!string.IsNullOrEmpty(bossFight.NextLevelMessage()))
@@ -1562,8 +1562,8 @@ namespace TwitchBot.Commands
                         _irc.SendPublicChatMessage($"The user \"{recipient}\" is currently not banking with us. Please talk to a moderator about creating their account @{username}");
                     else
                     {
-                        _bank.UpdateFunds(username, _broadcasterId, balance - giftAmount); // take away from sender
-                        _bank.UpdateFunds(recipient, _broadcasterId, giftAmount + recipientBalance); // give to recipient
+                        await _bank.UpdateFunds(username, _broadcasterId, balance - giftAmount); // take away from sender
+                        await _bank.UpdateFunds(recipient, _broadcasterId, giftAmount + recipientBalance); // give to recipient
 
                         _irc.SendPublicChatMessage($"@{username} gave {giftAmount} {_botConfig.CurrencyType} to @{recipient}");
                     }
