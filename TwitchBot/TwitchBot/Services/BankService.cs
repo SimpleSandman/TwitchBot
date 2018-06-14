@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using TwitchBot.Repositories;
@@ -19,9 +17,9 @@ namespace TwitchBot.Services
             _bank = bank;
         }
 
-        public void CreateAccount(string recipient, int broadcasterId, int deposit)
+        public async Task CreateAccount(string recipient, int broadcasterId, int deposit)
         {
-            _bank.CreateAccount(recipient, broadcasterId, deposit);
+            await _bank.CreateAccount(recipient, broadcasterId, deposit);
         }
 
         public async Task UpdateFunds(string walletOwner, int broadcasterId, int newWalletBalance)

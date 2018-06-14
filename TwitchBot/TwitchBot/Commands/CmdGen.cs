@@ -1129,7 +1129,7 @@ namespace TwitchBot.Commands
                             await _bank.UpdateFunds(username, _broadcasterId, funds);
                         }
                         else
-                            _bank.CreateAccount(username, _broadcasterId, reward);
+                            await _bank.CreateAccount(username, _broadcasterId, reward);
 
                         Program.RouletteUsers.RemoveAll(u => u.Username.Equals(username));
 

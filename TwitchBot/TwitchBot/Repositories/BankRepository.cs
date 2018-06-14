@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
 
 using TwitchBot.Libraries;
@@ -21,20 +19,16 @@ namespace TwitchBot.Repositories
             _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public void CreateAccount(string recipient, int broadcasterId, int deposit)
+        public async Task CreateAccount(string username, int broadcasterId, int deposit)
         {
-            string query = "INSERT INTO Bank (Username, Wallet, Broadcaster) VALUES (@username, @wallet, @broadcaster)";
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            using (SqlCommand cmd = new SqlCommand(query, conn))
+            Bank freshAccount = new Bank
             {
-                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = recipient;
-                cmd.Parameters.Add("@wallet", SqlDbType.Int).Value = deposit;
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+                Username = username,
+                Wallet = deposit,
+                Broadcaster = broadcasterId
+            };
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
-            }
+            await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"banks/createaccount", freshAccount);
         }
 
         public async Task UpdateAccount(string walletOwner, int broadcasterId, int newWalletBalance)

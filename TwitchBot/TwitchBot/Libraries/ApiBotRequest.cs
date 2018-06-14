@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -106,6 +104,51 @@ namespace TwitchBot.Libraries
                 Name = "JSONPAYLOAD",
                 Type = ParameterType.RequestBody,
                 Value = JsonConvert.SerializeObject(updateObject)
+            });
+
+            var cancellationToken = new CancellationTokenSource();
+            IRestResponse response = null;
+
+            try
+            {
+                response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
+                string statResponse = response.StatusCode.ToString();
+
+                if (statResponse.Contains("OK"))
+                {
+                    return JsonConvert.DeserializeObject<T>(response.Content);
+                }
+                else
+                {
+                    Console.WriteLine(response.Content);
+                }
+            }
+            catch (WebException ex)
+            {
+                if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.BadRequest)
+                {
+                    Console.WriteLine("Error 400 detected!!");
+                }
+                response = (IRestResponse)ex.Response;
+                Console.WriteLine("Error: " + response);
+            }
+
+            return default(T);
+        }
+
+        public static async Task<T> PostExecuteTaskAsync<T>(string apiUrlCall, T createObject)
+        {
+            // Send HTTP method PUT to base URI in order to change the game
+            RestClient client = new RestClient(apiUrlCall);
+            RestRequest request = new RestRequest(Method.POST);
+            request.AddHeader("Cache-Control", "no-cache");
+            request.AddHeader("Content-Type", "application/json");
+            request.AddParameter(new Parameter
+            {
+                ContentType = "application/json",
+                Name = "JSONPAYLOAD",
+                Type = ParameterType.RequestBody,
+                Value = JsonConvert.SerializeObject(createObject)
             });
 
             var cancellationToken = new CancellationTokenSource();

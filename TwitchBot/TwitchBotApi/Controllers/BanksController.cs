@@ -118,7 +118,7 @@ namespace TwitchBotApi.Controllers
             _context.Bank.Add(bank);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { broadcasterId = bank.Broadcaster }, bank);
+            return NoContent();
         }
 
         // GET: api/banks/getleaderboard/2?broadcastername=simple_sandman&botname=sandpaibot&topnumber=5

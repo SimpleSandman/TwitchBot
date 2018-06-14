@@ -1084,7 +1084,7 @@ namespace TwitchBot
                         await _bank.UpdateFunds(username, _broadcasterInstance.DatabaseId, funds);
                     }
                     else
-                        _bank.CreateAccount(username, _broadcasterInstance.DatabaseId, greetedDeposit);
+                        await _bank.CreateAccount(username, _broadcasterInstance.DatabaseId, greetedDeposit);
 
                     _greetedUsers.Add(username);
 
