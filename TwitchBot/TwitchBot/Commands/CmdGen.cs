@@ -664,13 +664,13 @@ namespace TwitchBot.Commands
 
                 if (chatter != null)
                 {
-                    int currExp = _follower.CurrentExp(username, _broadcasterId);
+                    int currExp = await _follower.CurrentExp(username, _broadcasterId);
 
                     // Grab the follower's associated rank
                     if (currExp > -1)
                     {
-                        IEnumerable<Rank> rankList = _follower.GetRankList(_broadcasterId);
-                        Rank currFollowerRank = _follower.GetCurrentRank(rankList, currExp);
+                        IEnumerable<TwitchBotDb.Models.Rank> rankList = await _follower.GetRankList(_broadcasterId);
+                        TwitchBotDb.Models.Rank currFollowerRank = _follower.GetCurrentRank(rankList, currExp);
                         decimal hoursWatched = _follower.GetHoursWatched(currExp);
 
                         _irc.SendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" "
@@ -678,7 +678,7 @@ namespace TwitchBot.Commands
                     }
                     else
                     {
-                        _follower.EnlistRecruit(username, _broadcasterId);
+                        await _follower.EnlistRecruit(username, _broadcasterId);
 
                         _irc.SendPublicChatMessage($"Welcome to the army @{username}. View your new rank using !rank");
                     }
@@ -1024,11 +1024,11 @@ namespace TwitchBot.Commands
         /// Display the top 3 highest ranking members (if available)
         /// </summary>
         /// <param name="username">User that sent the message</param>
-        public void CmdLeaderboardRank(string username)
+        public async Task CmdLeaderboardRank(string username)
         {
             try
             {
-                IEnumerable<Follower> highestRankedFollowers = _follower.GetFollowersLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
+                IEnumerable<TwitchBotDb.Models.RankFollowers> highestRankedFollowers = await _follower.GetFollowersLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
 
                 if (highestRankedFollowers.Count() == 0)
                 {
@@ -1036,12 +1036,12 @@ namespace TwitchBot.Commands
                     return;
                 }
 
-                IEnumerable<Rank> rankList = _follower.GetRankList(_broadcasterId);
+                IEnumerable<TwitchBotDb.Models.Rank> rankList = await _follower.GetRankList(_broadcasterId);
 
                 string resultMsg = "";
-                foreach (Follower follower in highestRankedFollowers)
+                foreach (TwitchBotDb.Models.RankFollowers follower in highestRankedFollowers)
                 {
-                    Rank currFollowerRank = _follower.GetCurrentRank(rankList, follower.Exp);
+                    TwitchBotDb.Models.Rank currFollowerRank = _follower.GetCurrentRank(rankList, follower.Exp);
                     decimal hoursWatched = _follower.GetHoursWatched(follower.Exp);
 
                     resultMsg += $"\"{currFollowerRank.Name} {follower.Username}\" with {hoursWatched} hour(s), ";

@@ -767,7 +767,7 @@ namespace TwitchBot
 
                                 /* Display the top 3 highest ranking users */
                                 else if (message.Equals("!ranktop3"))
-                                    _cmdGen.CmdLeaderboardRank(username);
+                                    await _cmdGen.CmdLeaderboardRank(username);
 
                                 /* Play russian roulette */
                                 // Note: Chat moderators cannot be timed out by the bot (reason for being excluded)

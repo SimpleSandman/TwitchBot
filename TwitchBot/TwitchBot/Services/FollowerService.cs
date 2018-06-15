@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
-using TwitchBot.Models;
 using TwitchBot.Repositories;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Services
 {
@@ -16,24 +18,24 @@ namespace TwitchBot.Services
             _followerDb = followerDb;
         }
 
-        public int CurrentExp(string chatter, int broadcasterId)
+        public async Task<int> CurrentExp(string chatter, int broadcasterId)
         {
-            return _followerDb.CurrentExp(chatter, broadcasterId);
+            return await _followerDb.CurrentExp(chatter, broadcasterId);
         }
 
-        public void UpdateExp(string chatter, int broadcasterId, int currExp)
+        public async Task UpdateExp(string chatter, int broadcasterId, int exp)
         {
-            _followerDb.UpdateExp(chatter, broadcasterId, currExp);
+            await _followerDb.UpdateExp(chatter, broadcasterId, exp);
         }
 
-        public void EnlistRecruit(string chatter, int broadcasterId)
+        public async Task EnlistRecruit(string chatter, int broadcasterId)
         {
-            _followerDb.EnlistRecruit(chatter, broadcasterId);
+            await _followerDb.EnlistRecruit(chatter, broadcasterId);
         }
 
-        public IEnumerable<Rank> GetRankList(int broadcasterId)
+        public async Task<IEnumerable<Rank>> GetRankList(int broadcasterId)
         {
-            return _followerDb.GetRankList(broadcasterId);
+            return await _followerDb.GetRankList(broadcasterId);
         }
 
         public Rank GetCurrentRank(IEnumerable<Rank> rankList, int currExp)
@@ -64,9 +66,9 @@ namespace TwitchBot.Services
             return Math.Round(Convert.ToDecimal(currExp) / (decimal)60.0, 2);
         }
 
-        public IEnumerable<Follower> GetFollowersLeaderboard(string broadcasterName, int broadcasterId, string botName)
+        public async Task<IEnumerable<RankFollowers>> GetFollowersLeaderboard(string broadcasterName, int broadcasterId, string botName)
         {
-            return _followerDb.GetFollowersLeaderboard(broadcasterName, broadcasterId, botName);
+            return await _followerDb.GetFollowersLeaderboard(broadcasterName, broadcasterId, botName);
         }
     }
 }

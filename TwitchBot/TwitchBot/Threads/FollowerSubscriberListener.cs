@@ -13,6 +13,7 @@ using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Threads
 {
@@ -173,7 +174,7 @@ namespace TwitchBot.Threads
                     return;
                 }
 
-                _rankList = _follower.GetRankList(_broadcasterId);
+                _rankList = await _follower.GetRankList(_broadcasterId);
 
                 // Check for existing or new followers/subscribers
                 for (int i = 0; i < availableChatters.Count(); i++)
@@ -216,15 +217,14 @@ namespace TwitchBot.Threads
                     return;
 
                 // check if follower has experience
-                int currentExp = _follower.CurrentExp(chatter, _broadcasterId);
+                int currentExp = await _follower.CurrentExp(chatter, _broadcasterId);
                 decimal hoursWatched = 0.0m;
 
                 if (currentExp > -1)
                 {
-                    _follower.UpdateExp(chatter, _broadcasterId, currentExp);
+                    await _follower.UpdateExp(chatter, _broadcasterId, ++currentExp);
 
                     // check if user has been promoted
-                    currentExp++;
                     Rank capRank = _rankList.FirstOrDefault(r => r.ExpCap == currentExp);
                     hoursWatched = _follower.GetHoursWatched(currentExp);
 
@@ -246,7 +246,7 @@ namespace TwitchBot.Threads
                 else
                 {
                     // add new user to the ranks
-                    _follower.EnlistRecruit(chatter, _broadcasterId);
+                    await _follower.EnlistRecruit(chatter, _broadcasterId);
                 }
 
                 // check if follower has a stream currency account

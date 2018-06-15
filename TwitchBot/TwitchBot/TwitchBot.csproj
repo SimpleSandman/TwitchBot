@@ -215,7 +215,6 @@
     <Compile Include="Models\BossFightSettings.cs" />
     <Compile Include="Models\CooldownUser.cs" />
     <Compile Include="Models\DelayedMessage.cs" />
-    <Compile Include="Models\Follower.cs" />
     <Compile Include="Models\JSON\ChannelJSON.cs" />
     <Compile Include="Models\JSON\ChatterInfoJSON.cs" />
     <Compile Include="Models\JSON\UserJSON.cs" />
@@ -261,7 +260,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\Quote.cs" />
-    <Compile Include="Models\Rank.cs" />
     <Compile Include="Libraries\LocalSpotifyClient.cs" />
     <Compile Include="Models\JSON\StreamJSON.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
