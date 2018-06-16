@@ -1,48 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+
+using TwitchBot.Libraries;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Repositories
 {
     public class GameDirectoryRepository
     {
-        private string _connStr;
+        private readonly string _connStr;
+        private readonly string _twitchBotApiLink;
 
-        public GameDirectoryRepository(string connStr)
+        public GameDirectoryRepository(string connStr, string twitchBotApiLink)
         {
             _connStr = connStr;
+            _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public int GetGameId(string gameTitle, out bool hasMultiplayer)
+        public async Task<GameList> GetGameId(string gameTitle)
         {
-            int gameId = 0;
-            hasMultiplayer = false;
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM GameList", conn))
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    if (reader.HasRows)
-                    {
-                        while (reader.Read())
-                        {
-                            if (gameTitle.Equals(reader["Name"].ToString()))
-                            {
-                                gameId = int.Parse(reader["Id"].ToString());
-                                hasMultiplayer = bool.Parse(reader["Multiplayer"].ToString());
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return gameId;
+            return await ApiBotRequest.GetExecuteTaskAsync<GameList>(_twitchBotApiLink + $"gamelists/get/{gameTitle}");
         }
     }
 }

@@ -874,11 +874,11 @@ namespace TwitchBot.Commands
                 string gameTitle = json.Game;
 
                 // Grab game id in order to find party member
-                int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
+                TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
 
                 // During refresh, make sure no fighters can join
                 _bossFightSettingsInstance.RefreshBossFight = true;
-                _bossFightSettingsInstance.LoadSettings(_broadcasterId, _connStr, gameId);
+                _bossFightSettingsInstance.LoadSettings(_broadcasterId, _connStr, game?.Id);
                 _bossFightSettingsInstance.RefreshBossFight = false;
 
                 _irc.SendPublicChatMessage($"Boss fight settings refreshed @{_botConfig.Broadcaster}");

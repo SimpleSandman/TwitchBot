@@ -250,9 +250,9 @@ namespace TwitchBot
                 string gameTitle = json.Game;
 
                 // Grab game id in order to find party member
-                int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
+                TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
 
-                _bossFightInstance.LoadSettings(_broadcasterInstance.DatabaseId, _connStr, gameId);
+                _bossFightInstance.LoadSettings(_broadcasterInstance.DatabaseId, _connStr, game?.Id);
 
                 if (_bossFightInstance.CooldownTimePeriodMinutes == 0)
                     _bossFightInstance.CreateSettings(_broadcasterInstance.DatabaseId, _connStr);
@@ -788,11 +788,11 @@ namespace TwitchBot
 
                                 /* Show the users that want to play with the broadcaster */
                                 else if (message.Equals("!listgotnext"))
-                                    _cmdGen.CmdListGotNextGame(username, _gameQueueUsers);
+                                    await _cmdGen.CmdListGotNextGame(username, _gameQueueUsers);
 
                                 /* Request to play with the broadcaster */
                                 else if (message.Equals("!gotnextgame"))
-                                    _cmdGen.CmdGotNextGame(username, ref _gameQueueUsers);
+                                    _gameQueueUsers = await _cmdGen.CmdGotNextGame(username, _gameQueueUsers);
 
                                 /* Join the heist and gamble your currency for a higher payout */
                                 // Usage: !bankheist [currency]

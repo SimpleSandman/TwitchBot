@@ -399,25 +399,25 @@ namespace TwitchBot.Commands
                     ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                     string gameTitle = json.Game;
                     string partyMember = message.Substring(inputIndex);
-                    int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
+                    TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
 
                     // if the game is not found
                     // tell users this game is not accepting party up requests
-                    if (gameId == 0)
+                    if (game == null || game.Id == 0)
                         _irc.SendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
                     else // check if user has already requested a party member
                     {
-                        if (_partyUp.HasPartyMemberBeenRequested(username, gameId, _broadcasterId))
+                        if (_partyUp.HasPartyMemberBeenRequested(username, game.Id, _broadcasterId))
                             _irc.SendPublicChatMessage($"You have already requested a party member. " 
                                 + $"Please wait until your request has been completed @{username}");
                         else // search for party member user is requesting
                         {
-                            if (!_partyUp.HasRequestedPartyMember(partyMember, gameId, _broadcasterId))
+                            if (!_partyUp.HasRequestedPartyMember(partyMember, game.Id, _broadcasterId))
                                 _irc.SendPublicChatMessage($"I couldn't find the requested party member \"{partyMember}\" @{username}. "
                                     + "Please check with the broadcaster for possible spelling errors");
                             else // insert party member if they exists from database
                             {
-                                _partyUp.AddPartyMember(username, partyMember, gameId, _broadcasterId);
+                                _partyUp.AddPartyMember(username, partyMember, game.Id, _broadcasterId);
 
                                 _irc.SendPublicChatMessage($"@{username}: {partyMember} has been added to the party queue");
                             }
@@ -441,12 +441,12 @@ namespace TwitchBot.Commands
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = json.Game;
-                int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
+                TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
 
-                if (gameId == 0)
+                if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
                 else
-                    _irc.SendPublicChatMessage(_partyUp.GetRequestList(gameId, _broadcasterId));
+                    _irc.SendPublicChatMessage(_partyUp.GetRequestList(game.Id, _broadcasterId));
             }
             catch (Exception ex)
             {
@@ -464,12 +464,12 @@ namespace TwitchBot.Commands
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = json.Game;
-                int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
+                TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
 
-                if (gameId == 0)
+                if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
                 else
-                    _irc.SendPublicChatMessage(_partyUp.GetPartyList(gameId, _broadcasterId));
+                    _irc.SendPublicChatMessage(_partyUp.GetPartyList(game.Id, _broadcasterId));
             }
             catch (Exception ex)
             {
@@ -1159,11 +1159,11 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
-        public void CmdListGotNextGame(string username, Queue<string> gameQueueUsers)
+        public async Task CmdListGotNextGame(string username, Queue<string> gameQueueUsers)
         {
             try
             {
-                if (!IsMultiplayerGame(username)) return;
+                if (!await IsMultiplayerGame(username)) return;
 
                 if (gameQueueUsers.Count == 0)
                 {
@@ -1193,30 +1193,30 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
-        public void CmdGotNextGame(string username, ref Queue<string> gameQueueUsers)
+        public async Task<Queue<string>> CmdGotNextGame(string username, Queue<string> gameQueueUsers)
         {
             try
             {
-                if (!IsMultiplayerGame(username)) return;
-
                 if (gameQueueUsers.Contains(username))
                 {
                     _irc.SendPublicChatMessage($"Don't worry @{username}. You're on the list to play with " +
                         $"the streamer with your current position at {gameQueueUsers.ToList().IndexOf(username) + 1} " +
                         $"of {gameQueueUsers.Count} user(s)");
                 }
-                else
+                else if (await IsMultiplayerGame(username))
                 {
                     gameQueueUsers.Enqueue(username);
 
                     _irc.SendPublicChatMessage($"Congrats @{username}! You're currently in line with your current position at " +
-                        $"{gameQueueUsers.ToList().IndexOf(username) + 1} of {gameQueueUsers.Count} user(s)");
+                        $"{gameQueueUsers.ToList().IndexOf(username) + 1}");
                 }
             }
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdGen", "CmdGotNextGame(string, Queue<string>)", false, "!gotnextgame");
             }
+
+            return gameQueueUsers;
         }
 
         /// <summary>
@@ -1592,22 +1592,22 @@ namespace TwitchBot.Commands
             return ChatterType.DoesNotExist;
         }
 
-        private bool IsMultiplayerGame(string username)
+        private async Task<bool> IsMultiplayerGame(string username)
         {
             // Get current game name
-            ChannelJSON json = _twitchInfo.GetBroadcasterChannelById().Result;
+            ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
             string gameTitle = json.Game;
 
             // Grab game id in order to find party member
-            int gameId = _gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer);
+            TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
 
-            if (gameId == 0)
+            if (game == null || game.Id == 0)
             {
                 _irc.SendPublicChatMessage($"I cannot find this game in the database. Have my master resolve this issue @{username}");
                 return false;
             }
 
-            if (hasMultiplayer == false)
+            if (game.Multiplayer == false)
             {
                 _irc.SendPublicChatMessage($"This game is set to single-player only. Verify with my master with this game @{username}");
                 return false;

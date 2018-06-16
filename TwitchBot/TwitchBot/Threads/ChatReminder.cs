@@ -53,10 +53,13 @@ namespace TwitchBot.Threads
             {
                 ChannelJSON channelJSON = await TwitchApi.GetBroadcasterChannelById(_twitchClientId);
                 string gameTitle = channelJSON.Game;
-                if (_gameDirectory.GetGameId(gameTitle, out bool hasMultiplayer) == 0)
+
+                TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
+
+                if (game == null || game.Id == 0)
                     _gameId = null;
                 else
-                    _gameId = _gameDirectory.GetGameId(gameTitle, out hasMultiplayer);
+                    _gameId = game.Id;
 
                 // remove pending reminders
                 Program.DelayedMessages.RemoveAll(r => r.ReminderId > 0);

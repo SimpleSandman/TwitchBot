@@ -87,7 +87,7 @@ namespace TwitchBot.Models
         /// <param name="broadcasterId"></param>
         /// <param name="connStr"></param>
         /// <param name="gameId"></param>
-        public void LoadSettings(int broadcasterId, string connStr, int gameId)
+        public void LoadSettings(int broadcasterId, string connStr, int? gameId)
         {
             // refresh arrays and lists
             NextLevelMessages = new string[4];
@@ -203,7 +203,7 @@ namespace TwitchBot.Models
                 {
                     cmd.Parameters.Add("@settingsId", SqlDbType.Int).Value = _settingsId;
 
-                    if (gameId == 0)
+                    if (gameId == null || gameId == 0)
                         cmd.Parameters.Add("@gameId", SqlDbType.Int).Value = DBNull.Value;
                     else
                         cmd.Parameters.Add("@gameId", SqlDbType.Int).Value = gameId;

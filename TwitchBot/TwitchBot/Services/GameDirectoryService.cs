@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using TwitchBot.Repositories;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Services
 {
@@ -16,9 +19,9 @@ namespace TwitchBot.Services
             _gameDirectoryDb = gameDirectoryDb;
         }
 
-        public int GetGameId(string gameTitle, out bool hasMultiplayer)
+        public async Task<GameList> GetGameId(string gameTitle)
         {
-            return _gameDirectoryDb.GetGameId(gameTitle, out hasMultiplayer);
+            return await _gameDirectoryDb.GetGameId(gameTitle);
         }
     }
 }
