@@ -51,7 +51,6 @@ namespace TwitchBot
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
         private QuoteService _quote;
-        private GiveawayService _giveaway;
         private BankHeist _bankHeist;
         private BossFight _bossFight;
         private TwitchChatterListener _twitchChatterListener;
@@ -64,7 +63,7 @@ namespace TwitchBot
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
-            GameDirectoryService gameDirectory, QuoteService quote, GiveawayService giveaway, BankHeist bankHeist, TwitchChatterListener twitchChatterListener,
+            GameDirectoryService gameDirectory, QuoteService quote, BankHeist bankHeist, TwitchChatterListener twitchChatterListener,
             BossFight bossFight)
         {
             _appConfig = appConfig;
@@ -88,7 +87,6 @@ namespace TwitchBot
             _partyUp = partyUp;
             _gameDirectory = gameDirectory;
             _quote = quote;
-            _giveaway = giveaway;
             _bankHeist = bankHeist;
             _twitchChatterListener = twitchChatterListener;
             _bossFight = bossFight;
@@ -178,7 +176,7 @@ namespace TwitchBot
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
-                    _twitchInfo, _giveaway, _gameDirectory);
+                    _twitchInfo, _gameDirectory);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
                     _manualSongRequest, _quote, _partyUp);
 
@@ -414,20 +412,6 @@ namespace TwitchBot
                                 /* List bot moderators */
                                 else if (message.Equals("!listmod"))
                                     _cmdBrdCstr.CmdListMod();
-
-                                /* Add giveaway */
-                                // Usage (Keyword = 1): !addgiveaway [MM-DD-YY] [hh:mm:ss] [AM/PM] [mods] [regulars] [subscribers] [users] [giveawaytype] [keyword] [message]
-                                // Usage (Random Number = 2): !addgiveaway [MM-DD-YY] [hh:mm:ss] [AM/PM] [mods] [regulars] [subscribers] [users] [giveawaytype] [min]-[max] [message]
-                                else if (message.StartsWith("!addgiveaway "))
-                                    _cmdBrdCstr.CmdAddGiveaway(message);
-
-                                /* Edit giveaway details */
-                                // Usage (message): !editgiveawayMSG [giveaway id] [message]
-                                // Usage (date and time): !editgiveawayDTE [giveaway id] [MM-DD-YY] [hh:mm:ss] [AM/PM]
-                                // Usage (eligibility): !editgiveawayELG [giveaway id] [mods] [regulars] [subscribers] [users]
-                                // Usage (type): !editgiveawayTYP [giveaway id] [giveawaytype] ([keyword] OR [min number] [max number])
-                                else if (message.StartsWith("!editgiveaway"))
-                                    _cmdBrdCstr.CmdEditGiveaway(message);
 
                                 /* Add song or artist to song request blacklist */
                                 // Usage (artist): !srbl 1 [artist name]

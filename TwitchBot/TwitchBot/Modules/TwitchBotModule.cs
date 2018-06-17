@@ -45,9 +45,6 @@ namespace TwitchBot.Modules
             builder.RegisterType<QuoteRepository>()
                 .WithParameter(ConnectionString)
                 .WithParameter(TwitchBotApiLink);
-            builder.RegisterType<GiveawayRepository>()
-                .WithParameter(ConnectionString)
-                .WithParameter(TwitchBotApiLink);
 
             // services
             builder.RegisterType<BankService>();
@@ -57,7 +54,6 @@ namespace TwitchBot.Modules
             builder.RegisterType<PartyUpService>();
             builder.RegisterType<GameDirectoryService>();
             builder.RegisterType<QuoteService>();
-            builder.RegisterType<GiveawayService>();
             builder.RegisterType<TwitchInfoService>();
 
             // threads

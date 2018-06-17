@@ -4,7 +4,6 @@ using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
@@ -26,7 +25,6 @@ namespace TwitchBot.Commands
         private int _broadcasterId;
         private SongRequestBlacklistService _songRequest;
         private TwitchInfoService _twitchInfo;
-        private GiveawayService _giveaway;
         private GameDirectoryService _gameDirectory;
         private TwitterClient _twitter = TwitterClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
@@ -34,8 +32,8 @@ namespace TwitchBot.Commands
         private BossFightSettings _bossFightSettingsInstance = BossFightSettings.Instance;
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, 
-            System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo,
-            GiveawayService giveaway, GameDirectoryService gameDirectory)
+            System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo, 
+            GameDirectoryService gameDirectory)
         {
             _irc = irc;
             _botConfig = botConfig;
@@ -44,7 +42,6 @@ namespace TwitchBot.Commands
             _appConfig = appConfig;
             _songRequest = songRequest;
             _twitchInfo = twitchInfo;
-            _giveaway = giveaway;
             _gameDirectory = gameDirectory;
         }
 
@@ -330,283 +327,6 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListMod()", false, "!listmod");
-            }
-        }
-
-        /// <summary>
-        /// Add a giveaway for a user to post in the chat
-        /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        public void CmdAddGiveaway(string message)
-        {
-            int giveawayType = -1;
-            string minRandNum = "-1";
-            string maxRandNum = "0";
-            bool isValidated = true; // used for nested "if" validation
-
-            try
-            {
-                // get due date of giveaway
-                int dueDateMsgIndex = message.GetNthCharIndex(' ', 4);
-                if (dueDateMsgIndex > 0)
-                {
-                    string giveawayDateMsg = message.Substring(13, dueDateMsgIndex - 13); // MM-DD-YY hh:mm:ss [AM/PM]
-                    if (DateTime.TryParse(giveawayDateMsg, out DateTime giveawayDate))
-                    {
-                        // get eligibility parameters for user types (using boolean bits)
-                        int elgMsgIndex = -1; // get the index of the space separating the message and the parameter
-                        for (int i = 5; i < 8; i++)
-                        {
-                            elgMsgIndex = message.GetNthCharIndex(' ', i);
-                            if (elgMsgIndex == -1) break;
-                        }
-
-                        if (elgMsgIndex > 0)
-                        {
-                            string giveawayElgMsg = message.Substring(message.GetNthCharIndex(' ', 4) + 1, 7); // [mods] [regulars] [subscribers] [users]
-                            if (giveawayElgMsg.Replace(" ", "").IsInt()
-                                && giveawayElgMsg.Replace(" ", "").Length == 4
-                                && !Regex.IsMatch(giveawayElgMsg, @"[2-9]"))
-                            {
-                                int[] elgList =
-                                {
-                                    int.Parse(giveawayElgMsg.Substring(0, 1)),
-                                    int.Parse(giveawayElgMsg.Substring(2, 1)),
-                                    int.Parse(giveawayElgMsg.Substring(4, 1)),
-                                    int.Parse(giveawayElgMsg.Substring(6, 1))
-                                };
-
-                                // get giveaway type (1 = Keyword, 2 = Random Number)
-                                if (int.TryParse(message.Substring(message.GetNthCharIndex(' ', 8) + 1, 1), out giveawayType))
-                                {
-                                    // get parameter of new giveaway (1 = [keyword], 2 = [min]-[max])
-                                    int paramMsgIndex = message.GetNthCharIndex(' ', 10); // get the index of the space separating the message and the parameter
-                                    if (paramMsgIndex > 0)
-                                    {
-                                        string giveawayParam = message.Substring(44, paramMsgIndex - 44);
-
-                                        if (giveawayType == 2)
-                                        {
-                                            // check if min-max range can be validated
-                                            if (Regex.IsMatch(giveawayParam, @"^\d{1,4}-\d{1,4}"))
-                                            {
-                                                int dashIndex = giveawayParam.IndexOf('-');
-
-                                                minRandNum = giveawayParam.Substring(0, dashIndex); // min
-                                                maxRandNum = giveawayParam.Substring(dashIndex + 1); // max
-
-                                                if (int.Parse(minRandNum) > int.Parse(maxRandNum))
-                                                {
-                                                    isValidated = false;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                isValidated = false;
-                                            }
-                                        }
-
-                                        if (isValidated)
-                                        {
-                                            // get message of new giveaway
-                                            string giveawayText = message.Substring(paramMsgIndex + 1);
-
-                                            // log new giveaway into db
-                                            _giveaway.AddGiveaway(giveawayDate, giveawayText, _broadcasterId, elgList,
-                                                giveawayType, giveawayParam, minRandNum, maxRandNum);
-
-                                            _irc.SendPublicChatMessage($"Giveaway \"{giveawayText}\" has started!");
-                                        }
-                                        else
-                                        {
-                                            if (int.Parse(minRandNum) > int.Parse(maxRandNum))
-                                                _irc.SendPublicChatMessage($"Giveaway random number parameter values were flipped @{_botConfig.Broadcaster}");
-                                            else
-                                                _irc.SendPublicChatMessage($"Giveaway random number parameter [min-max] was not given correctly @{_botConfig.Broadcaster}");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (giveawayType == 1)
-                                            _irc.SendPublicChatMessage($"Giveaway keyword parameter was not given @{_botConfig.Broadcaster}");
-                                        else if (giveawayType == 2)
-                                            _irc.SendPublicChatMessage($"Giveaway random number parameter was not given @{_botConfig.Broadcaster}");
-                                    }
-                                }
-                                else
-                                {
-                                    if (giveawayType == -1)
-                                        _irc.SendPublicChatMessage($"Giveaway type was not given correctly @{_botConfig.Broadcaster}");
-                                    else if (giveawayType != 1 || giveawayType != 2)
-                                        _irc.SendPublicChatMessage($"Please use giveaway type (1 = Keyword or 2 = Random Number) @{_botConfig.Broadcaster}");
-                                }
-                            }
-                            else
-                            {
-                                _irc.SendPublicChatMessage($"Eligibility parameters were not given correctly @{_botConfig.Broadcaster}");
-                            }
-                        }
-                        else
-                        {
-                            _irc.SendPublicChatMessage($"Couldn't find space between eligibility parameters @{_botConfig.Broadcaster}");
-                        }
-                    }
-                    else
-                    {
-                        _irc.SendPublicChatMessage($"Date and time parameters were not given correctly @{_botConfig.Broadcaster}");
-                    }
-                }
-                else
-                {
-                    _irc.SendPublicChatMessage($"Couldn't find eligibility parameters @{_botConfig.Broadcaster}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddGiveaway(string)", false, "!addgiveaway");
-            }
-        }
-
-        /// <summary>
-        /// Edit giveaway details (date/time, message, giveaway type, or eligibility)
-        /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        public void CmdEditGiveaway(string message)
-        {
-            try
-            {
-                int reqGiveawayId = -1;
-                string reqGiveawayIdMsg = message.Substring(17, message.GetNthCharIndex(' ', 2) - message.GetNthCharIndex(' ', 1) - 1);
-                bool isValidGiveawayId = int.TryParse(reqGiveawayIdMsg, out reqGiveawayId);
-
-                // Validate requested giveaway ID
-                if (!isValidGiveawayId || reqGiveawayId < 0)
-                    _irc.SendPublicChatMessage("Please use a positive whole number to find your giveaway ID");
-                else
-                {
-                    // Check if giveaway ID exists
-                    int giveawayId = _giveaway.GetGiveawayId(reqGiveawayId, _broadcasterId);
-
-                    // Check if giveaway ID was retrieved
-                    if (giveawayId == -1)
-                        _irc.SendPublicChatMessage($"Cannot find the giveaway ID: {reqGiveawayId}");
-                    else
-                    {
-                        bool isEditValid = false;
-                        int inputType = -1;
-                        DateTime giveawayDate = new DateTime();
-                        int[] elgList = { };
-                        int giveawayType = -1;
-                        string giveawayTypeParam1 = "";
-                        string giveawayTypeParam2 = "";
-
-                        string giveawayInput = message.Substring(message.GetNthCharIndex(' ', 2) + 1);
-
-                        /* Check if user wants to edit the date and time, message, giveaway type, or eligibility */
-                        if (message.StartsWith("!editgiveawayDTE"))
-                        {
-                            inputType = 1;
-
-                            // Get new due date of giveaway
-                            if (!DateTime.TryParse(giveawayInput, out giveawayDate))
-                                _irc.SendPublicChatMessage($"Please enter a valid date and time: [MM-DD-YYYY HH:MM:SS AM/PM] @{_botConfig.Broadcaster}");
-                            else
-                                isEditValid = true;
-                        }
-                        else if (message.StartsWith("!editgiveawayMSG"))
-                        {
-                            inputType = 2;
-
-                            // Get new message for giveaway
-                            if (string.IsNullOrWhiteSpace(giveawayInput))
-                                _irc.SendPublicChatMessage($"Please enter a valid message @{_botConfig.Broadcaster}");
-                            else
-                                isEditValid = true;
-                        }
-                        else if (message.StartsWith("!editgiveawayELG"))
-                        {
-                            inputType = 3;
-
-                            // Get new eligibility list for giveaway
-                            string giveawayElg = message.Substring(message.GetNthCharIndex(' ', 2) + 1, 7); // [mods] [regulars] [subscribers] [users]
-                            if (giveawayElg.Replace(" ", "").IsInt()
-                                && giveawayElg.Replace(" ", "").Length == 4
-                                && !Regex.IsMatch(giveawayElg, @"[2-9]"))
-                            {
-                                elgList = new int[] 
-                                {
-                                    int.Parse(giveawayElg.Substring(0, 1)),
-                                    int.Parse(giveawayElg.Substring(2, 1)),
-                                    int.Parse(giveawayElg.Substring(4, 1)),
-                                    int.Parse(giveawayElg.Substring(6, 1))
-                                };
-
-                                isEditValid = true;
-                            }
-                            else
-                                _irc.SendPublicChatMessage($"Please enter a valid message @{_botConfig.Broadcaster}");
-                        }
-                        else if (message.StartsWith("!editgiveawayTYP"))
-                        {
-                            inputType = 4;
-
-                            // Get new giveaway type and param(s)
-                            if (string.IsNullOrWhiteSpace(giveawayInput))
-                                _irc.SendPublicChatMessage($"Please enter a valid message @{_botConfig.Broadcaster}");
-                            else if (!int.TryParse(message.Substring(message.GetNthCharIndex(' ', 2) + 1, 1), out giveawayType) || (giveawayType != 1 && giveawayType != 2))
-                                _irc.SendPublicChatMessage($"Please enter a valid giveaway type (1 = Keyword or 2 = Random Number) @{_botConfig.Broadcaster}");
-                            else
-                            {
-                                int paramIndex1 = message.GetNthCharIndex(' ', 3);
-                                int paramIndex2 = message.GetNthCharIndex(' ', 4);
-
-                                if (giveawayType == 1 && paramIndex1 < 0)
-                                    _irc.SendPublicChatMessage($"Please enter a valid giveaway parameter for a keyword @{_botConfig.Broadcaster}");
-                                else if (giveawayType == 2 && paramIndex2 < 0)
-                                    _irc.SendPublicChatMessage($"Please enter a valid giveaway parameter for a random number range @{_botConfig.Broadcaster}");
-                                else
-                                {
-                                    if (giveawayType == 1)
-                                    {
-                                        giveawayTypeParam1 = message.Substring(paramIndex1 + 1);
-                                        isEditValid = true;
-                                    }
-                                    else if (giveawayType == 2)
-                                    {
-                                        giveawayTypeParam1 = message.Substring(paramIndex1 + 1, paramIndex2 - paramIndex1 - 1);
-                                        giveawayTypeParam2 = message.Substring(paramIndex2 + 1);
-
-                                        bool isValidIntParam1 = !int.TryParse(giveawayTypeParam1, out int testParam1);
-                                        bool isValidIntParam2 = !int.TryParse(giveawayTypeParam2, out int testParam2);
-
-                                        if (isValidIntParam1 && isValidIntParam2)
-                                            _irc.SendPublicChatMessage($"Cannot parse numbers correctly. Please enter whole numbers @{_botConfig.Broadcaster}");
-                                        else if (testParam1 > testParam2)
-                                            _irc.SendPublicChatMessage("Parameter 1 is greater than parameter 2. " 
-                                                + $"Please either flip these values or enter new ones @{_botConfig.Broadcaster}");
-                                        else
-                                            isEditValid = true;
-                                    }
-                                }
-                            }
-                        }
-
-                        // Update info based on input type
-                        if (inputType == -1)
-                            _irc.SendPublicChatMessage($"Please specify an option to edit a giveaway @{_botConfig.Broadcaster}");
-                        else if (isEditValid)
-                        {
-                            _giveaway.UpdateGiveaway(inputType, giveawayDate, giveawayInput, elgList, giveawayType,
-                                giveawayId, _broadcasterId, giveawayTypeParam1, giveawayTypeParam2);
-
-                            _irc.SendPublicChatMessage($"Changes to giveaway ID: {reqGiveawayId} have been made @{_botConfig.Broadcaster}");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEditCountdown(string)", false, "!editgiveaway");
             }
         }
 
