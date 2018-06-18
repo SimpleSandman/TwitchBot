@@ -407,17 +407,17 @@ namespace TwitchBot.Commands
                         _irc.SendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
                     else // check if user has already requested a party member
                     {
-                        if (_partyUp.HasPartyMemberBeenRequested(username, game.Id, _broadcasterId))
+                        if (await _partyUp.IsDuplicateRequest(username, game.Id, _broadcasterId))
                             _irc.SendPublicChatMessage($"You have already requested a party member. " 
                                 + $"Please wait until your request has been completed @{username}");
                         else // search for party member user is requesting
                         {
-                            if (!_partyUp.HasRequestedPartyMember(partyMember, game.Id, _broadcasterId))
+                            if (!await _partyUp.HasPartyMember(partyMember, game.Id, _broadcasterId))
                                 _irc.SendPublicChatMessage($"I couldn't find the requested party member \"{partyMember}\" @{username}. "
                                     + "Please check with the broadcaster for possible spelling errors");
                             else // insert party member if they exists from database
                             {
-                                _partyUp.AddPartyMember(username, partyMember, game.Id, _broadcasterId);
+                                await _partyUp.AddPartyMember(username, partyMember, game.Id, _broadcasterId);
 
                                 _irc.SendPublicChatMessage($"@{username}: {partyMember} has been added to the party queue");
                             }
@@ -446,7 +446,7 @@ namespace TwitchBot.Commands
                 if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
                 else
-                    _irc.SendPublicChatMessage(_partyUp.GetRequestList(game.Id, _broadcasterId));
+                    _irc.SendPublicChatMessage(await _partyUp.GetRequestList(game.Id, _broadcasterId));
             }
             catch (Exception ex)
             {
@@ -469,7 +469,7 @@ namespace TwitchBot.Commands
                 if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
                 else
-                    _irc.SendPublicChatMessage(_partyUp.GetPartyList(game.Id, _broadcasterId));
+                    _irc.SendPublicChatMessage(await _partyUp.GetPartyList(game.Id, _broadcasterId));
             }
             catch (Exception ex)
             {

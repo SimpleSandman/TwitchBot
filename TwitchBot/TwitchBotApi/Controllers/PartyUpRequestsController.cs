@@ -22,15 +22,24 @@ namespace TwitchBotApi.Controllers
         }
 
         // GET: api/partyuprequests/get/2
+        // GET: api/partyuprequests/get/2?gameId=1
+        // GET: api/partyuprequests/get/2?gameId=1&username=simple_sandman
         [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int broadcasterId)
+        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] int gameId = 0, [FromQuery] string username = "")
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var partyUpRequests = await _context.PartyUpRequests.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+            var partyUpRequests = new object();
+
+            if (gameId > 0 && !string.IsNullOrEmpty(username))
+                partyUpRequests = await _context.PartyUpRequests.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId && m.Game == gameId && m.Username == username);
+            else if (gameId > 0)
+                partyUpRequests = await _context.PartyUpRequests.Where(m => m.Broadcaster == broadcasterId && m.Game == gameId).ToListAsync();
+            else
+                partyUpRequests = await _context.PartyUpRequests.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
 
             if (partyUpRequests == null)
             {
@@ -41,6 +50,7 @@ namespace TwitchBotApi.Controllers
         }
 
         // POST: api/partyuprequests/create/2
+        // Body (JSON): { "username": "hello_world", "partyMember": "Sinon", "broadcaster": 2, "game": 2 }
         [HttpPost("{broadcasterId:int}")]
         public async Task<IActionResult> Create([FromBody] PartyUpRequests partyUpRequest)
         {

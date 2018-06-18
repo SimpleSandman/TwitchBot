@@ -31,6 +31,7 @@ namespace TwitchBot.Commands
         private ManualSongRequestService _manualSongRequest;
         private QuoteService _quote;
         private PartyUpService _partyUp;
+        private GameDirectoryService _gameDirectory;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Moderator _modInstance = Moderator.Instance;
         private TwitterClient _twitter = TwitterClient.Instance;
@@ -39,7 +40,7 @@ namespace TwitchBot.Commands
 
         public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, 
             System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo, ManualSongRequestService manualSongRequest,
-            QuoteService quote, PartyUpService partyUp)
+            QuoteService quote, PartyUpService partyUp, GameDirectoryService gameDirectory)
         {
             _irc = irc;
             _timeout = timeout;
@@ -52,6 +53,7 @@ namespace TwitchBot.Commands
             _manualSongRequest = manualSongRequest;
             _quote = quote;
             _partyUp = partyUp;
+            _gameDirectory = gameDirectory;
         }
 
         /// <summary>
@@ -291,20 +293,16 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Removes first party memeber in queue of party up requests
         /// </summary>
-        public void CmdPopPartyUpRequest()
+        public async Task CmdPopPartyUpRequest()
         {
             try
             {
-                string removedPartyMember = _partyUp.FirstRequestedPartyMember(_broadcasterId);
+                // get current game info
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                string gameTitle = json.Game;
+                TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
 
-                if (!string.IsNullOrWhiteSpace(removedPartyMember))
-                {
-                    _partyUp.PopRequestedPartyMember(_broadcasterId);
-
-                    _irc.SendPublicChatMessage($"The first party member in the queue, \"{removedPartyMember}\", has been removed from the request list");
-                }
-                else
-                    _irc.SendPublicChatMessage("There are no party members that can be removed from the request list");
+                _irc.SendPublicChatMessage(await _partyUp.PopRequestedPartyMember(game.Id, _broadcasterId));
             }
             catch (Exception ex)
             {

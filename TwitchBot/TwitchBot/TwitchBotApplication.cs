@@ -178,7 +178,7 @@ namespace TwitchBot
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
                     _twitchInfo, _gameDirectory);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
-                    _manualSongRequest, _quote, _partyUp);
+                    _manualSongRequest, _quote, _partyUp, _gameDirectory);
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine();
@@ -475,7 +475,7 @@ namespace TwitchBot
 
                                     /* Removes first party memeber in queue of party up requests */
                                     else if (message.Equals("!poppartyuprequest"))
-                                        _cmdMod.CmdPopPartyUpRequest();
+                                        await _cmdMod.CmdPopPartyUpRequest();
 
                                     /* Bot-specific timeout on a user for a set amount of time */
                                     // Usage: !timeout [seconds] @[username]

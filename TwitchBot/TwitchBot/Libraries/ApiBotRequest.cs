@@ -69,7 +69,7 @@ namespace TwitchBot.Libraries
                 response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
                 string statResponse = response.StatusCode.ToString();
 
-                if (statResponse.Contains("OK"))
+                if (statResponse.Contains("OK") || statResponse.Contains("NoContent"))
                 {
                     return JsonConvert.DeserializeObject<T>(response.Content);
                 }
@@ -114,7 +114,7 @@ namespace TwitchBot.Libraries
                 response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
                 string statResponse = response.StatusCode.ToString();
 
-                if (statResponse.Contains("OK"))
+                if (statResponse.Contains("OK") || statResponse.Contains("NoContent"))
                 {
                     return JsonConvert.DeserializeObject<T>(response.Content);
                 }
@@ -159,7 +159,7 @@ namespace TwitchBot.Libraries
                 response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
                 string statResponse = response.StatusCode.ToString();
 
-                if (statResponse.Contains("OK"))
+                if (statResponse.Contains("OK") || statResponse.Contains("NoContent"))
                 {
                     return JsonConvert.DeserializeObject<T>(response.Content);
                 }
@@ -176,6 +176,36 @@ namespace TwitchBot.Libraries
                 }
                 response = (IRestResponse)ex.Response;
                 Console.WriteLine("Error: " + response);
+            }
+
+            return default(T);
+        }
+
+        public static async Task<T> DeleteExecuteTaskAsync<T>(string apiUrlCall)
+        {
+            try
+            {
+                RestClient client = new RestClient(apiUrlCall);
+                RestRequest request = new RestRequest(Method.DELETE);
+                request.AddHeader("Cache-Control", "no-cache");
+                request.AddHeader("Content-Type", "application/json");
+
+                var cancellationToken = new CancellationTokenSource();
+
+                try
+                {
+                    IRestResponse<T> response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
+
+                    return JsonConvert.DeserializeObject<T>(response.Content);
+                }
+                catch (WebException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+            catch (WebException ex)
+            {
+                Console.WriteLine(ex.Message);
             }
 
             return default(T);

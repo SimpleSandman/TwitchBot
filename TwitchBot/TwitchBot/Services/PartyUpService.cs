@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using TwitchBot.Extensions;
 using TwitchBot.Repositories;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Services
 {
@@ -16,39 +20,63 @@ namespace TwitchBot.Services
             _partyUpDb = partyUpDb;
         }
 
-        public bool HasPartyMemberBeenRequested(string username, int gameId, int broadcasterId)
+        public async Task<bool> IsDuplicateRequest(string username, int gameId, int broadcasterId)
         {
-            return _partyUpDb.HasPartyMemberBeenRequested(username, gameId, broadcasterId);
+            return await _partyUpDb.GetExistingRequester(username, gameId, broadcasterId) != null ? true : false;
         }
 
-        public bool HasRequestedPartyMember(string partyMember, int gameId, int broadcasterId)
+        public async Task<bool> HasPartyMember(string partyMember, int gameId, int broadcasterId)
         {
-            return _partyUpDb.HasRequestedPartyMember(partyMember, gameId, broadcasterId);
+            return await _partyUpDb.GetPartyMember(partyMember, gameId, broadcasterId) != null ? true : false;
         }
 
-        public void AddPartyMember(string username, string partyMember, int gameId, int broadcasterId)
+        public async Task AddPartyMember(string username, string partyMember, int gameId, int broadcasterId)
         {
-            _partyUpDb.AddPartyMember(username, partyMember, gameId, broadcasterId);
+            await _partyUpDb.AddRequestedPartyMember(username, partyMember, gameId, broadcasterId);
         }
 
-        public string GetPartyList(int gameId, int broadcasterId)
+        public async Task<string> GetPartyList(int gameId, int broadcasterId)
         {
-            return _partyUpDb.GetPartyList(gameId, broadcasterId);
+            List<string> partyList = await _partyUpDb.GetPartyList(gameId, broadcasterId);
+
+            if (partyList == null || partyList.Count == 0)
+                return "No party members are set for this game";
+
+            string message = "The available party members are: ";
+
+            foreach (string member in partyList)
+            {
+                message += member + " >< ";
+            }
+
+            return message.ReplaceLastOccurrence(" >< ", "");
         }
 
-        public string GetRequestList(int gameId, int broadcasterId)
+        public async Task<string> GetRequestList(int gameId, int broadcasterId)
         {
-            return _partyUpDb.GetRequestList(gameId, broadcasterId);
+            List<PartyUpRequests> partyRequestList = await _partyUpDb.GetRequestList(gameId, broadcasterId);
+
+            if (partyRequestList == null || partyRequestList.Count == 0)
+                return "The party request list is empty. Request a member with !partyup [name]";
+
+            string message = "Here are the requested party members: ";
+
+            foreach (PartyUpRequests member in partyRequestList)
+            {
+                message += member.PartyMember + " <-- " + member.Username + " || ";
+            }
+
+            return message.ReplaceLastOccurrence(" || ", "");
         }
 
-        public string FirstRequestedPartyMember(int broadcasterId)
+        public async Task<string> PopRequestedPartyMember(int gameId, int broadcasterId)
         {
-            return _partyUpDb.FirstRequestedPartyMember(broadcasterId);
-        }
+            PartyUpRequests firstPartyMember = await _partyUpDb.PopRequestedPartyMember(gameId, broadcasterId);
 
-        public void PopRequestedPartyMember(int broadcasterId)
-        {
-            _partyUpDb.PopRequestedPartyMember(broadcasterId);
+            if (firstPartyMember == null)
+                return "There are no party members that can be removed from the request list";
+
+            return $"The requested party member, \"{firstPartyMember.PartyMember}\" from @{firstPartyMember.Username}, has been removed";
         }
     }
 }

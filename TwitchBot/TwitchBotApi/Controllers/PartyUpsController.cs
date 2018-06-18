@@ -21,36 +21,44 @@ namespace TwitchBotApi.Controllers
             _context = context;
         }
 
-        // GET: api/partyups/getparty/2?gameId=1
+        // GET: api/partyups/get/2
+        // GET: api/partyups/get/2?gameid=2
+        // GET: api/partyups/get/2?gameid=2?partymember=Sinon
         [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> GetParty([FromRoute] int broadcasterId, [FromQuery] int gameId = 0)
+        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] int gameId = 0, [FromQuery] string partyMember = "")
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            List<PartyUp> partyMembers = new List<PartyUp>();
+            var partyUp = new object();
 
-            if (gameId == 0)
+            if (gameId > 0 && !string.IsNullOrEmpty(partyMember))
             {
-                partyMembers = await _context.PartyUp
-                    .Where(m => m.Broadcaster == broadcasterId)
+                partyUp = await _context.PartyUp
+                    .SingleOrDefaultAsync(m =>
+                        m.Broadcaster == broadcasterId
+                            && m.Game == gameId
+                            && m.PartyMember.Contains(partyMember, StringComparison.CurrentCultureIgnoreCase));
+            }
+            else if (gameId > 0)
+            {
+                partyUp = await _context.PartyUp.Where(m => m.Broadcaster == broadcasterId && m.Game == gameId)
+                    .Select(m => m.PartyMember)
                     .ToListAsync();
             }
             else
             {
-                partyMembers = await _context.PartyUp
-                    .Where(m => m.Broadcaster == broadcasterId && m.Game == gameId)
-                    .ToListAsync();
+                partyUp = await _context.PartyUp.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
             }
 
-            if (partyMembers == null || partyMembers.Count == 0)
+            if (partyUp == null)
             {
                 return NotFound();
             }
 
-            return Ok(partyMembers);
+            return Ok(partyUp);
         }
     }
 }
