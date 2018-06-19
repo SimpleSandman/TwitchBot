@@ -257,7 +257,6 @@
     <Compile Include="Threads\ChatReminder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Models\Quote.cs" />
     <Compile Include="Libraries\LocalSpotifyClient.cs" />
     <Compile Include="Models\JSON\StreamJSON.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />

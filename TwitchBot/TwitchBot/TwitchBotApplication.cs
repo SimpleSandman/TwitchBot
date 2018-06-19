@@ -495,7 +495,7 @@ namespace TwitchBot
                                     /* Add a broadcaster quote */
                                     // Usage: !addquote [quote]
                                     else if (message.StartsWith("!addquote "))
-                                        _cmdMod.CmdAddQuote(message, username);
+                                        await _cmdMod.CmdAddQuote(message, username);
 
                                     /* Tell the stream the specified moderator will be AFK */
                                     else if (message.Equals("!modafk"))
@@ -692,7 +692,7 @@ namespace TwitchBot
 
                                 /* Display random broadcaster quote */
                                 else if (message.Equals("!quote"))
-                                    _cmdGen.CmdQuote();
+                                    await _cmdGen.CmdQuote();
 
                                 /* Display how long a user has been following the broadcaster */
                                 else if (message.Equals("!followsince"))

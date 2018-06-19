@@ -564,24 +564,24 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Display random broadcaster quote
         /// </summary>
-        public void CmdQuote()
+        public async Task CmdQuote()
         {
             try
             {
-                List<Quote> quoteList = _quote.GetQuotes(_broadcasterId);
+                List<TwitchBotDb.Models.Quote> quotes = await _quote.GetQuotes(_broadcasterId);
 
                 // Check if there any quotes inside the system
-                if (quoteList.Count == 0)
+                if (quotes == null || quotes.Count == 0)
                     _irc.SendPublicChatMessage("There are no quotes to be displayed at the moment");
                 else
                 {
                     // Randomly pick a quote from the list to display
                     Random rnd = new Random(DateTime.Now.Millisecond);
-                    int index = rnd.Next(quoteList.Count);
+                    int index = rnd.Next(quotes.Count);
 
-                    Quote resultingQuote = new Quote();
-                    resultingQuote = quoteList.ElementAt(index); // grab random quote from list of quotes
-                    string quoteResult = $"\"{resultingQuote.Message}\" - {_botConfig.Broadcaster} " +
+                    TwitchBotDb.Models.Quote resultingQuote = new TwitchBotDb.Models.Quote();
+                    resultingQuote = quotes.ElementAt(index); // grab random quote from list of quotes
+                    string quoteResult = $"\"{resultingQuote.UserQuote}\" - {_botConfig.Broadcaster} " +
                         $"({resultingQuote.TimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {resultingQuote.TimeCreated.Year})";
 
                     _irc.SendPublicChatMessage(quoteResult);

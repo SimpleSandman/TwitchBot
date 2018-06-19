@@ -1,71 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using TwitchBot.Models;
+using TwitchBot.Libraries;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Repositories
 {
     public class QuoteRepository
     {
-        private string _connStr;
+        private readonly string _connStr;
+        private readonly string _twitchBotApiLink;
 
-        public QuoteRepository(string connStr)
+        public QuoteRepository(string connStr, string twitchBotApiLink)
         {
             _connStr = connStr;
+            _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public List<Quote> GetQuotes(int broadcasterId)
+        public async Task<List<Quote>> GetQuotes(int broadcasterId)
         {
-            List<Quote> quotes = new List<Quote>();
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Quote WHERE Broadcaster = @broadcaster", conn))
-                {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            while (reader.Read())
-                            {
-                                Quote quote = new Quote
-                                {
-                                    Message = reader["UserQuote"].ToString(),
-                                    Author = reader["Username"].ToString(),
-                                    TimeCreated = Convert.ToDateTime(reader["TimeCreated"])
-                                };
-                                quotes.Add(quote);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return quotes;
+            return await ApiBotRequest.GetExecuteTaskAsync<List<Quote>>(_twitchBotApiLink + $"quotes/get/{broadcasterId}");
         }
 
-        public void AddQuote(string quote, string username, int broadcasterId)
+        public async Task AddQuote(string quote, string username, int broadcasterId)
         {
-            string query = "INSERT INTO Quote (UserQuote, Username, TimeCreated, Broadcaster) VALUES (@userQuote, @username, @timeCreated, @broadcaster)";
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            using (SqlCommand cmd = new SqlCommand(query, conn))
+            Quote freshQuote = new Quote
             {
-                cmd.Parameters.Add("@userQuote", SqlDbType.VarChar, 500).Value = quote;
-                cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = username;
-                cmd.Parameters.Add("@timeCreated", SqlDbType.DateTime).Value = DateTime.Now;
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+                Username = username,
+                UserQuote = quote,
+                Broadcaster = broadcasterId
+            };
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
-            }
+            await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"quotes/create", freshQuote);
         }
     }
 }

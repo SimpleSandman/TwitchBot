@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using TwitchBot.Models;
 using TwitchBot.Repositories;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Services
 {
@@ -18,14 +16,14 @@ namespace TwitchBot.Services
             _quoteDb = quote;
         }
 
-        public List<Quote> GetQuotes(int broadcasterId)
+        public async Task<List<Quote>> GetQuotes(int broadcasterId)
         {
-            return _quoteDb.GetQuotes(broadcasterId);
+            return await _quoteDb.GetQuotes(broadcasterId);
         }
 
-        public void AddQuote(string quote, string username, int broadcasterId)
+        public async Task AddQuote(string quote, string username, int broadcasterId)
         {
-            _quoteDb.AddQuote(quote, username, broadcasterId);
+            await _quoteDb.AddQuote(quote, username, broadcasterId);
         }
     }
 }

@@ -408,13 +408,13 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdAddQuote(string message, string username)
+        public async Task CmdAddQuote(string message, string username)
         {
             try
             {
                 string quote = message.Substring(message.IndexOf(" ") + 1);
 
-                _quote.AddQuote(quote, username, _broadcasterId);
+                await _quote.AddQuote(quote, username, _broadcasterId);
 
                 _irc.SendPublicChatMessage($"Quote has been created @{username}");
             }
