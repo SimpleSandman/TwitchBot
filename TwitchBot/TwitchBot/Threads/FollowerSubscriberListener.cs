@@ -189,7 +189,10 @@ namespace TwitchBot.Threads
 
                     // get chatter info
                     RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(chatter);
-                    string userTwitchId = rootUserJSON.Users.First().Id;
+                    string userTwitchId = rootUserJSON.Users.FirstOrDefault()?.Id;
+
+                    // skip chatter if Twitch ID is missing
+                    if (string.IsNullOrEmpty(userTwitchId)) continue;
 
                     // check for follower and/or subscriber and add then to their respective lists
                     await CheckFollower(chatter, userTwitchId);
