@@ -130,11 +130,13 @@ namespace TwitchBot.Models
             EntryInstructions = bankHeistSettings.EntryInstructions;
             CooldownEntry = bankHeistSettings.CooldownEntry;
             CooldownOver = bankHeistSettings.CooldownOver;
+
             // next level messages
             NextLevelMessages[0] = bankHeistSettings.NextLevelMessage2;
             NextLevelMessages[1] = bankHeistSettings.NextLevelMessage3;
             NextLevelMessages[2] = bankHeistSettings.NextLevelMessage4;
             NextLevelMessages[3] = bankHeistSettings.NextLevelMessage5;
+            
             // game outcomes
             GameStart = bankHeistSettings.GameStart;
             ResultsMessage = bankHeistSettings.ResultsMessage;
@@ -144,6 +146,7 @@ namespace TwitchBot.Models
             Success34 = bankHeistSettings.Success34;
             Success1 = bankHeistSettings.Success1;
             Success0 = bankHeistSettings.Success0;
+            
             // game levels
             Levels[0].LevelBankName = bankHeistSettings.LevelName1;
             Levels[0].MaxUsers = bankHeistSettings.LevelMaxUsers1;
@@ -155,6 +158,7 @@ namespace TwitchBot.Models
             Levels[3].MaxUsers = bankHeistSettings.LevelMaxUsers4;
             Levels[4].LevelBankName = bankHeistSettings.LevelName5;
             Levels[4].MaxUsers = bankHeistSettings.LevelMaxUsers5;
+            
             // payout
             Payouts[0].SuccessRate = bankHeistSettings.PayoutSuccessRate1;
             Payouts[0].WinMultiplier = bankHeistSettings.PayoutMultiplier1;

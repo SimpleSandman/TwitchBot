@@ -43,7 +43,7 @@ namespace TwitchBot.Commands
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private BankHeistSingleton _heistSettingsInstance = BankHeistSingleton.Instance;
-        private BossFightSettings _bossSettingsInstance = BossFightSettings.Instance;
+        private BossFightSingleton _bossSettingsInstance = BossFightSingleton.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
         public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId,

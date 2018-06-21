@@ -20,7 +20,7 @@ namespace TwitchBot.Threads
         private BankService _bank;
         private TwitchBotConfigurationSection _botConfig;
         private string _resultMessage;
-        private BossFightSettings _bossSettings = BossFightSettings.Instance;
+        private BossFightSingleton _bossSettings = BossFightSingleton.Instance;
 
         public BossFight() { }
 
@@ -44,7 +44,7 @@ namespace TwitchBot.Threads
             _thread.Start();
         }
 
-        private void Run()
+        private async void Run()
         {
             while (true)
             {
@@ -58,7 +58,7 @@ namespace TwitchBot.Threads
                 {
                     //AddTestFighters(); // debugging only
                     _bossSettings.Fighters.CompleteAdding();
-                    Consume();
+                    await Consume();
 
                     // refresh the list and reset the cooldown time period
                     _bossSettings.Fighters = new BlockingCollection<BossFighter>();
@@ -75,7 +75,7 @@ namespace TwitchBot.Threads
             _bossSettings.Fighters.Add(fighter);
         }
 
-        public async void Consume()
+        public async Task Consume()
         {
             Boss boss = _bossSettings.Bosses[BossLevel() - 1];
 

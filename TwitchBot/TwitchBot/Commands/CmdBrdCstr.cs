@@ -29,7 +29,7 @@ namespace TwitchBot.Commands
         private TwitterClient _twitter = TwitterClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private Broadcaster _broadcasterInstance = Broadcaster.Instance;
-        private BossFightSettings _bossFightSettingsInstance = BossFightSettings.Instance;
+        private BossFightSingleton _bossFightSettingsInstance = BossFightSingleton.Instance;
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, 
             System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo, 
@@ -598,7 +598,7 @@ namespace TwitchBot.Commands
 
                 // During refresh, make sure no fighters can join
                 _bossFightSettingsInstance.RefreshBossFight = true;
-                _bossFightSettingsInstance.LoadSettings(_broadcasterId, _connStr, game?.Id);
+                await _bossFightSettingsInstance.LoadSettings(_broadcasterId, game?.Id, _botConfig.TwitchBotApiLink);
                 _bossFightSettingsInstance.RefreshBossFight = false;
 
                 _irc.SendPublicChatMessage($"Boss fight settings refreshed @{_botConfig.Broadcaster}");

@@ -59,7 +59,7 @@ namespace TwitchBot
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private Broadcaster _broadcasterInstance = Broadcaster.Instance;
         private BankHeistSingleton _bankHeistInstance = BankHeistSingleton.Instance;
-        private BossFightSettings _bossFightInstance = BossFightSettings.Instance;
+        private BossFightSingleton _bossFightInstance = BossFightSingleton.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
@@ -250,10 +250,10 @@ namespace TwitchBot
                 // Grab game id in order to find party member
                 TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
 
-                _bossFightInstance.LoadSettings(_broadcasterInstance.DatabaseId, _connStr, game?.Id);
+                await _bossFightInstance.LoadSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
 
-                if (_bossFightInstance.CooldownTimePeriodMinutes == 0)
-                    _bossFightInstance.CreateSettings(_broadcasterInstance.DatabaseId, _connStr);
+                if (_bossFightInstance.SettingsId == 0)
+                    await _bossFightInstance.CreateSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
 
                 _bossFight.Start(_irc, _broadcasterInstance.DatabaseId);
 
