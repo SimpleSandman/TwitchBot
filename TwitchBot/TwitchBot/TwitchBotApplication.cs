@@ -58,7 +58,7 @@ namespace TwitchBot
         private Moderator _modInstance = Moderator.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private Broadcaster _broadcasterInstance = Broadcaster.Instance;
-        private BankHeistSettings _bankHeistInstance = BankHeistSettings.Instance;
+        private BankHeistSingleton _bankHeistInstance = BankHeistSingleton.Instance;
         private BossFightSettings _bossFightInstance = BossFightSettings.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
@@ -172,7 +172,7 @@ namespace TwitchBot
                 // include the "oauth:" portion
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
-                _irc = new IrcClient("irc.twitch.tv", 6667, _botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
+                _irc = new IrcClient(_botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
@@ -235,10 +235,10 @@ namespace TwitchBot
                 SetListTimeouts();
 
                 /* Load/create settings and start the queue for the heist */
-                _bankHeistInstance.LoadSettings(_broadcasterInstance.DatabaseId, _connStr);
+                await _bankHeistInstance.LoadSettings(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
 
-                if (_bankHeistInstance.CooldownTimePeriodMinutes == 0)
-                    _bankHeistInstance.CreateSettings(_broadcasterInstance.DatabaseId, _connStr);
+                if (_bankHeistInstance.Id == 0)
+                    await _bankHeistInstance.CreateSettings(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
 
                 _bankHeist.Start(_irc, _broadcasterInstance.DatabaseId);
 

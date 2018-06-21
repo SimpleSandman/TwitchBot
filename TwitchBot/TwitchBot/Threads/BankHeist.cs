@@ -21,7 +21,7 @@ namespace TwitchBot.Threads
         private BankService _bank;
         private TwitchBotConfigurationSection _botConfig;
         private string _resultMessage;
-        private BankHeistSettings _heistSettings = BankHeistSettings.Instance;
+        private BankHeistSingleton _heistSettings = BankHeistSingleton.Instance;
 
         public BankHeist() { }
 

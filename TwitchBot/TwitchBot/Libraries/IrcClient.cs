@@ -16,14 +16,14 @@ namespace TwitchBot.Libraries
 
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public IrcClient(string ip, int port, string username, string password, string channel)
+        public IrcClient(string username, string password, string channel)
         {
             try
             {
                 this.username = username;
                 this.channel = channel;
 
-                tcpClient = new TcpClient(ip, port);
+                tcpClient = new TcpClient("irc.twitch.tv", 6667);
                 inputStream = new StreamReader(tcpClient.GetStream());
                 outputStream = new StreamWriter(tcpClient.GetStream());
 
@@ -35,7 +35,7 @@ namespace TwitchBot.Libraries
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "IrcClient", "IrcClient(string, int, string, string, string)", true);
+                _errHndlrInstance.LogError(ex, "IrcClient", "IrcClient(string, string, string)", true);
             }
         }
 

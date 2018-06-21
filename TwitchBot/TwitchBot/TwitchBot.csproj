@@ -210,7 +210,6 @@
     <Compile Include="Libraries\YouTubeClient.cs" />
     <Compile Include="Libraries\Broadcaster.cs" />
     <Compile Include="Models\BankHeistSettings.cs" />
-    <Compile Include="Models\BankRobber.cs" />
     <Compile Include="Models\BossFighter.cs" />
     <Compile Include="Models\BossFightSettings.cs" />
     <Compile Include="Models\CooldownUser.cs" />

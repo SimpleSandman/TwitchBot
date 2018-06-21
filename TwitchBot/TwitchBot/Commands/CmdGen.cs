@@ -42,7 +42,7 @@ namespace TwitchBot.Commands
         private Moderator _modInstance = Moderator.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
-        private BankHeistSettings _heistSettingsInstance = BankHeistSettings.Instance;
+        private BankHeistSingleton _heistSettingsInstance = BankHeistSingleton.Instance;
         private BossFightSettings _bossSettingsInstance = BossFightSettings.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 

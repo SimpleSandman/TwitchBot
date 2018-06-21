@@ -159,7 +159,7 @@ namespace TwitchBot.Libraries
                 response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
                 string statResponse = response.StatusCode.ToString();
 
-                if (statResponse.Contains("OK") || statResponse.Contains("NoContent"))
+                if (statResponse.Contains("OK") || statResponse.Contains("NoContent") || statResponse.Contains("Created"))
                 {
                     return JsonConvert.DeserializeObject<T>(response.Content);
                 }
