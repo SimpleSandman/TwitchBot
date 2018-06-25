@@ -71,6 +71,7 @@ namespace TwitchBot
             _appConfig = appConfig;
             _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program.ConnStrType].ConnectionString;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
+            _irc = new IrcClient();
             _isManualSongRequestAvail = false;
             _isYouTubeSongRequestAvail = false;
             _hasTwitterInfo = false;
@@ -152,6 +153,9 @@ namespace TwitchBot
 
             try
             {
+                // Configure error handler singleton class
+                ErrorHandler.Configure(_broadcasterInstance.DatabaseId, _irc, _botConfig);
+
                 // Get broadcaster ID so the user can only see their data from the db
                 await SetBroadcasterIds();
 
@@ -164,17 +168,17 @@ namespace TwitchBot
                 }
 
                 // Configure error handler singleton class
-                ErrorHandler.Configure(_broadcasterInstance.DatabaseId, _connStr, _irc, _botConfig);
+                ErrorHandler.Configure(_broadcasterInstance.DatabaseId, _irc, _botConfig);
 
                 /* Connect to local Spotify client */
                 _spotify = new LocalSpotifyClient(_botConfig);
-                _spotify.Connect();
+                await _spotify.Connect();
 
                 // Password from www.twitchapps.com/tmi/
                 // include the "oauth:" portion
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
-                _irc = new IrcClient(_botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
+                _irc.Connect(_botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
@@ -234,7 +238,7 @@ namespace TwitchBot
                 _followerSubscriberListener.Start(_irc, _broadcasterInstance.DatabaseId);
 
                 /* Get list of timed out users from database */
-                SetListTimeouts();
+                await SetListTimeouts();
 
                 /* Load/create settings and start the queue for the heist */
                 await _bankHeistInstance.LoadSettings(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
@@ -289,7 +293,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "RunAsync()", true);
+                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "RunAsync()", true);
             }
         }        
 
@@ -309,7 +313,7 @@ namespace TwitchBot
                 while (true)
                 {
                     // Read any message inside the chat room
-                    string message = _irc.ReadMessage();
+                    string message = await _irc.ReadMessage();
                     Console.WriteLine(message); // Print raw irc message
 
                     if (!string.IsNullOrEmpty(message))
@@ -346,7 +350,7 @@ namespace TwitchBot
 
                                 /* Manually connect to Spotify */
                                 else if (message.Equals("!spotifyconnect"))
-                                    _spotify.Connect();
+                                    await _spotify.Connect();
 
                                 /* Press local Spotify play button [>] */
                                 else if (message.Equals("!spotifyplay"))
@@ -374,19 +378,19 @@ namespace TwitchBot
 
                                 /* Enables viewers to request songs (default off) */
                                 else if (message.Equals("!rbsrmode on"))
-                                    _cmdBrdCstr.CmdEnableManualSrMode(ref isManualSongRequestAvail);
+                                    isManualSongRequestAvail = await _cmdBrdCstr.CmdEnableManualSrMode(isManualSongRequestAvail);
 
                                 /* Disables viewers to request songs (default off) */
                                 else if (message.Equals("!rbsrmode off"))
-                                    _cmdBrdCstr.CmdDisableManualSrMode(ref isManualSongRequestAvail);
+                                    isManualSongRequestAvail = await _cmdBrdCstr.CmdDisableManualSrMode(isManualSongRequestAvail);
 
                                 /* Enables viewers to request songs (default off) */
                                 else if (message.Equals("!ytsrmode on"))
-                                    _cmdBrdCstr.CmdEnableYouTubeSrMode(ref isYouTubeSongRequestAvail);
+                                    isYouTubeSongRequestAvail = await _cmdBrdCstr.CmdEnableYouTubeSrMode(isYouTubeSongRequestAvail);
 
                                 /* Disables viewers to request songs (default off) */
                                 else if (message.Equals("!ytsrmode off"))
-                                    _cmdBrdCstr.CmdDisableYouTubeSrMode(ref isYouTubeSongRequestAvail);
+                                    isYouTubeSongRequestAvail = await _cmdBrdCstr.CmdDisableYouTubeSrMode(isYouTubeSongRequestAvail);
 
                                 /* Sends a manual tweet (if credentials have been provided) */
                                 // Usage: !tweet "[message]" (use quotation marks)
@@ -419,21 +423,21 @@ namespace TwitchBot
                                 // Usage (artist): !srbl 1 [artist name]
                                 // Usage (song): !srbl 2 "[song title]" <[artist name]>
                                 else if (message.StartsWith("!srbl "))
-                                    _cmdBrdCstr.CmdAddSongRequestBlacklist(message);
+                                    await _cmdBrdCstr.CmdAddSongRequestBlacklist(message);
 
                                 /* Remove song or artist from song request blacklist */
                                 // Usage (artist): !removesrbl 1 [artist name]
                                 // Usage (song): !removesrbl 2 "[song title]" <[artist name]>
                                 else if (message.StartsWith("!removesrbl "))
-                                    _cmdBrdCstr.CmdRemoveSongRequestBlacklist(message);
+                                    await _cmdBrdCstr.CmdRemoveSongRequestBlacklist(message);
 
                                 /* Reset the entire song request blacklist */
                                 else if (message.Equals("!resetsrbl"))
-                                    _cmdBrdCstr.CmdResetSongRequestBlacklist();
+                                    await _cmdBrdCstr.CmdResetSongRequestBlacklist();
 
                                 /* Show the song request blacklist */
                                 else if (message.Equals("!showsrbl"))
-                                    _cmdBrdCstr.CmdListSongRequestBlacklist();
+                                    await _cmdBrdCstr.CmdListSongRequestBlacklist();
 
                                 /* Sends an announcement tweet saying the broadcaster is live */
                                 else if (message.Equals("!live"))
@@ -473,7 +477,7 @@ namespace TwitchBot
 
                                     /* Removes the first song in the queue of song requests */
                                     else if (message.Equals("!poprbsr"))
-                                        _cmdMod.CmdPopManualSr();
+                                        await _cmdMod.CmdPopManualSr();
 
                                     /* Removes first party memeber in queue of party up requests */
                                     else if (message.Equals("!poppartyuprequest"))
@@ -482,12 +486,12 @@ namespace TwitchBot
                                     /* Bot-specific timeout on a user for a set amount of time */
                                     // Usage: !timeout [seconds] @[username]
                                     else if (message.StartsWith("!timeout ") && message.Contains("@"))
-                                        _cmdMod.CmdAddTimeout(message, username);
+                                        await _cmdMod.CmdAddTimeout(message, username);
 
                                     /* Remove bot-specific timeout on a user for a set amount of time */
                                     // Usage: !deltimeout @[username]
                                     else if (message.StartsWith("!deltimeout @"))
-                                        _cmdMod.CmdDelTimeout(message, username);
+                                        await _cmdMod.CmdDelTimeout(message, username);
 
                                     /* Set delay for messages based on the latency of the stream */
                                     // Usage: !setlatency [seconds]
@@ -514,29 +518,29 @@ namespace TwitchBot
                                     /* Add MultiStream user to link */
                                     // Usage: !addmsl @[username]
                                     else if (message.StartsWith("!addmsl "))
-                                        _cmdMod.CmdAddMultiStreamUser(message, username, ref _multiStreamUsers);
+                                        _multiStreamUsers = await _cmdMod.CmdAddMultiStreamUser(message, username, _multiStreamUsers);
 
                                     /* Reset MultiStream link so link can be reconfigured */
                                     else if (message.Equals("!resetmsl"))
-                                        _cmdMod.CmdResetMultiStreamLink(username, ref _multiStreamUsers);
+                                        _multiStreamUsers = await _cmdMod.CmdResetMultiStreamLink(username, _multiStreamUsers);
 
                                     /* Updates the title of the Twitch channel */
                                     // Usage: !updatetitle [title]
                                     else if (message.StartsWith("!updatetitle "))
-                                        _cmdMod.CmdUpdateTitle(message);
+                                        await _cmdMod.CmdUpdateTitle(message);
 
                                     /* Updates the game of the Twitch channel */
                                     // Usage: !updategame [game]
                                     else if (message.StartsWith("!updategame "))
-                                        _cmdMod.CmdUpdateGame(message, hasTwitterInfo);
+                                        await _cmdMod.CmdUpdateGame(message, hasTwitterInfo);
 
                                     /* Pops user from the queue of users that want to play with the broadcaster */
                                     else if (message.Equals("!popgotnext"))
-                                        _cmdMod.CmdPopGotNextGame(username, ref _gameQueueUsers);
+                                        _gameQueueUsers = await _cmdMod.CmdPopGotNextGame(username, _gameQueueUsers);
 
                                     /* Resets game queue of users that want to play with the broadcaster */
                                     else if (message.Equals("!resetgotnext"))
-                                        _cmdMod.CmdResetGotNextGame(username, ref _gameQueueUsers);
+                                        _gameQueueUsers = await _cmdMod.CmdResetGotNextGame(username, _gameQueueUsers);
 
                                     /* Display the streamer's channel and game status */
                                     // Usage: !streamer @[username]
@@ -575,7 +579,7 @@ namespace TwitchBot
 
                                 /* Display list of requested songs */
                                 else if (message.Equals("!rbsrl"))
-                                    _cmdGen.CmdManualSrList(isManualSongRequestAvail, username);
+                                    await _cmdGen.CmdManualSrList(isManualSongRequestAvail, username);
 
                                 /* Display link of list of songs to request */
                                 else if (message.Equals("!rbsl"))
@@ -584,7 +588,7 @@ namespace TwitchBot
                                 /* Request a song for the host to play */
                                 // Usage: !rbsr [artist] - [song title]
                                 else if (message.StartsWith("!rbsr "))
-                                    _cmdGen.CmdManualSr(isManualSongRequestAvail, message, username);
+                                    await _cmdGen.CmdManualSr(isManualSongRequestAvail, message, username);
 
                                 /* Displays the current song being played from Spotify */
                                 else if (message.Equals("!spotifycurr"))
@@ -594,7 +598,7 @@ namespace TwitchBot
                                 // Usage: !slap @[username]
                                 else if (message.StartsWith("!slap @") && !IsUserOnCooldown(username, "!slap"))
                                 {
-                                    DateTime cooldown = _cmdGen.CmdSlap(message, username);
+                                    DateTime cooldown = await _cmdGen.CmdSlap(message, username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
@@ -611,7 +615,7 @@ namespace TwitchBot
                                 // Usage: !stab @[username]
                                 else if (message.StartsWith("!stab @") && !IsUserOnCooldown(username, "!stab"))
                                 {
-                                    DateTime cooldown = _cmdGen.CmdStab(message, username);
+                                    DateTime cooldown = await _cmdGen.CmdStab(message, username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
@@ -628,7 +632,7 @@ namespace TwitchBot
                                 // Usage !shoot @[username]
                                 else if (message.StartsWith("!shoot @") && !IsUserOnCooldown(username, "!shoot"))
                                 {
-                                    DateTime cooldown = _cmdGen.CmdShoot(message, username);
+                                    DateTime cooldown = await _cmdGen.CmdShoot(message, username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
@@ -645,7 +649,7 @@ namespace TwitchBot
                                 // Usage: !throw [item] @username
                                 else if (message.StartsWith("!throw ") && message.Contains("@") && !IsUserOnCooldown(username, "!throw"))
                                 {
-                                    DateTime cooldown = _cmdGen.CmdThrow(message, username);
+                                    DateTime cooldown = await _cmdGen.CmdThrow(message, username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
@@ -694,15 +698,15 @@ namespace TwitchBot
 
                                 /* Display random broadcaster quote */
                                 else if (message.Equals("!quote"))
-                                    await _cmdGen.CmdQuote();
+                                    _cmdGen.CmdQuote();
 
                                 /* Display how long a user has been following the broadcaster */
                                 else if (message.Equals("!followsince"))
-                                    await _cmdGen.CmdFollowSince(username);
+                                    _cmdGen.CmdFollowSince(username);
 
                                 /* Display follower's stream rank */
                                 else if (message.Equals("!rank"))
-                                    await _cmdGen.CmdViewRank(username);
+                                    _cmdGen.CmdViewRank(username);
 
                                 /* Add song request to YouTube playlist */
                                 // Usage: !ytsr [video title/YouTube link]
@@ -734,7 +738,7 @@ namespace TwitchBot
                                 // Usage: !8ball [question]
                                 else if (message.StartsWith("!8ball ") && !IsUserOnCooldown(username, "!8ball"))
                                 {
-                                    DateTime cooldown = _cmdGen.CmdMagic8Ball(username);
+                                    DateTime cooldown = await _cmdGen.CmdMagic8Ball(username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
@@ -749,11 +753,11 @@ namespace TwitchBot
 
                                 /* Disply the top 3 richest users */
                                 else if (message.Equals($"!{_botConfig.CurrencyType.ToLower()}top3"))
-                                    await _cmdGen.CmdLeaderboardCurrency(username);
+                                    _cmdGen.CmdLeaderboardCurrency(username);
 
                                 /* Display the top 3 highest ranking users */
                                 else if (message.Equals("!ranktop3"))
-                                    await _cmdGen.CmdLeaderboardRank(username);
+                                    _cmdGen.CmdLeaderboardRank(username);
 
                                 /* Play russian roulette */
                                 // Note: Chat moderators cannot be timed out by the bot (reason for being excluded)
@@ -774,7 +778,7 @@ namespace TwitchBot
 
                                 /* Show the users that want to play with the broadcaster */
                                 else if (message.Equals("!listgotnext"))
-                                    await _cmdGen.CmdListGotNextGame(username, _gameQueueUsers);
+                                    _cmdGen.CmdListGotNextGame(username, _gameQueueUsers);
 
                                 /* Request to play with the broadcaster */
                                 else if (message.Equals("!gotnextgame"))
@@ -791,7 +795,7 @@ namespace TwitchBot
 
                                 /* Display how long a user has been subscribed to the broadcaster */
                                 else if (message.Equals("!subsince"))
-                                    _cmdGen.CmdSubscribeSince(username);
+                                    await _cmdGen.CmdSubscribeSince(username);
 
                                 /* Join the boss fight with a pre-defined amount of currency set by broadcaster */
                                 else if (message.Equals("!raid"))
@@ -800,7 +804,7 @@ namespace TwitchBot
                                 /* Tell the broadcaster a user is lurking */
                                 else if (message.Equals("!lurk") && !IsUserOnCooldown(username, "!lurk"))
                                 {
-                                    DateTime cooldown = _cmdGen.CmdLurk(username);
+                                    DateTime cooldown = await _cmdGen.CmdLurk(username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
@@ -816,7 +820,7 @@ namespace TwitchBot
                                 /* Tell the broadcaster a user is no longer lurking */
                                 else if (message.Equals("!unlurk") && !IsUserOnCooldown(username, "!unlurk"))
                                 {
-                                    DateTime cooldown = _cmdGen.CmdUnlurk(username);
+                                    DateTime cooldown = await _cmdGen.CmdUnlurk(username);
                                     if (cooldown > DateTime.Now)
                                     {
                                         _cooldownUsers.Add(new CooldownUser
@@ -860,7 +864,7 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, bool, string, bool, bool)", true);
+                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, bool, string, bool, bool)", true);
             }
         }
 
@@ -1003,11 +1007,11 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "SetBroadcasterIds()", true);
+                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "SetBroadcasterIds()", true);
             }
         }
 
-        private void SetListTimeouts()
+        private async Task SetListTimeouts()
         {
             try
             {
@@ -1049,7 +1053,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "SetListTimeouts()", true);
+                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "SetListTimeouts()", true);
             }
         }
 
@@ -1084,7 +1088,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GreetNewUser(string, string)", false);
+                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GreetNewUser(string, string)", false);
             }
         }
     }

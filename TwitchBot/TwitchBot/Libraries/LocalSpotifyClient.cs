@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+
 using SpotifyAPI.Local;
-using SpotifyAPI.Local.Enums;
 using SpotifyAPI.Local.Models;
 
 using TwitchBot.Configuration;
@@ -31,7 +28,7 @@ namespace TwitchBot.Libraries
             _trackChanged = false;
         }
 
-        public void Connect()
+        public async Task Connect()
         {
             try
             {
@@ -60,12 +57,12 @@ namespace TwitchBot.Libraries
                     Console.WriteLine("If this problem persists, try reinstalling Spotify to the latest version");
 
                     if (Console.ReadLine().Equals("y"))
-                        Connect(); // attempt to connect again
+                        await Connect(); // attempt to connect again
                 }
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "TwitchBotApplication", "Connect()", true);
+                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "Connect()", true);
             }
         }
 

@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Data;
-using System.Data.SqlClient;
 using System.Threading;
+using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Libraries
 {
@@ -13,7 +14,6 @@ namespace TwitchBot.Libraries
         private static ErrorHandler _instance;
 
         private static int _broadcasterId;
-        private static string _connStr;
         private static IrcClient _irc;
         private static TwitchBotConfigurationSection _botConfig;
 
@@ -27,15 +27,14 @@ namespace TwitchBot.Libraries
         /// <summary>
         /// Used first chance that error logging can be possible
         /// </summary>
-        public static void Configure(int broadcasterId, string connStr, IrcClient irc, TwitchBotConfigurationSection botConfig)
+        public static void Configure(int broadcasterId, IrcClient irc, TwitchBotConfigurationSection botConfig)
         {
             _broadcasterId = broadcasterId;
-            _connStr = connStr;
             _irc = irc;
             _botConfig = botConfig;
         }
 
-        public void LogError(Exception ex, string className, string methodName, bool hasToExit, string botCmd = "N/A", string userMsg = "N/A")
+        public async Task LogError(Exception ex, string className, string methodName, bool hasToExit, string botCmd = "N/A", string userMsg = "N/A")
         {
             Console.WriteLine("Error: " + ex.Message);
 
@@ -44,29 +43,8 @@ namespace TwitchBot.Libraries
                 /* If username not available, grab default user to show local error after db connection */
                 if (_broadcasterId == 0)
                 {
-                    string broadcaster = "n/a";
-                    using (SqlConnection conn = new SqlConnection(_connStr))
-                    {
-                        conn.Open();
-                        using (SqlCommand cmd = new SqlCommand("SELECT * FROM Broadcasters WHERE Username = @username", conn))
-                        {
-                            cmd.Parameters.AddWithValue("@username", broadcaster);
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    while (reader.Read())
-                                    {
-                                        if (broadcaster.Equals(reader["Username"].ToString().ToLower()))
-                                        {
-                                            _broadcasterId = int.Parse(reader["Id"].ToString());
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    Broadcasters broadcaster = await ApiBotRequest.GetExecuteTaskAsync<Broadcasters>(_botConfig.TwitchBotApiLink + $"broadcasters/get/-1");
+                    _broadcasterId = broadcaster.Id;
                 }
 
                 /* Get line number from error message */
@@ -83,32 +61,25 @@ namespace TwitchBot.Libraries
                     }
                 }
 
-                /* Add song request to database */
-                string query = "INSERT INTO ErrorLog (ErrorTime, ErrorLine, ErrorClass, ErrorMethod, ErrorMsg, Broadcaster, Command, UserMsg) "
-                    + "VALUES (@time, @lineNum, @class, @method, @msg, @broadcaster, @command, @userMsg)";
-
-                // Create connection and command
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                ErrorLog error = new ErrorLog
                 {
-                    cmd.Parameters.Add("@time", SqlDbType.DateTime).Value = DateTime.UtcNow;
-                    cmd.Parameters.Add("@lineNum", SqlDbType.Int).Value = lineNumber;
-                    cmd.Parameters.Add("@class", SqlDbType.VarChar, 100).Value = className;
-                    cmd.Parameters.Add("@method", SqlDbType.VarChar, 100).Value = methodName;
-                    cmd.Parameters.Add("@msg", SqlDbType.VarChar, 4000).Value = ex.Message;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-                    cmd.Parameters.Add("@command", SqlDbType.VarChar, 100).Value = botCmd;
-                    cmd.Parameters.Add("@userMsg", SqlDbType.VarChar, 500).Value = userMsg;
+                    ErrorTime = DateTime.UtcNow,
+                    ErrorLine = lineNumber,
+                    ErrorClass = className,
+                    ErrorMethod = methodName,
+                    ErrorMsg = ex.Message,
+                    Broadcaster = _broadcasterId,
+                    Command = botCmd,
+                    UserMsg = userMsg
+                };
 
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                }
+                await ApiBotRequest.PostExecuteTaskAsync(_botConfig.TwitchBotApiLink + $"errorlogs/create", error);
 
                 string publicErrMsg = "I ran into an unexpected internal error! "
                     + "@" + _botConfig.Broadcaster + " please look into the error log when you have time";
 
                 if (hasToExit)
-                    publicErrMsg += " I am leaving as well. Have a great time with this stream everyone :)";
+                    publicErrMsg += " I am leaving as well. Have a great time with this stream everyone KonCha";
 
                 if (_irc != null)
                     _irc.SendPublicChatMessage(publicErrMsg);

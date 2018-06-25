@@ -25,7 +25,7 @@ namespace TwitchBot.Threads
             _msgSender.Start();
         }
 
-        private void Run()
+        private async void Run()
         {
             try
             {
@@ -60,7 +60,7 @@ namespace TwitchBot.Threads
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "DelayMsg", "Run()", false);
+                await _errHndlrInstance.LogError(ex, "DelayMsg", "Run()", false);
             }
         }
     }

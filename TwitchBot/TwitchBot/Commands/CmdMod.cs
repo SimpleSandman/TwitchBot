@@ -60,7 +60,7 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Displays Discord link (if available)
         /// </summary>
-        public void CmdDiscord()
+        public async void CmdDiscord()
         {
             try
             {
@@ -71,7 +71,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdDiscord()", false, "!discord");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdDiscord()", false, "!discord");
             }
         }
 
@@ -127,7 +127,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdCharge(string, string)", false, "!charge");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdCharge(string, string)", false, "!charge");
             }
         }
 
@@ -207,7 +207,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdDeposit(string, string)", false, "!deposit");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdDeposit(string, string)", false, "!deposit");
             }
         }
 
@@ -263,14 +263,14 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdBonusAll(string, string)", false, "!bonusall");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdBonusAll(string, string)", false, "!bonusall");
             }
         }
 
         /// <summary>
         /// Removes the first song in the queue of song requests
         /// </summary>
-        public void CmdPopManualSr()
+        public async Task CmdPopManualSr()
         {
             try
             {
@@ -287,7 +287,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopManualSr()", false, "!poprbsr");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopManualSr()", false, "!poprbsr");
             }
         }
 
@@ -307,7 +307,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopPartyUpRequest()", false, "!poppartyuprequest");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopPartyUpRequest()", false, "!poppartyuprequest");
             }
         }
 
@@ -316,7 +316,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdAddTimeout(string message, string username)
+        public async Task CmdAddTimeout(string message, string username)
         {
             try
             {
@@ -347,7 +347,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddTimeout(string, string)", false, "!timeout");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddTimeout(string, string)", false, "!timeout");
             }
         }
 
@@ -356,7 +356,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdDelTimeout(string message, string username)
+        public async Task CmdDelTimeout(string message, string username)
         {
             try
             {
@@ -368,7 +368,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdDelTimeout(string, string)", false, "!deltimeout");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdDelTimeout(string, string)", false, "!deltimeout");
             }
         }
 
@@ -377,7 +377,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdSetLatency(string message, string username)
+        public async void CmdSetLatency(string message, string username)
         {
             try
             {
@@ -400,7 +400,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdSetLatency(string, string)", false, "!setlatency");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdSetLatency(string, string)", false, "!setlatency");
             }
         }
 
@@ -421,7 +421,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddQuote(string, string)", false, "!addquote");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddQuote(string, string)", false, "!addquote");
             }
         }
 
@@ -429,7 +429,7 @@ namespace TwitchBot.Commands
         /// Tell the stream the specified moderator will be AFK
         /// </summary>
         /// <param name="username">User that sent the message</param>
-        public void CmdModAfk(string username)
+        public async void CmdModAfk(string username)
         {
             try
             {
@@ -437,7 +437,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdModAfk(string)", false, "!modafk");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdModAfk(string)", false, "!modafk");
             }
         }
 
@@ -445,7 +445,7 @@ namespace TwitchBot.Commands
         /// Tell the stream the specified moderator is back
         /// </summary>
         /// <param name="username">User that sent the message</param>
-        public void CmdModBack(string username)
+        public async void CmdModBack(string username)
         {
             try
             {
@@ -453,7 +453,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdModBack(string)", false, "!modback");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdModBack(string)", false, "!modback");
             }
         }
 
@@ -463,7 +463,7 @@ namespace TwitchBot.Commands
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
         /// <param name="multiStreamUsers">List of users that have already been added to the link</param>
-        public void CmdAddMultiStreamUser(string message, string username, ref List<string> multiStreamUsers)
+        public async Task<List<string>> CmdAddMultiStreamUser(string message, string username, List<string> multiStreamUsers)
         {
             try
             {
@@ -538,11 +538,15 @@ namespace TwitchBot.Commands
                             _irc.SendPublicChatMessage($"{resultMsg} @{_botConfig.Broadcaster.ToLower()}");
                     }
                 }
+
+                return multiStreamUsers;
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddMultiStreamUser(string, string, ref List<string>)", false, "!addmsl", message);
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddMultiStreamUser(string, string, ref List<string>)", false, "!addmsl", message);
             }
+
+            return new List<string>();
         }
 
         /// <summary>
@@ -550,7 +554,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <param name="multiStreamUsers">List of users that have already been added to the link</param>
-        public void CmdResetMultiStreamLink(string username, ref List<string> multiStreamUsers)
+        public async Task<List<string>> CmdResetMultiStreamLink(string username, List<string> multiStreamUsers)
         {
             try
             {
@@ -563,18 +567,22 @@ namespace TwitchBot.Commands
                     _irc.SendPublicChatMessage(resultMsg);
                 else
                     _irc.SendPublicChatMessage($"{resultMsg} @{_botConfig.Broadcaster.ToLower()}");
+
+                return multiStreamUsers;
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetMultiStream(string, ref List<string>)", false, "!resetmsl");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetMultiStream(string, ref List<string>)", false, "!resetmsl");
             }
+
+            return new List<string>();
         }
 
         /// <summary>
         /// Update the title of the Twitch channel
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        public void CmdUpdateTitle(string message)
+        public async Task CmdUpdateTitle(string message)
         {
             try
             {
@@ -595,7 +603,7 @@ namespace TwitchBot.Commands
                 IRestResponse response = null;
                 try
                 {
-                    response = client.Execute(request);
+                    response = await client.ExecuteTaskAsync<Task>(request);
                     string statResponse = response.StatusCode.ToString();
                     if (statResponse.Contains("OK"))
                     {
@@ -616,7 +624,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdUpdateTitle(string)", false, "!updatetitle");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdUpdateTitle(string)", false, "!updatetitle");
             }
         }
 
@@ -625,7 +633,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="hasTwitterInfo">Check for Twitter credentials</param>
-        public void CmdUpdateGame(string message, bool hasTwitterInfo)
+        public async Task CmdUpdateGame(string message, bool hasTwitterInfo)
         {
             try
             {
@@ -646,7 +654,7 @@ namespace TwitchBot.Commands
                 IRestResponse response = null;
                 try
                 {
-                    response = client.Execute(request);
+                    response = await client.ExecuteTaskAsync<Task>(request);
                     string statResponse = response.StatusCode.ToString();
                     if (statResponse.Contains("OK"))
                     {
@@ -674,11 +682,11 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdUpdateGame(string, bool)", false, "!updategame");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdUpdateGame(string, bool)", false, "!updategame");
             }
         }
 
-        public void CmdPopGotNextGame(string username, ref Queue<string> gameQueueUsers)
+        public async Task<Queue<string>> CmdPopGotNextGame(string username, Queue<string> gameQueueUsers)
         {
             try
             {
@@ -692,11 +700,13 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopGotNextGame(string, Queue<string>)", false, "!popgotnext");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopGotNextGame(string, Queue<string>)", false, "!popgotnext");
             }
+
+            return gameQueueUsers;
         }
 
-        public void CmdResetGotNextGame(string username, ref Queue<string> gameQueueUsers)
+        public async Task<Queue<string>> CmdResetGotNextGame(string username, Queue<string> gameQueueUsers)
         {
             try
             {
@@ -706,8 +716,10 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetGotNextGame(string, Queue<string>)", false, "!resetgotnext");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetGotNextGame(string, Queue<string>)", false, "!resetgotnext");
             }
+
+            return gameQueueUsers;
         }
 
         public async Task CmdPromoteStreamer(string message, string username)
@@ -745,7 +757,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetGotNextGame(string, string)", false, "!streamer");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetGotNextGame(string, string)", false, "!streamer");
             }
         }
     }

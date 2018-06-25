@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace TwitchBot.Libraries
 {
@@ -16,7 +17,7 @@ namespace TwitchBot.Libraries
 
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public IrcClient(string username, string password, string channel)
+        public async void Connect(string username, string password, string channel)
         {
             try
             {
@@ -35,11 +36,11 @@ namespace TwitchBot.Libraries
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "IrcClient", "IrcClient(string, string, string)", true);
+                await _errHndlrInstance.LogError(ex, "IrcClient", "Connect(string, string, string)", true);
             }
         }
 
-        public void SendIrcMessage(string message)
+        public async void SendIrcMessage(string message)
         {
             try
             {
@@ -48,11 +49,11 @@ namespace TwitchBot.Libraries
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "IrcClient", "SendIrcMessage(string)", false);
+                await _errHndlrInstance.LogError(ex, "IrcClient", "SendIrcMessage(string)", false);
             }
         }
 
-        public void SendPublicChatMessage(string message)
+        public async void SendPublicChatMessage(string message)
         {
             try
             {
@@ -61,11 +62,11 @@ namespace TwitchBot.Libraries
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "IrcClient", "SendPublicChatMessage(string)", false);
+                await _errHndlrInstance.LogError(ex, "IrcClient", "SendPublicChatMessage(string)", false);
             }
         }
 
-        public void SendChatTimeout(string offender, int timeout = 1, string reason = "N/A")
+        public async void SendChatTimeout(string offender, int timeout = 1, string reason = "N/A")
         {
             try
             {
@@ -74,11 +75,11 @@ namespace TwitchBot.Libraries
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "IrcClient", "SendChatTimeout(string, int, string)", false);
+                await _errHndlrInstance.LogError(ex, "IrcClient", "SendChatTimeout(string, int, string)", false);
             }
         }
 
-        public string ReadMessage()
+        public async Task<string> ReadMessage()
         {
             try
             {
@@ -86,7 +87,7 @@ namespace TwitchBot.Libraries
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "IrcClient", "ReadMessage()", true);
+                await _errHndlrInstance.LogError(ex, "IrcClient", "ReadMessage()", true);
             }
 
             return "";

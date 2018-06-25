@@ -50,7 +50,7 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Display bot settings
         /// </summary>
-        public void CmdBotSettings()
+        public async void CmdBotSettings()
         {
             try
             {
@@ -62,14 +62,14 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdBotSettings()", false, "!botsettings");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdBotSettings()", false, "!botsettings");
             }
         }
 
         /// <summary>
         /// Stop running the bot
         /// </summary>
-        public void CmdExitBot()
+        public async void CmdExitBot()
         {
             try
             {
@@ -78,7 +78,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdExitBot()", false, "!exitbot");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdExitBot()", false, "!exitbot");
             }
         }
 
@@ -86,7 +86,7 @@ namespace TwitchBot.Commands
         /// Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets)
         /// </summary>
         /// <param name="hasTwitterInfo">Check for Twitter credentials</param>
-        public void CmdEnableTweet(bool hasTwitterInfo)
+        public async void CmdEnableTweet(bool hasTwitterInfo)
         {
             try
             {
@@ -106,7 +106,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableTweet(bool)", false, "!sendtweet on");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableTweet(bool)", false, "!sendtweet on");
             }
         }
 
@@ -114,7 +114,7 @@ namespace TwitchBot.Commands
         /// Disables tweets to be sent out from this bot (both auto publish tweets and manual tweets)
         /// </summary>
         /// <param name="hasTwitterInfo">Check for Twitter credentials</param>
-        public void CmdDisableTweet(bool hasTwitterInfo)
+        public async void CmdDisableTweet(bool hasTwitterInfo)
         {
             try
             {
@@ -134,76 +134,80 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableTweet(bool)", false, "!sendtweet off");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableTweet(bool)", false, "!sendtweet off");
             }
         }
 
         /// <summary>
         /// Enable manual song request mode
         /// </summary>
-        /// <param name="isSongRequestAvail">Set song request mode</param>
-        public void CmdEnableManualSrMode(ref bool isSongRequestAvail)
+        public async Task<bool> CmdEnableManualSrMode(bool isManualSongRequestAvail)
         {
             try
             {
-                isSongRequestAvail = true;
                 _irc.SendPublicChatMessage("Song requests enabled");
+                isManualSongRequestAvail = true;
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableManualSrMode(ref bool)", false, "!rbsrmode on");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableManualSrMode()", false, "!rbsrmode on");
             }
+
+            return isManualSongRequestAvail;
         }
 
         /// <summary>
         /// Disable manual song request mode
         /// </summary>
-        /// <param name="isSongRequestAvail">Set song request mode</param>
-        public void CmdDisableManualSrMode(ref bool isSongRequestAvail)
+        public async Task<bool> CmdDisableManualSrMode(bool isManualSongRequestAvail)
         {
             try
             {
-                isSongRequestAvail = false;
                 _irc.SendPublicChatMessage("Song requests disabled");
+                isManualSongRequestAvail = false;
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableSRMode(ref bool)", false, "!rbsrmode off");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableSRMode()", false, "!rbsrmode off");
             }
+
+            return isManualSongRequestAvail;
         }
 
         /// <summary>
         /// Enable manual song request mode
         /// </summary>
-        /// <param name="isSongRequestAvail">Set song request mode</param>
-        public void CmdEnableYouTubeSrMode(ref bool isSongRequestAvail)
+        public async Task<bool> CmdEnableYouTubeSrMode(bool isYouTubeSongRequestAvail)
         {
             try
             {
-                isSongRequestAvail = true;
                 _irc.SendPublicChatMessage("YouTube song requests enabled");
+                isYouTubeSongRequestAvail = true;
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableYouTubeSrMode(ref bool)", false, "!ytsrmode on");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableYouTubeSrMode()", false, "!ytsrmode on");
             }
+
+            return isYouTubeSongRequestAvail;
         }
 
         /// <summary>
         /// Disable manual song request mode
         /// </summary>
-        /// <param name="isSongRequestAvail">Set song request mode</param>
-        public void CmdDisableYouTubeSrMode(ref bool isSongRequestAvail)
+        public async Task<bool> CmdDisableYouTubeSrMode(bool isYouTubeSongRequestAvail)
         {
             try
             {
-                isSongRequestAvail = false;
                 _irc.SendPublicChatMessage("YouTube song requests disabled");
+                isYouTubeSongRequestAvail = false;
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableYouTubeSrMode(ref bool)", false, "!ytsrmode off");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableYouTubeSrMode()", false, "!ytsrmode off");
             }
+
+            return isYouTubeSongRequestAvail;
         }
 
         /// <summary>
@@ -211,7 +215,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="bolHasTwitterInfo">Check if user has provided the specific twitter credentials</param>
         /// <param name="message">Chat message from the user</param>
-        public void CmdTweet(bool bolHasTwitterInfo, string message)
+        public async void CmdTweet(bool bolHasTwitterInfo, string message)
         {
             try
             {
@@ -222,14 +226,14 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdTweet(bool, string)", false, "!tweet");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdTweet(bool, string)", false, "!tweet");
             }
         }
 
         /// <summary>
         /// Enables displaying songs from Spotify into the IRC chat
         /// </summary>
-        public void CmdEnableDisplaySongs()
+        public async void CmdEnableDisplaySongs()
         {
             try
             {
@@ -244,14 +248,14 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableDisplaySongs()", false, "!displaysongs on");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableDisplaySongs()", false, "!displaysongs on");
             }
         }
 
         /// <summary>
         /// Disables displaying songs from Spotify into the IRC chat
         /// </summary>
-        public void CmdDisableDisplaySongs()
+        public async void CmdDisableDisplaySongs()
         {
             try
             {
@@ -266,7 +270,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableDisplaySongs()", false, "!displaysongs off");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableDisplaySongs()", false, "!displaysongs off");
             }
         }
 
@@ -274,7 +278,7 @@ namespace TwitchBot.Commands
         /// Grant viewer to moderator status for this bot's mod commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        public void CmdAddBotMod(string message)
+        public async void CmdAddBotMod(string message)
         {
             try
             {
@@ -284,7 +288,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddBotMod(string)", false, "!addmod");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddBotMod(string)", false, "!addmod");
             }
         }
 
@@ -292,7 +296,7 @@ namespace TwitchBot.Commands
         /// Revoke moderator status from user for this bot's mods commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        public void CmdDelBotMod(string message)
+        public async void CmdDelBotMod(string message)
         {
             try
             {
@@ -302,14 +306,14 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDelBotMod(string)", false, "!delmod");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDelBotMod(string)", false, "!delmod");
             }
         }
 
         /// <summary>
         /// List bot moderators
         /// </summary>
-        public void CmdListMod()
+        public async void CmdListMod()
         {
             try
             {
@@ -328,11 +332,11 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListMod()", false, "!listmod");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListMod()", false, "!listmod");
             }
         }
 
-        public void CmdAddSongRequestBlacklist(string message)
+        public async Task CmdAddSongRequestBlacklist(string message)
         {
             try
             {
@@ -425,11 +429,11 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddSongRequestBlacklist(string)", false, "!srbl");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddSongRequestBlacklist(string)", false, "!srbl");
             }
         }
 
-        public void CmdRemoveSongRequestBlacklist(string message)
+        public async Task CmdRemoveSongRequestBlacklist(string message)
         {
             try
             {
@@ -489,11 +493,11 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRemoveSongRequestBlacklist(string)", false, "!removesrbl");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRemoveSongRequestBlacklist(string)", false, "!removesrbl");
             }
         }
 
-        public void CmdResetSongRequestBlacklist()
+        public async Task CmdResetSongRequestBlacklist()
         {
             try
             {
@@ -506,11 +510,11 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdResetSongRequestBlacklist()", false, "!resetsrbl");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdResetSongRequestBlacklist()", false, "!resetsrbl");
             }
         }
 
-        public void CmdListSongRequestBlacklist()
+        public async Task CmdListSongRequestBlacklist()
         {
             try
             {
@@ -540,7 +544,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListSongRequestBlacklist()", false, "!showsrbl");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListSongRequestBlacklist()", false, "!showsrbl");
             }
         }
 
@@ -564,11 +568,11 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLive(bool)", false, "!live");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLive(bool)", false, "!live");
             }
         }
 
-        public void CmdRefreshReminders()
+        public async void CmdRefreshReminders()
         {
             try
             {
@@ -576,7 +580,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRefreshReminders()", false, "!refreshreminders");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRefreshReminders()", false, "!refreshreminders");
             }
         }
 
@@ -607,11 +611,11 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRefreshBossFight()", false, "!refreshbossfight");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRefreshBossFight()", false, "!refreshbossfight");
             }
         }
 
-        public void CmdSetRegularFollowerHours(string message)
+        public async void CmdSetRegularFollowerHours(string message)
         {
             try
             {
@@ -639,7 +643,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdSetRegularHours(string)", false, "!setregularhours");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdSetRegularHours(string)", false, "!setregularhours");
             }
         }
     }

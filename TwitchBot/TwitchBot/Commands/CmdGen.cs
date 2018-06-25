@@ -67,7 +67,7 @@ namespace TwitchBot.Commands
             _quote = quote;
         }
 
-        public void CmdDisplayCmds()
+        public async void CmdDisplayCmds()
         {
             try
             {
@@ -78,11 +78,11 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdCmds()", false, "!cmds");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdCmds()", false, "!cmds");
             }
         }
 
-        public void CmdHello(string username)
+        public async void CmdHello(string username)
         {
             try
             {
@@ -90,11 +90,11 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdHello(string)", false, "!hello");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdHello(string)", false, "!hello");
             }
         }
 
-        public void CmdUtcTime()
+        public async void CmdUtcTime()
         {
             try
             {
@@ -102,11 +102,11 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdUtcTime()", false, "!utctime");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdUtcTime()", false, "!utctime");
             }
         }
 
-        public void CmdHostTime()
+        public async void CmdHostTime()
         {
             try
             {
@@ -114,7 +114,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdHostTime()", false, "!hosttime");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdHostTime()", false, "!hosttime");
             }
         }
 
@@ -137,7 +137,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdUptime()", false, "!uptime");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdUptime()", false, "!uptime");
             }
         }
 
@@ -146,7 +146,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="isManualSongRequestAvail">Check if song requests are available</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdManualSrList(bool isManualSongRequestAvail, string username)
+        public async Task CmdManualSrList(bool isManualSongRequestAvail, string username)
         {
             try
             {
@@ -164,7 +164,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList(bool, string)", false, "!rbsrl");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList(bool, string)", false, "!rbsrl");
             }
         }
 
@@ -173,7 +173,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="isManualSongRequestAvail">Check if song requests are available</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdManualSrLink(bool isManualSongRequestAvail, string username)
+        public async void CmdManualSrLink(bool isManualSongRequestAvail, string username)
         {
             try
             {
@@ -184,7 +184,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrLink(bool, string)", false, "!rbsl");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrLink(bool, string)", false, "!rbsl");
             }
         }
 
@@ -194,7 +194,7 @@ namespace TwitchBot.Commands
         /// <param name="isSongRequestAvail">Check if song request system is enabled</param>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public void CmdManualSr(bool isSongRequestAvail, string message, string username)
+        public async Task CmdManualSr(bool isSongRequestAvail, string message, string username)
         {
             try
             {
@@ -225,14 +225,14 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSr(bool, string, string)", false, "!rbsr", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSr(bool, string, string)", false, "!rbsr", message);
             }
         }
 
         /// <summary>
         /// Displays the current song being played from Spotify
         /// </summary>
-        public void CmdSpotifyCurr()
+        public async void CmdSpotifyCurr()
         {
             try
             {
@@ -248,7 +248,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdSpotifyCurr()", false, "!spotifycurr");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSpotifyCurr()", false, "!spotifycurr");
             }
         }
 
@@ -257,7 +257,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public DateTime CmdSlap(string message, string username)
+        public async Task<DateTime> CmdSlap(string message, string username)
         {
             try
             {
@@ -267,7 +267,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdSlap(string, string)", false, "!slap", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSlap(string, string)", false, "!slap", message);
             }
 
             return DateTime.Now;
@@ -278,7 +278,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public DateTime CmdStab(string message, string username)
+        public async Task<DateTime> CmdStab(string message, string username)
         {
             try
             {
@@ -288,7 +288,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdStab(string, string)", false, "!stab", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdStab(string, string)", false, "!stab", message);
             }
 
             return DateTime.Now;
@@ -299,7 +299,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public DateTime CmdShoot(string message, string username)
+        public async Task<DateTime> CmdShoot(string message, string username)
         {
             try
             {
@@ -345,7 +345,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdShoot(string, string)", false, "!shoot", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdShoot(string, string)", false, "!shoot", message);
             }
 
             return DateTime.Now;
@@ -356,7 +356,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public DateTime CmdThrow(string message, string username)
+        public async Task<DateTime> CmdThrow(string message, string username)
         {
             try
             {
@@ -375,7 +375,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdThrow(string, string)", false, "!throw", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdThrow(string, string)", false, "!throw", message);
             }
 
             return DateTime.Now;
@@ -429,7 +429,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUp(string, string)", false, "!partyup", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUp(string, string)", false, "!partyup", message);
             }
         }
 
@@ -452,7 +452,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUpRequestList()", false, "!partyuprequestlist");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUpRequestList()", false, "!partyuprequestlist");
             }
         }
 
@@ -475,7 +475,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUpList()", false, "!partyuplist");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUpList()", false, "!partyuplist");
             }
         }
 
@@ -496,7 +496,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdCheckFunds(string)", false, "![currency name]");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdCheckFunds(string)", false, "![currency name]");
             }
         }
 
@@ -557,7 +557,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdGamble(string, string)", false, "!gamble", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGamble(string, string)", false, "!gamble", message);
             }
 
             return DateTime.Now;
@@ -566,7 +566,7 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Display random broadcaster quote
         /// </summary>
-        public async Task CmdQuote()
+        public async void CmdQuote()
         {
             try
             {
@@ -591,7 +591,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdQuote()", false, "!quote");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdQuote()", false, "!quote");
             }
         }
 
@@ -600,7 +600,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <returns></returns>
-        public async Task CmdFollowSince(string username)
+        public async void CmdFollowSince(string username)
         {
             try
             {
@@ -634,7 +634,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdFollowSince(string)", false, "!followsince");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdFollowSince(string)", false, "!followsince");
             }
         }
 
@@ -643,7 +643,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <returns></returns>
-        public async Task CmdViewRank(string username)
+        public async void CmdViewRank(string username)
         {
             try
             {
@@ -692,7 +692,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdViewRank(string)", false, "!rank");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdViewRank(string)", false, "!rank");
             }
         }
 
@@ -869,7 +869,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest(string, string, bool, bool)", false, "!ytsr");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest(string, string, bool, bool)", false, "!ytsr");
             }
 
             return DateTime.Now;
@@ -880,7 +880,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="hasYouTubeAuth">Checks if broadcaster allowed this bot to post videos to the playlist</param>
         /// <param name="isYouTubeSongRequestAvail">Checks if users can request songs</param>
-        public void CmdYouTubeSongRequestList(bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
+        public async void CmdYouTubeSongRequestList(bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
         {
             try
             {
@@ -896,7 +896,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequestList(bool, bool)", false, "!ytsl");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequestList(bool, bool)", false, "!ytsl");
             }
         }
 
@@ -905,7 +905,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <param name="multiStreamUsers">List of broadcasters that are a part of the link</param>
-        public void CmdMultiStreamLink(string username, List<string> multiStreamUsers)
+        public async void CmdMultiStreamLink(string username, List<string> multiStreamUsers)
         {
             try
             {
@@ -931,7 +931,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdMultiStream(string, List<string>)", false, "!msl");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdMultiStream(string, List<string>)", false, "!msl");
             }
         }
 
@@ -939,7 +939,7 @@ namespace TwitchBot.Commands
         /// Ask any question and the Magic 8 Ball will give a fortune
         /// </summary>
         /// <param name="username">User that sent the message</param>
-        public DateTime CmdMagic8Ball(string username)
+        public async Task<DateTime> CmdMagic8Ball(string username)
         {
             try
             {
@@ -975,7 +975,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdMagic8Ball(string)", false, "!8ball");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdMagic8Ball(string)", false, "!8ball");
             }
 
             return DateTime.Now;
@@ -985,7 +985,7 @@ namespace TwitchBot.Commands
         /// Disply the top 3 richest users (if available)
         /// </summary>
         /// <param name="username">User that sent the message</param>
-        public async Task CmdLeaderboardCurrency(string username)
+        public async void CmdLeaderboardCurrency(string username)
         {
             try
             {
@@ -1018,7 +1018,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardCurrency(string)", false, "![currency name]top3");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardCurrency(string)", false, "![currency name]top3");
             }
         }
 
@@ -1026,7 +1026,7 @@ namespace TwitchBot.Commands
         /// Display the top 3 highest ranking members (if available)
         /// </summary>
         /// <param name="username">User that sent the message</param>
-        public async Task CmdLeaderboardRank(string username)
+        public async void CmdLeaderboardRank(string username)
         {
             try
             {
@@ -1064,7 +1064,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardRank(string)", false, "!ranktop3");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardRank(string)", false, "!ranktop3");
             }
         }
 
@@ -1150,7 +1150,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdRussianRoulette(string, ref List<RouletteUser>)", false, "!roulette");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdRussianRoulette(string, ref List<RouletteUser>)", false, "!roulette");
             }
 
             return DateTime.Now;
@@ -1161,7 +1161,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
-        public async Task CmdListGotNextGame(string username, Queue<string> gameQueueUsers)
+        public async void CmdListGotNextGame(string username, Queue<string> gameQueueUsers)
         {
             try
             {
@@ -1186,7 +1186,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdListGotNextGame(string, Queue<string>)", false, "!listgotnext");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdListGotNextGame(string, Queue<string>)", false, "!listgotnext");
             }
         }
 
@@ -1215,7 +1215,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdGotNextGame(string, Queue<string>)", false, "!gotnextgame");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGotNextGame(string, Queue<string>)", false, "!gotnextgame");
             }
 
             return gameQueueUsers;
@@ -1316,7 +1316,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdBankHeist(string, string)", false, "!bankheist");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdBankHeist(string, string)", false, "!bankheist");
             }
         }
 
@@ -1344,7 +1344,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdSubscribe()", false, "!sub");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSubscribe()", false, "!sub");
             }
         }
 
@@ -1353,7 +1353,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <returns></returns>
-        public void CmdSubscribeSince(string username)
+        public async Task CmdSubscribeSince(string username)
         {
             try
             {
@@ -1371,7 +1371,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdSubscribeSince(string)", false, "!subsince");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSubscribeSince(string)", false, "!subsince");
             }
         }
 
@@ -1466,7 +1466,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdBossFight(string, string)", false, "!raid");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdBossFight(string, string)", false, "!raid");
             }
         }
 
@@ -1475,7 +1475,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <returns></returns>
-        public DateTime CmdLurk(string username)
+        public async Task<DateTime> CmdLurk(string username)
         {
             try
             {
@@ -1484,7 +1484,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdLurk(string)", false, "!lurk");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLurk(string)", false, "!lurk");
             }
 
             return DateTime.Now;
@@ -1495,7 +1495,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <returns></returns>
-        public DateTime CmdUnlurk(string username)
+        public async Task<DateTime> CmdUnlurk(string username)
         {
             try
             {
@@ -1504,7 +1504,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdUnlurk(string)", false, "!unlurk");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdUnlurk(string)", false, "!unlurk");
             }
 
             return DateTime.Now;
@@ -1513,7 +1513,7 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Display a link to the broadcaster's community
         /// </summary>
-        public void CmdCommunity()
+        public async void CmdCommunity()
         {
             try
             {
@@ -1524,7 +1524,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdCommunity()", false, "!community");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdCommunity()", false, "!community");
             }
         }
 
@@ -1573,7 +1573,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                _errHndlrInstance.LogError(ex, "CmdGen", "CmdGiveFunds(string, string)", false, "!give");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGiveFunds(string, string)", false, "!give");
             }
         }
 
