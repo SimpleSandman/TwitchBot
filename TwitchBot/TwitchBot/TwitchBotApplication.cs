@@ -21,6 +21,8 @@ using TwitchBot.Services;
 using TwitchBot.Threads;
 using TwitchBot.Models.JSON;
 
+using TwitchBotDb.Models;
+
 namespace TwitchBot
 {
     public class TwitchBotApplication
@@ -55,9 +57,9 @@ namespace TwitchBot
         private BossFight _bossFight;
         private TwitchChatterListener _twitchChatterListener;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
-        private Moderator _modInstance = Moderator.Instance;
+        private ModeratorSingleton _modInstance = ModeratorSingleton.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
-        private Broadcaster _broadcasterInstance = Broadcaster.Instance;
+        private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private BankHeistSingleton _bankHeistInstance = BankHeistSingleton.Instance;
         private BossFightSingleton _bossFightInstance = BossFightSingleton.Instance;
 
@@ -248,7 +250,7 @@ namespace TwitchBot
                 string gameTitle = json.Game;
 
                 // Grab game id in order to find party member
-                TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
+                GameList game = await _gameDirectory.GetGameId(gameTitle);
 
                 await _bossFightInstance.LoadSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
 
@@ -974,26 +976,30 @@ namespace TwitchBot
                     Environment.Exit(0);
                 }
 
-                if (_broadcasterInstance.FindBroadcasterByUserInfo(json.Users.First().Name, json.Users.First().Id, _connStr))
-                {
-                    return;
-                }
+                await _broadcasterInstance.FindBroadcaster(json.Users.First().Id, _botConfig.TwitchBotApiLink);
 
                 // check if user exists, but changed their username
-                if (_broadcasterInstance.FindBroadcasterByTwitchId(json.Users.First().Id, _connStr))
+                if (_broadcasterInstance.TwitchId != null)
                 {
-                    _broadcasterInstance.UpdateBroadcasterUsername(_connStr);
-                }
+                    if (_broadcasterInstance.Username.ToLower() != json.Users.First().Name)
+                    {
+                        _broadcasterInstance.Username = json.Users.First().Name;
+
+                        await _broadcasterInstance.UpdateBroadcaster(_botConfig.TwitchBotApiLink);
+                    }
+                    else
+                        return;
+                }                
                 else // add new user
                 {
                     _broadcasterInstance.Username = json.Users.First().Name;
                     _broadcasterInstance.TwitchId = json.Users.First().Id;
 
-                    _broadcasterInstance.AddBroadcaster(_connStr);
+                    await _broadcasterInstance.AddBroadcaster(_botConfig.TwitchBotApiLink);
                 }
 
                 // check if user was inserted/updated correctly
-                _broadcasterInstance.FindBroadcasterByUserInfo(_broadcasterInstance.Username, _broadcasterInstance.TwitchId, _connStr);
+                await _broadcasterInstance.FindBroadcaster(_broadcasterInstance.TwitchId, _botConfig.TwitchBotApiLink, _broadcasterInstance.Username);
             }
             catch (Exception ex)
             {

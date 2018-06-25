@@ -22,6 +22,8 @@ using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 using TwitchBot.Threads;
 
+using TwitchBotDb.Models;
+
 namespace TwitchBot.Commands
 {
     public class CmdGen
@@ -39,7 +41,7 @@ namespace TwitchBot.Commands
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
         private QuoteService _quote;
-        private Moderator _modInstance = Moderator.Instance;
+        private ModeratorSingleton _modInstance = ModeratorSingleton.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private BankHeistSingleton _heistSettingsInstance = BankHeistSingleton.Instance;
@@ -399,7 +401,7 @@ namespace TwitchBot.Commands
                     ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                     string gameTitle = json.Game;
                     string partyMember = message.Substring(inputIndex);
-                    TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
+                    GameList game = await _gameDirectory.GetGameId(gameTitle);
 
                     // if the game is not found
                     // tell users this game is not accepting party up requests
@@ -441,7 +443,7 @@ namespace TwitchBot.Commands
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = json.Game;
-                TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
+                GameList game = await _gameDirectory.GetGameId(gameTitle);
 
                 if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
@@ -464,7 +466,7 @@ namespace TwitchBot.Commands
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = json.Game;
-                TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
+                GameList game = await _gameDirectory.GetGameId(gameTitle);
 
                 if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
@@ -568,7 +570,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                List<TwitchBotDb.Models.Quote> quotes = await _quote.GetQuotes(_broadcasterId);
+                List<Quote> quotes = await _quote.GetQuotes(_broadcasterId);
 
                 // Check if there any quotes inside the system
                 if (quotes == null || quotes.Count == 0)
@@ -579,7 +581,7 @@ namespace TwitchBot.Commands
                     Random rnd = new Random(DateTime.Now.Millisecond);
                     int index = rnd.Next(quotes.Count);
 
-                    TwitchBotDb.Models.Quote resultingQuote = new TwitchBotDb.Models.Quote();
+                    Quote resultingQuote = new Quote();
                     resultingQuote = quotes.ElementAt(index); // grab random quote from list of quotes
                     string quoteResult = $"\"{resultingQuote.UserQuote}\" - {_botConfig.Broadcaster} " +
                         $"({resultingQuote.TimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {resultingQuote.TimeCreated.Year})";
@@ -669,8 +671,8 @@ namespace TwitchBot.Commands
                     // Grab the follower's associated rank
                     if (currExp > -1)
                     {
-                        IEnumerable<TwitchBotDb.Models.Rank> rankList = await _follower.GetRankList(_broadcasterId);
-                        TwitchBotDb.Models.Rank currFollowerRank = _follower.GetCurrentRank(rankList, currExp);
+                        IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterId);
+                        Rank currFollowerRank = _follower.GetCurrentRank(rankList, currExp);
                         decimal hoursWatched = _follower.GetHoursWatched(currExp);
 
                         _irc.SendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" "
@@ -987,7 +989,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                List<TwitchBotDb.Models.Bank> richestUsers = await _bank.GetCurrencyLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
+                List<Bank> richestUsers = await _bank.GetCurrencyLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
 
                 if (richestUsers.Count == 0)
                 {
@@ -996,7 +998,7 @@ namespace TwitchBot.Commands
                 }
 
                 string resultMsg = "";
-                foreach (TwitchBotDb.Models.Bank user in richestUsers)
+                foreach (Bank user in richestUsers)
                 {
                     resultMsg += $"\"{user.Username}\" with {user.Wallet} {_botConfig.CurrencyType}, ";
                 }
@@ -1028,7 +1030,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                IEnumerable<TwitchBotDb.Models.RankFollowers> highestRankedFollowers = await _follower.GetFollowersLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
+                IEnumerable<RankFollowers> highestRankedFollowers = await _follower.GetFollowersLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
 
                 if (highestRankedFollowers.Count() == 0)
                 {
@@ -1036,12 +1038,12 @@ namespace TwitchBot.Commands
                     return;
                 }
 
-                IEnumerable<TwitchBotDb.Models.Rank> rankList = await _follower.GetRankList(_broadcasterId);
+                IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterId);
 
                 string resultMsg = "";
-                foreach (TwitchBotDb.Models.RankFollowers follower in highestRankedFollowers)
+                foreach (RankFollowers follower in highestRankedFollowers)
                 {
-                    TwitchBotDb.Models.Rank currFollowerRank = _follower.GetCurrentRank(rankList, follower.Exp);
+                    Rank currFollowerRank = _follower.GetCurrentRank(rankList, follower.Exp);
                     decimal hoursWatched = _follower.GetHoursWatched(follower.Exp);
 
                     resultMsg += $"\"{currFollowerRank.Name} {follower.Username}\" with {hoursWatched} hour(s), ";
@@ -1599,7 +1601,7 @@ namespace TwitchBot.Commands
             string gameTitle = json.Game;
 
             // Grab game id in order to find party member
-            TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
+            GameList game = await _gameDirectory.GetGameId(gameTitle);
 
             if (game == null || game.Id == 0)
             {

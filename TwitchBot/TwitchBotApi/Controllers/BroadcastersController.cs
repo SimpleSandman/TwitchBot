@@ -21,10 +21,10 @@ namespace TwitchBotApi.Controllers
             _context = context;
         }
 
-        // GET: api/broadcasters/getuserinfo/12345678
-        // GET: api/broadcasters/getuserinfo/12345678?username=simple_sandman
+        // GET: api/broadcasters/get/12345678
+        // GET: api/broadcasters/get/12345678?username=simple_sandman
         [HttpGet("{twitchId:int}")]
-        public async Task<IActionResult> GetUserInfo([FromRoute] int twitchId, [FromQuery] string username = "")
+        public async Task<IActionResult> Get([FromRoute] int twitchId, [FromQuery] string username = "")
         {
             if (!ModelState.IsValid)
             {
@@ -46,10 +46,10 @@ namespace TwitchBotApi.Controllers
             return Ok(broadcaster);
         }
 
-        // PUT: api/broadcasters/updateusername/12345678
-        // Body (JSON): { "id": 2, "username": "simple_sandman", "timeAdded": "1970-01-01T00:00:00.000", "twitchId": 12345678 }
+        // PUT: api/broadcasters/update/12345678
+        // Body (JSON): { "username": "simple_sandman", "twitchId": 12345678 }
         [HttpPut("{twitchId:int}")]
-        public async Task<IActionResult> UpdateUsername([FromRoute] int twitchId, [FromBody] Broadcasters broadcaster)
+        public async Task<IActionResult> Update([FromRoute] int twitchId, [FromBody] Broadcasters broadcaster)
         {
             if (!ModelState.IsValid)
             {
@@ -61,7 +61,14 @@ namespace TwitchBotApi.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(broadcaster).State = EntityState.Modified;
+            Broadcasters updatedbroadcaster = await _context.Broadcasters.FirstOrDefaultAsync(m => m.TwitchId == twitchId);
+            if (updatedbroadcaster == null)
+            {
+                return NotFound();
+            }
+
+            updatedbroadcaster.Username = broadcaster.Username;
+            _context.Broadcasters.Update(updatedbroadcaster);
 
             try
             {
@@ -95,7 +102,7 @@ namespace TwitchBotApi.Controllers
             _context.Broadcasters.Add(broadcaster);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUserInfo", new { twitchId = broadcaster.TwitchId }, broadcaster);
+            return CreatedAtAction("Get", new { twitchId = broadcaster.TwitchId }, broadcaster);
         }
 
         private bool BroadcasterExists(int twitchId)

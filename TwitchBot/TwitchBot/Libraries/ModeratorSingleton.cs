@@ -5,9 +5,9 @@ using System.Data.SqlClient;
 
 namespace TwitchBot.Libraries
 {
-    public sealed class Moderator
+    public sealed class ModeratorSingleton
     {
-        private static volatile Moderator _instance;
+        private static volatile ModeratorSingleton _instance;
         private static object _syncRoot = new Object();
 
         private List<string> _listMods = new List<string>();
@@ -17,9 +17,9 @@ namespace TwitchBot.Libraries
             get { return _listMods; }
         }
 
-        private Moderator() { }
+        private ModeratorSingleton() { }
 
-        public static Moderator Instance
+        public static ModeratorSingleton Instance
         {
             get
             {
@@ -30,7 +30,7 @@ namespace TwitchBot.Libraries
                     {
                         // second check
                         if (_instance == null)
-                            _instance = new Moderator();
+                            _instance = new ModeratorSingleton();
                     }
                 }
 

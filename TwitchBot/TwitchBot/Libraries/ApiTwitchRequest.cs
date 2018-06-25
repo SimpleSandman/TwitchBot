@@ -14,7 +14,7 @@ namespace TwitchBot.Libraries
 {
     public class ApiTwitchRequest
     {
-        public static async Task<T> GetTwitchExecuteTaskAsync<T>(string basicUrl, string clientId)
+        public static async Task<T> GetExecuteTaskAsync<T>(string basicUrl, string clientId)
         {
             try
             {
@@ -46,7 +46,7 @@ namespace TwitchBot.Libraries
             return default(T);
         }
 
-        public static async Task<T> GetTwitchWithOAuthExecuteTaskAsync<T>(string basicUrl, string accessToken, string clientId)
+        public static async Task<T> GetWithOAuthExecuteTaskAsync<T>(string basicUrl, string accessToken, string clientId)
         {
             try
             {

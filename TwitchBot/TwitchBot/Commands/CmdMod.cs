@@ -15,6 +15,7 @@ using TwitchBot.Services;
 using TwitchBot.Models.JSON;
 
 using TwitchBotDb.DTO;
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Commands
 {
@@ -33,9 +34,9 @@ namespace TwitchBot.Commands
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
-        private Moderator _modInstance = Moderator.Instance;
+        private ModeratorSingleton _modInstance = ModeratorSingleton.Instance;
         private TwitterClient _twitter = TwitterClient.Instance;
-        private Broadcaster _broadcasterInstance = Broadcaster.Instance;
+        private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
         public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, 
@@ -300,7 +301,7 @@ namespace TwitchBot.Commands
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = json.Game;
-                TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
+                GameList game = await _gameDirectory.GetGameId(gameTitle);
 
                 _irc.SendPublicChatMessage(await _partyUp.PopRequestedPartyMember(game.Id, _broadcasterId));
             }

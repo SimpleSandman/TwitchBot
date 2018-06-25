@@ -13,12 +13,14 @@ using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 
+using TwitchBotDb.Models;
+
 namespace TwitchBot.Commands
 {
     public class CmdBrdCstr
     {
         private IrcClient _irc;
-        private Moderator _modInstance = Moderator.Instance;
+        private ModeratorSingleton _modInstance = ModeratorSingleton.Instance;
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
         private string _connStr;
@@ -28,7 +30,7 @@ namespace TwitchBot.Commands
         private GameDirectoryService _gameDirectory;
         private TwitterClient _twitter = TwitterClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
-        private Broadcaster _broadcasterInstance = Broadcaster.Instance;
+        private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private BossFightSingleton _bossFightSettingsInstance = BossFightSingleton.Instance;
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, 
@@ -594,7 +596,7 @@ namespace TwitchBot.Commands
                 string gameTitle = json.Game;
 
                 // Grab game id in order to find party member
-                TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
+                GameList game = await _gameDirectory.GetGameId(gameTitle);
 
                 // During refresh, make sure no fighters can join
                 _bossFightSettingsInstance.RefreshBossFight = true;

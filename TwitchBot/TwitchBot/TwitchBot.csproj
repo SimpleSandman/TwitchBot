@@ -208,7 +208,7 @@
     <Compile Include="Threads\TwitchChatterListener.cs" />
     <Compile Include="Libraries\TwitterClient.cs" />
     <Compile Include="Libraries\YouTubeClient.cs" />
-    <Compile Include="Libraries\Broadcaster.cs" />
+    <Compile Include="Libraries\BroadcasterSingleton.cs" />
     <Compile Include="Models\BankHeistSingleton.cs" />
     <Compile Include="Models\BossFightSingleton.cs" />
     <Compile Include="Models\CooldownUser.cs" />
@@ -250,7 +250,7 @@
     <Compile Include="Threads\FollowerSubscriberListener.cs" />
     <Compile Include="Models\JSON\FollowerJSON.cs" />
     <Compile Include="Libraries\IrcClient.cs" />
-    <Compile Include="Libraries\Moderator.cs" />
+    <Compile Include="Libraries\ModeratorSingleton.cs" />
     <Compile Include="Threads\PingSender.cs" />
     <Compile Include="Threads\ChatReminder.cs" />
     <Compile Include="Program.cs" />

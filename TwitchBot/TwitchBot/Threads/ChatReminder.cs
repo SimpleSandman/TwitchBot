@@ -11,6 +11,8 @@ using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 
+using TwitchBotDb.Models;
+
 namespace TwitchBot.Threads
 {
     public class ChatReminder
@@ -54,7 +56,7 @@ namespace TwitchBot.Threads
                 ChannelJSON channelJSON = await TwitchApi.GetBroadcasterChannelById(_twitchClientId);
                 string gameTitle = channelJSON.Game;
 
-                TwitchBotDb.Models.GameList game = await _gameDirectory.GetGameId(gameTitle);
+                GameList game = await _gameDirectory.GetGameId(gameTitle);
 
                 if (game == null || game.Id == 0)
                     _gameId = null;

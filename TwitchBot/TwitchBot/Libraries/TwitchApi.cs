@@ -11,31 +11,31 @@ namespace TwitchBot.Libraries
 {
     public class TwitchApi
     {
-        private static Broadcaster _broadcasterInstance = Broadcaster.Instance;
+        private static BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
 
         public static async Task<ChannelJSON> GetBroadcasterChannelById(string clientId)
         {
-            return await ApiTwitchRequest.GetTwitchExecuteTaskAsync<ChannelJSON>("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId, clientId);
+            return await ApiTwitchRequest.GetExecuteTaskAsync<ChannelJSON>("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId, clientId);
         }
 
         public static async Task<ChannelJSON> GetUserChannelById(string userId, string clientId)
         {
-            return await ApiTwitchRequest.GetTwitchExecuteTaskAsync<ChannelJSON>("https://api.twitch.tv/kraken/channels/" + userId, clientId);
+            return await ApiTwitchRequest.GetExecuteTaskAsync<ChannelJSON>("https://api.twitch.tv/kraken/channels/" + userId, clientId);
         }
 
         public static async Task<RootStreamJSON> GetBroadcasterStream(string clientId)
         {
-            return await ApiTwitchRequest.GetTwitchExecuteTaskAsync<RootStreamJSON>("https://api.twitch.tv/kraken/streams/" + _broadcasterInstance.TwitchId, clientId);
+            return await ApiTwitchRequest.GetExecuteTaskAsync<RootStreamJSON>("https://api.twitch.tv/kraken/streams/" + _broadcasterInstance.TwitchId, clientId);
         }
 
         public static async Task<RootStreamJSON> GetUserStream(string userId, string clientId)
         {
-            return await ApiTwitchRequest.GetTwitchExecuteTaskAsync<RootStreamJSON>("https://api.twitch.tv/kraken/streams/" + userId, clientId);
+            return await ApiTwitchRequest.GetExecuteTaskAsync<RootStreamJSON>("https://api.twitch.tv/kraken/streams/" + userId, clientId);
         }
 
         public static async Task<RootUserJSON> GetUsersByLoginName(string loginName, string clientId)
         {
-            return await ApiTwitchRequest.GetTwitchExecuteTaskAsync<RootUserJSON>("https://api.twitch.tv/kraken/users?login=" + loginName, clientId);
+            return await ApiTwitchRequest.GetExecuteTaskAsync<RootUserJSON>("https://api.twitch.tv/kraken/users?login=" + loginName, clientId);
         }
 
         public static async Task<RootSubscriptionJSON> GetSubscribersByChannel(string clientId, string accessToken)
@@ -43,7 +43,7 @@ namespace TwitchBot.Libraries
             string apiUriBaseCall = "https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId 
                 + "/subscriptions?limit=50&direction=desc"; // get 50 newest subscribers
 
-            return await ApiTwitchRequest.GetTwitchWithOAuthExecuteTaskAsync<RootSubscriptionJSON>(apiUriBaseCall, accessToken, clientId);
+            return await ApiTwitchRequest.GetWithOAuthExecuteTaskAsync<RootSubscriptionJSON>(apiUriBaseCall, accessToken, clientId);
         }
 
         public static async Task<RootFollowerJSON> GetFollowersByChannel(string clientId)
@@ -51,7 +51,7 @@ namespace TwitchBot.Libraries
             string apiUriBaseCall = "https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId
                 + "/follows?limit=50&direction=desc"; // get 50 newest followers
 
-            return await ApiTwitchRequest.GetTwitchExecuteTaskAsync<RootFollowerJSON>(apiUriBaseCall, clientId);
+            return await ApiTwitchRequest.GetExecuteTaskAsync<RootFollowerJSON>(apiUriBaseCall, clientId);
         }
 
         public static async Task<HttpResponseMessage> GetFollowerStatus(string chatterTwitchId, string clientId)
