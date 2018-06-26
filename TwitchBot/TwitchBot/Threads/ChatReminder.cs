@@ -4,7 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
-
+using System.Threading.Tasks;
 using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
@@ -19,7 +19,7 @@ namespace TwitchBot.Threads
     {
         private Thread _chatReminderThread;
         private IrcClient _irc;
-        private static string _connStr;
+        private static string _twitchBotApiLink;
         private static bool _refreshReminders;
         private static int _broadcasterId;
         private static string _twitchClientId;
@@ -28,11 +28,11 @@ namespace TwitchBot.Threads
         private static List<Reminder> _reminders;
         private GameDirectoryService _gameDirectory;
 
-        public ChatReminder(IrcClient irc, int broadcasterId, string connStr, string twitchClientId, GameDirectoryService gameDirectory)
+        public ChatReminder(IrcClient irc, int broadcasterId, string twitchBotApiLink, string twitchClientId, GameDirectoryService gameDirectory)
         {
             _irc = irc;
             _broadcasterId = broadcasterId;
-            _connStr = connStr;
+            _twitchBotApiLink = twitchBotApiLink;
             _twitchClientId = twitchClientId;
             _gameDirectory = gameDirectory;
             _lastSecCountdownReminder = -10;
@@ -48,7 +48,7 @@ namespace TwitchBot.Threads
 
         private async void Run()
         {
-            LoadReminderContext(); // initial load
+            await LoadReminderContext(); // initial load
             DateTime midnightNextDay = DateTime.Today.AddDays(1);
 
             while (true)
@@ -93,67 +93,53 @@ namespace TwitchBot.Threads
         /// Manual refresh of reminders
         /// </summary>
         /// <returns></returns>
-        public static void RefreshReminders()
+        public static async Task RefreshReminders()
         {
-            LoadReminderContext();
+            await LoadReminderContext();
             _refreshReminders = true;
         }
 
         /// <summary>
         /// Load reminders from database
         /// </summary>
-        private static void LoadReminderContext()
+        private static async Task LoadReminderContext()
         {
             _reminders = new List<Reminder>();
+            List<Reminders> reminders = await ApiBotRequest.GetExecuteTaskAsync<List<Reminders>>(_twitchBotApiLink + $"reminders/get/{_broadcasterId}");
 
-            using (SqlConnection conn = new SqlConnection(_connStr))
+            if (reminders != null)
             {
-                // do not show any expired reminders
-                string query = "SELECT * FROM Reminders " 
-                    + "WHERE Broadcaster = @broadcaster " 
-                        + "AND (ExpirationDateUtc IS NULL OR ExpirationDateUtc > GETDATE())";
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                foreach (var reminder in reminders.Where(m => m.ExpirationDateUtc == null || m.ExpirationDateUtc > DateTime.UtcNow))
                 {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterId;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    _reminders.Add(new Reminder
                     {
-                        if (reader.HasRows)
+                        Id = reminder.Id,
+                        GameId = reminder.Game,
+                        IsReminderDay = new bool[7]
                         {
-                            while (reader.Read())
-                            {
-                                _reminders.Add(new Reminder
-                                {
-                                    Id = int.Parse(reader["Id"].ToString()),
-                                    GameId = reader["Game"].ToString().ToNullableInt(),
-                                    IsReminderDay = new bool[7]
-                                    {
-                                        bool.Parse(reader["Sunday"].ToString()),
-                                        bool.Parse(reader["Monday"].ToString()),
-                                        bool.Parse(reader["Tuesday"].ToString()),
-                                        bool.Parse(reader["Wednesday"].ToString()),
-                                        bool.Parse(reader["Thursday"].ToString()),
-                                        bool.Parse(reader["Friday"].ToString()),
-                                        bool.Parse(reader["Saturday"].ToString())
-                                    },
-                                    ReminderSeconds = new int?[]
-                                    {
-                                        reader["ReminderSec1"].ToString().ToNullableInt(),
-                                        reader["ReminderSec2"].ToString().ToNullableInt(),
-                                        reader["ReminderSec3"].ToString().ToNullableInt(),
-                                        reader["ReminderSec4"].ToString().ToNullableInt(),
-                                        reader["ReminderSec5"].ToString().ToNullableInt()
-                                    },
-                                    TimeOfEvent = reader["TimeOfEventUtc"].ToString().ToNullableTimeSpan(),
-                                    ExpirationDate = reader["ExpirationDateUtc"].ToString().ToNullableDateTime(),
-                                    RemindEveryMin = reader["RemindEveryMin"].ToString().ToNullableInt(),
-                                    Message = reader["Message"].ToString(),
-                                    IsCountdownEvent = bool.Parse(reader["IsCountdownEvent"].ToString()),
-                                    HasCountdownTicker = bool.Parse(reader["HasCountdownTicker"].ToString())
-                                });
-                            }
-                        }
-                    }
+                            reminder.Sunday,
+                            reminder.Monday,
+                            reminder.Tuesday,
+                            reminder.Wednesday,
+                            reminder.Thursday,
+                            reminder.Friday,
+                            reminder.Saturday
+                        },
+                        ReminderSeconds = new int?[]
+                        {
+                            reminder.ReminderSec1,
+                            reminder.ReminderSec2,
+                            reminder.ReminderSec3,
+                            reminder.ReminderSec4,
+                            reminder.ReminderSec5
+                        },
+                        TimeOfEvent = reminder.TimeOfEventUtc,
+                        ExpirationDate = reminder.ExpirationDateUtc,
+                        RemindEveryMin = reminder.RemindEveryMin,
+                        Message = reminder.Message,
+                        IsCountdownEvent = reminder.IsCountdownEvent,
+                        HasCountdownTicker = reminder.HasCountdownTicker
+                    });
                 }
             }
         }
@@ -279,7 +265,8 @@ namespace TwitchBot.Threads
                     ReminderId = reminder.Id,
                     Message = reminder.Message,
                     SendDate = DateTime.Now.AddSeconds(setSeconds),
-                    ReminderEveryMin = reminder.RemindEveryMin
+                    ReminderEveryMin = reminder.RemindEveryMin,
+                    ExpirationDateUtc = reminder.ExpirationDate
                 });
 
                 return true;

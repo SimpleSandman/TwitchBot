@@ -34,7 +34,10 @@ namespace TwitchBot.Threads
                     if (Program.DelayedMessages.Count > 0)
                     {
                         /* Make sure to send messages at the proper time */
-                        DelayedMessage delayedMessage = Program.DelayedMessages.FirstOrDefault(m => m.SendDate < DateTime.Now);
+                        DelayedMessage delayedMessage = Program.DelayedMessages
+                            .FirstOrDefault(m => m.SendDate < DateTime.Now 
+                                && (m.ExpirationDateUtc == null || m.ExpirationDateUtc > DateTime.UtcNow));
+
                         if (delayedMessage != null)
                         {
                             _irc.SendPublicChatMessage(delayedMessage.Message);
@@ -49,7 +52,8 @@ namespace TwitchBot.Threads
                                     ReminderId = delayedMessage.ReminderId,
                                     Message = delayedMessage.Message,
                                     SendDate = delayedMessage.SendDate.AddMinutes((double)delayedMessage.ReminderEveryMin),
-                                    ReminderEveryMin = delayedMessage.ReminderEveryMin
+                                    ReminderEveryMin = delayedMessage.ReminderEveryMin,
+                                    ExpirationDateUtc = delayedMessage.ExpirationDateUtc
                                 });
                             }
                         }

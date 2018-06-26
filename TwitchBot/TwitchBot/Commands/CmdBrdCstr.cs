@@ -572,11 +572,11 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async void CmdRefreshReminders()
+        public async Task CmdRefreshReminders()
         {
             try
             {
-                Threads.ChatReminder.RefreshReminders();
+                await Threads.ChatReminder.RefreshReminders();
             }
             catch (Exception ex)
             {
