@@ -284,7 +284,7 @@ namespace TwitchBot.Commands
             {
                 string recipient = message.Substring(message.IndexOf("@") + 1); // grab user from message
                 recipient = await _modInstance.AddModerator(recipient.ToLower(), _broadcasterId, _botConfig.TwitchBotApiLink); // add user to mod list and add to db
-                _irc.SendPublicChatMessage($"@{recipient} is now able to access my more intimate features");
+                _irc.SendPublicChatMessage($"@{recipient} is now able to access my more \"intimate features\" TehePelo");
             }
             catch (Exception ex)
             {
@@ -301,8 +301,13 @@ namespace TwitchBot.Commands
             try
             {
                 string recipient = message.Substring(message.IndexOf("@") + 1); // grab user from message
+
                 recipient = await _modInstance.DeleteModerator(recipient.ToLower(), _broadcasterId, _botConfig.TwitchBotApiLink); // delete user from mod list and remove from db
-                _irc.SendPublicChatMessage($"@{recipient} is no longer able to use my more intimate features");
+
+                if (!string.IsNullOrEmpty(recipient))
+                    _irc.SendPublicChatMessage($"@{recipient} is no longer able to use my more \"intimate features\" TehePelo");
+                else
+                    _irc.SendPublicChatMessage($"Cannot find the user you wish to timeout @{_botConfig.Broadcaster}");
             }
             catch (Exception ex)
             {

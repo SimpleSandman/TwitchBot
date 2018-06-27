@@ -458,7 +458,7 @@ namespace TwitchBot
                                 /* insert more broadcaster commands here */
                             }
 
-                            if (!IsUserTimedout(message, username))
+                            if (!await IsUserTimedout(message, username))
                             {
                                 /*
                                  * Moderator commands (also checks if user has been timed out from using a command)
@@ -874,20 +874,20 @@ namespace TwitchBot
         /// <param name="message"></param>
         /// <param name="username"></param>
         /// <returns></returns>
-        private bool IsUserTimedout(string message, string username)
+        private async Task<bool> IsUserTimedout(string message, string username)
         {
             TimeoutUser user = _timeout.TimedoutUsers.FirstOrDefault(u => u.Username.Equals(username));
 
             if (user == null) return false;
             else if (user.TimeoutExpiration < DateTime.UtcNow)
             {
-                _timeout.DeleteTimeoutFromList(username, _broadcasterInstance.DatabaseId, _connStr);
+                await _timeout.DeleteTimeout(username, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
                 return false;
             }
             else if (!user.HasBeenWarned)
             {
                 user.HasBeenWarned = true; // prevent spamming timeout message
-                string timeout = _timeout.GetTimeoutFromUser(username, _broadcasterInstance.DatabaseId, _connStr);
+                string timeout = await _timeout.GetTimeout(username, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
 
                 if (timeout.Equals("0 seconds"))
                     return false;

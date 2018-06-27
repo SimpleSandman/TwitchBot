@@ -23,15 +23,21 @@ namespace TwitchBotApi.Controllers
         }
 
         // GET: api/userbottimeouts/get/2
+        // GET: api/userbottimeouts/get/2?username=simple_sandman
         [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int broadcasterId)
+        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] string username = "")
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            List<UserBotTimeout> botTimeouts = await _context.UserBotTimeout.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+            var botTimeouts = new object();
+
+            if (string.IsNullOrEmpty(username))
+                botTimeouts = await _context.UserBotTimeout.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+            else
+                botTimeouts = await _context.UserBotTimeout.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId && m.Username == username);
 
             if (botTimeouts == null)
             {
@@ -41,27 +47,27 @@ namespace TwitchBotApi.Controllers
             return Ok(botTimeouts);
         }
 
-        // PATCH: api/userbottimeouts/patch/2?id=5
+        // PATCH: api/userbottimeouts/patch/2?username=simple_sandman
         // Body (JSON): [{ "op": "replace", "path": "/timeout", "value": "1/1/1970 12:00:00 AM" }]
         // Special note: The "timeout" value is based on T-SQL DateTime so any format it can take will do
         [HttpPatch("{broadcasterId:int}")]
-        public async Task<IActionResult> Patch([FromRoute] int broadcasterId, [FromQuery] int id, [FromBody]JsonPatchDocument<UserBotTimeout> botTimeoutPatch)
+        public async Task<IActionResult> Patch([FromRoute] int broadcasterId, [FromQuery] string username, [FromBody]JsonPatchDocument<UserBotTimeout> botTimeoutPatch)
         {
-            UserBotTimeout botTimeout = _context.UserBotTimeout.SingleOrDefault(m => m.Id == id && m.Broadcaster == broadcasterId);
+            UserBotTimeout userBotTimeout = _context.UserBotTimeout.SingleOrDefault(m => m.Username == username && m.Broadcaster == broadcasterId);
 
-            if (botTimeout == null)
+            if (userBotTimeout == null)
             {
                 return BadRequest();
             }
 
-            botTimeoutPatch.ApplyTo(botTimeout, ModelState);
+            botTimeoutPatch.ApplyTo(userBotTimeout, ModelState);
 
             if (!ModelState.IsValid)
             {
                 return new BadRequestObjectResult(ModelState);
             }
 
-            _context.UserBotTimeout.Update(botTimeout);
+            _context.UserBotTimeout.Update(userBotTimeout);
 
             try
             {
@@ -69,7 +75,7 @@ namespace TwitchBotApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserBotTimeoutExists(id))
+                if (!UserBotTimeoutExists(broadcasterId, username))
                 {
                     return NotFound();
                 }
@@ -79,7 +85,7 @@ namespace TwitchBotApi.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(userBotTimeout);
         }
 
         // POST: api/userbottimeouts/create
@@ -96,19 +102,19 @@ namespace TwitchBotApi.Controllers
             _context.UserBotTimeout.Add(userBotTimeout);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return CreatedAtAction("Get", new { broadcasterId = userBotTimeout.Broadcaster, username = userBotTimeout.Username }, userBotTimeout);
         }
 
-        // DELETE: api/userbottimeouts/delete/2?id=2
+        // DELETE: api/userbottimeouts/delete/2?username=simple_sandman
         [HttpDelete("{broadcasterId:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int broadcasterId, [FromQuery] int id)
+        public async Task<IActionResult> Delete([FromRoute] int broadcasterId, [FromQuery] string username)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var userBotTimeout = await _context.UserBotTimeout.SingleOrDefaultAsync(m => m.Id == id && m.Broadcaster == broadcasterId);
+            var userBotTimeout = await _context.UserBotTimeout.SingleOrDefaultAsync(m => m.Username == username && m.Broadcaster == broadcasterId);
             if (userBotTimeout == null)
             {
                 return NotFound();
@@ -117,12 +123,12 @@ namespace TwitchBotApi.Controllers
             _context.UserBotTimeout.Remove(userBotTimeout);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(userBotTimeout);
         }
 
-        private bool UserBotTimeoutExists(int id)
+        private bool UserBotTimeoutExists(int broadcasterId, string username)
         {
-            return _context.UserBotTimeout.Any(e => e.Id == id);
+            return _context.UserBotTimeout.Any(e => e.Id == broadcasterId && e.Username == username);
         }
     }
 }

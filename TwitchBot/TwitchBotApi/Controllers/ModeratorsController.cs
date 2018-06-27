@@ -79,7 +79,7 @@ namespace TwitchBotApi.Controllers
             _context.Moderators.Remove(moderator);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { broadcasterId = moderator.Broadcaster }, moderator);
+            return Ok(moderator);
         }
 
         private bool ModeratorExists(string username, int broadcasterId)

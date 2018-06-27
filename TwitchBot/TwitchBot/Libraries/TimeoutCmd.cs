@@ -1,102 +1,76 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
+using System.Threading.Tasks;
 
 using TwitchBot.Models;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Libraries
 {
     public class TimeoutCmd
     {
-        private List<TimeoutUser> _timedoutUsers = new List<TimeoutUser>();
+        public List<TimeoutUser> TimedoutUsers { get; set; } = new List<TimeoutUser>();
 
-        public List<TimeoutUser> TimedoutUsers
+        public async Task<DateTime> AddTimeout(string recipient, int broadcasterId, double seconds, string twitchBotApiLink)
         {
-            get { return _timedoutUsers; }
-            set { _timedoutUsers = value; }
+            DateTime timeoutExpiration = DateTime.UtcNow.AddSeconds(seconds);
+
+            UserBotTimeout timedoutUser = new UserBotTimeout();
+
+            if (TimedoutUsers.Any(m => m.Username == recipient))
+            {
+                timedoutUser = await ApiBotRequest.PatchExecuteTaskAsync<UserBotTimeout>(
+                    twitchBotApiLink + $"userbottimeouts/patch/{broadcasterId}?username={recipient}", 
+                    "timeout", 
+                    timeoutExpiration);
+
+                TimedoutUsers.RemoveAll(t => t.Username == recipient);
+            }
+            else
+            {
+                timedoutUser = await ApiBotRequest.PostExecuteTaskAsync(
+                    twitchBotApiLink + $"userbottimeouts/create",
+                    new UserBotTimeout { Username = recipient, Timeout = timeoutExpiration, Broadcaster = broadcasterId }
+                );
+            }
+
+            TimedoutUsers.Add(new TimeoutUser
+            {
+                Username = recipient,
+                TimeoutExpiration = timeoutExpiration,
+                HasBeenWarned = false
+            });
+
+            return timeoutExpiration;
         }
 
-        public void AddTimeoutToList(string recipient, int broadcasterId, double seconds, string connStr)
+        public async Task<string> DeleteTimeout(string recipient, int broadcasterId, string twitchBotApiLink)
         {
-            try
-            {
-                string query = "INSERT INTO UserBotTimeout (Username, Broadcaster, Timeout) VALUES (@username, @broadcaster, @timeout)";
-                DateTime timeoutDuration = new DateTime();
-                timeoutDuration = DateTime.UtcNow.AddSeconds(seconds);
+            UserBotTimeout removedTimeout = await ApiBotRequest.DeleteExecuteTaskAsync<UserBotTimeout>(twitchBotApiLink + $"userbottimeouts/delete/{broadcasterId}?username={recipient}");
+            if (removedTimeout == null) return "";
 
-                // Create connection and command
-                using (SqlConnection conn = new SqlConnection(connStr))
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = recipient;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
-                    cmd.Parameters.Add("@timeout", SqlDbType.DateTime).Value = timeoutDuration;
+            string name = removedTimeout.Username;
 
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                }
-
-                _timedoutUsers.Add(new TimeoutUser
-                {
-                    Username = recipient,
-                    TimeoutExpiration = timeoutDuration,
-                    HasBeenWarned = false
-                });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            TimedoutUsers.RemoveAll(r => r.Username == name);
+            return name;
         }
 
-        public void DeleteTimeoutFromList(string recipient, int broadcasterId, string connStr)
+        public async Task<string> GetTimeout(string recipient, int broadcasterId, string twitchBotApiLink)
         {
-            try
+            TimeoutUser timeoutUser = TimedoutUsers.FirstOrDefault(r => r.Username == recipient);
+            if (timeoutUser != null)
             {
-                string query = "DELETE FROM UserBotTimeout WHERE Username = @username AND Broadcaster = @broadcaster";
-
-                // Create connection and command
-                using (SqlConnection conn = new SqlConnection(connStr))
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                if (timeoutUser.TimeoutExpiration < DateTime.UtcNow)
                 {
-                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = recipient;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
-
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
+                    await DeleteTimeout(recipient, broadcasterId, twitchBotApiLink);
                 }
-
-                _timedoutUsers.RemoveAll(r => r.Username == recipient);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-
-        public string GetTimeoutFromUser(string recipient, int broadcasterId, string connStr)
-        {
-            try
-            {
-                TimeoutUser timeoutUser = _timedoutUsers.FirstOrDefault(r => r.Username == recipient);
-                if (timeoutUser != null)
+                else
                 {
-                    if (timeoutUser.TimeoutExpiration < DateTime.UtcNow)
-                    {
-                        DeleteTimeoutFromList(recipient, broadcasterId, connStr);
-                    }
-                    else
-                    {
-                        TimeSpan timeout = timeoutUser.TimeoutExpiration - DateTime.UtcNow;
-                        return timeout.ToString(@"hh\:mm\:ss");
-                    }
+                    TimeSpan timeout = timeoutUser.TimeoutExpiration - DateTime.UtcNow;
+                    return timeout.ToString(@"hh\:mm\:ss");
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
             }
 
             return "0 seconds"; // if cannot find timeout

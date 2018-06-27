@@ -339,9 +339,9 @@ namespace TwitchBot.Commands
                         _irc.SendPublicChatMessage("The duration needs to be at least 15 seconds long. Please try again");
                     else
                     {
-                        _timeout.AddTimeoutToList(recipient, _broadcasterId, seconds, _connStr);
+                        DateTime timeoutExpiration = await _timeout.AddTimeout(recipient, _broadcasterId, seconds, _botConfig.TwitchBotApiLink);
 
-                        _irc.SendPublicChatMessage($"I'm told not to talk to you for {seconds} second(s) @{recipient}");
+                        _irc.SendPublicChatMessage($"I'm told not to talk to you until {timeoutExpiration.ToLocalTime()} ({TimeZone.CurrentTimeZone.StandardName}) @{recipient}");
                     }
                 }
             }
@@ -362,9 +362,12 @@ namespace TwitchBot.Commands
             {
                 string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
 
-                _timeout.DeleteTimeoutFromList(recipient, _broadcasterId, _connStr);
+                recipient = await _timeout.DeleteTimeout(recipient, _broadcasterId, _botConfig.TwitchBotApiLink);
 
-                _irc.SendPublicChatMessage(recipient + " can now interact with me again because of @" + username);
+                if (!string.IsNullOrEmpty(recipient))
+                    _irc.SendPublicChatMessage($"{recipient} can now interact with me again because of @{username} @{_botConfig.Broadcaster}");
+                else
+                    _irc.SendPublicChatMessage($"Cannot find the user you wish to timeout @{username}");
             }
             catch (Exception ex)
             {

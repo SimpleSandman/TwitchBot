@@ -65,6 +65,8 @@ namespace TwitchBot.Libraries
         public async Task<string> DeleteModerator(string recipient, int broadcasterId, string twitchBotApiLink)
         {
             Moderators removedModerator = await ApiBotRequest.DeleteExecuteTaskAsync<Moderators>(twitchBotApiLink + $"moderators/delete/{broadcasterId}?username={recipient}");
+            if (removedModerator == null) return "";
+
             string name = removedModerator.Username;
 
             Moderators.Remove(name);
