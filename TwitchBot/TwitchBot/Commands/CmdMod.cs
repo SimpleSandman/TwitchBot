@@ -155,7 +155,7 @@ namespace TwitchBot.Commands
                 if (message.StartsWith("!deposit @"))
                     _irc.SendPublicChatMessage("Please enter a valid amount to a user @" + username);
                 // Check if moderator is trying to give money to themselves
-                else if (_modInstance.ListMods.Contains(username.ToLower()) && userList.Contains(username.ToLower()))
+                else if (_modInstance.Moderators.Contains(username.ToLower()) && userList.Contains(username.ToLower()))
                     _irc.SendPublicChatMessage($"Entire deposit voided. You cannot add funds to your own account @{username}");
                 else
                 {

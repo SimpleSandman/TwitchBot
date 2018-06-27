@@ -1086,7 +1086,7 @@ namespace TwitchBot.Commands
                     if (rouletteUser != null)
                         Program.RouletteUsers.Remove(rouletteUser);
 
-                    if (_modInstance.ListMods.Contains(username) || _botConfig.Broadcaster.ToLower().Equals(username))
+                    if (_modInstance.Moderators.Contains(username) || _botConfig.Broadcaster.ToLower().Equals(username))
                     {
                         _irc.SendPublicChatMessage($"Enjoy your 15 minutes without russian roulette @{username}");
                         return DateTime.Now.AddMinutes(15);
@@ -1138,7 +1138,7 @@ namespace TwitchBot.Commands
                         responseMessage = $"Congrats on surviving russian roulette. Here's {reward} {_botConfig.CurrencyType}!";
 
                         // Special cooldown for moderators/broadcasters after they win
-                        if (_modInstance.ListMods.Contains(username) || _botConfig.Broadcaster.ToLower().Equals(username))
+                        if (_modInstance.Moderators.Contains(username) || _botConfig.Broadcaster.ToLower().Equals(username))
                         {
                             _irc.SendPublicChatMessage(responseMessage);
                             return DateTime.Now.AddMinutes(5);

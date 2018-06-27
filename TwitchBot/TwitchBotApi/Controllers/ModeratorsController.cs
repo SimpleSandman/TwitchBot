@@ -58,7 +58,7 @@ namespace TwitchBotApi.Controllers
             _context.Moderators.Add(moderator);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return CreatedAtAction("Get", new { broadcasterId = moderator.Broadcaster }, moderator);
         }
 
         // DELETE: api/moderators/delete/2?username=simple_sandman
@@ -70,16 +70,16 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            Moderators moderators = await _context.Moderators.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId && m.Username == username);
-            if (moderators == null)
+            Moderators moderator = await _context.Moderators.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId && m.Username == username);
+            if (moderator == null)
             {
                 return NotFound();
             }
 
-            _context.Moderators.Remove(moderators);
+            _context.Moderators.Remove(moderator);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return CreatedAtAction("Get", new { broadcasterId = moderator.Broadcaster }, moderator);
         }
 
         private bool ModeratorExists(string username, int broadcasterId)

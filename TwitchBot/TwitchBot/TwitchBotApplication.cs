@@ -232,7 +232,7 @@ namespace TwitchBot
                 _twitchChatterListener.Start();
 
                 /* Pull list of mods from database */
-                _modInstance.SetModeratorList(_connStr, _broadcasterInstance.DatabaseId);
+                await _modInstance.GetModerators(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
 
                 /* Pull list of followers and check experience points for stream leveling */
                 _followerSubscriberListener.Start(_irc, _broadcasterInstance.DatabaseId);
@@ -408,12 +408,12 @@ namespace TwitchBot
                                 /* Add viewer to moderator list so they can have access to bot moderator commands */
                                 // Usage: !addmod @[username]
                                 else if (message.StartsWith("!addmod ") && message.Contains("@"))
-                                    _cmdBrdCstr.CmdAddBotMod(message);
+                                    await _cmdBrdCstr.CmdAddBotMod(message);
 
                                 /* Remove moderator from list so they can't access the bot moderator commands */
                                 // Usage: !delmod @[username]
                                 else if (message.StartsWith("!delmod ") && message.Contains("@"))
-                                    _cmdBrdCstr.CmdDelBotMod(message);
+                                    await _cmdBrdCstr.CmdDelBotMod(message);
 
                                 /* List bot moderators */
                                 else if (message.Equals("!listmod"))
@@ -463,7 +463,7 @@ namespace TwitchBot
                                 /*
                                  * Moderator commands (also checks if user has been timed out from using a command)
                                  */
-                                if (username.Equals(_botConfig.Broadcaster) || _modInstance.ListMods.Contains(username.ToLower()))
+                                if (username.Equals(_botConfig.Broadcaster) || _modInstance.Moderators.Contains(username.ToLower()))
                                 {
                                     /* Takes money away from a user */
                                     // Usage: !charge [-amount] @[username]

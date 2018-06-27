@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
+using System.Threading.Tasks;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Libraries
 {
@@ -10,12 +11,7 @@ namespace TwitchBot.Libraries
         private static volatile ModeratorSingleton _instance;
         private static object _syncRoot = new Object();
 
-        private List<string> _listMods = new List<string>();
-
-        public List<string> ListMods
-        {
-            get { return _listMods; }
-        }
+        public List<string> Moderators { get; } = new List<string>();
 
         private ModeratorSingleton() { }
 
@@ -38,27 +34,15 @@ namespace TwitchBot.Libraries
             }
         }
 
-        public void SetModeratorList(string connStr, int broadcasterId)
+        public async Task GetModerators(int broadcasterId, string twitchBotApiLink)
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(connStr))
+                List<Moderators> moderators = await ApiBotRequest.GetExecuteTaskAsync<List<Moderators>>(twitchBotApiLink + $"moderators/get/{broadcasterId}");
+
+                foreach (var moderator in moderators)
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM Moderators WHERE Broadcaster = @broadcaster", conn))
-                    {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _listMods.Add(reader["Username"].ToString());
-                                }
-                            }
-                        }
-                    }
+                    Moderators.Add(moderator.Username);
                 }
             }
             catch (Exception ex)
@@ -67,54 +51,24 @@ namespace TwitchBot.Libraries
             }
         }
 
-        public void AddNewModToList(string recipient, int broadcasterId, string connStr)
+        public async Task<string> AddModerator(string recipient, int broadcasterId, string twitchBotApiLink)
         {
-            try
-            {
-                string query = "INSERT INTO Moderators (Username, Broadcaster) VALUES (@username, @broadcaster)";
+            Moderators freshModerator = new Moderators { Username = recipient, Broadcaster = broadcasterId };
 
-                // Create connection and command
-                using (SqlConnection conn = new SqlConnection(connStr))
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = recipient;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
+            Moderators addedModerator = await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"moderators/create", freshModerator);
+            string name = addedModerator.Username;
 
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                }
-
-                _listMods.Add(recipient);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            Moderators.Add(name);
+            return name;
         }
 
-        public void DeleteOldModFromList(string recipient, int broadcasterId, string connStr)
+        public async Task<string> DeleteModerator(string recipient, int broadcasterId, string twitchBotApiLink)
         {
-            try
-            {
-                string query = "DELETE FROM Moderators WHERE Username = @username AND Broadcaster = @broadcaster";
+            Moderators removedModerator = await ApiBotRequest.DeleteExecuteTaskAsync<Moderators>(twitchBotApiLink + $"moderators/delete/{broadcasterId}?username={recipient}");
+            string name = removedModerator.Username;
 
-                // Create connection and command
-                using (SqlConnection conn = new SqlConnection(connStr))
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.Add("@username", SqlDbType.VarChar, 30).Value = recipient;
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
-
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                }
-
-                _listMods.Remove(recipient);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            Moderators.Remove(name);
+            return name;
         }
     }
 }

@@ -278,13 +278,13 @@ namespace TwitchBot.Commands
         /// Grant viewer to moderator status for this bot's mod commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        public async void CmdAddBotMod(string message)
+        public async Task CmdAddBotMod(string message)
         {
             try
             {
                 string recipient = message.Substring(message.IndexOf("@") + 1); // grab user from message
-                _modInstance.AddNewModToList(recipient.ToLower(), _broadcasterId, _connStr); // add user to mod list and add to db
-                _irc.SendPublicChatMessage("@" + recipient + " is now able to use moderator features within " + _botConfig.BotName);
+                recipient = await _modInstance.AddModerator(recipient.ToLower(), _broadcasterId, _botConfig.TwitchBotApiLink); // add user to mod list and add to db
+                _irc.SendPublicChatMessage($"@{recipient} is now able to access my more intimate features");
             }
             catch (Exception ex)
             {
@@ -296,13 +296,13 @@ namespace TwitchBot.Commands
         /// Revoke moderator status from user for this bot's mods commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        public async void CmdDelBotMod(string message)
+        public async Task CmdDelBotMod(string message)
         {
             try
             {
                 string recipient = message.Substring(message.IndexOf("@") + 1); // grab user from message
-                _modInstance.DeleteOldModFromList(recipient.ToLower(), _broadcasterId, _connStr); // delete user from mod list and remove from db
-                _irc.SendPublicChatMessage("@" + recipient + " is not able to use moderator features within " + _botConfig.BotName + " any longer");
+                recipient = await _modInstance.DeleteModerator(recipient.ToLower(), _broadcasterId, _botConfig.TwitchBotApiLink); // delete user from mod list and remove from db
+                _irc.SendPublicChatMessage($"@{recipient} is no longer able to use my more intimate features");
             }
             catch (Exception ex)
             {
@@ -319,16 +319,16 @@ namespace TwitchBot.Commands
             {
                 string listModMsg = "";
 
-                if (_modInstance.ListMods.Count > 0)
+                if (_modInstance.Moderators.Count > 0)
                 {
-                    foreach (string name in _modInstance.ListMods)
+                    foreach (string name in _modInstance.Moderators)
                         listModMsg += name + " >< ";
 
                     listModMsg = listModMsg.Remove(listModMsg.Length - 3); // removed extra " >< "
-                    _irc.SendPublicChatMessage("List of bot moderators (separate from channel mods): " + listModMsg);
+                    _irc.SendPublicChatMessage($"List of bot moderators (separate from channel mods): {listModMsg}");
                 }
                 else
-                    _irc.SendPublicChatMessage("No one is ruling over me other than you @" + _botConfig.Broadcaster);
+                    _irc.SendPublicChatMessage($"You don't have any bot moderators at the moment. I'm the only mod you'll ever need @{_botConfig.Broadcaster} Kappa");
             }
             catch (Exception ex)
             {
