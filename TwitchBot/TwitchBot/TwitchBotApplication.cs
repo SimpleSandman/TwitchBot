@@ -479,6 +479,10 @@ namespace TwitchBot
                                     else if (message.Equals("!poprbsr"))
                                         await _cmdMod.CmdPopManualSr();
 
+                                    /* Resets the song request queue */
+                                    else if (message.Equals("!resetrbsr"))
+                                        await _cmdMod.CmdResetManualSr();
+
                                     /* Removes first party memeber in queue of party up requests */
                                     else if (message.Equals("!poppartyuprequest"))
                                         await _cmdMod.CmdPopPartyUpRequest();

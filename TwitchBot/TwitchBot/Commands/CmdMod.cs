@@ -274,20 +274,36 @@ namespace TwitchBot.Commands
         {
             try
             {
-                string removedSong = _manualSongRequest.GetFirstSongRequest(_broadcasterId);
+                SongRequests removedSong = await _manualSongRequest.PopSongRequest(_broadcasterId);
 
-                if (!string.IsNullOrEmpty(removedSong))
-                {
-                    _manualSongRequest.PopSongRequest(_broadcasterId);
-
-                    _irc.SendPublicChatMessage($"The first song in the queue, \"{removedSong}\", has been removed from the request list");
-                }
+                if (removedSong != null)
+                    _irc.SendPublicChatMessage($"The first song in the queue, \"{removedSong.Requests}\" ({removedSong.Chatter}), has been removed");
                 else
                     _irc.SendPublicChatMessage("There are no songs that can be removed from the song request list");
             }
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopManualSr()", false, "!poprbsr");
+            }
+        }
+
+        /// <summary>
+        /// Resets the song request queue
+        /// </summary>
+        public async Task CmdResetManualSr()
+        {
+            try
+            {
+                List<SongRequests> removedSong = await _manualSongRequest.ResetSongRequests(_broadcasterId);
+
+                if (removedSong != null && removedSong.Count > 0)
+                    _irc.SendPublicChatMessage($"The song request queue has been reset @{_botConfig.Broadcaster}");
+                else
+                    _irc.SendPublicChatMessage($"Song requests are empty @{_botConfig.Broadcaster}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetManualSr()", false, "!resetrbsr");
             }
         }
 

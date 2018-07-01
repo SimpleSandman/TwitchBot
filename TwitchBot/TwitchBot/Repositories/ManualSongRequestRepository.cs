@@ -1,120 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+
+using TwitchBot.Libraries;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Repositories
 {
     public class ManualSongRequestRepository
     {
-        private string _connStr;
+        private readonly string _connStr;
+        private readonly string _twitchBotApiLink;
 
-        public ManualSongRequestRepository(string connStr)
+        public ManualSongRequestRepository(string connStr, string twitchBotApiLink)
         {
             _connStr = connStr;
+            _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public void AddSongRequest(string songRequestName, string username, int broadcasterId)
+        public async Task<SongRequests> AddSongRequest(string songRequestName, string username, int broadcasterId)
         {
-            string query = "INSERT INTO SongRequests (Requests, broadcaster, chatter) VALUES (@song, @broadcaster, @chatter)";
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            using (SqlCommand cmd = new SqlCommand(query, conn))
+            SongRequests songRequest = new SongRequests
             {
-                cmd.Parameters.Add("@song", SqlDbType.VarChar, 100).Value = songRequestName;
-                cmd.Parameters.Add("@broadcaster", SqlDbType.VarChar, 200).Value = broadcasterId;
-                cmd.Parameters.Add("@chatter", SqlDbType.VarChar, 200).Value = username;
+                Requests = songRequestName,
+                Chatter = username,
+                Broadcaster = broadcasterId
+            };
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
-            }
+            return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"songrequests/create", songRequest);
         }
 
-        public string ListSongRequests(int broadcasterId)
+        public async Task<List<SongRequests>> ListSongRequests(int broadcasterId)
         {
-            string songList = "";
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT Requests FROM SongRequests WHERE broadcaster = @broadcaster", conn))
-                {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            DataTable schemaTable = reader.GetSchemaTable();
-                            DataTable data = new DataTable();
-                            foreach (DataRow row in schemaTable.Rows)
-                            {
-                                string colName = row.Field<string>("ColumnName");
-                                Type t = row.Field<Type>("DataType");
-                                data.Columns.Add(colName, t);
-                            }
-                            while (reader.Read())
-                            {
-                                var newRow = data.Rows.Add();
-                                foreach (DataColumn col in data.Columns)
-                                {
-                                    newRow[col.ColumnName] = reader[col.ColumnName];
-                                    Console.WriteLine(newRow[col.ColumnName]);
-                                    songList = songList + newRow[col.ColumnName] + " >< ";
-                                }
-                            }
-                            StringBuilder strBdrSongList = new StringBuilder(songList);
-                            strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " >< "
-                            songList = strBdrSongList.ToString(); // replace old song list string with new
-                        }
-                    }
-                }
-            }
-
-            return songList;
+            return await ApiBotRequest.GetExecuteTaskAsync<List<SongRequests>>(_twitchBotApiLink + $"songrequests/get/{broadcasterId}");
         }
 
-        public string GetFirstSongRequest(int broadcasterId)
+        public async Task<SongRequests> PopSongRequest(int broadcasterId)
         {
-            string firstSong = "";
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT TOP(1) Requests FROM SongRequests WHERE broadcaster = @broadcaster ORDER BY id", conn))
-                {
-                    cmd.Parameters.AddWithValue("@broadcaster", broadcasterId);
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            while (reader.Read())
-                            {
-                                firstSong = reader["Requests"].ToString();
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return firstSong;
+            return await ApiBotRequest.DeleteExecuteTaskAsync<SongRequests>(_twitchBotApiLink + $"songrequests/delete/{broadcasterId}?popone=true");
         }
 
-        public void PopSongRequest(int broadcasterId)
+        public async Task<List<SongRequests>> ResetSongRequests(int broadcasterId)
         {
-            string query = "WITH T AS (SELECT TOP(1) * FROM SongRequests WHERE broadcaster = @broadcaster ORDER BY id) DELETE FROM T";
-
-            using (SqlConnection conn = new SqlConnection(_connStr))
-            using (SqlCommand cmd = new SqlCommand(query, conn))
-            {
-                cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = broadcasterId;
-
-                conn.Open();
-                cmd.ExecuteNonQuery();
-            }
+            return await ApiBotRequest.DeleteExecuteTaskAsync<List<SongRequests>>(_twitchBotApiLink + $"songrequests/delete/{broadcasterId}");
         }
     }
 }

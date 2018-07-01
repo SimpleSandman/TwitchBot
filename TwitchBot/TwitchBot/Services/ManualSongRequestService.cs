@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+
+using TwitchBot.Extensions;
 using TwitchBot.Repositories;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Services
 {
@@ -16,24 +17,36 @@ namespace TwitchBot.Services
             _songRequestDb = songRequestDb;
         }
 
-        public void AddSongRequest(string songRequestName, string username, int broadcasterId)
+        public async Task<SongRequests> AddSongRequest(string songRequestName, string username, int broadcasterId)
         {
-            _songRequestDb.AddSongRequest(songRequestName, username, broadcasterId);
+            return await _songRequestDb.AddSongRequest(songRequestName, username, broadcasterId);
         }
 
-        public string ListSongRequests(int broadcasterId)
+        public async Task<string> ListSongRequests(int broadcasterId)
         {
-            return _songRequestDb.ListSongRequests(broadcasterId);
+            List<SongRequests> songRequests = await _songRequestDb.ListSongRequests(broadcasterId);
+
+            if (songRequests == null || songRequests.Count == 0)
+                return "No song requests have been made";
+
+            string message = "Current list of requested songs: ";
+
+            foreach (SongRequests member in songRequests)
+            {
+                message += $"\"{member.Requests}\" ({member.Chatter}) >< ";
+            }
+
+            return message.ReplaceLastOccurrence(" >< ", "");
         }
 
-        public string GetFirstSongRequest(int broadcasterId)
+        public async Task<SongRequests> PopSongRequest(int broadcasterId)
         {
-            return _songRequestDb.GetFirstSongRequest(broadcasterId);
+            return await _songRequestDb.PopSongRequest(broadcasterId);
         }
 
-        public void PopSongRequest(int broadcasterId)
+        public async Task<List<SongRequests>> ResetSongRequests(int broadcasterId)
         {
-            _songRequestDb.PopSongRequest(broadcasterId);
+            return await _songRequestDb.ResetSongRequests(broadcasterId);
         }
     }
 }

@@ -153,14 +153,7 @@ namespace TwitchBot.Commands
                 if (!isManualSongRequestAvail)
                     _irc.SendPublicChatMessage($"Song requests are not available at this time @{username}");
                 else
-                {
-                    string songList = _manualSongRequest.ListSongRequests(_broadcasterId);
-
-                    if (!string.IsNullOrEmpty(songList))
-                        _irc.SendPublicChatMessage($"Current list of requested songs: {songList}");
-                    else
-                        _irc.SendPublicChatMessage($"No song requests have been made @{username}");
-                }
+                    _irc.SendPublicChatMessage(await _manualSongRequest.ListSongRequests(_broadcasterId));
             }
             catch (Exception ex)
             {
@@ -215,9 +208,9 @@ namespace TwitchBot.Commands
                     }
                     else
                     {
-                        _manualSongRequest.AddSongRequest(songRequest, username, _broadcasterId);
+                        await _manualSongRequest.AddSongRequest(songRequest, username, _broadcasterId);
 
-                        _irc.SendPublicChatMessage("The song \"" + songRequest + "\" has been successfully requested!");
+                        _irc.SendPublicChatMessage($"The song \"{songRequest}\" has been successfully requested @{username}");
                     }
                 }
                 else
