@@ -368,17 +368,17 @@ namespace TwitchBot.Commands
                         return;
                     }
 
-                    List<SongRequestBlacklistItem> blacklist = _songRequest.GetSongRequestBlackList(_broadcasterId);
+                    List<SongRequestBlacklist> blacklist = await _songRequest.GetSongRequestBlackList(_broadcasterId);
                     if (blacklist.Count > 0 && blacklist.Exists(b => b.Artist.Equals(request, StringComparison.CurrentCultureIgnoreCase)))
                     {
                         _irc.SendPublicChatMessage($"This song is already on the blacklist @{_botConfig.Broadcaster}");
                         return;
                     }
 
-                    int recordsAffected = _songRequest.AddArtistToBlacklist(request, _broadcasterId);
+                    SongRequestBlacklist response = await _songRequest.AddArtistToBlacklist(request, _broadcasterId);
 
-                    if (recordsAffected > 0)
-                        _irc.SendPublicChatMessage($"The artist \"{request}\" has been added to the blacklist @{_botConfig.Broadcaster}");
+                    if (response != null)
+                        _irc.SendPublicChatMessage($"The artist \"{response.Artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
                     else
                         _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this artist to the blacklist at this time @{_botConfig.Broadcaster}");
                 }
@@ -402,7 +402,7 @@ namespace TwitchBot.Commands
                     string artist = message.Substring(artistStartIndex + 1, artistEndIndex - artistStartIndex - 1);
 
                     // check if the request's exact song or artist-wide blackout-restriction has already been added
-                    List<SongRequestBlacklistItem> blacklist = _songRequest.GetSongRequestBlackList(_broadcasterId);
+                    List<SongRequestBlacklist> blacklist = await _songRequest.GetSongRequestBlackList(_broadcasterId);
 
                     if (blacklist.Count > 0)
                     { 
@@ -419,10 +419,10 @@ namespace TwitchBot.Commands
                         }
                     }
 
-                    int recordsAffected = _songRequest.AddSongToBlacklist(songTitle, artist, _broadcasterId);
+                    SongRequestBlacklist response = await _songRequest.AddSongToBlacklist(songTitle, artist, _broadcasterId);
 
-                    if (recordsAffected > 0)
-                        _irc.SendPublicChatMessage($"The song \"{songTitle} by {artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
+                    if (response != null)
+                        _irc.SendPublicChatMessage($"The song \"{response.Title} by {response.Artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
                     else
                         _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this song to the blacklist at this time @{_botConfig.Broadcaster}");
                 }
@@ -457,9 +457,9 @@ namespace TwitchBot.Commands
                 if (requestType.Equals("1")) // remove blackout for any song by this artist
                 {
                     // remove artist from db
-                    int recordsAffected = _songRequest.DeleteArtistFromBlacklist(request, _broadcasterId);
+                    List<SongRequestBlacklist> response = await _songRequest.DeleteArtistFromBlacklist(request, _broadcasterId);
 
-                    if (recordsAffected > 0)
+                    if (response != null)
                         _irc.SendPublicChatMessage($"The artist \"{request}\" can now be requested @{_botConfig.Broadcaster}");
                     else
                         _irc.SendPublicChatMessage($"Couldn't find the requested artist for blacklist-removal @{_botConfig.Broadcaster}");
@@ -483,10 +483,11 @@ namespace TwitchBot.Commands
                     string songTitle = message.Substring(songTitleStartIndex + 1, songTitleEndIndex - songTitleStartIndex - 1);
                     string artist = message.Substring(artistStartIndex + 1, artistEndIndex - artistStartIndex - 1);
 
-                    int recordsAffected = _songRequest.DeleteSongFromBlacklist(songTitle, artist, _broadcasterId);
+                    // remove artist from db
+                    SongRequestBlacklist response = await _songRequest.DeleteSongFromBlacklist(songTitle, artist, _broadcasterId);
 
-                    if (recordsAffected > 0)
-                        _irc.SendPublicChatMessage($"The song \"{songTitle} by {artist}\" can now requested @{_botConfig.Broadcaster}");
+                    if (response != null)
+                        _irc.SendPublicChatMessage($"The song \"{response.Title} by {response.Artist}\" can now requested @{_botConfig.Broadcaster}");
                     else
                         _irc.SendPublicChatMessage($"Couldn't find the requested song for blacklist-removal @{_botConfig.Broadcaster}");
                 }
@@ -506,9 +507,9 @@ namespace TwitchBot.Commands
         {
             try
             {
-                int recordsAffected = _songRequest.ResetBlacklist(_broadcasterId);
+                List<SongRequestBlacklist> response = await _songRequest.ResetBlacklist(_broadcasterId);
 
-                if (recordsAffected > 0)
+                if (response.Count > 0)
                     _irc.SendPublicChatMessage($"Song Request Blacklist has been reset @{_botConfig.Broadcaster}");
                 else
                     _irc.SendPublicChatMessage($"Song Request Blacklist is empty @{_botConfig.Broadcaster}");
@@ -523,7 +524,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                List<SongRequestBlacklistItem> blacklist = _songRequest.GetSongRequestBlackList(_broadcasterId);
+                List<SongRequestBlacklist> blacklist = await _songRequest.GetSongRequestBlackList(_broadcasterId);
 
                 if (blacklist.Count == 0)
                 {
@@ -533,7 +534,7 @@ namespace TwitchBot.Commands
 
                 string songList = "";
 
-                foreach (SongRequestBlacklistItem item in blacklist.OrderBy(i => i.Artist))
+                foreach (SongRequestBlacklist item in blacklist.OrderBy(i => i.Artist))
                 {
                     if (!string.IsNullOrEmpty(item.Title))
                         songList += $"\"{item.Title}\" - ";
@@ -545,7 +546,7 @@ namespace TwitchBot.Commands
                 strBdrSongList.Remove(songList.Length - 4, 4); // remove extra " >< "
                 songList = strBdrSongList.ToString(); // replace old song list string with new
 
-                _irc.SendPublicChatMessage("Song Request Blacklist: < " + songList + " >");
+                _irc.SendPublicChatMessage($"Blacklisted Song/Artists: < {songList} >");
             }
             catch (Exception ex)
             {

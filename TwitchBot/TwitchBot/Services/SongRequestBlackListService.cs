@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
-using TwitchBot.Models;
 using TwitchBot.Repositories;
+
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Services
 {
@@ -14,34 +16,34 @@ namespace TwitchBot.Services
             _songRequestDb = songRequestDb;
         }
 
-        public List<SongRequestBlacklistItem> GetSongRequestBlackList(int broadcasterId)
+        public async Task<List<SongRequestBlacklist>> GetSongRequestBlackList(int broadcasterId)
         {
-            return _songRequestDb.GetSongRequestBlackList(broadcasterId);
+            return await _songRequestDb.GetSongRequestBlackList(broadcasterId);
         }
 
-        public int AddArtistToBlacklist(string artist, int broadcasterId)
+        public async Task<SongRequestBlacklist> AddArtistToBlacklist(string artist, int broadcasterId)
         {
-            return _songRequestDb.AddArtistToBlacklist(artist, broadcasterId);
+            return await _songRequestDb.AddArtistToBlacklist(artist, broadcasterId);
         }
 
-        public int AddSongToBlacklist(string title, string artist, int broadcasterId)
+        public async Task<SongRequestBlacklist> AddSongToBlacklist(string title, string artist, int broadcasterId)
         {
-            return _songRequestDb.AddSongToBlacklist(title, artist, broadcasterId);
+            return await _songRequestDb.AddSongToBlacklist(title, artist, broadcasterId);
         }
 
-        public int DeleteArtistFromBlacklist(string artist, int broadcasterId)
+        public async Task<List<SongRequestBlacklist>> DeleteArtistFromBlacklist(string artist, int broadcasterId)
         {
-            return _songRequestDb.DeleteArtistFromBlacklist(artist, broadcasterId);
+            return await _songRequestDb.DeleteArtistFromBlacklist(artist, broadcasterId);
         }
 
-        public int DeleteSongFromBlacklist(string title, string artist, int broadcasterId)
+        public async Task<SongRequestBlacklist> DeleteSongFromBlacklist(string title, string artist, int broadcasterId)
         {
-            return _songRequestDb.DeleteSongFromBlacklist(title, artist, broadcasterId);
+            return await _songRequestDb.DeleteSongFromBlacklist(title, artist, broadcasterId);
         }
 
-        public int ResetBlacklist(int broadcasterId)
+        public async Task<List<SongRequestBlacklist>> ResetBlacklist(int broadcasterId)
         {
-            return _songRequestDb.ResetBlacklist(broadcasterId);
+            return await _songRequestDb.ResetBlacklist(broadcasterId);
         }
     }
 }

@@ -47,7 +47,8 @@ namespace TwitchBotApi.Controllers
         }
 
         // PUT: api/songrequestblacklists/update/2?id=1
-        // Body (JSON): 
+        // Body (JSON): { "id": 1, "artist": "some stupid artist", "broadcaster": 2 }
+        // Body (JSON): { "id": 1, "artist": "some stupid artist", "title": "some stupid title", "broadcaster": 2 }
         [HttpPut("{broadcasterId:int}")]
         public async Task<IActionResult> Update([FromRoute] int broadcasterId, [FromQuery] int id, [FromBody] SongRequestBlacklist songRequestBlacklist)
         {
@@ -100,20 +101,29 @@ namespace TwitchBotApi.Controllers
         }
 
         // DELETE: api/songrequestblacklists/delete/2
-        // DELETE: api/songrequestblacklists/delete/2?id=1
+        // DELETE: api/songrequestblacklists/delete/2?artist=someone
+        // DELETE: api/songrequestblacklists/delete/2?artist=someone&title=something
         [HttpDelete("{broadcasterId:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int broadcasterId, [FromQuery] int id = 0)
+        public async Task<IActionResult> Delete([FromRoute] int broadcasterId, [FromQuery] string artist = "", [FromQuery] string title = "")
         {
+            // don't accept an invalid model state or a request with just the title
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            else if (string.IsNullOrEmpty(artist) && !string.IsNullOrEmpty(title))
+            {
+                return BadRequest();
+            }
 
             var songRequestBlacklist = new object();
 
-            if (id > 0)
+            if (!string.IsNullOrEmpty(artist) && !string.IsNullOrEmpty(title))
             {
-                SongRequestBlacklist songRequestBlacklistItem = await _context.SongRequestBlacklist.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId && m.Id == id);
+                SongRequestBlacklist songRequestBlacklistItem = await _context.SongRequestBlacklist
+                    .SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId 
+                        && m.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase) 
+                        && m.Title.Equals(title, StringComparison.CurrentCultureIgnoreCase));
 
                 if (songRequestBlacklistItem == null)
                     return NotFound();
@@ -124,7 +134,21 @@ namespace TwitchBotApi.Controllers
             }
             else
             {
-                List<SongRequestBlacklist> songRequestBlacklistItems = await _context.SongRequestBlacklist.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+                List<SongRequestBlacklist> songRequestBlacklistItems = new List<SongRequestBlacklist>();
+
+                if (!string.IsNullOrEmpty(artist))
+                {
+                    songRequestBlacklistItems = await _context.SongRequestBlacklist
+                        .Where(m => m.Broadcaster == broadcasterId 
+                            && m.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase))
+                        .ToListAsync();
+                }
+                else
+                {
+                    songRequestBlacklistItems = await _context.SongRequestBlacklist
+                        .Where(m => m.Broadcaster == broadcasterId)
+                        .ToListAsync();
+                }
 
                 if (songRequestBlacklistItems == null)
                     return NotFound();

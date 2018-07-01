@@ -438,7 +438,7 @@ GO
 CREATE TABLE [dbo].[SongRequestBlacklist](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Artist] [varchar](100) NOT NULL,
-	[Title] [varchar](100) NULL,
+	[Title] [varchar](100) NOT NULL DEFAULT '',
 	[Broadcaster] [int] NOT NULL,
 PRIMARY KEY CLUSTERED 
 (

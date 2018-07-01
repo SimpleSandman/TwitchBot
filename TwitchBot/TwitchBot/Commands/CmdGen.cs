@@ -780,7 +780,7 @@ namespace TwitchBot.Commands
                         Video video = await _youTubeClientInstance.GetVideoById(videoId, 2);
 
                         // Check if video's title and account match song request blacklist
-                        List<SongRequestBlacklistItem> blacklist = _songRequestBlacklist.GetSongRequestBlackList(_broadcasterId);
+                        List<SongRequestBlacklist> blacklist = await _songRequestBlacklist.GetSongRequestBlackList(_broadcasterId);
 
                         if (blacklist.Count > 0)
                         {

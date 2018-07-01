@@ -218,7 +218,6 @@
     <Compile Include="Models\JSON\UserJSON.cs" />
     <Compile Include="Models\Reminder.cs" />
     <Compile Include="Models\RouletteUser.cs" />
-    <Compile Include="Models\SongRequestBlacklistItem.cs" />
     <Compile Include="Models\TimeoutUser.cs" />
     <Compile Include="Models\TwitchChatterType.cs" />
     <Compile Include="Modules\TwitchBotModule.cs" />
