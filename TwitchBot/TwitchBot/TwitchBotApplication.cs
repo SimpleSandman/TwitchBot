@@ -883,15 +883,15 @@ namespace TwitchBot
             TimeoutUser user = _timeout.TimedoutUsers.FirstOrDefault(u => u.Username.Equals(username));
 
             if (user == null) return false;
-            else if (user.TimeoutExpiration < DateTime.UtcNow)
+            else if (user.TimeoutExpirationUtc < DateTime.UtcNow)
             {
-                await _timeout.DeleteTimeout(username, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
+                await _timeout.DeleteUserTimeout(username, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
                 return false;
             }
             else if (!user.HasBeenWarned)
             {
                 user.HasBeenWarned = true; // prevent spamming timeout message
-                string timeout = await _timeout.GetTimeout(username, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
+                string timeout = await _timeout.GetUserTimeout(username, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
 
                 if (timeout.Equals("0 seconds"))
                     return false;
@@ -1019,40 +1019,18 @@ namespace TwitchBot
         {
             try
             {
-                string query = "DELETE FROM UserBotTimeout WHERE Broadcaster = @broadcaster AND Timeout < GETDATE()";
+                await _timeout.DeleteTimeouts(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
 
-                // Create connection and command
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                List<UserBotTimeout> botTimeouts = await _timeout.GetTimeouts(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
+
+                foreach (UserBotTimeout botTimeout in botTimeouts)
                 {
-                    cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterInstance.DatabaseId;
-
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                }
-
-                using (SqlConnection conn = new SqlConnection(_connStr))
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM UserBotTimeout WHERE Broadcaster = @broadcaster", conn))
+                    _timeout.TimedoutUsers.Add(new TimeoutUser
                     {
-                        cmd.Parameters.Add("@broadcaster", SqlDbType.Int).Value = _broadcasterInstance.DatabaseId;
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _timeout.TimedoutUsers.Add(new TimeoutUser
-                                    {
-                                        Username = reader["Username"].ToString(),
-                                        TimeoutExpiration = Convert.ToDateTime(reader["Timeout"]),
-                                        HasBeenWarned = false
-                                    });
-                                }
-                            }
-                        }
-                    }
+                        Username = botTimeout.Username,
+                        TimeoutExpirationUtc = botTimeout.Timeout,
+                        HasBeenWarned = false
+                    });
                 }
             }
             catch (Exception ex)

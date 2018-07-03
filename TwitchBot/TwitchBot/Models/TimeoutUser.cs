@@ -9,7 +9,7 @@ namespace TwitchBot.Models
     public class TimeoutUser
     {
         public string Username { get; set; }
-        public DateTime TimeoutExpiration { get; set; }
+        public DateTime TimeoutExpirationUtc { get; set; }
         public bool HasBeenWarned { get; set; }
     }
 }

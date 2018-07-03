@@ -13,7 +13,7 @@ namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class UserBotTimeoutsController : Controller
+    public class UserBotTimeoutsController : ControllerBase
     {
         private readonly TwitchBotDbContext _context;
 
@@ -105,25 +105,47 @@ namespace TwitchBotApi.Controllers
             return CreatedAtAction("Get", new { broadcasterId = userBotTimeout.Broadcaster, username = userBotTimeout.Username }, userBotTimeout);
         }
 
+        // DELETE: api/userbottimeouts/delete/2
         // DELETE: api/userbottimeouts/delete/2?username=simple_sandman
         [HttpDelete("{broadcasterId:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int broadcasterId, [FromQuery] string username)
+        public async Task<IActionResult> Delete([FromRoute] int broadcasterId, [FromQuery] string username = "")
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var userBotTimeout = await _context.UserBotTimeout.SingleOrDefaultAsync(m => m.Username == username && m.Broadcaster == broadcasterId);
-            if (userBotTimeout == null)
+            var botTimeout = new object();
+
+            if (!string.IsNullOrEmpty(username))
             {
-                return NotFound();
+                UserBotTimeout userBotTimeout = await _context.UserBotTimeout
+                    .SingleOrDefaultAsync(m => m.Username == username && m.Broadcaster == broadcasterId);
+
+                if (userBotTimeout == null)
+                    return NotFound();
+
+                _context.UserBotTimeout.Remove(userBotTimeout);
+
+                botTimeout = userBotTimeout;
+            }
+            else
+            {
+                List<UserBotTimeout> userBotTimeouts = await _context.UserBotTimeout
+                    .Where(m => m.Broadcaster == broadcasterId && m.Timeout < DateTime.UtcNow)
+                    .ToListAsync();
+
+                if (userBotTimeouts == null || userBotTimeouts.Count == 0)
+                    return NotFound();
+
+                _context.UserBotTimeout.RemoveRange(userBotTimeouts);
+
+                botTimeout = userBotTimeouts;
             }
 
-            _context.UserBotTimeout.Remove(userBotTimeout);
             await _context.SaveChangesAsync();
 
-            return Ok(userBotTimeout);
+            return Ok(botTimeout);
         }
 
         private bool UserBotTimeoutExists(int broadcasterId, string username)

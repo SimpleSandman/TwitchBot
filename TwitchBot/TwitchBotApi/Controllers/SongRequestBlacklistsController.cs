@@ -150,7 +150,7 @@ namespace TwitchBotApi.Controllers
                         .ToListAsync();
                 }
 
-                if (songRequestBlacklistItems == null)
+                if (songRequestBlacklistItems == null || songRequestBlacklistItems.Count == 0)
                     return NotFound();
 
                 _context.SongRequestBlacklist.RemoveRange(songRequestBlacklistItems);

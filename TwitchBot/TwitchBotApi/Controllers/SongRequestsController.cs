@@ -86,7 +86,7 @@ namespace TwitchBotApi.Controllers
             {
                 List<SongRequests> removedSong = await _context.SongRequests.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
 
-                if (removedSong == null)
+                if (removedSong == null || removedSong.Count == 0)
                     return NotFound();
 
                 _context.SongRequests.RemoveRange(removedSong);

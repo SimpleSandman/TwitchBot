@@ -378,7 +378,7 @@ namespace TwitchBot.Commands
             {
                 string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
 
-                recipient = await _timeout.DeleteTimeout(recipient, _broadcasterId, _botConfig.TwitchBotApiLink);
+                recipient = await _timeout.DeleteUserTimeout(recipient, _broadcasterId, _botConfig.TwitchBotApiLink);
 
                 if (!string.IsNullOrEmpty(recipient))
                     _irc.SendPublicChatMessage($"{recipient} can now interact with me again because of @{username} @{_botConfig.Broadcaster}");
