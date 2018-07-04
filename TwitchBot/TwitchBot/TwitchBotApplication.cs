@@ -104,40 +104,7 @@ namespace TwitchBot
                     Console.WriteLine("<<<< WARNING: Connecting to testing database >>>>");
 
                 // Attempt to connect to server
-                if (!IsServerConnected())
-                {
-                    _connStr = null; // clear sensitive data
-
-                    Console.WriteLine("Datebase connection failed. Please try again");
-                    Console.WriteLine();
-                    Console.WriteLine("-- Common technical issues: --");
-                    Console.WriteLine("1: Check if firewall settings has your client IP address.");
-                    Console.WriteLine("2: Double check the connection string under 'Properties' inside 'Settings'");
-                    Console.WriteLine();
-                    Console.WriteLine("Shutting down now...");
-                    Thread.Sleep(5000);
-                    Environment.Exit(1);
-                }
-
-                // Check for tables needed to start this application
-                // ToDo: Add more table names
-                List<string> dbTables = GetTables();
-                if (dbTables.Contains("Broadcasters")
-                    && dbTables.Contains("Moderators")
-                    && dbTables.Contains("UserBotTimeout")
-                    && dbTables.Contains("ErrorLog"))
-                {
-                    Console.WriteLine("Found database tables");
-                    Console.WriteLine();
-                }
-                else
-                {
-                    Console.WriteLine("Error: Couldn't find necessary database tables");
-                    Console.WriteLine();
-                    Console.WriteLine("Shutting down now...");
-                    Thread.Sleep(5000);
-                    Environment.Exit(1);
-                }
+                // ToDo: Check version number of application
             }
             catch (Exception ex)
             {
@@ -934,40 +901,6 @@ namespace TwitchBot
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Test that the server is connected
-        /// </summary>
-        private bool IsServerConnected()
-        {
-            using (SqlConnection connection = new SqlConnection(_connStr))
-            {
-                try
-                {
-                    connection.Open();
-                    return true;
-                }
-                catch (SqlException)
-                {
-                    return false;
-                }
-            }
-        }
-
-        private List<string> GetTables()
-        {
-            using (SqlConnection connection = new SqlConnection(_connStr))
-            {
-                connection.Open();
-                DataTable schema = connection.GetSchema("Tables");
-                List<string> TableNames = new List<string>();
-                foreach (DataRow row in schema.Rows)
-                {
-                    TableNames.Add(row[2].ToString());
-                }
-                return TableNames;
-            }
         }
 
         private async Task SetBroadcasterIds()
