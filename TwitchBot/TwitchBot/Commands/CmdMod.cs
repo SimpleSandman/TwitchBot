@@ -25,7 +25,6 @@ namespace TwitchBot.Commands
         private TimeoutCmd _timeout;
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
-        private string _connStr;
         private int _broadcasterId;
         private BankService _bank;
         private TwitchInfoService _twitchInfo;
@@ -39,7 +38,7 @@ namespace TwitchBot.Commands
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
-        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId, 
+        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, int broadcasterId, 
             System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo, ManualSongRequestService manualSongRequest,
             QuoteService quote, PartyUpService partyUp, GameDirectoryService gameDirectory)
         {
@@ -47,7 +46,6 @@ namespace TwitchBot.Commands
             _timeout = timeout;
             _botConfig = botConfig;
             _broadcasterId = broadcasterId;
-            _connStr = connString;
             _appConfig = appConfig;
             _bank = bank;
             _twitchInfo = twitchInfo;

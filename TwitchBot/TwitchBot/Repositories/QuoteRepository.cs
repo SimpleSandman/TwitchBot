@@ -9,12 +9,10 @@ namespace TwitchBot.Repositories
 {
     public class QuoteRepository
     {
-        private readonly string _connStr;
         private readonly string _twitchBotApiLink;
 
-        public QuoteRepository(string connStr, string twitchBotApiLink)
+        public QuoteRepository(string twitchBotApiLink)
         {
-            _connStr = connStr;
             _twitchBotApiLink = twitchBotApiLink;
         }
 

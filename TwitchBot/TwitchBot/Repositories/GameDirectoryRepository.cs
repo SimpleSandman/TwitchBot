@@ -8,12 +8,10 @@ namespace TwitchBot.Repositories
 {
     public class GameDirectoryRepository
     {
-        private readonly string _connStr;
         private readonly string _twitchBotApiLink;
 
-        public GameDirectoryRepository(string connStr, string twitchBotApiLink)
+        public GameDirectoryRepository(string twitchBotApiLink)
         {
-            _connStr = connStr;
             _twitchBotApiLink = twitchBotApiLink;
         }
 

@@ -23,7 +23,6 @@ namespace TwitchBot.Commands
         private ModeratorSingleton _modInstance = ModeratorSingleton.Instance;
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
-        private string _connStr;
         private int _broadcasterId;
         private SongRequestBlacklistService _songRequest;
         private TwitchInfoService _twitchInfo;
@@ -33,13 +32,12 @@ namespace TwitchBot.Commands
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private BossFightSingleton _bossFightSettingsInstance = BossFightSingleton.Instance;
 
-        public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, string connStr, int broadcasterId, 
+        public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, int broadcasterId, 
             System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo, 
             GameDirectoryService gameDirectory)
         {
             _irc = irc;
             _botConfig = botConfig;
-            _connStr = connStr;
             _broadcasterId = broadcasterId;
             _appConfig = appConfig;
             _songRequest = songRequest;

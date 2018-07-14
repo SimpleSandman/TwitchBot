@@ -14,7 +14,6 @@ namespace TwitchBot.Threads
     public class BossFight
     {
         private IrcClient _irc;
-        private string _connStr;
         private int _broadcasterId;
         private Thread _thread;
         private BankService _bank;
@@ -24,9 +23,8 @@ namespace TwitchBot.Threads
 
         public BossFight() { }
 
-        public BossFight(string connStr, BankService bank, TwitchBotConfigurationSection botConfig)
+        public BossFight(BankService bank, TwitchBotConfigurationSection botConfig)
         {
-            _connStr = connStr;
             _thread = new Thread(new ThreadStart(this.Run));
             _bank = bank;
             _botConfig = botConfig;

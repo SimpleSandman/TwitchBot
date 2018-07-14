@@ -21,7 +21,6 @@ namespace TwitchBot.Threads
     {
         private IrcClient _irc;
         private TwitchBotConfigurationSection _botConfig;
-        private string _connStr;
         private int _broadcasterId;
         private IEnumerable<Rank> _rankList;
         private Thread _followerListener;
@@ -31,10 +30,9 @@ namespace TwitchBot.Threads
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
         // Empty constructor makes instance of Thread
-        public FollowerSubscriberListener(TwitchBotConfigurationSection botConfig, string connStr, TwitchInfoService twitchInfo, FollowerService follower, BankService bank)
+        public FollowerSubscriberListener(TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo, FollowerService follower, BankService bank)
         {
             _botConfig = botConfig;
-            _connStr = connStr;
             _followerListener = new Thread(new ThreadStart(this.Run));
             _twitchInfo = twitchInfo;
             _follower = follower;

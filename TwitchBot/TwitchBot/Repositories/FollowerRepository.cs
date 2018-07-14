@@ -8,12 +8,10 @@ namespace TwitchBot.Repositories
 {
     public class FollowerRepository
     {
-        private readonly string _connStr;
         private readonly string _twitchBotApiLink;
 
-        public FollowerRepository(string connStr, string twitchBotApiLink)
+        public FollowerRepository(string twitchBotApiLink)
         {
-            _connStr = connStr;
             _twitchBotApiLink = twitchBotApiLink;
         }
 

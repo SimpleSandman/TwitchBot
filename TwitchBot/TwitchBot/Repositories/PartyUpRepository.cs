@@ -14,12 +14,10 @@ namespace TwitchBot.Repositories
 {
     public class PartyUpRepository
     {
-        private readonly string _connStr;
         private readonly string _twitchBotApiLink;
 
-        public PartyUpRepository(string connStr, string twitchBotApiLink)
+        public PartyUpRepository(string twitchBotApiLink)
         {
-            _connStr = connStr;
             _twitchBotApiLink = twitchBotApiLink;
         }
 

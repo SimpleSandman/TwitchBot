@@ -9,12 +9,10 @@ namespace TwitchBot.Repositories
 {
     public class SongRequestBlacklistRepository
     {
-        private readonly string _connStr;
         private readonly string _twitchBotApiLink;
 
-        public SongRequestBlacklistRepository(string connStr, string twitchBotApiLink)
+        public SongRequestBlacklistRepository(string twitchBotApiLink)
         {
-            _connStr = connStr;
             _twitchBotApiLink = twitchBotApiLink;
         }
 

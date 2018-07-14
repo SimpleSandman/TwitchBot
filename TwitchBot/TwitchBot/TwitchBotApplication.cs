@@ -29,7 +29,6 @@ namespace TwitchBot
     {
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
-        private string _connStr;
         private IrcClient _irc;
         private TimeoutCmd _timeout;
         private CmdBrdCstr _cmdBrdCstr;
@@ -69,7 +68,6 @@ namespace TwitchBot
             BossFight bossFight)
         {
             _appConfig = appConfig;
-            _connStr = appConfig.ConnectionStrings.ConnectionStrings[Program.ConnStrType].ConnectionString;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
             _irc = new IrcClient();
             _isManualSongRequestAvail = false;
@@ -99,18 +97,13 @@ namespace TwitchBot
         {
             try
             {
-                /* Check if developer attempted to set up the connection string for either production or test */
-                if (Program.ConnStrType.Equals("TwitchBotConnStrTEST"))
-                    Console.WriteLine("<<<< WARNING: Connecting to testing database >>>>");
-
-                // Attempt to connect to server
                 // ToDo: Check version number of application
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error Message: " + ex.Message);
                 Console.WriteLine();
-                Console.WriteLine("Please check the connection string for the right format inside the config file");
+                Console.WriteLine("Cannot connect to database to verify the correct version of myself");
                 Console.WriteLine("Local troubleshooting needed by author of this bot");
                 Console.WriteLine();
                 Console.WriteLine("Shutting down now...");
@@ -146,11 +139,11 @@ namespace TwitchBot
                 // Use chat bot's oauth
                 /* main server: irc.twitch.tv, 6667 */
                 _irc.Connect(_botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
-                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
+                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
-                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
+                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
                     _twitchInfo, _gameDirectory);
-                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _connStr, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
+                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
                     _manualSongRequest, _quote, _partyUp, _gameDirectory);
 
                 /* Whisper broadcaster bot settings */

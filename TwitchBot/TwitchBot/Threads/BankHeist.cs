@@ -2,9 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
@@ -15,7 +14,6 @@ namespace TwitchBot.Threads
     public class BankHeist
     {
         private IrcClient _irc;
-        private string _connStr;
         private int _broadcasterId;
         private Thread _thread;
         private BankService _bank;
@@ -25,9 +23,8 @@ namespace TwitchBot.Threads
 
         public BankHeist() { }
 
-        public BankHeist(string connStr, BankService bank, TwitchBotConfigurationSection botConfig)
+        public BankHeist(BankService bank, TwitchBotConfigurationSection botConfig)
         {
-            _connStr = connStr;
             _thread = new Thread(new ThreadStart(this.Run));
             _bank = bank;
             _botConfig = botConfig;

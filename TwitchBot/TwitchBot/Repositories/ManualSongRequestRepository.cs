@@ -9,12 +9,10 @@ namespace TwitchBot.Repositories
 {
     public class ManualSongRequestRepository
     {
-        private readonly string _connStr;
         private readonly string _twitchBotApiLink;
 
-        public ManualSongRequestRepository(string connStr, string twitchBotApiLink)
+        public ManualSongRequestRepository(string twitchBotApiLink)
         {
-            _connStr = connStr;
             _twitchBotApiLink = twitchBotApiLink;
         }
 

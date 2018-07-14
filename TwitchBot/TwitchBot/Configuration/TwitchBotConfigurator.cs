@@ -70,25 +70,5 @@ namespace TwitchBot.Configuration
         {
 
         }
-
-        public static void ConfigureConnectionString(string connectionName, ConnectionStringSettings connectionStringSettings)
-        {
-            //TODO: There has to be a better way :)
-            //TODO: Deal with username and password or trusted connection, doing trusted for now
-            Console.Clear();
-            Console.WriteLine("Configure ConnectionString");
-            Console.WriteLine();
-
-            Console.WriteLine("Database Server:");
-            var databaseServer = Console.ReadLine();
-
-            Console.WriteLine("Database Name:");
-            var databaseName = Console.ReadLine();
-
-
-            var connStringResult = $"Server={databaseServer.ToString()};Database={databaseName};Trusted_Connection=True;MultipleActiveResultSets=true;";
-            connectionStringSettings.Name = connectionName;
-            connectionStringSettings.ConnectionString = connStringResult;
-        }
     }
 }

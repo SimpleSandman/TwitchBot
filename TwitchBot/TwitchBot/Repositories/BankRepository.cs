@@ -10,12 +10,10 @@ namespace TwitchBot.Repositories
 {
     public class BankRepository
     {
-        private readonly string _connStr;
         private readonly string _twitchBotApiLink;
 
-        public BankRepository(string connStr, string twitchBotApiLink)
+        public BankRepository(string twitchBotApiLink)
         {
-            _connStr = connStr;
             _twitchBotApiLink = twitchBotApiLink;
         }
 

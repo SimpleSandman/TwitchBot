@@ -31,7 +31,6 @@ namespace TwitchBot.Commands
         private IrcClient _irc;
         private LocalSpotifyClient _spotify;
         private TwitchBotConfigurationSection _botConfig;
-        private string _connStr;
         private int _broadcasterId;
         private TwitchInfoService _twitchInfo;
         private BankService _bank;
@@ -48,14 +47,13 @@ namespace TwitchBot.Commands
         private BossFightSingleton _bossSettingsInstance = BossFightSingleton.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
-        public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, string connString, int broadcasterId,
+        public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, int broadcasterId,
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
             ManualSongRequestService manualSongRequest, PartyUpService partyUp, GameDirectoryService gameDirectory, QuoteService quote)
         {
             _irc = irc;
             _spotify = spotify;
             _botConfig = botConfig;
-            _connStr = connString;
             _broadcasterId = broadcasterId;
             _twitchInfo = twitchInfo;
             _bank = bank;
