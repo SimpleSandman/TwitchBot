@@ -1,7 +1,7 @@
 # Simple Bot [![Build status](https://ci.appveyor.com/api/projects/status/k0cgg8xeqgh58uc7?svg=true)](https://ci.appveyor.com/project/SimpleSandman/twitchbot)
 Custom chat bot for Twitch TV
 
-This is an open-source Console application that will benefit anyone who wants to have a foundation of making their own Twitch bot. This is primarly written in C#/SQL Server using an Azure database from Microsoft. Currently, this is not end-user friendly because I am concentrating on the logic of the bot first.
+This is an open-source console application with a .NET Core Web API that will benefit anyone who wants to have a foundation of making their own Twitch bot. This is primarly written in C#/SQL Server using an Azure SQL database from Microsoft. Currently, this bot is not end-user friendly because I'm concentrating on the logic of the bot first.
 
 This bot has been revamped recently with a new configuration wizard that will allow new users to insert their credentials for the bot. For developers, please read further down for details on manually setting a dev configuration so the information is always saved.
 
@@ -9,7 +9,7 @@ Check out the wiki for the full list of commands by [clicking here](https://gith
 
 The bot itself is an account on Twitch that I have made in order to have a custom bot name.
 
-For development environment (testing), create 2 files in the same folder as App.config. If you have any issues setting up this bot, please look further below for possible solutions.
+For a development environment (testing), create an `AppConfigSecrets.config` in the same folder as `App.config`. If you have any issues setting up this bot, please look further below for possible solutions.
 
 ## AppConfigSecrets.config
 
@@ -26,20 +26,7 @@ For development environment (testing), create 2 files in the same folder as App.
     regularFollowerHours="[RegularFollowerHours]" />
 ```
 
-## ConnectionStringsSecrets.config
-
-```xml
-<connectionStrings>
-  <add name="TwitchBotConnStrPROD" 
-       connectionString="[ConnectionString]"
-       providerName="" />
-  <add name="TwitchBotConnStrTEST" 
-       connectionString="[ConnectionString]"
-       providerName="" />
-</connectionStrings>
-```
-
-Set both files to copy-if-newer so that they get included in the compilation. For production this files are not needed, and the bot will ask for configuration on first run
+Set file to `copy-if-newer` so it's included in the compilation. For production, this file is not needed and the bot will ask for configuration on first run
 
 ## Possible setup issues:
 - Connection string error `Configuration System Failed to Initialize`
