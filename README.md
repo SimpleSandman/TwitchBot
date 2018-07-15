@@ -14,7 +14,7 @@ For a development environment (testing), create an `AppConfigSecrets.config` in 
 ## AppConfigSecrets.config
 
 ```xml
-<TwitchBotConfiguration botName="[BotName]" broadcaster="[BroadcasterName]"
+<TwitchBotConfiguration botName="[BotName]" broadcaster="[BroadcasterName]" twitchBotApiLink="[TwitchBotApiLink]"
     twitchOAuth="[OAuth]" twitchClientId="[ClientId]"
     twitchAccessToken="[AccessToken]" twitterConsumerKey="[ConsumerKey]" 
     twitterConsumerSecret="[ConsumerSecret]"
