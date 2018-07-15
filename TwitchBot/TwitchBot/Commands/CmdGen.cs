@@ -501,10 +501,28 @@ namespace TwitchBot.Commands
             try
             {
                 int gambledMoney = 0; // Money put into the gambling system
-                bool isValidMsg = int.TryParse(message.Substring(message.IndexOf(" ") + 1), out gambledMoney);
+                bool isValidMsg = false;
+                string gambleMessage = message.Substring(message.IndexOf(" ") + 1);
+
+                // Check if user wants to gamble all of their wallet
+                // Else check if their message is a valid amount to gamble
+                isValidMsg = gambleMessage == "all" ? true : int.TryParse(gambleMessage, out gambledMoney);
+
+                if (!isValidMsg)
+                {
+                    _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{username}");
+                    return DateTime.Now;
+                }
+
                 int walletBalance = await _bank.CheckBalance(username, _broadcasterId);
 
-                if (!isValidMsg || gambledMoney < 1)
+                // Check if user wants to gamble all of their wallet
+                if (gambleMessage == "all")
+                {
+                    gambledMoney = walletBalance;
+                }
+
+                if (gambledMoney < 1)
                     _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{username}");
                 else if (gambledMoney > walletBalance)
                     _irc.SendPublicChatMessage($"You do not have the sufficient funds to gamble {gambledMoney} {_botConfig.CurrencyType} @{username}");
@@ -514,7 +532,14 @@ namespace TwitchBot.Commands
                     int diceRoll = rnd.Next(1, 101); // between 1 and 100
                     int newBalance = 0;
 
-                    string result = $"@{username} gambled {gambledMoney} {_botConfig.CurrencyType} and the dice roll was {diceRoll}. They ";
+                    string result = $"@{username} gambled ";
+
+                    if (gambleMessage == "all")
+                    {
+                        result += "ALL ";
+                    }
+
+                    result += $"{gambledMoney} {_botConfig.CurrencyType} and the dice roll was {diceRoll}. They ";
 
                     // Check the 100-sided die roll result
                     if (diceRoll < 61) // lose gambled money
@@ -1524,26 +1549,56 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="message">Chat message from the user</param>
         /// <param name="username">User that sent the message</param>
-        public async Task CmdGiveFunds(string message, string username)
+        public async Task<DateTime> CmdGiveFunds(string message, string username)
         {
             try
             {
                 if (message.StartsWith("!give @"))
                 {
-                    _irc.SendPublicChatMessage($"Please enter a valid amount @{username} (ex: !give [amount] @[username])");
-                    return;
+                    _irc.SendPublicChatMessage($"Please enter a valid amount @{username} (ex: !give [amount/all] @[username])");
+                    return DateTime.Now;
                 }
 
-                int balance = await _bank.CheckBalance(username, _broadcasterId);
-                bool validGiftAmount = int.TryParse(message.Substring(message.IndexOf(" ") + 1, message.GetNthCharIndex(' ', 2) - message.IndexOf(" ") - 1), out int giftAmount);
+                int giftAmount = 0;
+                bool validGiftAmount = false;
+                string giftMessage = message.Substring(message.IndexOf(" ") + 1, message.GetNthCharIndex(' ', 2) - message.IndexOf(" ") - 1);
+
+                // Check if user wants to give all of their wallet to another user
+                // Else check if their message is a valid amount to give
+                validGiftAmount = giftMessage == "all" ? true : int.TryParse(giftMessage, out giftAmount);
+
+                if (!validGiftAmount)
+                {
+                    _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{username}");
+                    return DateTime.Now;
+                }
+
+                // Get and check recipient
                 string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
 
-                if (balance == -1)
-                    _irc.SendPublicChatMessage($"You are not currently banking with us. Please talk to a moderator about acquiring {_botConfig.CurrencyType}");
-                else if (string.IsNullOrEmpty(recipient))
+                if (string.IsNullOrEmpty(recipient) || message.IndexOf("@") == -1)
+                {
                     _irc.SendPublicChatMessage($"I don't know who I'm supposed to send this to. Please specify a recipient @{username}");
-                else if (!validGiftAmount || giftAmount < 1)
-                    _irc.SendPublicChatMessage($"That is not a valid amount of {_botConfig.CurrencyType} to give. Please try again with a positive whole amount (no decimals)");
+                    return DateTime.Now;
+                }
+                else if (recipient == username)
+                {
+                    _irc.SendPublicChatMessage($"Stop trying to give {_botConfig.CurrencyType} to yourself @{username}");
+                    return DateTime.Now;
+                }
+
+                // Get and check wallet balance
+                int balance = await _bank.CheckBalance(username, _broadcasterId);
+
+                if (giftMessage == "all")
+                {
+                    giftAmount = balance;
+                }
+
+                if (balance == -1)
+                    _irc.SendPublicChatMessage($"You are not currently banking with us @{username} . Please talk to a moderator about acquiring {_botConfig.CurrencyType}");
+                else if (giftAmount < 1)
+                    _irc.SendPublicChatMessage($"That is not a valid amount of {_botConfig.CurrencyType} to give. Please try again with a positive whole amount (no decimals) @{username}");
                 else if (balance < giftAmount)
                     _irc.SendPublicChatMessage($"You do not have enough to give {giftAmount} {_botConfig.CurrencyType} @{username}");
                 else
@@ -1559,6 +1614,7 @@ namespace TwitchBot.Commands
                         await _bank.UpdateFunds(recipient, _broadcasterId, giftAmount + recipientBalance); // give to recipient
 
                         _irc.SendPublicChatMessage($"@{username} gave {giftAmount} {_botConfig.CurrencyType} to @{recipient}");
+                        return DateTime.Now.AddSeconds(20);
                     }
                 }
             }
@@ -1566,6 +1622,8 @@ namespace TwitchBot.Commands
             {
                 await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGiveFunds(string, string)", false, "!give");
             }
+
+            return DateTime.Now;
         }
 
         private ChatterType CheckUserChatterType(string username)

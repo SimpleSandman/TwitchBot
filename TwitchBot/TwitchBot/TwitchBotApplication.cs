@@ -803,8 +803,20 @@ namespace TwitchBot
 
                                 /* Give funds to another chatter */
                                 // Usage: !give [amount] @[username]
-                                else if (message.StartsWith("!give"))
-                                    await _cmdGen.CmdGiveFunds(message, username);
+                                else if (message.StartsWith("!give ") && !IsUserOnCooldown(username, "!gamble"))
+                                {
+                                    DateTime cooldown = await _cmdGen.CmdGiveFunds(message, username);
+                                    if (cooldown > DateTime.Now)
+                                    {
+                                        _cooldownUsers.Add(new CooldownUser
+                                        {
+                                            Username = username,
+                                            Cooldown = cooldown,
+                                            Command = "!give",
+                                            Warned = false
+                                        });
+                                    }
+                                }
 
                                 /* add more general commands here */
                             }
