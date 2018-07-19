@@ -26,8 +26,16 @@ namespace TwitchBot.Libraries
                 try
                 {
                     IRestResponse<T> response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
+                    string statResponse = response.StatusCode.ToString();
 
-                    return JsonConvert.DeserializeObject<T>(response.Content);
+                    if (statResponse.Contains("OK") || statResponse.Contains("NoContent"))
+                    {
+                        return JsonConvert.DeserializeObject<T>(response.Content);
+                    }
+                    else
+                    {
+                        Console.WriteLine(response.Content);
+                    }
                 }
                 catch (WebException ex)
                 {

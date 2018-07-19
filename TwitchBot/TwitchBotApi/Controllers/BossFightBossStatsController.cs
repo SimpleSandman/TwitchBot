@@ -22,19 +22,25 @@ namespace TwitchBotApi.Controllers
         }
 
         // GET: api/bossfightbossstats/get/1
+        // GET: api/bossfightbossstats/get/1?gameId=1
         [HttpGet("{settingsId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int settingsId)
+        public async Task<IActionResult> Get([FromRoute] int settingsId, [FromQuery] int? gameId = null)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            BossFightBossStats bossFightBossStats = await _context.BossFightBossStats.SingleOrDefaultAsync(m => m.SettingsId == settingsId);
+            BossFightBossStats bossFightBossStats = await _context.BossFightBossStats.SingleOrDefaultAsync(m => m.SettingsId == settingsId && m.GameId == gameId);
 
             if (bossFightBossStats == null)
             {
-                return NotFound();
+                // User hasn't set the boss stats for a particular game that is in the game list
+                // Try to get their general settings as a fallback
+                bossFightBossStats = await _context.BossFightBossStats.SingleOrDefaultAsync(m => m.SettingsId == settingsId && m.GameId == null);
+
+                if (bossFightBossStats == null)
+                    return NotFound();
             }
 
             return Ok(bossFightBossStats);

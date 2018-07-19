@@ -110,7 +110,7 @@ namespace TwitchBot.Models
                 await ApiBotRequest.GetExecuteTaskAsync<BossFightClassStats>(twitchBotApiLink + $"bossfightclassstats/get/{SettingsId}");
 
             BossFightBossStats bossFightBossStats = 
-                await ApiBotRequest.GetExecuteTaskAsync<BossFightBossStats>(twitchBotApiLink + $"bossfightbossstats/get/{SettingsId}");
+                await ApiBotRequest.GetExecuteTaskAsync<BossFightBossStats>(twitchBotApiLink + $"bossfightbossstats/get/{SettingsId}?gameId={gameId}");
 
             // refresh arrays and lists
             NextLevelMessages = new string[4];
