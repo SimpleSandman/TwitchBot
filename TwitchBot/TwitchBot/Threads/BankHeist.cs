@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
@@ -42,7 +43,7 @@ namespace TwitchBot.Threads
             _thread.Start();
         }
 
-        private void Run()
+        private async void Run()
         {
             while (true)
             {
@@ -55,7 +56,7 @@ namespace TwitchBot.Threads
                 else if (_heistSettings.Robbers.Count > 0 && _heistSettings.IsEntryPeriodOver())
                 {
                     _heistSettings.Robbers.CompleteAdding();
-                    Consume();
+                    await Consume();
 
                     // refresh the list and reset the cooldown time period
                     _heistSettings.Robbers = new BlockingCollection<BankRobber>();
@@ -72,7 +73,7 @@ namespace TwitchBot.Threads
             _heistSettings.Robbers.Add(robber);
         }
 
-        public async void Consume()
+        public async Task Consume()
         {
             BankHeistLevel heistLevel = _heistSettings.Levels[HeistLevel() - 1];
             BankHeistPayout payout = _heistSettings.Payouts[HeistLevel() - 1];
@@ -120,7 +121,7 @@ namespace TwitchBot.Threads
             decimal numWinnersPercentage = numWinners / (decimal)_heistSettings.Robbers.Count;
 
             // display success outcome
-            if (winners.Count() == 1)
+            if (winners.Count() == 1 && numWinners == _heistSettings.Robbers.Count)
             {
                 BankRobber onlyWinner = winners.First();
                 int earnings = (int)Math.Ceiling(onlyWinner.Gamble * payout.WinMultiplier);
