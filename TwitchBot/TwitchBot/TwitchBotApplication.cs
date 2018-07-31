@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Text;
 using System.Linq;
 using System.Threading;
@@ -121,7 +122,9 @@ namespace TwitchBot
                 {
                     Console.WriteLine("Cannot find a broadcaster ID for you. "
                         + "Please contact the author with a detailed description of the issue");
-                    Thread.Sleep(3000);
+                    Console.WriteLine();
+                    Console.WriteLine("Shutting down now...");
+                    Thread.Sleep(5000);
                     Environment.Exit(1);
                 }
 
@@ -230,20 +233,9 @@ namespace TwitchBot
                 chatReminder.Start();
 
                 /* Authenticate to Twitter if possible */
-                if (!string.IsNullOrEmpty(_botConfig.TwitterConsumerKey) 
-                    && !string.IsNullOrEmpty(_botConfig.TwitterConsumerSecret) 
-                    && !string.IsNullOrEmpty(_botConfig.TwitterAccessToken) 
-                    && !string.IsNullOrEmpty(_botConfig.TwitterAccessSecret))
-                {
-                    Auth.ApplicationCredentials = new TwitterCredentials(
-                        _botConfig.TwitterConsumerKey, _botConfig.TwitterConsumerSecret,
-                        _botConfig.TwitterAccessToken, _botConfig.TwitterAccessSecret
-                    );
+                GetTwitterAuth();
 
-                    _hasTwitterInfo = true;
-                }
-
-                Console.WriteLine("=== Time to get to work! ===");
+                Console.WriteLine("===== Time to get to work! =====");
                 Console.WriteLine();
 
                 /* Finished setup, time to start */
@@ -1008,6 +1000,138 @@ namespace TwitchBot
             {
                 await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GreetNewUser(string, string)", false);
             }
+        }
+
+        /// <summary>
+        /// Get access to user's Twitter credentials via PIN-based authentication
+        /// </summary>
+        private void GetTwitterAuth()
+        {
+            // Check if developer set up Twitter integration
+            if (!string.IsNullOrEmpty(_botConfig.TwitterConsumerKey) && !string.IsNullOrEmpty(_botConfig.TwitterConsumerSecret))
+            {
+                // Check existing credentials
+                if (!string.IsNullOrEmpty(_botConfig.TwitterAccessToken) && !string.IsNullOrEmpty(_botConfig.TwitterAccessSecret))
+                {
+                    TwitterCredentials userCredentials = new TwitterCredentials
+                    (
+                        _botConfig.TwitterConsumerKey, _botConfig.TwitterConsumerSecret,
+                        _botConfig.TwitterAccessToken, _botConfig.TwitterAccessSecret
+                    );
+
+                    var authenticatedUser = new object();
+
+                    // Try to set stored credentials
+                    if (userCredentials != null)
+                    {
+                        // Use the user credentials in the application
+                        Auth.SetCredentials(userCredentials);
+
+                        authenticatedUser = User.GetAuthenticatedUser();
+                    }
+
+                    // Check if current credentials are valid
+                    if (userCredentials == null || authenticatedUser == null)
+                    {
+                        // Remove access info from app settings on local computer
+                        SaveTwitterAccessInfo();
+                    }
+                }
+
+                // Get authentication to Twitter account
+                if (string.IsNullOrEmpty(_botConfig.TwitterAccessToken) || string.IsNullOrEmpty(_botConfig.TwitterAccessSecret))
+                {
+                    // Create a new set of credentials for the application.
+                    TwitterCredentials appCredentials = new TwitterCredentials(_botConfig.TwitterConsumerKey, _botConfig.TwitterConsumerSecret);
+
+                    // Init the authentication process and store the related "AuthenticationContext".
+                    IAuthenticationContext authenticationContext = AuthFlow.InitAuthentication(appCredentials);
+
+                    // Go to the URL so that Twitter authenticates the user and gives him a PIN code.
+                    Process.Start(authenticationContext.AuthorizationURL);
+
+                    // Ask the user to enter the pin code given by Twitter
+                    Console.WriteLine("Please enter the PIN given by Twitter (or press ENTER to continue using this bot without twitter):");
+                    string pinCode = Console.ReadLine();
+
+                    if (!string.IsNullOrWhiteSpace(pinCode))
+                    {
+                        // With this pin code, it is now possible to get the credentials back from Twitter
+                        ITwitterCredentials userCredentials = AuthFlow.CreateCredentialsFromVerifierCode(pinCode, authenticationContext);
+
+                        pinCode = ""; // clear pin code
+
+                        if (userCredentials != null)
+                        {
+                            // Use the user credentials in the application
+                            Auth.SetCredentials(userCredentials);
+
+                            // Store access info into app settings on local computer
+                            SaveTwitterAccessInfo(userCredentials.AccessToken, userCredentials.AccessTokenSecret);
+
+                            // Allow Twitter-based commands to use user's credentials provided by the bot user
+                            _hasTwitterInfo = true;
+
+                            // ToDo: Add setting if user wants preset reminder
+                            // ToDo: If !live was used before this reminder pops up, remove it from "Program.DelayedMessages"
+                            Program.DelayedMessages.Add(new DelayedMessage
+                            {
+                                Message = $"@{_botConfig.Broadcaster} did you remind Twitter you're \"!live\" on " 
+                                    + "https://twitter.com/" + $"{User.GetAuthenticatedUser().UserIdentifier.ScreenName}",
+                                SendDate = DateTime.Now.AddMinutes(5)
+                            });
+
+                            Console.WriteLine();
+                            Console.WriteLine("Twitter authentication granted for Twitter account (screen name): "
+                                + $"{User.GetAuthenticatedUser().UserIdentifier.ScreenName}");
+                            Console.WriteLine();
+                        }
+                        else
+                        {
+                            Console.WriteLine();
+                            Console.WriteLine("Warning: Couldn't find Twitter credentials.");
+                            Console.WriteLine("Either the PIN code wasn't entered correctly or unknown authentication error occurred");
+                            Console.WriteLine("Continuing without Twitter features...");
+                            Console.WriteLine();
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Warning: PIN code was not provided. Continuing without Twitter features...");
+                        Console.WriteLine();
+                    }
+                }
+                else
+                {
+                    // Allow Twitter-based commands to use user's credentials provided by the bot user
+                    _hasTwitterInfo = true;
+
+                    Console.WriteLine($"Current authenticated Twitter's screen name: {User.GetAuthenticatedUser().UserIdentifier.ScreenName}");
+                    Console.WriteLine();
+                }
+            }
+            else
+            {
+                Console.WriteLine("Warning: Twitter integration not set. Continuing without Twitter features...");
+                Console.WriteLine();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="accessToken"></param>
+        /// <param name="accessSecret"></param>
+        private void SaveTwitterAccessInfo(string accessToken = "", string accessSecret = "")
+        {
+            _botConfig.TwitterAccessToken = accessToken;
+            _botConfig.TwitterAccessSecret = accessSecret;
+            _appConfig.AppSettings.Settings.Remove("twitterAccessToken");
+            _appConfig.AppSettings.Settings.Add("twitterAccessToken", accessToken);
+            _appConfig.AppSettings.Settings.Remove("twitterAccessSecret");
+            _appConfig.AppSettings.Settings.Add("twitterAccessSecret", accessSecret);
+            _appConfig.Save(ConfigurationSaveMode.Modified);
+            ConfigurationManager.RefreshSection("TwitchBotConfiguration");
         }
     }
 }
