@@ -756,7 +756,7 @@ namespace TwitchBot
                                     await _cmdGen.CmdSubscribe();
 
                                 /* Display how long a user has been subscribed to the broadcaster */
-                                else if (message.Equals("!subsince"))
+                                else if (message.Equals("!subsince") || message.Equals("!subage"))
                                     await _cmdGen.CmdSubscribeSince(username);
 
                                 /* Join the boss fight with a pre-defined amount of currency set by broadcaster */
@@ -801,7 +801,7 @@ namespace TwitchBot
 
                                 /* Give funds to another chatter */
                                 // Usage: !give [amount] @[username]
-                                else if (message.StartsWith("!give ") && !IsUserOnCooldown(username, "!gamble"))
+                                else if (message.StartsWith("!give ") && !IsUserOnCooldown(username, "!give"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdGiveFunds(message, username);
                                     if (cooldown > DateTime.Now)
