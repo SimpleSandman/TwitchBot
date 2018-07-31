@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data;
-using System.Data.SqlClient;
 using System.Text;
 using System.Linq;
 using System.Threading;
@@ -499,12 +497,12 @@ namespace TwitchBot
                                         await _cmdMod.CmdUpdateGame(message, hasTwitterInfo);
 
                                     /* Pops user from the queue of users that want to play with the broadcaster */
-                                    else if (message.Equals("!popgotnext"))
-                                        _gameQueueUsers = await _cmdMod.CmdPopGotNextGame(username, _gameQueueUsers);
+                                    else if (message.Equals("!popjoin"))
+                                        _gameQueueUsers = await _cmdMod.CmdPopJoin(username, _gameQueueUsers);
 
                                     /* Resets game queue of users that want to play with the broadcaster */
-                                    else if (message.Equals("!resetgotnext"))
-                                        _gameQueueUsers = await _cmdMod.CmdResetGotNextGame(username, _gameQueueUsers);
+                                    else if (message.Equals("!resetjoin"))
+                                        _gameQueueUsers = await _cmdMod.CmdResetJoin(username, _gameQueueUsers);
 
                                     /* Display the streamer's channel and game status */
                                     // Usage: !streamer @[username]
@@ -555,8 +553,8 @@ namespace TwitchBot
                                     await _cmdGen.CmdManualSr(isManualSongRequestAvail, message, username);
 
                                 /* Displays the current song being played from Spotify */
-                                else if (message.Equals("!spotifycurr"))
-                                    _cmdGen.CmdSpotifyCurr();
+                                else if (message.Equals("!spotifysong"))
+                                    _cmdGen.CmdSpotifyCurrentSong();
 
                                 /* Slaps a user and rates its effectiveness */
                                 // Usage: !slap @[username]
@@ -665,7 +663,7 @@ namespace TwitchBot
                                     _cmdGen.CmdQuote();
 
                                 /* Display how long a user has been following the broadcaster */
-                                else if (message.Equals("!followsince"))
+                                else if (message.Equals("!followsince") || message.Equals("!followage"))
                                     _cmdGen.CmdFollowSince(username);
 
                                 /* Display follower's stream rank */
@@ -741,12 +739,12 @@ namespace TwitchBot
                                 }
 
                                 /* Show the users that want to play with the broadcaster */
-                                else if (message.Equals("!listgotnext"))
-                                    _cmdGen.CmdListGotNextGame(username, _gameQueueUsers);
+                                else if (message.Equals("!listjoin"))
+                                    _cmdGen.CmdListJoin(username, _gameQueueUsers);
 
                                 /* Request to play with the broadcaster */
-                                else if (message.Equals("!gotnextgame"))
-                                    _gameQueueUsers = await _cmdGen.CmdGotNextGame(username, _gameQueueUsers);
+                                else if (message.Equals("!join"))
+                                    _gameQueueUsers = await _cmdGen.CmdJoin(username, _gameQueueUsers);
 
                                 /* Join the heist and gamble your currency for a higher payout */
                                 // Usage: !bankheist [currency]

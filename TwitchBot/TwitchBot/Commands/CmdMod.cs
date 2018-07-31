@@ -703,7 +703,7 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async Task<Queue<string>> CmdPopGotNextGame(string username, Queue<string> gameQueueUsers)
+        public async Task<Queue<string>> CmdPopJoin(string username, Queue<string> gameQueueUsers)
         {
             try
             {
@@ -717,13 +717,13 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopGotNextGame(string, Queue<string>)", false, "!popgotnext");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopJoin(string, Queue<string>)", false, "!popjoin");
             }
 
             return gameQueueUsers;
         }
 
-        public async Task<Queue<string>> CmdResetGotNextGame(string username, Queue<string> gameQueueUsers)
+        public async Task<Queue<string>> CmdResetJoin(string username, Queue<string> gameQueueUsers)
         {
             try
             {
@@ -733,7 +733,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetGotNextGame(string, Queue<string>)", false, "!resetgotnext");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetJoin(string, Queue<string>)", false, "!resetjoin");
             }
 
             return gameQueueUsers;

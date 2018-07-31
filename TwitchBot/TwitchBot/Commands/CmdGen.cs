@@ -70,7 +70,7 @@ namespace TwitchBot.Commands
             try
             {
                 _irc.SendPublicChatMessage("---> !hello >< !slap @[username] >< !stab @[username] >< !throw [item] @[username] >< !shoot @[username] "
-                    + ">< !ytsr [youtube link/search] >< !ytsl >< !partyup [party member name] >< !gamble [money] "
+                    + ">< !sr [youtube link/search] >< !ytsl >< !partyup [party member name] >< !gamble [money] >< !join "
                     + ">< !quote >< !8ball [question] >< !" + _botConfig.CurrencyType.ToLower() + " (check stream currency) <---"
                     + " Link to full list of commands: http://bit.ly/2bXLlEe");
             }
@@ -223,7 +223,7 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Displays the current song being played from Spotify
         /// </summary>
-        public async void CmdSpotifyCurr()
+        public async void CmdSpotifyCurrentSong()
         {
             try
             {
@@ -239,7 +239,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSpotifyCurr()", false, "!spotifycurr");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSpotifyCurrentSong()", false, "!spotifysong");
             }
         }
 
@@ -1177,7 +1177,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
-        public async void CmdListGotNextGame(string username, Queue<string> gameQueueUsers)
+        public async void CmdListJoin(string username, Queue<string> gameQueueUsers)
         {
             try
             {
@@ -1186,7 +1186,7 @@ namespace TwitchBot.Commands
                 if (gameQueueUsers.Count == 0)
                 {
                     _irc.SendPublicChatMessage($"No one wants to play with the streamer at the moment. "
-                        + "Be the first to play with !gotnextgame");
+                        + "Be the first to play with !join");
                     return;
                 }
 
@@ -1202,7 +1202,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdListGotNextGame(string, Queue<string>)", false, "!listgotnext");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdListJoin(string, Queue<string>)", false, "!listjoin");
             }
         }
 
@@ -1211,7 +1211,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="username">User that sent the message</param>
         /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
-        public async Task<Queue<string>> CmdGotNextGame(string username, Queue<string> gameQueueUsers)
+        public async Task<Queue<string>> CmdJoin(string username, Queue<string> gameQueueUsers)
         {
             try
             {
@@ -1231,7 +1231,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGotNextGame(string, Queue<string>)", false, "!gotnextgame");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdJoin(string, Queue<string>)", false, "!join");
             }
 
             return gameQueueUsers;
