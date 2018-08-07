@@ -929,18 +929,10 @@ namespace TwitchBot.Commands
                     _irc.SendPublicChatMessage($"MultiStream link is not set up @{username}");
                 else
                 {
-                    string multiStreamLink = "https://multistre.am/" + _botConfig.Broadcaster.ToLower() + "/";
+                    string multiStreamLink = "https://multitwitch.live/" + _botConfig.Broadcaster.ToLower();
 
                     foreach (string multiStreamUser in multiStreamUsers)
-                        multiStreamLink += $"{multiStreamUser}/";
-
-                    // Layouts used specifically for multistre.am
-                    if (multiStreamUsers.Count == 3)
-                        multiStreamLink += "layout11";
-                    else if (multiStreamUsers.Count == 2)
-                        multiStreamLink += "layout7";
-                    else if (multiStreamUsers.Count == 1)
-                        multiStreamLink += "layout4";
+                        multiStreamLink += $"/{multiStreamUser}";
 
                     _irc.SendPublicChatMessage($"Check out these awesome streamers at the same time! (Use desktop for best results) {multiStreamLink}");
                 }
