@@ -28,7 +28,7 @@ For a development environment (testing), create an `AppConfigSecrets.config` in 
 
 Set file to `copy-if-newer` so it's included in the compilation. For production, this file is not needed and the bot will ask for configuration on first run
 
-## Possible setup issues:
+## Possible Setup Issues:
 - IIS HTTP Error 404.11 - Not Found `The request filtering module is configured to deny a request that contains a double escape sequence`
   - Add this line into the file: `C:\[PathToSolution]\.vs\config\applicationhost.config`
     ```xml
@@ -38,5 +38,5 @@ Set file to `copy-if-newer` so it's included in the compilation. For production,
         </security>
     </system.webServer>
     ```
-  - Workaround Source: https://stackoverflow.com/questions/1453218/is-enabling-double-escaping-dangerous
-  - Location Source: https://stackoverflow.com/questions/12946476/where-is-the-iis-express-configuration-metabase-file-found
+  - Workaround Source: https://stackoverflow.com/a/1453287/2113548
+  - Location Source: https://stackoverflow.com/q/12946476/2113548
