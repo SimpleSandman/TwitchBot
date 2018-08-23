@@ -808,6 +808,10 @@ namespace TwitchBot
                                     }
                                 }
 
+                                /* Display the broadcaster's twitter page */
+                                else if (message.Equals("!twitter"))
+                                    _cmdGen.CmdTwitterLink(hasTwitterInfo, User.GetAuthenticatedUser().UserIdentifier.ScreenName);
+
                                 /* add more general commands here */
                             }
                         }

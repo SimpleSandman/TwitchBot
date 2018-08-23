@@ -211,13 +211,13 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Manually send a tweet
         /// </summary>
-        /// <param name="bolHasTwitterInfo">Check if user has provided the specific twitter credentials</param>
+        /// <param name="hasTwitterInfo">Check if user has provided the specific twitter credentials</param>
         /// <param name="message">Chat message from the user</param>
-        public async void CmdTweet(bool bolHasTwitterInfo, string message)
+        public async void CmdTweet(bool hasTwitterInfo, string message)
         {
             try
             {
-                if (!bolHasTwitterInfo)
+                if (!hasTwitterInfo)
                     _irc.SendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
                 else
                     _irc.SendPublicChatMessage(_twitter.SendTweet(message.Replace("!tweet ", "")));

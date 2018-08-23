@@ -1618,6 +1618,21 @@ namespace TwitchBot.Commands
             return DateTime.Now;
         }
 
+        public async void CmdTwitterLink(bool hasTwitterInfo, string screenName)
+        {
+            try
+            {
+                if (!hasTwitterInfo)
+                    _irc.SendPublicChatMessage($"Twitter username not found @{_botConfig.Broadcaster}");
+                else
+                    _irc.SendPublicChatMessage($"Check out @{_botConfig.Broadcaster}'s twitter at " + "https://twitter.com/" + screenName);
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdTwitterLink(string)", false, "!twitter");
+            }
+        }
+
         private ChatterType CheckUserChatterType(string username)
         {
             // wait until lists are available
