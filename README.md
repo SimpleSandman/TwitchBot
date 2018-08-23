@@ -28,9 +28,15 @@ For a development environment (testing), create an `AppConfigSecrets.config` in 
 
 Set file to `copy-if-newer` so it's included in the compilation. For production, this file is not needed and the bot will ask for configuration on first run
 
-## Possible setup issues:
-- Connection string error `Configuration System Failed to Initialize`
-  - Delete old config files from these file locations and restart the debugger:
-    - `C:\Users\[username]\AppData\Local\[appname]`
-    - `C:\Users\[username]\AppData\Roaming\[appname]`
-  - Source: http://stackoverflow.com/q/6436157/2113548
+## Possible Setup Issues:
+- IIS HTTP Error 404.11 - Not Found `The request filtering module is configured to deny a request that contains a double escape sequence`
+  - Add this line into the file: `C:\[PathToSolution]\.vs\config\applicationhost.config`
+    ```xml
+    <system.webServer>
+        <security>
+            <requestFiltering allowDoubleEscaping="true"/>
+        </security>
+    </system.webServer>
+    ```
+  - Workaround Source: https://stackoverflow.com/a/1453287/2113548
+  - Location Source: https://stackoverflow.com/q/12946476/2113548
