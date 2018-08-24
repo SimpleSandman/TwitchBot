@@ -1624,12 +1624,29 @@ namespace TwitchBot.Commands
             {
                 if (!hasTwitterInfo)
                     _irc.SendPublicChatMessage($"Twitter username not found @{_botConfig.Broadcaster}");
+                else if (string.IsNullOrEmpty(screenName))
+                    _irc.SendPublicChatMessage("I'm sorry. I'm unable to get this broadcaster's Twitter handle/screen name");
                 else
-                    _irc.SendPublicChatMessage($"Check out @{_botConfig.Broadcaster}'s twitter at " + "https://twitter.com/" + screenName);
+                    _irc.SendPublicChatMessage($"Check out this broadcaster's twitter at https://twitter.com/" + screenName);
             }
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdGen", "CmdTwitterLink(string)", false, "!twitter");
+            }
+        }
+
+        public async void CmdSupport()
+        {
+            try
+            {
+                _irc.SendPublicChatMessage("@Simple_Sandman is the source of all of my powers PowerUpL Jebaited PowerUpR "
+                    + "Please check out his Twitch at https://twitch.tv/simple_sandman " 
+                    + "If you need any support, send him a direct message at his Twitter https://twitter.com/Simple_Sandman "
+                    + "Also, if you want to help me with power leveling, check out the Github https://github.com/SimpleSandman/TwitchBot");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGithub()", false, "!github");
             }
         }
 

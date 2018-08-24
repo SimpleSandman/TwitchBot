@@ -810,7 +810,11 @@ namespace TwitchBot
 
                                 /* Display the broadcaster's twitter page */
                                 else if (message.Equals("!twitter"))
-                                    _cmdGen.CmdTwitterLink(hasTwitterInfo, User.GetAuthenticatedUser().UserIdentifier.ScreenName);
+                                    _cmdGen.CmdTwitterLink(hasTwitterInfo, User.GetAuthenticatedUser()?.UserIdentifier?.ScreenName);
+
+                                /* Display this project and creator's info */
+                                else if (message.Equals("!support"))
+                                    _cmdGen.CmdSupport();
 
                                 /* add more general commands here */
                             }
