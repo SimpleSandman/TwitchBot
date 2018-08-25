@@ -1646,7 +1646,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGithub()", false, "!github");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSupport()", false, "!support");
             }
         }
 
