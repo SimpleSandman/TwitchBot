@@ -79,7 +79,7 @@ namespace TwitchBot.Libraries
                     + "@" + _botConfig.Broadcaster + " please look into the error log when you have time";
 
                 if (hasToExit)
-                    publicErrMsg += " I am leaving as well. Have a great time with this stream everyone KonCha";
+                    publicErrMsg += ". I am leaving as well. Have a great time with this stream everyone KonCha";
 
                 if (_irc != null)
                     _irc.SendPublicChatMessage(publicErrMsg);

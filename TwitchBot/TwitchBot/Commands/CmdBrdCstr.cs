@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Google.Apis.YouTube.v3.Data;
+
 using TwitchBot.Configuration;
 using TwitchBot.Extensions;
 using TwitchBot.Libraries;
@@ -28,6 +30,7 @@ namespace TwitchBot.Commands
         private TwitchInfoService _twitchInfo;
         private GameDirectoryService _gameDirectory;
         private TwitterClient _twitter = TwitterClient.Instance;
+        private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private BossFightSingleton _bossFightSettingsInstance = BossFightSingleton.Instance;
@@ -647,7 +650,59 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdSetRegularHours(string)", false, "!setregularhours");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdSetRegularFollowerHours(string)", false, "!setregularhours");
+            }
+        }
+
+        public async Task CmdResetYoutubeSongRequestList(bool hasYouTubeAuth)
+        {
+            try
+            {
+                if (!hasYouTubeAuth)
+                {
+                    _irc.SendPublicChatMessage("YouTube song requests have not been set up");
+                    return;
+                }
+
+                // Check if user has a song request playlist, else create one
+                string playlistName = _botConfig.YouTubeBroadcasterPlaylistName;
+                string defaultPlaylistName = $"Twitch Song Requests";
+
+                if (string.IsNullOrEmpty(playlistName))
+                {
+                    playlistName = defaultPlaylistName;
+                }
+
+                Playlist broadcasterPlaylist = null;
+
+                // Check for existing playlist id
+                if (!string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
+                {
+                    broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId);
+                }
+
+                if (broadcasterPlaylist?.Id != null)
+                    await _youTubeClientInstance.DeletePlaylist(broadcasterPlaylist.Id);
+
+                broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylist(playlistName,
+                    "Songs requested via Twitch viewers on https://twitch.tv/" + _botConfig.Broadcaster
+                        + " (playlist created using https://github.com/SimpleSandman/TwitchBot)");
+
+                _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
+                _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistId");
+                _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistId", broadcasterPlaylist.Id);
+                _botConfig.YouTubeBroadcasterPlaylistName = broadcasterPlaylist.Snippet.Title;
+                _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistName");
+                _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistName", broadcasterPlaylist.Snippet.Title);
+                _appConfig.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+
+                _irc.SendPublicChatMessage($"YouTube playlist has been reset @{_botConfig.Broadcaster} " 
+                    + "and is now at this link https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdResetYoutubeSongRequestList(bool)", false, "!resetytsr");
             }
         }
     }

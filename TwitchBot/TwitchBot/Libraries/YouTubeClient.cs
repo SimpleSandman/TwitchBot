@@ -95,6 +95,11 @@ namespace TwitchBot.Libraries
             return await _youtubeService.Playlists.Insert(newPlaylist, "snippet,status").ExecuteAsync();
         }
 
+        public async Task DeletePlaylist(string playlistId)
+        {
+            await _youtubeService.Playlists.Delete(playlistId).ExecuteAsync();
+        }
+
         public async Task AddVideoToPlaylist(string videoId, string playlistId, string username, long position = -1)
         {
             var newPlaylistItem = new PlaylistItem();

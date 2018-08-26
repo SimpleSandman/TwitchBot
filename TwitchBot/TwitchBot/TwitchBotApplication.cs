@@ -161,26 +161,38 @@ namespace TwitchBot
                 /* Pull YouTube response tokens from user's account (request permission if needed) */
                 // ToDo: Move YouTube client secrets away from bot config
                 _hasYouTubeAuth = await _youTubeClientInstance.GetAuth(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret);
-                if (_hasYouTubeAuth && string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
+                if (_hasYouTubeAuth)
                 {
-                    // Check if user has a song request playlist, else create one
-                    string playlistName = _botConfig.YouTubeBroadcasterPlaylistName;
-                    string defaultPlaylistName = "Twitch Song Requests";
+                    Playlist broadcasterPlaylist = null;
 
-                    if (string.IsNullOrEmpty(playlistName))
+                    // Check if YouTube song request playlist still exists
+                    if (!string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                     {
-                        playlistName = defaultPlaylistName;
-                        _botConfig.YouTubeBroadcasterPlaylistName = playlistName;
+                        broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId);
+                    }
+                    
+                    if (string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId) || broadcasterPlaylist?.Id == null)
+                    {
+                        string playlistName = _botConfig.YouTubeBroadcasterPlaylistName;
+                        string defaultPlaylistName = $"Twitch Song Requests";
+
+                        if (string.IsNullOrEmpty(playlistName))
+                        {
+                            playlistName = defaultPlaylistName;
+                        }
+
+                        broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylist(playlistName,
+                            "Songs requested via Twitch viewers on https://twitch.tv/" + _botConfig.Broadcaster
+                                + " (playlist created using https://github.com/SimpleSandman/TwitchBot)");
+
+                        _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
+                        _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistId");
+                        _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistId", broadcasterPlaylist.Id);
                     }
 
-                    Playlist broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(playlistName);
-
-                    if (broadcasterPlaylist.Id == null)
-                        broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylist(defaultPlaylistName, "Songs requested from Twitch chatters");
-
-                    _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
-                    _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistId");
-                    _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistId", broadcasterPlaylist.Id);
+                    _botConfig.YouTubeBroadcasterPlaylistName = broadcasterPlaylist.Snippet.Title;
+                    _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistName");
+                    _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistName", broadcasterPlaylist.Snippet.Title);
                     _appConfig.Save(ConfigurationSaveMode.Modified);
                     ConfigurationManager.RefreshSection("TwitchBotConfiguration");
                 }
@@ -404,6 +416,10 @@ namespace TwitchBot
                                 /* Manually refresh boss fight */
                                 else if (message.Equals("!refreshbossfight"))
                                     await _cmdBrdCstr.CmdRefreshBossFight();
+
+                                /* Reset the YouTube song request playlist */
+                                else if (message.Equals("!resetytsr"))
+                                    await _cmdBrdCstr.CmdResetYoutubeSongRequestList(hasYouTubeAuth);
 
                                 /* insert more broadcaster commands here */
                             }
