@@ -303,122 +303,122 @@ namespace TwitchBot
                             if (username.Equals(_botConfig.Broadcaster.ToLower()))
                             {
                                 /* Display bot settings */
-                                if (message.Equals("!botsettings"))
+                                if (message.Equals("!settings", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdBrdCstr.CmdBotSettings();
 
                                 /* Stop running the bot */
-                                else if (message.Equals("!exitbot"))
+                                else if (message.Equals("!exit", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdBrdCstr.CmdExitBot();
 
                                 /* Manually connect to Spotify */
-                                else if (message.Equals("!spotifyconnect"))
+                                else if (message.Equals("!spotifyconnect", StringComparison.CurrentCultureIgnoreCase))
                                     await _spotify.Connect();
 
                                 /* Press local Spotify play button [>] */
-                                else if (message.Equals("!spotifyplay"))
+                                else if (message.Equals("!spotifyplay", StringComparison.CurrentCultureIgnoreCase))
                                     _spotify.playBtn_Click();
 
                                 /* Press local Spotify pause button [||] */
-                                else if (message.Equals("!spotifypause"))
+                                else if (message.Equals("!spotifypause", StringComparison.CurrentCultureIgnoreCase))
                                     _spotify.pauseBtn_Click();
 
                                 /* Press local Spotify previous button [|<] */
-                                else if (message.Equals("!spotifyprev"))
+                                else if (message.Equals("!spotifyprev", StringComparison.CurrentCultureIgnoreCase))
                                     _spotify.prevBtn_Click();
 
                                 /* Press local Spotify next (skip) button [>|] */
-                                else if (message.Equals("!spotifynext"))
+                                else if (message.Equals("!spotifynext", StringComparison.CurrentCultureIgnoreCase))
                                     _spotify.skipBtn_Click();
 
                                 /* Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets) */
-                                else if (message.Equals("!sendtweet on"))
+                                else if (message.Equals("!sendtweet on", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdBrdCstr.CmdEnableTweet(hasTwitterInfo);
 
                                 /* Disables tweets from being sent out from this bot */
-                                else if (message.Equals("!sendtweet off"))
+                                else if (message.Equals("!sendtweet off", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdBrdCstr.CmdDisableTweet(hasTwitterInfo);
 
                                 /* Enables viewers to request songs (default off) */
-                                else if (message.Equals("!rbsrmode on"))
+                                else if (message.Equals("!rbsrmode on", StringComparison.CurrentCultureIgnoreCase))
                                     isManualSongRequestAvail = await _cmdBrdCstr.CmdEnableManualSrMode(isManualSongRequestAvail);
 
                                 /* Disables viewers to request songs (default off) */
-                                else if (message.Equals("!rbsrmode off"))
+                                else if (message.Equals("!rbsrmode off", StringComparison.CurrentCultureIgnoreCase))
                                     isManualSongRequestAvail = await _cmdBrdCstr.CmdDisableManualSrMode(isManualSongRequestAvail);
 
                                 /* Enables viewers to request songs (default off) */
-                                else if (message.Equals("!ytsrmode on"))
+                                else if (message.Equals("!ytsrmode on", StringComparison.CurrentCultureIgnoreCase))
                                     isYouTubeSongRequestAvail = await _cmdBrdCstr.CmdEnableYouTubeSrMode(isYouTubeSongRequestAvail);
 
                                 /* Disables viewers to request songs (default off) */
-                                else if (message.Equals("!ytsrmode off"))
+                                else if (message.Equals("!ytsrmode off", StringComparison.CurrentCultureIgnoreCase))
                                     isYouTubeSongRequestAvail = await _cmdBrdCstr.CmdDisableYouTubeSrMode(isYouTubeSongRequestAvail);
 
                                 /* Sends a manual tweet (if credentials have been provided) */
                                 // Usage: !tweet "[message]" (use quotation marks)
-                                else if (message.StartsWith("!tweet "))
+                                else if (message.StartsWith("!tweet ", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdBrdCstr.CmdTweet(hasTwitterInfo, message);
 
                                 /* Enables songs from local Spotify to be displayed inside the chat */
-                                else if (message.Equals("!displaysongs on"))
+                                else if (message.Equals("!displaysongs on", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdBrdCstr.CmdEnableDisplaySongs();
 
                                 /* Disables songs from local Spotify to be displayed inside the chat */
-                                else if (message.Equals("!displaysongs off"))
+                                else if (message.Equals("!displaysongs off", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdBrdCstr.CmdDisableDisplaySongs();
 
                                 /* Add viewer to moderator list so they can have access to bot moderator commands */
                                 // Usage: !addmod @[username]
-                                else if (message.StartsWith("!addmod ") && message.Contains("@"))
+                                else if (message.StartsWith("!addmod ", StringComparison.CurrentCultureIgnoreCase) && message.Contains("@"))
                                     await _cmdBrdCstr.CmdAddBotMod(message);
 
                                 /* Remove moderator from list so they can't access the bot moderator commands */
                                 // Usage: !delmod @[username]
-                                else if (message.StartsWith("!delmod ") && message.Contains("@"))
+                                else if (message.StartsWith("!delmod ", StringComparison.CurrentCultureIgnoreCase) && message.Contains("@"))
                                     await _cmdBrdCstr.CmdDelBotMod(message);
 
                                 /* List bot moderators */
-                                else if (message.Equals("!listmod"))
+                                else if (message.Equals("!listmod", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdBrdCstr.CmdListMod();
 
                                 /* Add song or artist to song request blacklist */
                                 // Usage (artist): !srbl 1 [artist name]
                                 // Usage (song): !srbl 2 "[song title]" <[artist name]>
-                                else if (message.StartsWith("!srbl "))
+                                else if (message.StartsWith("!srbl ", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdBrdCstr.CmdAddSongRequestBlacklist(message);
 
                                 /* Remove song or artist from song request blacklist */
-                                // Usage (artist): !removesrbl 1 [artist name]
-                                // Usage (song): !removesrbl 2 "[song title]" <[artist name]>
-                                else if (message.StartsWith("!removesrbl "))
+                                // Usage (artist): !delsrbl 1 [artist name]
+                                // Usage (song): !delsrbl 2 "[song title]" <[artist name]>
+                                else if (message.StartsWith("!delsrbl ", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdBrdCstr.CmdRemoveSongRequestBlacklist(message);
 
                                 /* Reset the entire song request blacklist */
-                                else if (message.Equals("!resetsrbl"))
+                                else if (message.Equals("!resetsrbl", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdBrdCstr.CmdResetSongRequestBlacklist();
 
                                 /* Show the song request blacklist */
-                                else if (message.Equals("!showsrbl"))
+                                else if (message.Equals("!showsrbl", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdBrdCstr.CmdListSongRequestBlacklist();
 
                                 /* Sends an announcement tweet saying the broadcaster is live */
-                                else if (message.Equals("!live"))
+                                else if (message.Equals("!live", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdBrdCstr.CmdLive(hasTwitterInfo);
 
                                 /* Manually refresh reminders */
-                                else if (message.Equals("!refreshreminders"))
+                                else if (message.Equals("!refreshreminders", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdBrdCstr.CmdRefreshReminders();
 
                                 /* Set regular follower hours for dedicated followers */
-                                else if (message.StartsWith("!setregularhours"))
+                                else if (message.StartsWith("!setregularhours", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdBrdCstr.CmdSetRegularFollowerHours(message);
 
                                 /* Manually refresh boss fight */
-                                else if (message.Equals("!refreshbossfight"))
+                                else if (message.Equals("!refreshbossfight", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdBrdCstr.CmdRefreshBossFight();
 
                                 /* Reset the YouTube song request playlist */
-                                else if (message.Equals("!resetytsr"))
+                                else if (message.Equals("!resetytsr", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdBrdCstr.CmdResetYoutubeSongRequestList(hasYouTubeAuth);
 
                                 /* insert more broadcaster commands here */
@@ -433,88 +433,88 @@ namespace TwitchBot
                                 {
                                     /* Takes money away from a user */
                                     // Usage: !charge [-amount] @[username]
-                                    if (message.StartsWith("!charge ") && message.Contains("@"))
+                                    if (message.StartsWith("!charge ", StringComparison.CurrentCultureIgnoreCase) && message.Contains("@"))
                                         await _cmdMod.CmdCharge(message, username);
 
                                     /* Gives money to user */
                                     // Usage: !deposit [amount] @[username]
-                                    else if (message.StartsWith("!deposit ") && message.Contains("@"))
+                                    else if (message.StartsWith("!deposit ", StringComparison.CurrentCultureIgnoreCase) && message.Contains("@"))
                                         await _cmdMod.CmdDeposit(message, username);
 
                                     /* Removes the first song in the queue of song requests */
-                                    else if (message.Equals("!poprbsr"))
+                                    else if (message.Equals("!poprbsr", StringComparison.CurrentCultureIgnoreCase))
                                         await _cmdMod.CmdPopManualSr();
 
                                     /* Resets the song request queue */
-                                    else if (message.Equals("!resetrbsr"))
+                                    else if (message.Equals("!resetrbsr", StringComparison.CurrentCultureIgnoreCase))
                                         await _cmdMod.CmdResetManualSr();
 
                                     /* Removes first party memeber in queue of party up requests */
-                                    else if (message.Equals("!poppartyuprequest"))
+                                    else if (message.Equals("!poppartyuprequest", StringComparison.CurrentCultureIgnoreCase))
                                         await _cmdMod.CmdPopPartyUpRequest();
 
                                     /* Bot-specific timeout on a user for a set amount of time */
-                                    // Usage: !timeout [seconds] @[username]
-                                    else if (message.StartsWith("!timeout ") && message.Contains("@"))
+                                    // Usage: !addtimeout [seconds] @[username]
+                                    else if (message.StartsWith("!addtimeout ", StringComparison.CurrentCultureIgnoreCase) && message.Contains("@"))
                                         await _cmdMod.CmdAddTimeout(message, username);
 
                                     /* Remove bot-specific timeout on a user for a set amount of time */
                                     // Usage: !deltimeout @[username]
-                                    else if (message.StartsWith("!deltimeout @"))
+                                    else if (message.StartsWith("!deltimeout @", StringComparison.CurrentCultureIgnoreCase))
                                         await _cmdMod.CmdDelTimeout(message, username);
 
                                     /* Set delay for messages based on the latency of the stream */
                                     // Usage: !setlatency [seconds]
-                                    else if (message.StartsWith("!setlatency "))
+                                    else if (message.StartsWith("!setlatency ", StringComparison.CurrentCultureIgnoreCase))
                                         _cmdMod.CmdSetLatency(message, username);
 
                                     /* Add a broadcaster quote */
                                     // Usage: !addquote [quote]
-                                    else if (message.StartsWith("!addquote "))
+                                    else if (message.StartsWith("!addquote ", StringComparison.CurrentCultureIgnoreCase))
                                         await _cmdMod.CmdAddQuote(message, username);
 
                                     /* Tell the stream the specified moderator will be AFK */
-                                    else if (message.Equals("!modafk"))
+                                    else if (message.Equals("!modafk", StringComparison.CurrentCultureIgnoreCase))
                                         _cmdMod.CmdModAfk(username);
 
                                     /* Tell the stream the specified moderator has returned */
-                                    else if (message.Equals("!modback"))
+                                    else if (message.Equals("!modback", StringComparison.CurrentCultureIgnoreCase))
                                         _cmdMod.CmdModBack(username);
 
                                     /* Gives every viewer a set amount of currency */
-                                    else if (message.StartsWith("!bonusall "))
+                                    else if (message.StartsWith("!bonusall ", StringComparison.CurrentCultureIgnoreCase))
                                         await _cmdMod.CmdBonusAll(message, username);
 
                                     /* Add MultiStream user to link */
                                     // Usage: !addmsl @[username]
-                                    else if (message.StartsWith("!addmsl "))
+                                    else if (message.StartsWith("!addmsl ", StringComparison.CurrentCultureIgnoreCase))
                                         _multiStreamUsers = await _cmdMod.CmdAddMultiStreamUser(message, username, _multiStreamUsers);
 
                                     /* Reset MultiStream link so link can be reconfigured */
-                                    else if (message.Equals("!resetmsl"))
+                                    else if (message.Equals("!resetmsl", StringComparison.CurrentCultureIgnoreCase))
                                         _multiStreamUsers = await _cmdMod.CmdResetMultiStreamLink(username, _multiStreamUsers);
 
                                     /* Updates the title of the Twitch channel */
                                     // Usage: !updatetitle [title]
-                                    else if (message.StartsWith("!updatetitle "))
+                                    else if (message.StartsWith("!updatetitle ", StringComparison.CurrentCultureIgnoreCase))
                                         await _cmdMod.CmdUpdateTitle(message);
 
                                     /* Updates the game of the Twitch channel */
                                     // Usage: !updategame [game]
-                                    else if (message.StartsWith("!updategame "))
+                                    else if (message.StartsWith("!updategame ", StringComparison.CurrentCultureIgnoreCase))
                                         await _cmdMod.CmdUpdateGame(message, hasTwitterInfo);
 
                                     /* Pops user from the queue of users that want to play with the broadcaster */
-                                    else if (message.Equals("!popjoin"))
+                                    else if (message.Equals("!popjoin", StringComparison.CurrentCultureIgnoreCase))
                                         _gameQueueUsers = await _cmdMod.CmdPopJoin(username, _gameQueueUsers);
 
                                     /* Resets game queue of users that want to play with the broadcaster */
-                                    else if (message.Equals("!resetjoin"))
+                                    else if (message.Equals("!resetjoin", StringComparison.CurrentCultureIgnoreCase))
                                         _gameQueueUsers = await _cmdMod.CmdResetJoin(username, _gameQueueUsers);
 
                                     /* Display the streamer's channel and game status */
                                     // Usage: !streamer @[username]
-                                    else if (message.StartsWith("!streamer @"))
+                                    else if (message.StartsWith("!streamer @", StringComparison.CurrentCultureIgnoreCase))
                                         await _cmdMod.CmdPromoteStreamer(message, username);
 
                                     /* insert moderator commands here */
@@ -524,49 +524,49 @@ namespace TwitchBot
                                  * General commands 
                                  */
                                 /* Display some viewer commands a link to command documentation */
-                                if (message.Equals("!cmds"))
+                                if (message.Equals("!cmds", StringComparison.CurrentCultureIgnoreCase) || message.Equals("!commands", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdDisplayCmds();
 
                                 /* Display a static greeting */
-                                else if (message.Equals("!hello"))
+                                else if (message.Equals("!hello", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdHello(username);
 
                                 /* Displays Discord link into chat (if available) */
-                                else if (message.Equals("!discord"))
+                                else if (message.Equals("!discord", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdMod.CmdDiscord();
 
                                 /* Display the current time in UTC (Coordinated Universal Time) */
-                                else if (message.Equals("!utctime"))
+                                else if (message.Equals("!utctime", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdUtcTime();
 
                                 /* Display the current time in the time zone the host is located */
-                                else if (message.Equals("!hosttime"))
+                                else if (message.Equals("!hosttime", StringComparison.CurrentCultureIgnoreCase) || message.Equals("!mytime", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdHostTime();
 
                                 /* Shows how long the broadcaster has been streaming */
-                                else if (message.Equals("!uptime"))
+                                else if (message.Equals("!uptime", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdGen.CmdUptime();
 
                                 /* Display list of requested songs */
-                                else if (message.Equals("!rbsrl"))
+                                else if (message.Equals("!rbsrl", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdGen.CmdManualSrList(isManualSongRequestAvail, username);
 
                                 /* Display link of list of songs to request */
-                                else if (message.Equals("!rbsl"))
+                                else if (message.Equals("!rbsl", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdManualSrLink(isManualSongRequestAvail, username);
 
                                 /* Request a song for the host to play */
                                 // Usage: !rbsr [artist] - [song title]
-                                else if (message.StartsWith("!rbsr "))
+                                else if (message.StartsWith("!rbsr ", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdGen.CmdManualSr(isManualSongRequestAvail, message, username);
 
                                 /* Displays the current song being played from Spotify */
-                                else if (message.Equals("!spotifysong"))
+                                else if (message.Equals("!spotifysong", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdSpotifyCurrentSong();
 
                                 /* Slaps a user and rates its effectiveness */
                                 // Usage: !slap @[username]
-                                else if (message.StartsWith("!slap @") && !IsUserOnCooldown(username, "!slap"))
+                                else if (message.StartsWith("!slap @", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(username, "!slap"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdSlap(message, username);
                                     if (cooldown > DateTime.Now)
@@ -583,7 +583,7 @@ namespace TwitchBot
 
                                 /* Stabs a user and rates its effectiveness */
                                 // Usage: !stab @[username]
-                                else if (message.StartsWith("!stab @") && !IsUserOnCooldown(username, "!stab"))
+                                else if (message.StartsWith("!stab @", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(username, "!stab"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdStab(message, username);
                                     if (cooldown > DateTime.Now)
@@ -600,7 +600,7 @@ namespace TwitchBot
 
                                 /* Shoots a viewer's random body part */
                                 // Usage !shoot @[username]
-                                else if (message.StartsWith("!shoot @") && !IsUserOnCooldown(username, "!shoot"))
+                                else if (message.StartsWith("!shoot @", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(username, "!shoot"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdShoot(message, username);
                                     if (cooldown > DateTime.Now)
@@ -617,7 +617,7 @@ namespace TwitchBot
 
                                 /* Throws an item at a viewer and rates its effectiveness against the victim */
                                 // Usage: !throw [item] @username
-                                else if (message.StartsWith("!throw ") && message.Contains("@") && !IsUserOnCooldown(username, "!throw"))
+                                else if (message.StartsWith("!throw ", StringComparison.CurrentCultureIgnoreCase) && message.Contains("@") && !IsUserOnCooldown(username, "!throw"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdThrow(message, username);
                                     if (cooldown > DateTime.Now)
@@ -634,24 +634,24 @@ namespace TwitchBot
 
                                 /* Request party member if game and character exists in party up system */
                                 // Usage: !partyup [party member name]
-                                else if (message.StartsWith("!partyup "))
+                                else if (message.StartsWith("!partyup ", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdGen.CmdPartyUp(message, username);
 
                                 /* Check what other user's have requested */
-                                else if (message.Equals("!partyuprequestlist"))
+                                else if (message.Equals("!partyuprequestlist", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdGen.CmdPartyUpRequestList();
 
                                 /* Check what party members are available (if game is part of the party up system) */
-                                else if (message.Equals("!partyuplist"))
+                                else if (message.Equals("!partyuplist", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdGen.CmdPartyUpList();
 
                                 /* Check user's account balance */
-                                else if (message.Equals($"!{_botConfig.CurrencyType.ToLower()}"))
+                                else if (message.Equals($"!{_botConfig.CurrencyType}", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdGen.CmdCheckFunds(username);
 
                                 /* Gamble money away */
                                 // Usage: !gamble [money]
-                                else if (message.StartsWith("!gamble ") && !IsUserOnCooldown(username, "!gamble"))
+                                else if (message.StartsWith("!gamble ", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(username, "!gamble"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdGamble(message, username);
                                     if (cooldown > DateTime.Now)
@@ -667,21 +667,23 @@ namespace TwitchBot
                                 }
 
                                 /* Display random broadcaster quote */
-                                else if (message.Equals("!quote"))
+                                else if (message.Equals("!quote", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdQuote();
 
                                 /* Display how long a user has been following the broadcaster */
-                                else if (message.Equals("!followsince") || message.Equals("!followage"))
+                                else if (message.Equals("!followsince", StringComparison.CurrentCultureIgnoreCase) || message.Equals("!followage", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdFollowSince(username);
 
                                 /* Display follower's stream rank */
-                                else if (message.Equals("!rank"))
+                                else if (message.Equals("!rank", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdViewRank(username);
 
                                 /* Add song request to YouTube playlist */
                                 // Usage: !ytsr [video title/YouTube link]
-                                else if ((message.StartsWith("!ytsr ") || message.StartsWith("!sr ") || message.StartsWith("!songrequest "))
-                                        && !IsUserOnCooldown(username, "!ytsr"))
+                                else if ((message.StartsWith("!ytsr ", StringComparison.CurrentCultureIgnoreCase) 
+                                                || message.StartsWith("!sr ", StringComparison.CurrentCultureIgnoreCase) 
+                                                || message.StartsWith("!songrequest ", StringComparison.CurrentCultureIgnoreCase))
+                                            && !IsUserOnCooldown(username, "!ytsr"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdYouTubeSongRequest(message, username, hasYouTubeAuth, isYouTubeSongRequestAvail);
                                     if (cooldown > DateTime.Now)
@@ -697,16 +699,16 @@ namespace TwitchBot
                                 }
 
                                 /* Display YouTube link to song request playlist */
-                                else if (message.Equals("!ytsl"))
+                                else if (message.Equals("!ytsl", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdYouTubeSongRequestList(hasYouTubeAuth, isYouTubeSongRequestAvail);
 
                                 /* Display MultiStream link */
-                                else if (message.Equals("!msl"))
+                                else if (message.Equals("!msl", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdMultiStreamLink(username, _multiStreamUsers);
 
                                 /* Display Magic 8-ball response */
                                 // Usage: !8ball [question]
-                                else if (message.StartsWith("!8ball ") && !IsUserOnCooldown(username, "!8ball"))
+                                else if (message.StartsWith("!8ball ", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(username, "!8ball"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdMagic8Ball(username);
                                     if (cooldown > DateTime.Now)
@@ -722,16 +724,16 @@ namespace TwitchBot
                                 }
 
                                 /* Disply the top 3 richest users */
-                                else if (message.Equals($"!{_botConfig.CurrencyType.ToLower()}top3"))
+                                else if (message.Equals($"!{_botConfig.CurrencyType}top3", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdLeaderboardCurrency(username);
 
                                 /* Display the top 3 highest ranking users */
-                                else if (message.Equals("!ranktop3"))
+                                else if (message.Equals("!ranktop3", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdLeaderboardRank(username);
 
                                 /* Play russian roulette */
                                 // Note: Chat moderators cannot be timed out by the bot (reason for being excluded)
-                                else if (message.Equals("!roulette") && !IsUserOnCooldown(username, "!roulette"))
+                                else if (message.Equals("!roulette", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(username, "!roulette"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdRussianRoulette(username);
                                     if (cooldown > DateTime.Now)
@@ -747,32 +749,32 @@ namespace TwitchBot
                                 }
 
                                 /* Show the users that want to play with the broadcaster */
-                                else if (message.Equals("!listjoin"))
+                                else if (message.Equals("!listjoin", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdListJoin(username, _gameQueueUsers);
 
                                 /* Request to play with the broadcaster */
-                                else if (message.Equals("!join"))
+                                else if (message.Equals("!join", StringComparison.CurrentCultureIgnoreCase))
                                     _gameQueueUsers = await _cmdGen.CmdJoin(username, _gameQueueUsers);
 
                                 /* Join the heist and gamble your currency for a higher payout */
                                 // Usage: !bankheist [currency]
-                                else if (message.StartsWith("!bankheist "))
+                                else if (message.StartsWith("!bankheist ", StringComparison.CurrentCultureIgnoreCase) || message.StartsWith("!heist ", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdGen.CmdBankHeist(message, username);
 
                                 /* Show the subscribe link (if broadcaster is either Affiliate/Partnered) */
-                                else if (message.Equals("!sub"))
+                                else if (message.Equals("!sub", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdGen.CmdSubscribe();
 
                                 /* Display how long a user has been subscribed to the broadcaster */
-                                else if (message.Equals("!subsince") || message.Equals("!subage"))
+                                else if (message.Equals("!subsince", StringComparison.CurrentCultureIgnoreCase) || message.Equals("!subage", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdGen.CmdSubscribeSince(username);
 
                                 /* Join the boss fight with a pre-defined amount of currency set by broadcaster */
-                                else if (message.Equals("!raid"))
+                                else if (message.Equals("!raid", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdGen.CmdBossFight(message, username);
 
                                 /* Tell the broadcaster a user is lurking */
-                                else if (message.Equals("!lurk") && !IsUserOnCooldown(username, "!lurk"))
+                                else if (message.Equals("!lurk", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(username, "!lurk"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdLurk(username);
                                     if (cooldown > DateTime.Now)
@@ -788,7 +790,7 @@ namespace TwitchBot
                                 }
 
                                 /* Tell the broadcaster a user is no longer lurking */
-                                else if (message.Equals("!unlurk") && !IsUserOnCooldown(username, "!unlurk"))
+                                else if (message.Equals("!unlurk", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(username, "!unlurk"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdUnlurk(username);
                                     if (cooldown > DateTime.Now)
@@ -803,13 +805,9 @@ namespace TwitchBot
                                     }
                                 }
 
-                                /* Tell the chat about your amazing community */
-                                else if (message.Equals("!community"))
-                                    _cmdGen.CmdCommunity();
-
                                 /* Give funds to another chatter */
                                 // Usage: !give [amount] @[username]
-                                else if (message.StartsWith("!give ") && !IsUserOnCooldown(username, "!give"))
+                                else if (message.StartsWith("!give ", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(username, "!give"))
                                 {
                                     DateTime cooldown = await _cmdGen.CmdGiveFunds(message, username);
                                     if (cooldown > DateTime.Now)
@@ -825,11 +823,11 @@ namespace TwitchBot
                                 }
 
                                 /* Display the broadcaster's twitter page */
-                                else if (message.Equals("!twitter"))
+                                else if (message.Equals("!twitter", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdTwitterLink(hasTwitterInfo, User.GetAuthenticatedUser()?.UserIdentifier?.ScreenName);
 
                                 /* Display this project and creator's info */
-                                else if (message.Equals("!support"))
+                                else if (message.Equals("!support", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdSupport();
 
                                 /* add more general commands here */

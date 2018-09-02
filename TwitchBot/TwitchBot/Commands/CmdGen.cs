@@ -108,7 +108,14 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.SendPublicChatMessage($"{_botConfig.Broadcaster}'s Current Time: {DateTime.Now.ToString()} ({TimeZone.CurrentTimeZone.StandardName})");
+                string response = $"{_botConfig.Broadcaster}'s Current Time: {DateTime.Now.ToString()} ";
+
+                if (DateTime.Now.IsDaylightSavingTime())
+                    response += $"({TimeZone.CurrentTimeZone.DaylightName})";
+                else
+                    response += $"({TimeZone.CurrentTimeZone.StandardName})";
+
+                _irc.SendPublicChatMessage(response);
             }
             catch (Exception ex)
             {
@@ -351,7 +358,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                int indexAction = 7;
+                int indexAction = message.IndexOf(" ");
 
                 if (message.StartsWith("!throw @"))
                     _irc.SendPublicChatMessage("Please throw an item to a user @" + username);
@@ -397,7 +404,7 @@ namespace TwitchBot.Commands
                     // if the game is not found
                     // tell users this game is not accepting party up requests
                     if (game == null || game.Id == 0)
-                        _irc.SendPublicChatMessage("This game is currently not a part of the 'Party Up' system");
+                        _irc.SendPublicChatMessage("This game is not part of the \"Party Up\" system");
                     else // check if user has already requested a party member
                     {
                         if (await _partyUp.IsDuplicateRequest(username, game.Id, _broadcasterId))
@@ -506,7 +513,7 @@ namespace TwitchBot.Commands
 
                 // Check if user wants to gamble all of their wallet
                 // Else check if their message is a valid amount to gamble
-                isValidMsg = gambleMessage == "all" ? true : int.TryParse(gambleMessage, out gambledMoney);
+                isValidMsg = gambleMessage.Equals("all", StringComparison.CurrentCultureIgnoreCase) ? true : int.TryParse(gambleMessage, out gambledMoney);
 
                 if (!isValidMsg)
                 {
@@ -517,7 +524,7 @@ namespace TwitchBot.Commands
                 int walletBalance = await _bank.CheckBalance(username, _broadcasterId);
 
                 // Check if user wants to gamble all of their wallet
-                if (gambleMessage == "all")
+                if (gambleMessage.Equals("all", StringComparison.CurrentCultureIgnoreCase))
                 {
                     gambledMoney = walletBalance;
                 }
@@ -533,20 +540,21 @@ namespace TwitchBot.Commands
                     int newBalance = 0;
 
                     string result = $"@{username} gambled ";
+                    string allResponse = "";
 
-                    if (gambleMessage == "all")
+                    if (gambledMoney == walletBalance)
                     {
-                        result += "ALL ";
+                        allResponse = "ALL ";
                     }
 
-                    result += $"{gambledMoney} {_botConfig.CurrencyType} and the dice roll was {diceRoll}. They ";
+                    result += $"{allResponse} {gambledMoney} {_botConfig.CurrencyType} and the dice roll was {diceRoll}. They ";
 
                     // Check the 100-sided die roll result
                     if (diceRoll < 61) // lose gambled money
                     {
                         newBalance = walletBalance - gambledMoney;
                         
-                        result += $"lost {gambledMoney} {_botConfig.CurrencyType}";
+                        result += $"lost {allResponse} {gambledMoney} {_botConfig.CurrencyType}";
                     }
                     else if (diceRoll >= 61 && diceRoll <= 98) // earn double
                     {
@@ -565,7 +573,16 @@ namespace TwitchBot.Commands
 
                     await _bank.UpdateFunds(username, _broadcasterId, newBalance);
 
-                    result += $" and now has {newBalance} {_botConfig.CurrencyType}";
+                    // Show how much the user has left if they didn't gamble all of their currency or gambled all and lost
+                    if (allResponse != "ALL " || (allResponse == "ALL " && diceRoll < 61))
+                    {
+                        string possession = "has";
+
+                        if (newBalance > 1)
+                            possession = "have";
+
+                        result += $" and now {possession} {newBalance} {_botConfig.CurrencyType}";
+                    }
 
                     _irc.SendPublicChatMessage(result);
                     return DateTime.Now.AddSeconds(20);
@@ -1516,24 +1533,6 @@ namespace TwitchBot.Commands
             }
 
             return DateTime.Now;
-        }
-
-        /// <summary>
-        /// Display a link to the broadcaster's community
-        /// </summary>
-        public async void CmdCommunity()
-        {
-            try
-            {
-                // ToDo: Make message a variable that is pulled from DB or local settings
-                _irc.SendPublicChatMessage("Do you consider yourself an anime/manga nerd (i.e. an Otaku)? " + 
-                    "Then come on by the Otaku Lounge where it's the most comfortable Twitch community for fellow Otakus " +
-                    "https://www.twitch.tv/communities/otakulounge");
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdCommunity()", false, "!community");
-            }
         }
 
         /// <summary>
