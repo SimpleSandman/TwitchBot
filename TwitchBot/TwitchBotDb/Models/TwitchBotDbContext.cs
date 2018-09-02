@@ -16,7 +16,6 @@ namespace TwitchBotDb.Models
         public virtual DbSet<Broadcasters> Broadcasters { get; set; }
         public virtual DbSet<ErrorLog> ErrorLog { get; set; }
         public virtual DbSet<GameList> GameList { get; set; }
-        public virtual DbSet<Moderators> Moderators { get; set; }
         public virtual DbSet<PartyUp> PartyUp { get; set; }
         public virtual DbSet<PartyUpRequests> PartyUpRequests { get; set; }
         public virtual DbSet<Quote> Quote { get; set; }
@@ -582,24 +581,6 @@ namespace TwitchBotDb.Models
                     .IsRequired()
                     .HasMaxLength(100)
                     .IsUnicode(false);
-            });
-
-            modelBuilder.Entity<Moderators>(entity =>
-            {
-                entity.Property(e => e.TimeAdded)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.Username)
-                    .IsRequired()
-                    .HasMaxLength(30)
-                    .IsUnicode(false);
-
-                entity.HasOne(d => d.BroadcasterNavigation)
-                    .WithMany(p => p.Moderators)
-                    .HasForeignKey(d => d.Broadcaster)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_tblModerators_tblBroadcasters");
             });
 
             modelBuilder.Entity<PartyUp>(entity =>

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using RestSharp;
 
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Services;
@@ -33,7 +34,6 @@ namespace TwitchBot.Commands
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
-        private ModeratorSingleton _modInstance = ModeratorSingleton.Instance;
         private TwitterClient _twitter = TwitterClient.Instance;
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
@@ -152,11 +152,24 @@ namespace TwitchBot.Commands
                 // Check for valid command
                 if (message.StartsWith("!deposit @", StringComparison.CurrentCultureIgnoreCase))
                     _irc.SendPublicChatMessage($"Please enter a valid amount to a user @{username}");
-                // Check if moderator is trying to give money to themselves
-                else if (_modInstance.Moderators.Contains(username.ToLower()) && userList.Contains(username.ToLower()))
-                    _irc.SendPublicChatMessage($"Entire deposit voided. You cannot add funds to your own account @{username}");
+                // Check if moderator is trying to give streamer currency to themselves
+                else if (username != _botConfig.Broadcaster && _twitchChatterListInstance.GetUserChatterType(username) == ChatterType.Moderator && userList.Contains(username))
+                    _irc.SendPublicChatMessage($"Entire deposit voided. You cannot add {_botConfig.CurrencyType} to your own account @{username}");
                 else
                 {
+                    // Check if moderator is trying to give streamer currency to other moderators
+                    if (username != _botConfig.Broadcaster)
+                    {
+                        foreach (string user in userList)
+                        {
+                            if (_twitchChatterListInstance.GetUserChatterType(user) == ChatterType.Moderator)
+                            {
+                                _irc.SendPublicChatMessage($"Entire deposit voided. You cannot add {_botConfig.CurrencyType} to another moderator's account @{username}");
+                                return;
+                            }
+                        }
+                    }
+
                     int indexAction = message.IndexOf(" ");
                     int deposit = -1;
                     bool isValidDeposit = int.TryParse(message.Substring(indexAction, message.IndexOf("@") - indexAction - 1), out deposit);
@@ -243,12 +256,22 @@ namespace TwitchBot.Commands
 
                         List<string> chatterList = _twitchChatterListInstance.ChattersByName;
 
-                        // exclude bot and the moderator/broadcaster executing this command
-                        chatterList = chatterList.Where(t => t != username.ToLower() && t != _botConfig.BotName.ToLower()).ToList();
+                        // broadcaster gives stream currency to all but themselves and the bot
+                        if (username == _botConfig.Broadcaster)
+                        {
+                            chatterList = chatterList.Where(t => t != username.ToLower() && t != _botConfig.BotName.ToLower()).ToList();
+                        }
+                        else // moderators gives stream currency to all but other moderators (including broadcaster)
+                        {
+                            chatterList = chatterList
+                                .Where(t => _twitchChatterListInstance.GetUserChatterType(t) != ChatterType.Moderator 
+                                    && t != _botConfig.BotName.ToLower()).ToList();
+                        }
 
                         if (chatterList != null && chatterList.Count > 0)
                         {
                             await _bank.UpdateCreateBalance(chatterList, _broadcasterId, deposit);
+
                             _irc.SendPublicChatMessage($"{deposit.ToString()} {_botConfig.CurrencyType} for everyone! "
                                 + $"Check your stream bank account with !{_botConfig.CurrencyType.ToLower()}");
                         }

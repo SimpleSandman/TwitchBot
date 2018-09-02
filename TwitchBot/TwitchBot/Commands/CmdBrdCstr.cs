@@ -22,7 +22,6 @@ namespace TwitchBot.Commands
     public class CmdBrdCstr
     {
         private IrcClient _irc;
-        private ModeratorSingleton _modInstance = ModeratorSingleton.Instance;
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
         private int _broadcasterId;
@@ -272,73 +271,6 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableDisplaySongs()", false, "!displaysongs off");
-            }
-        }
-
-        /// <summary>
-        /// Grant viewer to moderator status for this bot's mod commands
-        /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        public async Task CmdAddBotMod(string message)
-        {
-            try
-            {
-                string recipient = message.Substring(message.IndexOf("@") + 1); // grab user from message
-                recipient = await _modInstance.AddModerator(recipient.ToLower(), _broadcasterId, _botConfig.TwitchBotApiLink); // add user to mod list and add to db
-                _irc.SendPublicChatMessage($"@{recipient} is now able to access my more \"intimate features\" TehePelo");
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdAddBotMod(string)", false, "!addmod");
-            }
-        }
-
-        /// <summary>
-        /// Revoke moderator status from user for this bot's mods commands
-        /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        public async Task CmdDelBotMod(string message)
-        {
-            try
-            {
-                string recipient = message.Substring(message.IndexOf("@") + 1); // grab user from message
-
-                recipient = await _modInstance.DeleteModerator(recipient.ToLower(), _broadcasterId, _botConfig.TwitchBotApiLink); // delete user from mod list and remove from db
-
-                if (!string.IsNullOrEmpty(recipient))
-                    _irc.SendPublicChatMessage($"@{recipient} is no longer able to use my more \"intimate features\" TehePelo");
-                else
-                    _irc.SendPublicChatMessage($"Cannot find the user you wish to timeout @{_botConfig.Broadcaster}");
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDelBotMod(string)", false, "!delmod");
-            }
-        }
-
-        /// <summary>
-        /// List bot moderators
-        /// </summary>
-        public async void CmdListMod()
-        {
-            try
-            {
-                string listModMsg = "";
-
-                if (_modInstance.Moderators.Count > 0)
-                {
-                    foreach (string name in _modInstance.Moderators)
-                        listModMsg += name + " >< ";
-
-                    listModMsg = listModMsg.Remove(listModMsg.Length - 3); // removed extra " >< "
-                    _irc.SendPublicChatMessage($"List of bot moderators (separate from channel mods): {listModMsg}");
-                }
-                else
-                    _irc.SendPublicChatMessage($"You don't have any bot moderators at the moment. I'm the only mod you'll ever need @{_botConfig.Broadcaster} Kappa");
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdListMod()", false, "!listmod");
             }
         }
 

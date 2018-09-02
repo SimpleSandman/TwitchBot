@@ -40,7 +40,6 @@ namespace TwitchBot.Commands
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
         private QuoteService _quote;
-        private ModeratorSingleton _modInstance = ModeratorSingleton.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private BankHeistSingleton _heistSettingsInstance = BankHeistSingleton.Instance;
@@ -1111,7 +1110,7 @@ namespace TwitchBot.Commands
                     if (rouletteUser != null)
                         Program.RouletteUsers.Remove(rouletteUser);
 
-                    if (_modInstance.Moderators.Contains(username) || _botConfig.Broadcaster.ToLower().Equals(username))
+                    if (_botConfig.Broadcaster.Equals(username) || _twitchChatterListInstance.GetUserChatterType(username) == ChatterType.Moderator)
                     {
                         _irc.SendPublicChatMessage($"Enjoy your 15 minutes without russian roulette @{username}");
                         return DateTime.Now.AddMinutes(15);
@@ -1163,7 +1162,7 @@ namespace TwitchBot.Commands
                         responseMessage = $"Congrats on surviving russian roulette. Here's {reward} {_botConfig.CurrencyType}!";
 
                         // Special cooldown for moderators/broadcasters after they win
-                        if (_modInstance.Moderators.Contains(username) || _botConfig.Broadcaster.ToLower().Equals(username))
+                        if (_botConfig.Broadcaster.Equals(username) || _twitchChatterListInstance.GetUserChatterType(username) == ChatterType.Moderator)
                         {
                             _irc.SendPublicChatMessage(responseMessage);
                             return DateTime.Now.AddMinutes(5);
@@ -1452,7 +1451,7 @@ namespace TwitchBot.Commands
                 if (!bossFight.IsEntryPeriodOver())
                 {
                     // join boss fight
-                    ChatterType chatterType = CheckUserChatterType(username);
+                    ChatterType chatterType = _twitchChatterListInstance.GetUserChatterType(username);
                     if (chatterType == ChatterType.DoesNotExist)
                     {
                         _irc.SendPublicChatMessage($"I'm not able to find you in the chatter list. Please try again in 15 seconds @{username}");
@@ -1647,23 +1646,6 @@ namespace TwitchBot.Commands
             {
                 await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSupport()", false, "!support");
             }
-        }
-
-        private ChatterType CheckUserChatterType(string username)
-        {
-            // wait until lists are available
-            while (!_twitchChatterListInstance.AreListsAvailable)
-            {
-
-            }
-
-            foreach (var chatterType in _twitchChatterListInstance.ChattersByType.OrderByDescending(t => t.ChatterType))
-            {
-                if (chatterType.TwitchChatters.Any(u => u.Username.Equals(username)))
-                    return chatterType.ChatterType;
-            }
-
-            return ChatterType.DoesNotExist;
         }
 
         private async Task<bool> IsMultiplayerGame(string username)

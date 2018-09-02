@@ -11,7 +11,6 @@ namespace TwitchBotDb.Models
             BankHeistSettings = new HashSet<BankHeistSettings>();
             BossFightSettings = new HashSet<BossFightSettings>();
             ErrorLog = new HashSet<ErrorLog>();
-            Moderators = new HashSet<Moderators>();
             PartyUp = new HashSet<PartyUp>();
             PartyUpRequests = new HashSet<PartyUpRequests>();
             Quote = new HashSet<Quote>();
@@ -32,7 +31,6 @@ namespace TwitchBotDb.Models
         public ICollection<BankHeistSettings> BankHeistSettings { get; set; }
         public ICollection<BossFightSettings> BossFightSettings { get; set; }
         public ICollection<ErrorLog> ErrorLog { get; set; }
-        public ICollection<Moderators> Moderators { get; set; }
         public ICollection<PartyUp> PartyUp { get; set; }
         public ICollection<PartyUpRequests> PartyUpRequests { get; set; }
         public ICollection<Quote> Quote { get; set; }

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
+using TwitchBot.Enums;
 using TwitchBot.Models;
 
 namespace TwitchBot.Libraries
@@ -13,39 +12,17 @@ namespace TwitchBot.Libraries
         private static volatile TwitchChatterList _instance;
         private static object _syncRoot = new Object();
 
-        private List<TwitchChatterType> _chattersByType = new List<TwitchChatterType>();
-        private List<string> _chattersByName = new List<string>();
-
-        private List<TwitchChatter> _twitchFollowers = new List<TwitchChatter>();
-        private List<TwitchChatter> _twitchRegularFollowers = new List<TwitchChatter>();
-        private List<TwitchChatter> _twitchSubscribers = new List<TwitchChatter>();
-
         public bool AreListsAvailable { get; set; } = false;
 
-        public List<TwitchChatterType> ChattersByType
-        {
-            get { return _chattersByType; }
-        }
+        public List<TwitchChatterType> ChattersByType { get; } = new List<TwitchChatterType>();
 
-        public List<string> ChattersByName
-        {
-            get { return _chattersByName; }
-        }
+        public List<string> ChattersByName { get; } = new List<string>();
 
-        public List<TwitchChatter> TwitchFollowers
-        {
-            get { return _twitchFollowers; }
-        }
+        public List<TwitchChatter> TwitchFollowers { get; } = new List<TwitchChatter>();
 
-        public List<TwitchChatter> TwitchSubscribers
-        {
-            get { return _twitchSubscribers; }
-        }
+        public List<TwitchChatter> TwitchSubscribers { get; } = new List<TwitchChatter>();
 
-        public List<TwitchChatter> TwitchRegularFollowers
-        {
-            get { return _twitchRegularFollowers; }
-        }
+        public List<TwitchChatter> TwitchRegularFollowers { get; } = new List<TwitchChatter>();
 
         private TwitchChatterList() { }
 
@@ -66,6 +43,23 @@ namespace TwitchBot.Libraries
 
                 return _instance;
             }
+        }
+
+        public ChatterType GetUserChatterType(string username)
+        {
+            // wait until lists are available
+            while (!AreListsAvailable)
+            {
+
+            }
+
+            foreach (TwitchChatterType chatterType in ChattersByType.OrderByDescending(t => t.ChatterType))
+            {
+                if (chatterType.TwitchChatters.Any(u => u.Username.Equals(username)))
+                    return chatterType.ChatterType;
+            }
+
+            return ChatterType.DoesNotExist;
         }
     }
 }

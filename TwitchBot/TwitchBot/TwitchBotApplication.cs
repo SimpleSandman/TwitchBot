@@ -14,11 +14,12 @@ using Tweetinvi.Models;
 
 using TwitchBot.Commands;
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
+using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 using TwitchBot.Threads;
-using TwitchBot.Models.JSON;
 
 using TwitchBotDb.Models;
 
@@ -54,8 +55,8 @@ namespace TwitchBot
         private BankHeist _bankHeist;
         private BossFight _bossFight;
         private TwitchChatterListener _twitchChatterListener;
+        private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
-        private ModeratorSingleton _modInstance = ModeratorSingleton.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private BankHeistSingleton _bankHeistInstance = BankHeistSingleton.Instance;
@@ -204,9 +205,6 @@ namespace TwitchBot
                 /* Grab list of chatters from channel */
                 _twitchChatterListener.Start();
 
-                /* Pull list of mods from database */
-                await _modInstance.GetModerators(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
-
                 /* Pull list of followers and check experience points for stream leveling */
                 _followerSubscriberListener.Start(_irc, _broadcasterInstance.DatabaseId);
 
@@ -300,7 +298,7 @@ namespace TwitchBot
                             /* 
                              * Broadcaster commands 
                              */
-                            if (username.Equals(_botConfig.Broadcaster.ToLower()))
+                            if (username.Equals(_botConfig.Broadcaster))
                             {
                                 /* Display bot settings */
                                 if (message.Equals("!settings", StringComparison.CurrentCultureIgnoreCase))
@@ -367,20 +365,6 @@ namespace TwitchBot
                                 else if (message.Equals("!displaysongs off", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdBrdCstr.CmdDisableDisplaySongs();
 
-                                /* Add viewer to moderator list so they can have access to bot moderator commands */
-                                // Usage: !addmod @[username]
-                                else if (message.StartsWith("!addmod ", StringComparison.CurrentCultureIgnoreCase) && message.Contains("@"))
-                                    await _cmdBrdCstr.CmdAddBotMod(message);
-
-                                /* Remove moderator from list so they can't access the bot moderator commands */
-                                // Usage: !delmod @[username]
-                                else if (message.StartsWith("!delmod ", StringComparison.CurrentCultureIgnoreCase) && message.Contains("@"))
-                                    await _cmdBrdCstr.CmdDelBotMod(message);
-
-                                /* List bot moderators */
-                                else if (message.Equals("!listmod", StringComparison.CurrentCultureIgnoreCase))
-                                    _cmdBrdCstr.CmdListMod();
-
                                 /* Add song or artist to song request blacklist */
                                 // Usage (artist): !srbl 1 [artist name]
                                 // Usage (song): !srbl 2 "[song title]" <[artist name]>
@@ -429,7 +413,7 @@ namespace TwitchBot
                                 /*
                                  * Moderator commands (also checks if user has been timed out from using a command)
                                  */
-                                if (username.Equals(_botConfig.Broadcaster) || _modInstance.Moderators.Contains(username.ToLower()))
+                                if (username.Equals(_botConfig.Broadcaster) || _twitchChatterListInstance.GetUserChatterType(username) == ChatterType.Moderator)
                                 {
                                     /* Takes money away from a user */
                                     // Usage: !charge [-amount] @[username]

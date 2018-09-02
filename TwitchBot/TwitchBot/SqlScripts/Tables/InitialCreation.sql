@@ -1,4 +1,4 @@
-﻿/****** Object:  Table [dbo].[Bank]    Script Date: 3/11/2018 1:23:28 PM ******/
+﻿/****** Object:  Table [dbo].[Bank]    Script Date: 9/1/2018 11:00:24 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -18,7 +18,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BankHeistSettings]    Script Date: 3/11/2018 1:23:31 PM ******/
+/****** Object:  Table [dbo].[BankHeistSettings]    Script Date: 9/1/2018 11:00:26 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -75,7 +75,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BossFightBossStats]    Script Date: 3/11/2018 1:23:31 PM ******/
+/****** Object:  Table [dbo].[BossFightBossStats]    Script Date: 9/1/2018 11:00:26 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -138,7 +138,7 @@ CREATE TABLE [dbo].[BossFightBossStats](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BossFightClassStats]    Script Date: 3/11/2018 1:23:32 PM ******/
+/****** Object:  Table [dbo].[BossFightClassStats]    Script Date: 9/1/2018 11:00:26 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -175,7 +175,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BossFightSettings]    Script Date: 3/11/2018 1:23:32 PM ******/
+/****** Object:  Table [dbo].[BossFightSettings]    Script Date: 9/1/2018 11:00:27 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -210,7 +210,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Broadcasters]    Script Date: 3/11/2018 1:23:32 PM ******/
+/****** Object:  Table [dbo].[Broadcasters]    Script Date: 9/1/2018 11:00:27 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -233,7 +233,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[ErrorLog]    Script Date: 3/11/2018 1:23:32 PM ******/
+/****** Object:  Table [dbo].[ErrorLog]    Script Date: 9/1/2018 11:00:27 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -257,7 +257,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[GameList]    Script Date: 3/11/2018 1:23:32 PM ******/
+/****** Object:  Table [dbo].[GameList]    Script Date: 9/1/2018 11:00:27 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -275,26 +275,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Moderators]    Script Date: 3/11/2018 1:23:33 PM ******/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
-CREATE TABLE [dbo].[Moderators](
-	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[Username] [varchar](30) NOT NULL,
-	[Broadcaster] [int] NOT NULL,
-	[TimeAdded] [datetime] NOT NULL,
-PRIMARY KEY CLUSTERED 
-(
-	[Id] ASC
-)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
-/****** Object:  Table [dbo].[PartyUp]    Script Date: 3/11/2018 1:23:33 PM ******/
+/****** Object:  Table [dbo].[PartyUp]    Script Date: 9/1/2018 11:00:27 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -313,7 +294,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[PartyUpRequests]    Script Date: 3/11/2018 1:23:33 PM ******/
+/****** Object:  Table [dbo].[PartyUpRequests]    Script Date: 9/1/2018 11:00:27 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -334,7 +315,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Quote]    Script Date: 3/11/2018 1:23:33 PM ******/
+/****** Object:  Table [dbo].[Quote]    Script Date: 9/1/2018 11:00:28 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -354,7 +335,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Rank]    Script Date: 3/11/2018 1:23:33 PM ******/
+/****** Object:  Table [dbo].[Rank]    Script Date: 9/1/2018 11:00:28 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -373,7 +354,7 @@ CREATE TABLE [dbo].[Rank](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[RankFollowers]    Script Date: 3/11/2018 1:23:34 PM ******/
+/****** Object:  Table [dbo].[RankFollowers]    Script Date: 9/1/2018 11:00:28 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -392,7 +373,7 @@ CREATE TABLE [dbo].[RankFollowers](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Reminders]    Script Date: 3/11/2018 1:23:34 PM ******/
+/****** Object:  Table [dbo].[Reminders]    Script Date: 9/1/2018 11:00:28 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -428,7 +409,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[SongRequestBlacklist]    Script Date: 3/11/2018 1:23:34 PM ******/
+/****** Object:  Table [dbo].[SongRequestBlacklist]    Script Date: 9/1/2018 11:00:28 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -438,7 +419,7 @@ GO
 CREATE TABLE [dbo].[SongRequestBlacklist](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Artist] [varchar](100) NOT NULL,
-	[Title] [varchar](100) NOT NULL DEFAULT '',
+	[Title] [varchar](100) NULL,
 	[Broadcaster] [int] NOT NULL,
 PRIMARY KEY CLUSTERED 
 (
@@ -447,7 +428,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[SongRequests]    Script Date: 3/11/2018 1:23:34 PM ******/
+/****** Object:  Table [dbo].[SongRequests]    Script Date: 9/1/2018 11:00:28 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -466,7 +447,7 @@ CREATE TABLE [dbo].[SongRequests](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[UserBotTimeout]    Script Date: 3/11/2018 1:23:35 PM ******/
+/****** Object:  Table [dbo].[UserBotTimeout]    Script Date: 9/1/2018 11:00:29 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -870,9 +851,6 @@ GO
 ALTER TABLE [dbo].[GameList] ADD  CONSTRAINT [DF_tblGameList_multiplayer]  DEFAULT ((0)) FOR [Multiplayer]
 GO
 
-ALTER TABLE [dbo].[Moderators] ADD  DEFAULT (getdate()) FOR [TimeAdded]
-GO
-
 ALTER TABLE [dbo].[PartyUpRequests] ADD  DEFAULT (getdate()) FOR [timeRequested]
 GO
 
@@ -956,13 +934,6 @@ REFERENCES [dbo].[Broadcasters] ([Id])
 GO
 
 ALTER TABLE [dbo].[ErrorLog] CHECK CONSTRAINT [FK_tblErrorLog_tblBroadcaster]
-GO
-
-ALTER TABLE [dbo].[Moderators]  WITH CHECK ADD  CONSTRAINT [FK_tblModerators_tblBroadcasters] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
-GO
-
-ALTER TABLE [dbo].[Moderators] CHECK CONSTRAINT [FK_tblModerators_tblBroadcasters]
 GO
 
 ALTER TABLE [dbo].[PartyUp]  WITH CHECK ADD  CONSTRAINT [FK_tblPartyUp_tblGameList] FOREIGN KEY([Game])

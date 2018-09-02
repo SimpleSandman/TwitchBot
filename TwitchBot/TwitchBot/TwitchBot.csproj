@@ -249,7 +249,6 @@
     <Compile Include="Threads\FollowerSubscriberListener.cs" />
     <Compile Include="Models\JSON\FollowerJSON.cs" />
     <Compile Include="Libraries\IrcClient.cs" />
-    <Compile Include="Libraries\ModeratorSingleton.cs" />
     <Compile Include="Threads\PingSender.cs" />
     <Compile Include="Threads\ChatReminder.cs" />
     <Compile Include="Program.cs" />
