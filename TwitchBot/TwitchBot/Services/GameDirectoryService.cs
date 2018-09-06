@@ -19,7 +19,7 @@ namespace TwitchBot.Services
             _gameDirectoryDb = gameDirectoryDb;
         }
 
-        public async Task<GameList> GetGameId(string gameTitle)
+        public async Task<TwitchGameCategory> GetGameId(string gameTitle)
         {
             return await _gameDirectoryDb.GetGameId(gameTitle);
         }

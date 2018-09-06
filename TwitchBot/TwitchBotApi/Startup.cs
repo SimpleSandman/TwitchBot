@@ -26,8 +26,8 @@ namespace TwitchBotApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<TwitchBotDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("TwitchBotDbContext")));
+            services.AddDbContext<SimpleBotContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("SimpleBotContext")));
 
             services.AddMvc();
         }

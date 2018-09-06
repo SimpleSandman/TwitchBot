@@ -16,9 +16,9 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class RankFollowersController : Controller
     {
-        private readonly TwitchBotDbContext _context;
+        private readonly SimpleBotContext _context;
 
-        public RankFollowersController(TwitchBotDbContext context)
+        public RankFollowersController(SimpleBotContext context)
         {
             _context = context;
         }
@@ -32,11 +32,11 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            RankFollowers rankFollower = await _context.RankFollowers.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId && m.Username == username);
+            RankFollower rankFollower = await _context.RankFollower.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId && m.Username == username);
 
             if (rankFollower == null)
             {
-                return Ok(new RankFollowers { Username = username, Exp = -1, Broadcaster = broadcasterId });
+                return Ok(new RankFollower { Username = username, Experience = -1, Broadcaster = broadcasterId });
             }
 
             return Ok(rankFollower);
@@ -51,9 +51,9 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            IEnumerable<RankFollowers> topFollowers = await _context.RankFollowers
+            IEnumerable<RankFollower> topFollowers = await _context.RankFollower
                 .Where(m => m.Broadcaster == broadcasterId)
-                .OrderByDescending(m => m.Exp)
+                .OrderByDescending(m => m.Experience)
                 .Take(topNumber)
                 .ToListAsync();
 
@@ -74,14 +74,14 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            RankFollowers follower = _context.RankFollowers.FirstOrDefault(t => t.Broadcaster == broadcasterId && t.Username == username);
+            RankFollower follower = _context.RankFollower.FirstOrDefault(t => t.Broadcaster == broadcasterId && t.Username == username);
             if (follower == null)
             {
                 return NotFound();
             }
 
-            follower.Exp = exp;
-            _context.RankFollowers.Update(follower);
+            follower.Experience = exp;
+            _context.RankFollower.Update(follower);
 
             try
             {
@@ -105,14 +105,14 @@ namespace TwitchBotApi.Controllers
         // POST: api/rankfollowers/create
         // Body (JSON): { "username": "simple_sandman", "broadcaster": 2 }
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] RankFollowers rankFollowers)
+        public async Task<IActionResult> Create([FromBody] RankFollower rankFollowers)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            _context.RankFollowers.Add(rankFollowers);
+            _context.RankFollower.Add(rankFollowers);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -120,7 +120,7 @@ namespace TwitchBotApi.Controllers
 
         private bool RankFollowersExists(int broadcasterId, string username)
         {
-            return _context.RankFollowers.Any(e => e.Broadcaster == broadcasterId && e.Username == username);
+            return _context.RankFollower.Any(e => e.Broadcaster == broadcasterId && e.Username == username);
         }
     }
 }

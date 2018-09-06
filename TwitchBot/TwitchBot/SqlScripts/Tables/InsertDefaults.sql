@@ -1,1 +1,1 @@
-﻿INSERT INTO dbo.Broadcasters (Username, TwitchId) VALUES ('n/a', '-1')
+﻿INSERT INTO dbo.Broadcaster (Username, TwitchId) VALUES ('n/a', '-1')

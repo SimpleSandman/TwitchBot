@@ -16,55 +16,55 @@ namespace TwitchBot.Repositories
             _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public async Task<List<SongRequestBlacklist>> GetSongRequestBlackList(int broadcasterId)
+        public async Task<List<SongRequestIgnore>> GetSongRequestIgnore(int broadcasterId)
         {
-            var response = await ApiBotRequest.GetExecuteTaskAsync<List<SongRequestBlacklist>>(_twitchBotApiLink + $"songrequestblacklists/get/{broadcasterId}");
+            var response = await ApiBotRequest.GetExecuteTaskAsync<List<SongRequestIgnore>>(_twitchBotApiLink + $"songrequestignores/get/{broadcasterId}");
 
             if (response != null && response.Count > 0)
             {
                 return response;
             }
 
-            return new List<SongRequestBlacklist>();
+            return new List<SongRequestIgnore>();
         }
 
-        public async Task<SongRequestBlacklist> AddArtistToBlacklist(string artist, int broadcasterId)
+        public async Task<SongRequestIgnore> IgnoreArtist(string artist, int broadcasterId)
         {
-            SongRequestBlacklist blacklistedArtist = new SongRequestBlacklist
+            SongRequestIgnore ignoreArtist = new SongRequestIgnore
             {
                 Artist = artist,
                 Title = "",
                 Broadcaster = broadcasterId
             };
 
-            return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"songrequestblacklists/create", blacklistedArtist);
+            return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"songrequestignores/create", ignoreArtist);
         }
 
-        public async Task<SongRequestBlacklist> AddSongToBlacklist(string title, string artist, int broadcasterId)
+        public async Task<SongRequestIgnore> IgnoreSong(string title, string artist, int broadcasterId)
         {
-            SongRequestBlacklist blacklistedSong = new SongRequestBlacklist
+            SongRequestIgnore ignoreSong = new SongRequestIgnore
             {
                 Artist = artist,
                 Title = title,
                 Broadcaster = broadcasterId
             };
 
-            return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"songrequestblacklists/create", blacklistedSong);
+            return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"songrequestignores/create", ignoreSong);
         }
 
-        public async Task<List<SongRequestBlacklist>> DeleteArtistFromBlacklist(string artist, int broadcasterId)
+        public async Task<List<SongRequestIgnore>> AllowArtist(string artist, int broadcasterId)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<List<SongRequestBlacklist>>(_twitchBotApiLink + $"songrequestblacklists/delete/{broadcasterId}?artist={artist}");
+            return await ApiBotRequest.DeleteExecuteTaskAsync<List<SongRequestIgnore>>(_twitchBotApiLink + $"songrequestignores/delete/{broadcasterId}?artist={artist}");
         }
 
-        public async Task<SongRequestBlacklist> DeleteSongFromBlacklist(string title, string artist, int broadcasterId)
+        public async Task<SongRequestIgnore> AllowSong(string title, string artist, int broadcasterId)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<SongRequestBlacklist>(_twitchBotApiLink + $"songrequestblacklists/delete/{broadcasterId}?artist={artist}&title={title}");
+            return await ApiBotRequest.DeleteExecuteTaskAsync<SongRequestIgnore>(_twitchBotApiLink + $"songrequestignores/delete/{broadcasterId}?artist={artist}&title={title}");
         }
 
-        public async Task<List<SongRequestBlacklist>> ResetBlacklist(int broadcasterId)
+        public async Task<List<SongRequestIgnore>> ResetIgnoreList(int broadcasterId)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<List<SongRequestBlacklist>>(_twitchBotApiLink + $"songrequestblacklists/delete/{broadcasterId}");
+            return await ApiBotRequest.DeleteExecuteTaskAsync<List<SongRequestIgnore>>(_twitchBotApiLink + $"songrequestignores/delete/{broadcasterId}");
         }
     }
 }

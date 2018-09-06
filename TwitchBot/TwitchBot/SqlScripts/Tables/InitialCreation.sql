@@ -1,4 +1,4 @@
-﻿/****** Object:  Table [dbo].[Bank]    Script Date: 9/1/2018 11:00:24 PM ******/
+﻿/****** Object:  Table [dbo].[Bank]    Script Date: 9/6/2018 12:10:41 AM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -9,23 +9,24 @@ CREATE TABLE [dbo].[Bank](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Username] [varchar](30) NOT NULL,
 	[Wallet] [int] NOT NULL,
+	[TwitchId] [int] NULL,
 	[Broadcaster] [int] NOT NULL,
-	[TimeAdded] [datetime] NOT NULL,
-PRIMARY KEY CLUSTERED 
+	[LastUpdated] [datetime] NOT NULL,
+ CONSTRAINT [PK_Bank] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BankHeistSettings]    Script Date: 9/1/2018 11:00:26 PM ******/
+/****** Object:  Table [dbo].[BankHeistSetting]    Script Date: 9/6/2018 12:10:41 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[BankHeistSettings](
+CREATE TABLE [dbo].[BankHeistSetting](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Broadcaster] [int] NOT NULL,
 	[CooldownPeriodMin] [int] NOT NULL,
@@ -68,14 +69,14 @@ CREATE TABLE [dbo].[BankHeistSettings](
 	[PayoutMultiplier4] [decimal](3, 2) NOT NULL,
 	[PayoutSuccessRate5] [decimal](5, 2) NOT NULL,
 	[PayoutMultiplier5] [decimal](3, 2) NOT NULL,
-PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_BankHeistSetting] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BossFightBossStats]    Script Date: 9/1/2018 11:00:26 PM ******/
+/****** Object:  Table [dbo].[BossFightBossStats]    Script Date: 9/6/2018 12:10:41 AM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -131,14 +132,14 @@ CREATE TABLE [dbo].[BossFightBossStats](
 	[TurnLimit5] [int] NOT NULL,
 	[Loot5] [int] NOT NULL,
 	[LastAttackBonus5] [int] NOT NULL,
- CONSTRAINT [PK__BossFigh__3214EC072686BE1F] PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_BossFightBossStats] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BossFightClassStats]    Script Date: 9/1/2018 11:00:26 PM ******/
+/****** Object:  Table [dbo].[BossFightClassStats]    Script Date: 9/6/2018 12:10:42 AM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -168,21 +169,21 @@ CREATE TABLE [dbo].[BossFightClassStats](
 	[SubscriberDefense] [int] NOT NULL,
 	[SubscriberEvasion] [int] NOT NULL,
 	[SubscriberHealth] [int] NOT NULL,
-PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_BossFightClassStats] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BossFightSettings]    Script Date: 9/1/2018 11:00:27 PM ******/
+/****** Object:  Table [dbo].[BossFightSetting]    Script Date: 9/6/2018 12:10:42 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[BossFightSettings](
+CREATE TABLE [dbo].[BossFightSetting](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[CooldownPeriodMin] [int] NOT NULL,
 	[EntryPeriodSec] [int] NOT NULL,
@@ -203,37 +204,53 @@ CREATE TABLE [dbo].[BossFightSettings](
 	[Success1] [varchar](200) NOT NULL,
 	[Success0] [varchar](200) NOT NULL,
 	[Broadcaster] [int] NOT NULL,
-PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_BossFightSetting] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Broadcasters]    Script Date: 9/1/2018 11:00:27 PM ******/
+/****** Object:  Table [dbo].[BotTimeout]    Script Date: 9/6/2018 12:10:42 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[Broadcasters](
+CREATE TABLE [dbo].[BotTimeout](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Username] [varchar](30) NOT NULL,
+	[Timeout] [datetime] NOT NULL,
 	[TimeAdded] [datetime] NOT NULL,
-	[TwitchId] [int] NOT NULL,
-PRIMARY KEY CLUSTERED 
+	[Broadcaster] [int] NOT NULL,
+ CONSTRAINT [PK_BotTimeout] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
-)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY],
- CONSTRAINT [AK_username] UNIQUE NONCLUSTERED 
-(
-	[Username] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[ErrorLog]    Script Date: 9/1/2018 11:00:27 PM ******/
+/****** Object:  Table [dbo].[Broadcaster]    Script Date: 9/6/2018 12:10:42 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Broadcaster](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Username] [varchar](30) NOT NULL,
+	[TwitchId] [int] NOT NULL,
+	[LastUpdated] [datetime] NOT NULL,
+ CONSTRAINT [PK_Broadcaster] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [dbo].[ErrorLog]    Script Date: 9/6/2018 12:10:42 AM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -250,32 +267,14 @@ CREATE TABLE [dbo].[ErrorLog](
 	[Broadcaster] [int] NOT NULL,
 	[Command] [varchar](50) NULL,
 	[UserMsg] [varchar](500) NULL,
-PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_ErrorLog] PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[GameList]    Script Date: 9/1/2018 11:00:27 PM ******/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
-CREATE TABLE [dbo].[GameList](
-	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[Name] [varchar](100) NOT NULL,
-	[Multiplayer] [bit] NOT NULL,
-PRIMARY KEY CLUSTERED 
-(
-	[Id] ASC
-)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
-/****** Object:  Table [dbo].[PartyUp]    Script Date: 9/1/2018 11:00:27 PM ******/
+/****** Object:  Table [dbo].[PartyUp]    Script Date: 9/6/2018 12:10:43 AM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -285,37 +284,35 @@ GO
 CREATE TABLE [dbo].[PartyUp](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[PartyMember] [varchar](100) NOT NULL,
-	[Game] [int] NOT NULL,
+	[GameId] [int] NOT NULL,
 	[Broadcaster] [int] NOT NULL,
-PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_PartyUp] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[PartyUpRequests]    Script Date: 9/1/2018 11:00:27 PM ******/
+/****** Object:  Table [dbo].[PartyUpRequest]    Script Date: 9/6/2018 12:10:43 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[PartyUpRequests](
+CREATE TABLE [dbo].[PartyUpRequest](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[username] [varchar](30) NOT NULL,
-	[partyMember] [varchar](50) NOT NULL,
-	[timeRequested] [datetime] NOT NULL,
-	[broadcaster] [int] NOT NULL,
-	[game] [int] NOT NULL,
-PRIMARY KEY CLUSTERED 
+	[Username] [varchar](30) NOT NULL,
+	[PartyMember] [int] NOT NULL,
+	[TimeRequested] [datetime] NOT NULL,
+ CONSTRAINT [PK_PartyUpRequest] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Quote]    Script Date: 9/1/2018 11:00:28 PM ******/
+/****** Object:  Table [dbo].[Quote]    Script Date: 9/6/2018 12:10:43 AM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -328,14 +325,14 @@ CREATE TABLE [dbo].[Quote](
 	[Username] [varchar](50) NOT NULL,
 	[TimeCreated] [datetime] NOT NULL,
 	[Broadcaster] [int] NOT NULL,
-PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_Quote] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Rank]    Script Date: 9/1/2018 11:00:28 PM ******/
+/****** Object:  Table [dbo].[Rank]    Script Date: 9/6/2018 12:10:43 AM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -347,40 +344,41 @@ CREATE TABLE [dbo].[Rank](
 	[Name] [varchar](50) NOT NULL,
 	[ExpCap] [int] NOT NULL,
 	[Broadcaster] [int] NOT NULL,
- CONSTRAINT [PK_tblRank] PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_Rank] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[RankFollowers]    Script Date: 9/1/2018 11:00:28 PM ******/
+/****** Object:  Table [dbo].[RankFollower]    Script Date: 9/6/2018 12:10:43 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[RankFollowers](
+CREATE TABLE [dbo].[RankFollower](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Username] [varchar](30) NOT NULL,
-	[Exp] [int] NOT NULL,
+	[Experience] [int] NOT NULL,
+	[TwitchId] [int] NULL,
 	[Broadcaster] [int] NOT NULL,
- CONSTRAINT [PK_tblRankFollowers] PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_RankFollower] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Reminders]    Script Date: 9/1/2018 11:00:28 PM ******/
+/****** Object:  Table [dbo].[Reminder]    Script Date: 9/6/2018 12:10:44 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[Reminders](
+CREATE TABLE [dbo].[Reminder](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Sunday] [bit] NOT NULL,
 	[Monday] [bit] NOT NULL,
@@ -401,196 +399,194 @@ CREATE TABLE [dbo].[Reminders](
 	[HasCountdownTicker] [bit] NOT NULL,
 	[Message] [varchar](500) NULL,
 	[Broadcaster] [int] NOT NULL,
-	[Game] [int] NULL,
-PRIMARY KEY CLUSTERED 
+	[GameId] [int] NULL,
+ CONSTRAINT [PK_Reminder] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[SongRequestBlacklist]    Script Date: 9/1/2018 11:00:28 PM ******/
+/****** Object:  Table [dbo].[SongRequest]    Script Date: 9/6/2018 12:10:44 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[SongRequestBlacklist](
-	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[Artist] [varchar](100) NOT NULL,
-	[Title] [varchar](100) NULL,
-	[Broadcaster] [int] NOT NULL,
-PRIMARY KEY CLUSTERED 
-(
-	[Id] ASC
-)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
-/****** Object:  Table [dbo].[SongRequests]    Script Date: 9/1/2018 11:00:28 PM ******/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
-CREATE TABLE [dbo].[SongRequests](
+CREATE TABLE [dbo].[SongRequest](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Requests] [varchar](100) NOT NULL,
 	[Chatter] [varchar](30) NULL,
 	[Broadcaster] [int] NOT NULL,
- CONSTRAINT [PK__tmp_ms_x__3214EC076F810C0B] PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_SongRequest] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[UserBotTimeout]    Script Date: 9/1/2018 11:00:29 PM ******/
+/****** Object:  Table [dbo].[SongRequestIgnore]    Script Date: 9/6/2018 12:10:44 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[UserBotTimeout](
+CREATE TABLE [dbo].[SongRequestIgnore](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[Username] [varchar](30) NOT NULL,
-	[Timeout] [datetime] NOT NULL,
-	[TimeAdded] [datetime] NOT NULL,
+	[Artist] [varchar](100) NOT NULL,
+	[Title] [varchar](100) NULL,
 	[Broadcaster] [int] NOT NULL,
- CONSTRAINT [PK__tblTimeo__3214EC078245064A] PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_SongRequestIgnore] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-ALTER TABLE [dbo].[Bank] ADD  DEFAULT ((0)) FOR [Wallet]
+/****** Object:  Table [dbo].[TwitchGameCategory]    Script Date: 9/6/2018 12:10:44 AM ******/
+SET ANSI_NULLS ON
 GO
 
-ALTER TABLE [dbo].[Bank] ADD  DEFAULT (getdate()) FOR [TimeAdded]
+SET QUOTED_IDENTIFIER ON
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((10)) FOR [CooldownPeriodMin]
+CREATE TABLE [dbo].[TwitchGameCategory](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Title] [varchar](100) NOT NULL,
+	[Multiplayer] [bit] NOT NULL,
+ CONSTRAINT [PK_TwitchGameCategory] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((120)) FOR [EntryPeriodSec]
+ALTER TABLE [dbo].[Bank] ADD  CONSTRAINT [DF__tblBank__wallet__5441852A]  DEFAULT ((0)) FOR [Wallet]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('@user@ has started planning a bank heist! Looking for a bigger crew for a bigger score. Join in!') FOR [EntryMessage]
+ALTER TABLE [dbo].[Bank] ADD  CONSTRAINT [DF__tblBank__timeAdd__5AEE82B9]  DEFAULT (getdate()) FOR [LastUpdated]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((5000)) FOR [MaxGamble]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((10)) FOR [CooldownPeriodMin]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Buy-in to''ps out at @maxbet@ @pointsname@') FOR [MaxGambleText]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((120)) FOR [EntryPeriodSec]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Type @command@ [x] to enter') FOR [EntryInstructions]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('@user@ has started planning a bank heist! Looking for a bigger crew for a bigger score. Join in!') FOR [EntryMessage]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('The cops are on high alert after the last job, we have to lay low for a bit. Call me again after @timeleft@ minutes') FOR [CooldownEntry]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((5000)) FOR [MaxGamble]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Looks like the cops have given up the search … the banks are ripe for hitting!') FOR [CooldownOver]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Buy-in to''ps out at @maxbet@ @pointsname@') FOR [MaxGambleText]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('With this crew, we can now hit the @bankname@. Lets see if we can get a bigger crew to hit the @nextbankname@!') FOR [NextLevelMessage2]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Type @command@ [x] to enter') FOR [EntryInstructions]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Oh yeah! With this crew, we can now hit the @bankname@. Lets see if we can get a bigger crew to hit the @nextbankname@!') FOR [NextLevelMessage3]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('The cops are on high alert after the last job, we have to lay low for a bit. Call me again after @timeleft@ minutes') FOR [CooldownEntry]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Hell yeah! We can now hit the @bankname@. A few more, and we could hit the @nextbankname@!') FOR [NextLevelMessage4]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Looks like the cops have given up the search … the banks are ripe for hitting!') FOR [CooldownOver]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Epic crew! We are going to hit the @bankname@ guys! Gear up and get ready to head out.') FOR [NextLevelMessage5]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('With this crew, we can now hit the @bankname@. Lets see if we can get a bigger crew to hit the @nextbankname@!') FOR [NextLevelMessage2]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Alright guys, check your guns. We are storming into the @bankname@ through all entrances. Let''s get the cash and get out before the cops get here.') FOR [GameStart]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Oh yeah! With this crew, we can now hit the @bankname@. Lets see if we can get a bigger crew to hit the @nextbankname@!') FOR [NextLevelMessage3]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('@user@ executed the heist flawlessly, sneaking into the @bankname@ through the back entrance and looting @winamount@ @pointsname@ from the vault.') FOR [SingleUserSuccess]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Hell yeah! We can now hit the @bankname@. A few more, and we could hit the @nextbankname@!') FOR [NextLevelMessage4]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Local security caught @user@ trying to sneak into the @bankname@ through the back entrance and opened fire.') FOR [SingleUserFail]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Epic crew! We are going to hit the @bankname@ guys! Gear up and get ready to head out.') FOR [NextLevelMessage5]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('The heist payouts are:') FOR [ResultsMessage]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Alright guys, check your guns. We are storming into the @bankname@ through all entrances. Let''s get the cash and get out before the cops get here.') FOR [GameStart]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('The execution was flawless, in and out before the first cop arrived on scene.') FOR [Success100]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('@user@ executed the heist flawlessly, sneaking into the @bankname@ through the back entrance and looting @winamount@ @pointsname@ from the vault.') FOR [SingleUserSuccess]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('The crew suffered a few losses engaging the local security team.') FOR [Success34]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Local security caught @user@ trying to sneak into the @bankname@ through the back entrance and opened fire.') FOR [SingleUserFail]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('The crew suffered major losses as they engaged the SWAT backup.') FOR [Success1]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('The heist payouts are:') FOR [ResultsMessage]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('SWAT teams nearby stormed the bank and killed the entire crew. Not a single soul survived…') FOR [Success0]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('The execution was flawless, in and out before the first cop arrived on scene.') FOR [Success100]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Simple Municipal Bank') FOR [LevelName1]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('The crew suffered a few losses engaging the local security team.') FOR [Success34]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((9)) FOR [LevelMaxUsers1]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('The crew suffered major losses as they engaged the SWAT backup.') FOR [Success1]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Simple City Bank') FOR [LevelName2]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('SWAT teams nearby stormed the bank and killed the entire crew. Not a single soul survived…') FOR [Success0]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((19)) FOR [LevelMaxUsers2]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Simple Municipal Bank') FOR [LevelName1]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Simple State Bank') FOR [LevelName3]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((9)) FOR [LevelMaxUsers1]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((29)) FOR [LevelMaxUsers3]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Simple City Bank') FOR [LevelName2]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Simple National Reserve') FOR [LevelName4]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((19)) FOR [LevelMaxUsers2]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((39)) FOR [LevelMaxUsers4]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Simple State Bank') FOR [LevelName3]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ('Simple Federal Reserve') FOR [LevelName5]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((29)) FOR [LevelMaxUsers3]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((9001)) FOR [LevelMaxUsers5]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Simple National Reserve') FOR [LevelName4]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((54.00)) FOR [PayoutSuccessRate1]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((39)) FOR [LevelMaxUsers4]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((1.50)) FOR [PayoutMultiplier1]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ('Simple Federal Reserve') FOR [LevelName5]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((48.80)) FOR [PayoutSuccessRate2]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((9001)) FOR [LevelMaxUsers5]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((1.70)) FOR [PayoutMultiplier2]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((54.00)) FOR [PayoutSuccessRate1]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((42.50)) FOR [PayoutSuccessRate3]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((1.50)) FOR [PayoutMultiplier1]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((2.00)) FOR [PayoutMultiplier3]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((48.80)) FOR [PayoutSuccessRate2]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((38.70)) FOR [PayoutSuccessRate4]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((1.70)) FOR [PayoutMultiplier2]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((2.25)) FOR [PayoutMultiplier4]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((42.50)) FOR [PayoutSuccessRate3]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((32.40)) FOR [PayoutSuccessRate5]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((2.00)) FOR [PayoutMultiplier3]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] ADD  DEFAULT ((2.75)) FOR [PayoutMultiplier5]
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((38.70)) FOR [PayoutSuccessRate4]
+GO
+
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((2.25)) FOR [PayoutMultiplier4]
+GO
+
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((32.40)) FOR [PayoutSuccessRate5]
+GO
+
+ALTER TABLE [dbo].[BankHeistSetting] ADD  DEFAULT ((2.75)) FOR [PayoutMultiplier5]
 GO
 
 ALTER TABLE [dbo].[BossFightBossStats] ADD  CONSTRAINT [DF__BossFight__name1__37FA4C37]  DEFAULT ('Boss 1') FOR [Name1]
@@ -788,236 +784,236 @@ GO
 ALTER TABLE [dbo].[BossFightClassStats] ADD  DEFAULT ((200)) FOR [SubscriberHealth]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ((10)) FOR [CooldownPeriodMin]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ((10)) FOR [CooldownPeriodMin]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ((60)) FOR [EntryPeriodSec]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ((60)) FOR [EntryPeriodSec]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('@user@ is trying to get a group of adventurers ready to fight a boss... Will you join them? Type !raid to join!') FOR [EntryMessage]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('@user@ is trying to get a group of adventurers ready to fight a boss... Will you join them? Type !raid to join!') FOR [EntryMessage]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ((100)) FOR [Cost]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ((100)) FOR [Cost]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('The boss floor is currently being cleaned up and won''t be available for at least @timeleft@ minutes') FOR [CooldownEntry]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('The boss floor is currently being cleaned up and won''t be available for at least @timeleft@ minutes') FOR [CooldownEntry]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('The boss floor has been cleaned up... Want to go again?! Type !raid to start!') FOR [CooldownOver]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('The boss floor has been cleaned up... Want to go again?! Type !raid to start!') FOR [CooldownOver]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('With this raid party, we can now attack @bossname@. Let''s see if we can get a bigger party to attack @nextbossname@!') FOR [NextLevelMessage2]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('With this raid party, we can now attack @bossname@. Let''s see if we can get a bigger party to attack @nextbossname@!') FOR [NextLevelMessage2]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('Oh yeah! With this raid party, we can now attack @bossname@. Let''s see if we can get a bigger party to attack @nextbossname@!') FOR [NextLevelMessage3]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('Oh yeah! With this raid party, we can now attack @bossname@. Let''s see if we can get a bigger party to attack @nextbossname@!') FOR [NextLevelMessage3]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('Hell yeah! We can now attack @bossname@. A few more and we could attack @nextbossname@!') FOR [NextLevelMessage4]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('Hell yeah! We can now attack @bossname@. A few more and we could attack @nextbossname@!') FOR [NextLevelMessage4]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('Epic raid party! We are going to attack @bossname@ guys! Gear up and get ready to head out.') FOR [NextLevelMessage5]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('Epic raid party! We are going to attack @bossname@ guys! Gear up and get ready to head out.') FOR [NextLevelMessage5]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('The combatants have stepped into the boss room... Will they be able to defeat @bossname@?!') FOR [GameStart]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('The combatants have stepped into the boss room... Will they be able to defeat @bossname@?!') FOR [GameStart]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('The survivors are:') FOR [ResultsMessage]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('The survivors are:') FOR [ResultsMessage]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('@user@ executed the raid flawlessly, soloing @bossname@ with ease and looting @winamount@ @pointsname@ with a last attack bonus of @lastattackbonus@ @pointsname@.') FOR [SingleUserSuccess]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('@user@ executed the raid flawlessly, soloing @bossname@ with ease and looting @winamount@ @pointsname@ with a last attack bonus of @lastattackbonus@ @pointsname@.') FOR [SingleUserSuccess]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('@user@ thought they could try to solo @bossname@, but was deleted immediately...RIP') FOR [SingleUserFail]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('@user@ thought they could try to solo @bossname@, but was deleted immediately...RIP') FOR [SingleUserFail]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('The raid was a complete success. No one fell into the hands of @bossname@.') FOR [Success100]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('The raid was a complete success. No one fell into the hands of @bossname@.') FOR [Success100]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('The raid party suffered a few casualties as they fought valiantly.') FOR [Success34]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('The raid party suffered a few casualties as they fought valiantly.') FOR [Success34]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('The raid party suffered major casualties as they fought valiantly.') FOR [Success1]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('The raid party suffered major casualties as they fought valiantly.') FOR [Success1]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] ADD  DEFAULT ('It was absolute hell. The field is covered with the blood of the fallen...no one survived') FOR [Success0]
+ALTER TABLE [dbo].[BossFightSetting] ADD  DEFAULT ('It was absolute hell. The field is covered with the blood of the fallen...no one survived') FOR [Success0]
 GO
 
-ALTER TABLE [dbo].[Broadcasters] ADD  DEFAULT (getdate()) FOR [TimeAdded]
+ALTER TABLE [dbo].[BotTimeout] ADD  CONSTRAINT [DF__tblTimeou__timeA__66603565]  DEFAULT (getdate()) FOR [TimeAdded]
 GO
 
-ALTER TABLE [dbo].[Broadcasters] ADD  CONSTRAINT [DF_tblBroadcasters_twitchId]  DEFAULT ((0)) FOR [TwitchId]
+ALTER TABLE [dbo].[Broadcaster] ADD  CONSTRAINT [DF_tblBroadcasters_twitchId]  DEFAULT ((0)) FOR [TwitchId]
 GO
 
-ALTER TABLE [dbo].[GameList] ADD  CONSTRAINT [DF_tblGameList_multiplayer]  DEFAULT ((0)) FOR [Multiplayer]
+ALTER TABLE [dbo].[Broadcaster] ADD  CONSTRAINT [DF__Table__timeAdded__5812160E]  DEFAULT (getdate()) FOR [LastUpdated]
 GO
 
-ALTER TABLE [dbo].[PartyUpRequests] ADD  DEFAULT (getdate()) FOR [timeRequested]
+ALTER TABLE [dbo].[PartyUpRequest] ADD  CONSTRAINT [DF__tblGroupU__timeR__4BAC3F29]  DEFAULT (getdate()) FOR [TimeRequested]
 GO
 
 ALTER TABLE [dbo].[Quote] ADD  DEFAULT (getdate()) FOR [TimeCreated]
 GO
 
-ALTER TABLE [dbo].[Reminders] ADD  DEFAULT ((0)) FOR [Sunday]
+ALTER TABLE [dbo].[Reminder] ADD  DEFAULT ((0)) FOR [Sunday]
 GO
 
-ALTER TABLE [dbo].[Reminders] ADD  DEFAULT ((0)) FOR [Monday]
+ALTER TABLE [dbo].[Reminder] ADD  DEFAULT ((0)) FOR [Monday]
 GO
 
-ALTER TABLE [dbo].[Reminders] ADD  DEFAULT ((0)) FOR [Tuesday]
+ALTER TABLE [dbo].[Reminder] ADD  DEFAULT ((0)) FOR [Tuesday]
 GO
 
-ALTER TABLE [dbo].[Reminders] ADD  DEFAULT ((0)) FOR [Wednesday]
+ALTER TABLE [dbo].[Reminder] ADD  DEFAULT ((0)) FOR [Wednesday]
 GO
 
-ALTER TABLE [dbo].[Reminders] ADD  DEFAULT ((0)) FOR [Thursday]
+ALTER TABLE [dbo].[Reminder] ADD  DEFAULT ((0)) FOR [Thursday]
 GO
 
-ALTER TABLE [dbo].[Reminders] ADD  DEFAULT ((0)) FOR [Friday]
+ALTER TABLE [dbo].[Reminder] ADD  DEFAULT ((0)) FOR [Friday]
 GO
 
-ALTER TABLE [dbo].[Reminders] ADD  DEFAULT ((0)) FOR [Saturday]
+ALTER TABLE [dbo].[Reminder] ADD  DEFAULT ((0)) FOR [Saturday]
 GO
 
-ALTER TABLE [dbo].[Reminders] ADD  DEFAULT ((0)) FOR [IsCountdownEvent]
+ALTER TABLE [dbo].[Reminder] ADD  DEFAULT ((0)) FOR [IsCountdownEvent]
 GO
 
-ALTER TABLE [dbo].[Reminders] ADD  DEFAULT ((0)) FOR [HasCountdownTicker]
+ALTER TABLE [dbo].[Reminder] ADD  DEFAULT ((0)) FOR [HasCountdownTicker]
 GO
 
-ALTER TABLE [dbo].[UserBotTimeout] ADD  CONSTRAINT [DF__tblTimeou__timeA__66603565]  DEFAULT (getdate()) FOR [TimeAdded]
+ALTER TABLE [dbo].[TwitchGameCategory] ADD  CONSTRAINT [DF_tblGameList_multiplayer]  DEFAULT ((0)) FOR [Multiplayer]
 GO
 
-ALTER TABLE [dbo].[Bank]  WITH CHECK ADD  CONSTRAINT [FK_tblBank_tblBroadcaster] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[Bank]  WITH CHECK ADD  CONSTRAINT [FK_Bank_Broadcaster] FOREIGN KEY([Broadcaster])
+REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
-ALTER TABLE [dbo].[Bank] CHECK CONSTRAINT [FK_tblBank_tblBroadcaster]
+ALTER TABLE [dbo].[Bank] CHECK CONSTRAINT [FK_Bank_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings]  WITH CHECK ADD  CONSTRAINT [FK_tblBankHeistSettings_tblBroadcaster] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[BankHeistSetting]  WITH CHECK ADD  CONSTRAINT [FK_BankHeistSetting_Broadcaster] FOREIGN KEY([Broadcaster])
+REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
-ALTER TABLE [dbo].[BankHeistSettings] CHECK CONSTRAINT [FK_tblBankHeistSettings_tblBroadcaster]
+ALTER TABLE [dbo].[BankHeistSetting] CHECK CONSTRAINT [FK_BankHeistSetting_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[BossFightBossStats]  WITH CHECK ADD  CONSTRAINT [FK_tblBossFightBossStats] FOREIGN KEY([GameId])
-REFERENCES [dbo].[GameList] ([Id])
+ALTER TABLE [dbo].[BossFightBossStats]  WITH CHECK ADD  CONSTRAINT [FK_BossFightBossStats_Broadcaster] FOREIGN KEY([SettingsId])
+REFERENCES [dbo].[BossFightSetting] ([Id])
 GO
 
-ALTER TABLE [dbo].[BossFightBossStats] CHECK CONSTRAINT [FK_tblBossFightBossStats]
+ALTER TABLE [dbo].[BossFightBossStats] CHECK CONSTRAINT [FK_BossFightBossStats_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[BossFightBossStats]  WITH CHECK ADD  CONSTRAINT [FK_tblBossFightBossStats_tblBroadcaster] FOREIGN KEY([SettingsId])
-REFERENCES [dbo].[BossFightSettings] ([Id])
+ALTER TABLE [dbo].[BossFightBossStats]  WITH CHECK ADD  CONSTRAINT [FK_BossFightBossStats_TwitchGameCategory] FOREIGN KEY([GameId])
+REFERENCES [dbo].[TwitchGameCategory] ([Id])
 GO
 
-ALTER TABLE [dbo].[BossFightBossStats] CHECK CONSTRAINT [FK_tblBossFightBossStats_tblBroadcaster]
+ALTER TABLE [dbo].[BossFightBossStats] CHECK CONSTRAINT [FK_BossFightBossStats_TwitchGameCategory]
 GO
 
-ALTER TABLE [dbo].[BossFightClassStats]  WITH CHECK ADD  CONSTRAINT [FK_tblBossFightClassStats_tblBroadcaster] FOREIGN KEY([SettingsId])
-REFERENCES [dbo].[BossFightSettings] ([Id])
+ALTER TABLE [dbo].[BossFightClassStats]  WITH CHECK ADD  CONSTRAINT [FK_BossFightClassStats_Broadcaster] FOREIGN KEY([SettingsId])
+REFERENCES [dbo].[BossFightSetting] ([Id])
 GO
 
-ALTER TABLE [dbo].[BossFightClassStats] CHECK CONSTRAINT [FK_tblBossFightClassStats_tblBroadcaster]
+ALTER TABLE [dbo].[BossFightClassStats] CHECK CONSTRAINT [FK_BossFightClassStats_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[BossFightSettings]  WITH CHECK ADD  CONSTRAINT [FK_tblBossFightSettings_tblBroadcaster] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[BossFightSetting]  WITH CHECK ADD  CONSTRAINT [FK_BossFightSetting_Broadcaster] FOREIGN KEY([Broadcaster])
+REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
-ALTER TABLE [dbo].[BossFightSettings] CHECK CONSTRAINT [FK_tblBossFightSettings_tblBroadcaster]
+ALTER TABLE [dbo].[BossFightSetting] CHECK CONSTRAINT [FK_BossFightSetting_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[ErrorLog]  WITH CHECK ADD  CONSTRAINT [FK_tblErrorLog_tblBroadcaster] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[BotTimeout]  WITH CHECK ADD  CONSTRAINT [FK_BotTimeout_Broadcaster] FOREIGN KEY([Broadcaster])
+REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
-ALTER TABLE [dbo].[ErrorLog] CHECK CONSTRAINT [FK_tblErrorLog_tblBroadcaster]
+ALTER TABLE [dbo].[BotTimeout] CHECK CONSTRAINT [FK_BotTimeout_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[PartyUp]  WITH CHECK ADD  CONSTRAINT [FK_tblPartyUp_tblGameList] FOREIGN KEY([Game])
-REFERENCES [dbo].[GameList] ([Id])
+ALTER TABLE [dbo].[ErrorLog]  WITH CHECK ADD  CONSTRAINT [FK_ErrorLog_Broadcaster] FOREIGN KEY([Broadcaster])
+REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
-ALTER TABLE [dbo].[PartyUp] CHECK CONSTRAINT [FK_tblPartyUp_tblGameList]
+ALTER TABLE [dbo].[ErrorLog] CHECK CONSTRAINT [FK_ErrorLog_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[PartyUp]  WITH CHECK ADD  CONSTRAINT [FK_tblPartyUps_tblBroadcaster] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[PartyUp]  WITH CHECK ADD  CONSTRAINT [FK_PartyUp_Broadcaster] FOREIGN KEY([Broadcaster])
+REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
-ALTER TABLE [dbo].[PartyUp] CHECK CONSTRAINT [FK_tblPartyUps_tblBroadcaster]
+ALTER TABLE [dbo].[PartyUp] CHECK CONSTRAINT [FK_PartyUp_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[PartyUpRequests]  WITH CHECK ADD  CONSTRAINT [FK_tblPartyUpRequests_tblBroadcaster] FOREIGN KEY([broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[PartyUp]  WITH CHECK ADD  CONSTRAINT [FK_PartyUp_TwitchGameCategory] FOREIGN KEY([GameId])
+REFERENCES [dbo].[TwitchGameCategory] ([Id])
 GO
 
-ALTER TABLE [dbo].[PartyUpRequests] CHECK CONSTRAINT [FK_tblPartyUpRequests_tblBroadcaster]
+ALTER TABLE [dbo].[PartyUp] CHECK CONSTRAINT [FK_PartyUp_TwitchGameCategory]
 GO
 
-ALTER TABLE [dbo].[PartyUpRequests]  WITH CHECK ADD  CONSTRAINT [FK_tblPartyUpRequests_tblGameList] FOREIGN KEY([game])
-REFERENCES [dbo].[GameList] ([Id])
+ALTER TABLE [dbo].[PartyUpRequest]  WITH CHECK ADD  CONSTRAINT [FK_PartyUpRequest_PartyUp] FOREIGN KEY([PartyMember])
+REFERENCES [dbo].[PartyUp] ([Id])
 GO
 
-ALTER TABLE [dbo].[PartyUpRequests] CHECK CONSTRAINT [FK_tblPartyUpRequests_tblGameList]
+ALTER TABLE [dbo].[PartyUpRequest] CHECK CONSTRAINT [FK_PartyUpRequest_PartyUp]
 GO
 
-ALTER TABLE [dbo].[Quote]  WITH CHECK ADD  CONSTRAINT [FK_tblQuote_tblBroadcasters] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[PartyUpRequest]  WITH CHECK ADD  CONSTRAINT [FK_PartyUpRequest_PartyUpRequest] FOREIGN KEY([Id])
+REFERENCES [dbo].[PartyUpRequest] ([Id])
 GO
 
-ALTER TABLE [dbo].[Quote] CHECK CONSTRAINT [FK_tblQuote_tblBroadcasters]
+ALTER TABLE [dbo].[PartyUpRequest] CHECK CONSTRAINT [FK_PartyUpRequest_PartyUpRequest]
 GO
 
-ALTER TABLE [dbo].[Rank]  WITH CHECK ADD  CONSTRAINT [FK_tblRank_tblBroadcasters] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[Quote]  WITH CHECK ADD  CONSTRAINT [FK_Quote_Broadcasters] FOREIGN KEY([Broadcaster])
+REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
-ALTER TABLE [dbo].[Rank] CHECK CONSTRAINT [FK_tblRank_tblBroadcasters]
+ALTER TABLE [dbo].[Quote] CHECK CONSTRAINT [FK_Quote_Broadcasters]
 GO
 
-ALTER TABLE [dbo].[RankFollowers]  WITH CHECK ADD  CONSTRAINT [FK_tblRankFollowers_tblBroadcasters] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[Rank]  WITH CHECK ADD  CONSTRAINT [FK_Rank_Broadcaster] FOREIGN KEY([Broadcaster])
+REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
-ALTER TABLE [dbo].[RankFollowers] CHECK CONSTRAINT [FK_tblRankFollowers_tblBroadcasters]
+ALTER TABLE [dbo].[Rank] CHECK CONSTRAINT [FK_Rank_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[Reminders]  WITH CHECK ADD  CONSTRAINT [FK_tblReminders_tblBroadcasters] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[RankFollower]  WITH CHECK ADD  CONSTRAINT [FK_RankFollower_Broadcaster] FOREIGN KEY([Broadcaster])
+REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
-ALTER TABLE [dbo].[Reminders] CHECK CONSTRAINT [FK_tblReminders_tblBroadcasters]
+ALTER TABLE [dbo].[RankFollower] CHECK CONSTRAINT [FK_RankFollower_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[Reminders]  WITH CHECK ADD  CONSTRAINT [FK_tblReminders_tblGameList] FOREIGN KEY([Game])
-REFERENCES [dbo].[GameList] ([Id])
+ALTER TABLE [dbo].[Reminder]  WITH CHECK ADD  CONSTRAINT [FK_Reminder_Broadcaster] FOREIGN KEY([Broadcaster])
+REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
-ALTER TABLE [dbo].[Reminders] CHECK CONSTRAINT [FK_tblReminders_tblGameList]
+ALTER TABLE [dbo].[Reminder] CHECK CONSTRAINT [FK_Reminder_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[SongRequestBlacklist]  WITH CHECK ADD  CONSTRAINT [FK_tblSongRequestBlacklist_tblBroadcasters] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[Reminder]  WITH CHECK ADD  CONSTRAINT [FK_Reminder_TwitchGameCategory] FOREIGN KEY([GameId])
+REFERENCES [dbo].[TwitchGameCategory] ([Id])
 GO
 
-ALTER TABLE [dbo].[SongRequestBlacklist] CHECK CONSTRAINT [FK_tblSongRequestBlacklist_tblBroadcasters]
+ALTER TABLE [dbo].[Reminder] CHECK CONSTRAINT [FK_Reminder_TwitchGameCategory]
 GO
 
-ALTER TABLE [dbo].[SongRequests]  WITH CHECK ADD  CONSTRAINT [FK_tblSongRequests_tblBroadcaster] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[SongRequest]  WITH CHECK ADD  CONSTRAINT [FK_SongRequest_Broadcaster] FOREIGN KEY([Broadcaster])
+REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
-ALTER TABLE [dbo].[SongRequests] CHECK CONSTRAINT [FK_tblSongRequests_tblBroadcaster]
+ALTER TABLE [dbo].[SongRequest] CHECK CONSTRAINT [FK_SongRequest_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[UserBotTimeout]  WITH CHECK ADD  CONSTRAINT [FK_tblTimeout_tblBroadcaster] FOREIGN KEY([Broadcaster])
-REFERENCES [dbo].[Broadcasters] ([Id])
+ALTER TABLE [dbo].[SongRequestIgnore]  WITH CHECK ADD  CONSTRAINT [FK_SongRequestIgnore_Broadcaster] FOREIGN KEY([Broadcaster])
+REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
-ALTER TABLE [dbo].[UserBotTimeout] CHECK CONSTRAINT [FK_tblTimeout_tblBroadcaster]
+ALTER TABLE [dbo].[SongRequestIgnore] CHECK CONSTRAINT [FK_SongRequestIgnore_Broadcaster]
 GO
 
 

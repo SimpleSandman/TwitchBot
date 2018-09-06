@@ -43,7 +43,7 @@ namespace TwitchBot.Libraries
                 /* If username not available, grab default user to show local error after db connection */
                 if (_broadcasterId == 0)
                 {
-                    Broadcasters broadcaster = await ApiBotRequest.GetExecuteTaskAsync<Broadcasters>(_botConfig.TwitchBotApiLink + $"broadcasters/get/-1");
+                    Broadcaster broadcaster = await ApiBotRequest.GetExecuteTaskAsync<Broadcaster>(_botConfig.TwitchBotApiLink + $"broadcasters/get/-1");
                     _broadcasterId = broadcaster.Id;
                 }
 

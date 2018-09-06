@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TwitchBot.Models
 {
-    public class Reminder
+    public class RemindUser
     {
         public int Id { get; set; }
         public int? GameId { get; set; }

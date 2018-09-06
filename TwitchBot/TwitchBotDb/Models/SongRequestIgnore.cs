@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace TwitchBotDb.Models
 {
-    public partial class SongRequestBlacklist
+    public partial class SongRequestIgnore
     {
         public int Id { get; set; }
         public string Artist { get; set; }
         public string Title { get; set; }
         public int Broadcaster { get; set; }
 
-        public Broadcasters BroadcasterNavigation { get; set; }
+        public Broadcaster BroadcasterNavigation { get; set; }
     }
 }

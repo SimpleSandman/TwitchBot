@@ -17,12 +17,12 @@ namespace TwitchBot.Libraries
         {
             DateTime timeoutExpiration = DateTime.UtcNow.AddSeconds(seconds);
 
-            UserBotTimeout timedoutUser = new UserBotTimeout();
+            BotTimeout timedoutUser = new BotTimeout();
 
             if (TimedoutUsers.Any(m => m.Username == recipient))
             {
-                timedoutUser = await ApiBotRequest.PatchExecuteTaskAsync<UserBotTimeout>(
-                    twitchBotApiLink + $"userbottimeouts/patch/{broadcasterId}?username={recipient}", 
+                timedoutUser = await ApiBotRequest.PatchExecuteTaskAsync<BotTimeout>(
+                    twitchBotApiLink + $"bottimeouts/patch/{broadcasterId}?username={recipient}", 
                     "timeout", 
                     timeoutExpiration);
 
@@ -31,8 +31,8 @@ namespace TwitchBot.Libraries
             else
             {
                 timedoutUser = await ApiBotRequest.PostExecuteTaskAsync(
-                    twitchBotApiLink + $"userbottimeouts/create",
-                    new UserBotTimeout { Username = recipient, Timeout = timeoutExpiration, Broadcaster = broadcasterId }
+                    twitchBotApiLink + $"bottimeouts/create",
+                    new BotTimeout { Username = recipient, Timeout = timeoutExpiration, Broadcaster = broadcasterId }
                 );
             }
 
@@ -48,7 +48,7 @@ namespace TwitchBot.Libraries
 
         public async Task<string> DeleteUserTimeout(string recipient, int broadcasterId, string twitchBotApiLink)
         {
-            UserBotTimeout removedTimeout = await ApiBotRequest.DeleteExecuteTaskAsync<UserBotTimeout>(twitchBotApiLink + $"userbottimeouts/delete/{broadcasterId}?username={recipient}");
+            BotTimeout removedTimeout = await ApiBotRequest.DeleteExecuteTaskAsync<BotTimeout>(twitchBotApiLink + $"bottimeouts/delete/{broadcasterId}?username={recipient}");
             if (removedTimeout == null) return "";
 
             string name = removedTimeout.Username;
@@ -76,14 +76,14 @@ namespace TwitchBot.Libraries
             return "0 seconds"; // if cannot find timeout
         }
 
-        public async Task<List<UserBotTimeout>> DeleteTimeouts(int broadcasterId, string twitchBotApiLink)
+        public async Task<List<BotTimeout>> DeleteTimeouts(int broadcasterId, string twitchBotApiLink)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<List<UserBotTimeout>>(twitchBotApiLink + $"userbottimeouts/delete/{broadcasterId}");
+            return await ApiBotRequest.DeleteExecuteTaskAsync<List<BotTimeout>>(twitchBotApiLink + $"bottimeouts/delete/{broadcasterId}");
         }
 
-        public async Task<List<UserBotTimeout>> GetTimeouts(int broadcasterId, string twitchBotApiLink)
+        public async Task<List<BotTimeout>> GetTimeouts(int broadcasterId, string twitchBotApiLink)
         {
-            return await ApiBotRequest.GetExecuteTaskAsync<List<UserBotTimeout>>(twitchBotApiLink + $"userbottimeouts/get/{broadcasterId}");
+            return await ApiBotRequest.GetExecuteTaskAsync<List<BotTimeout>>(twitchBotApiLink + $"bottimeouts/get/{broadcasterId}");
         }
     }
 }

@@ -11,6 +11,6 @@ namespace TwitchBotDb.Models
         public DateTime TimeCreated { get; set; }
         public int Broadcaster { get; set; }
 
-        public Broadcasters BroadcasterNavigation { get; set; }
+        public Broadcaster BroadcasterNavigation { get; set; }
     }
 }

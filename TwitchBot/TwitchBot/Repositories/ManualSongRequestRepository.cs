@@ -16,9 +16,9 @@ namespace TwitchBot.Repositories
             _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public async Task<SongRequests> AddSongRequest(string songRequestName, string username, int broadcasterId)
+        public async Task<SongRequest> AddSongRequest(string songRequestName, string username, int broadcasterId)
         {
-            SongRequests songRequest = new SongRequests
+            SongRequest songRequest = new SongRequest
             {
                 Requests = songRequestName,
                 Chatter = username,
@@ -28,19 +28,19 @@ namespace TwitchBot.Repositories
             return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"songrequests/create", songRequest);
         }
 
-        public async Task<List<SongRequests>> ListSongRequests(int broadcasterId)
+        public async Task<List<SongRequest>> ListSongRequests(int broadcasterId)
         {
-            return await ApiBotRequest.GetExecuteTaskAsync<List<SongRequests>>(_twitchBotApiLink + $"songrequests/get/{broadcasterId}");
+            return await ApiBotRequest.GetExecuteTaskAsync<List<SongRequest>>(_twitchBotApiLink + $"songrequests/get/{broadcasterId}");
         }
 
-        public async Task<SongRequests> PopSongRequest(int broadcasterId)
+        public async Task<SongRequest> PopSongRequest(int broadcasterId)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<SongRequests>(_twitchBotApiLink + $"songrequests/delete/{broadcasterId}?popone=true");
+            return await ApiBotRequest.DeleteExecuteTaskAsync<SongRequest>(_twitchBotApiLink + $"songrequests/delete/{broadcasterId}?popone=true");
         }
 
-        public async Task<List<SongRequests>> ResetSongRequests(int broadcasterId)
+        public async Task<List<SongRequest>> ResetSongRequests(int broadcasterId)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<List<SongRequests>>(_twitchBotApiLink + $"songrequests/delete/{broadcasterId}");
+            return await ApiBotRequest.DeleteExecuteTaskAsync<List<SongRequest>>(_twitchBotApiLink + $"songrequests/delete/{broadcasterId}");
         }
     }
 }

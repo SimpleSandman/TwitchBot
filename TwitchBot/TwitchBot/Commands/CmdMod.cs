@@ -295,7 +295,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                SongRequests removedSong = await _manualSongRequest.PopSongRequest(_broadcasterId);
+                SongRequest removedSong = await _manualSongRequest.PopSongRequest(_broadcasterId);
 
                 if (removedSong != null)
                     _irc.SendPublicChatMessage($"The first song in the queue, \"{removedSong.Requests}\" ({removedSong.Chatter}), has been removed");
@@ -315,7 +315,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                List<SongRequests> removedSong = await _manualSongRequest.ResetSongRequests(_broadcasterId);
+                List<SongRequest> removedSong = await _manualSongRequest.ResetSongRequests(_broadcasterId);
 
                 if (removedSong != null && removedSong.Count > 0)
                     _irc.SendPublicChatMessage($"The song request queue has been reset @{_botConfig.Broadcaster}");
@@ -338,7 +338,7 @@ namespace TwitchBot.Commands
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = json.Game;
-                GameList game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
 
                 if (game?.Id > 0)
                     _irc.SendPublicChatMessage(await _partyUp.PopRequestedPartyMember(game.Id, _broadcasterId));

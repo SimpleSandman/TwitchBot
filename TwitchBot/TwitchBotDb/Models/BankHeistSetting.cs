@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TwitchBotDb.Models
 {
-    public partial class BankHeistSettings
+    public partial class BankHeistSetting
     {
         public int Id { get; set; }
         public int Broadcaster { get; set; }
@@ -48,6 +48,6 @@ namespace TwitchBotDb.Models
         public decimal PayoutSuccessRate5 { get; set; }
         public decimal PayoutMultiplier5 { get; set; }
 
-        public Broadcasters BroadcasterNavigation { get; set; }
+        public Broadcaster BroadcasterNavigation { get; set; }
     }
 }

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace TwitchBotDb.Models
 {
-    public partial class BossFightSettings
+    public partial class BossFightSetting
     {
-        public BossFightSettings()
+        public BossFightSetting()
         {
             BossFightBossStats = new HashSet<BossFightBossStats>();
             BossFightClassStats = new HashSet<BossFightClassStats>();
@@ -32,7 +32,7 @@ namespace TwitchBotDb.Models
         public string Success0 { get; set; }
         public int Broadcaster { get; set; }
 
-        public Broadcasters BroadcasterNavigation { get; set; }
+        public Broadcaster BroadcasterNavigation { get; set; }
         public ICollection<BossFightBossStats> BossFightBossStats { get; set; }
         public ICollection<BossFightClassStats> BossFightClassStats { get; set; }
     }

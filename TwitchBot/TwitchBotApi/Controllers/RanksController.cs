@@ -14,9 +14,9 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class RanksController : Controller
     {
-        private readonly TwitchBotDbContext _context;
+        private readonly SimpleBotContext _context;
 
-        public RanksController(TwitchBotDbContext context)
+        public RanksController(SimpleBotContext context)
         {
             _context = context;
         }

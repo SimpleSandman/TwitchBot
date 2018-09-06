@@ -14,9 +14,9 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class ErrorLogsController : Controller
     {
-        private readonly TwitchBotDbContext _context;
+        private readonly SimpleBotContext _context;
 
-        public ErrorLogsController(TwitchBotDbContext context)
+        public ErrorLogsController(SimpleBotContext context)
         {
             _context = context;
         }

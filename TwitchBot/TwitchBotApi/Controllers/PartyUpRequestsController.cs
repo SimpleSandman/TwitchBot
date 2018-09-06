@@ -14,32 +14,23 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class PartyUpRequestsController : Controller
     {
-        private readonly TwitchBotDbContext _context;
+        private readonly SimpleBotContext _context;
 
-        public PartyUpRequestsController(TwitchBotDbContext context)
+        public PartyUpRequestsController(SimpleBotContext context)
         {
             _context = context;
         }
 
-        // GET: api/partyuprequests/get/2
-        // GET: api/partyuprequests/get/2?gameId=1
-        // GET: api/partyuprequests/get/2?gameId=1&username=simple_sandman
+        // GET: api/partyuprequests/get/2?username=simple_sandman
         [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] int gameId = 0, [FromQuery] string username = "")
+        public async Task<IActionResult> Get([FromRoute] int partyMemberId, [FromQuery] string username)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var partyUpRequests = new object();
-
-            if (gameId > 0 && !string.IsNullOrEmpty(username))
-                partyUpRequests = await _context.PartyUpRequests.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId && m.Game == gameId && m.Username == username);
-            else if (gameId > 0)
-                partyUpRequests = await _context.PartyUpRequests.Where(m => m.Broadcaster == broadcasterId && m.Game == gameId).ToListAsync();
-            else
-                partyUpRequests = await _context.PartyUpRequests.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+            PartyUpRequest partyUpRequests = await _context.PartyUpRequest.SingleOrDefaultAsync(m => m.PartyMember == partyMemberId && m.Username == username);
 
             if (partyUpRequests == null)
             {
@@ -49,22 +40,22 @@ namespace TwitchBotApi.Controllers
             return Ok(partyUpRequests);
         }
 
-        // POST: api/partyuprequests/create/2
-        // Body (JSON): { "username": "hello_world", "partyMember": "Sinon", "broadcaster": 2, "game": 2 }
+        // POST: api/partyuprequests/create
+        // Body (JSON): { "username": "hello_world", "partyMember": 2 }
         [HttpPost("{broadcasterId:int}")]
-        public async Task<IActionResult> Create([FromBody] PartyUpRequests partyUpRequest)
+        public async Task<IActionResult> Create([FromBody] PartyUpRequest partyUpRequest)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (PartyUpRequestExists(partyUpRequest.Username, partyUpRequest.Broadcaster))
+            if (PartyUpRequestExists(partyUpRequest.Username, partyUpRequest.PartyMember))
             {
                 return BadRequest();
             }
 
-            _context.PartyUpRequests.Add(partyUpRequest);
+            _context.PartyUpRequest.Add(partyUpRequest);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -79,8 +70,8 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            PartyUpRequests requestToBeDeleted = await _context.PartyUpRequests
-                .Where(m => m.Broadcaster == broadcasterId && m.Game == gameId)
+            PartyUpRequest requestToBeDeleted = await _context.PartyUpRequest
+                //.Where(m => m.Broadcaster == broadcasterId && m.Game == gameId)
                 .OrderBy(m => m.TimeRequested)
                 .Take(1)
                 .SingleOrDefaultAsync();
@@ -90,15 +81,15 @@ namespace TwitchBotApi.Controllers
                 return NotFound();
             }
 
-            _context.PartyUpRequests.Remove(requestToBeDeleted);
+            _context.PartyUpRequest.Remove(requestToBeDeleted);
             await _context.SaveChangesAsync();
 
             return Ok(requestToBeDeleted);
         }
 
-        private bool PartyUpRequestExists(string username, int broadcasterId)
+        private bool PartyUpRequestExists(string username, int partyMemberId)
         {
-            return _context.PartyUpRequests.Any(e => e.Username == username && e.Broadcaster == broadcasterId);
+            return _context.PartyUpRequest.Any(e => e.Username == username && e.PartyMember == partyMemberId);
         }
     }
 }

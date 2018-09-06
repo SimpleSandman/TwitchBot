@@ -15,9 +15,9 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class QuotesController : Controller
     {
-        private readonly TwitchBotDbContext _context;
+        private readonly SimpleBotContext _context;
 
-        public QuotesController(TwitchBotDbContext context)
+        public QuotesController(SimpleBotContext context)
         {
             _context = context;
         }

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,9 +11,9 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class BroadcastersController : Controller
     {
-        private readonly TwitchBotDbContext _context;
+        private readonly SimpleBotContext _context;
 
-        public BroadcastersController(TwitchBotDbContext context)
+        public BroadcastersController(SimpleBotContext context)
         {
             _context = context;
         }
@@ -31,12 +28,12 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            Broadcasters broadcaster = new Broadcasters();
+            Broadcaster broadcaster = new Broadcaster();
 
             if (!string.IsNullOrEmpty(username))
-                broadcaster = await _context.Broadcasters.SingleOrDefaultAsync(m => m.Username == username && m.TwitchId == twitchId);
+                broadcaster = await _context.Broadcaster.SingleOrDefaultAsync(m => m.Username == username && m.TwitchId == twitchId);
             else
-                broadcaster = await _context.Broadcasters.SingleOrDefaultAsync(m => m.TwitchId == twitchId);
+                broadcaster = await _context.Broadcaster.SingleOrDefaultAsync(m => m.TwitchId == twitchId);
 
             if (broadcaster == null)
             {
@@ -49,7 +46,7 @@ namespace TwitchBotApi.Controllers
         // PUT: api/broadcasters/update/12345678
         // Body (JSON): { "username": "simple_sandman", "twitchId": 12345678 }
         [HttpPut("{twitchId:int}")]
-        public async Task<IActionResult> Update([FromRoute] int twitchId, [FromBody] Broadcasters broadcaster)
+        public async Task<IActionResult> Update([FromRoute] int twitchId, [FromBody] Broadcaster broadcaster)
         {
             if (!ModelState.IsValid)
             {
@@ -61,14 +58,14 @@ namespace TwitchBotApi.Controllers
                 return BadRequest();
             }
 
-            Broadcasters updatedbroadcaster = await _context.Broadcasters.FirstOrDefaultAsync(m => m.TwitchId == twitchId);
+            Broadcaster updatedbroadcaster = await _context.Broadcaster.FirstOrDefaultAsync(m => m.TwitchId == twitchId);
             if (updatedbroadcaster == null)
             {
                 return NotFound();
             }
 
             updatedbroadcaster.Username = broadcaster.Username;
-            _context.Broadcasters.Update(updatedbroadcaster);
+            _context.Broadcaster.Update(updatedbroadcaster);
 
             try
             {
@@ -92,14 +89,14 @@ namespace TwitchBotApi.Controllers
         // POST: api/broadcasters/create
         // Body (JSON): { "username": "simple_sandman", "twitchId": 12345678 }
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Broadcasters broadcaster)
+        public async Task<IActionResult> Create([FromBody] Broadcaster broadcaster)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            _context.Broadcasters.Add(broadcaster);
+            _context.Broadcaster.Add(broadcaster);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("Get", new { twitchId = broadcaster.TwitchId }, broadcaster);
@@ -107,7 +104,7 @@ namespace TwitchBotApi.Controllers
 
         private bool BroadcasterExists(int twitchId)
         {
-            return _context.Broadcasters.Any(e => e.TwitchId == twitchId);
+            return _context.Broadcaster.Any(e => e.TwitchId == twitchId);
         }
     }
 }

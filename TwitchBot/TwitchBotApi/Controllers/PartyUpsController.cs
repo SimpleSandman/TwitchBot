@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,9 +12,9 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class PartyUpsController : Controller
     {
-        private readonly TwitchBotDbContext _context;
+        private readonly SimpleBotContext _context;
 
-        public PartyUpsController(TwitchBotDbContext context)
+        public PartyUpsController(SimpleBotContext context)
         {
             _context = context;
         }
@@ -39,12 +37,12 @@ namespace TwitchBotApi.Controllers
                 partyUp = await _context.PartyUp
                     .SingleOrDefaultAsync(m =>
                         m.Broadcaster == broadcasterId
-                            && m.Game == gameId
+                            && m.GameId == gameId
                             && m.PartyMember.Contains(partyMember, StringComparison.CurrentCultureIgnoreCase));
             }
             else if (gameId > 0)
             {
-                partyUp = await _context.PartyUp.Where(m => m.Broadcaster == broadcasterId && m.Game == gameId)
+                partyUp = await _context.PartyUp.Where(m => m.Broadcaster == broadcasterId && m.GameId == gameId)
                     .Select(m => m.PartyMember)
                     .ToListAsync();
             }

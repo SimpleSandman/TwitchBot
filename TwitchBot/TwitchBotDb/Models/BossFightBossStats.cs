@@ -54,7 +54,7 @@ namespace TwitchBotDb.Models
         public int Loot5 { get; set; }
         public int LastAttackBonus5 { get; set; }
 
-        public GameList Game { get; set; }
-        public BossFightSettings Settings { get; set; }
+        public TwitchGameCategory Game { get; set; }
+        public BossFightSetting Settings { get; set; }
     }
 }

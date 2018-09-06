@@ -93,18 +93,18 @@ namespace TwitchBot.Models
         /// <param name="broadcasterId"></param>
         /// <param name="gameId"></param>
         /// <param name="twitchBotApiLink"></param>
-        /// <param name="bossFightSettings"></param>
-        public async Task LoadSettings(int broadcasterId, int? gameId, string twitchBotApiLink, BossFightSettings bossFightSettings = null)
+        /// <param name="bossFightSetting"></param>
+        public async Task LoadSettings(int broadcasterId, int? gameId, string twitchBotApiLink, BossFightSetting bossFightSetting = null)
         {
-            if (bossFightSettings == null)
+            if (bossFightSetting == null)
             {
-                bossFightSettings =
-                    await ApiBotRequest.GetExecuteTaskAsync<BossFightSettings>(twitchBotApiLink + $"bossfightsettings/get/{broadcasterId}");
+                bossFightSetting =
+                    await ApiBotRequest.GetExecuteTaskAsync<BossFightSetting>(twitchBotApiLink + $"bossfightsettings/get/{broadcasterId}");
 
-                if (bossFightSettings == null) return; // check if settings were loaded successfully, else attempt to create new settings
+                if (bossFightSetting == null) return; // check if settings were loaded successfully, else attempt to create new settings
             }
 
-            SettingsId = bossFightSettings.Id;
+            SettingsId = bossFightSetting.Id;
 
             BossFightClassStats bossFightClassStats = 
                 await ApiBotRequest.GetExecuteTaskAsync<BossFightClassStats>(twitchBotApiLink + $"bossfightclassstats/get/{SettingsId}");
@@ -133,28 +133,28 @@ namespace TwitchBot.Models
             Fighters = new BlockingCollection<BossFighter>();
 
             // entry messages and initial settings
-            CooldownTimePeriodMinutes = bossFightSettings.CooldownPeriodMin;
-            EntryPeriodSeconds = bossFightSettings.EntryPeriodSec;
-            EntryMessage = bossFightSettings.EntryMessage;
-            Cost = bossFightSettings.Cost;
-            CooldownEntry = bossFightSettings.CooldownEntry;
-            CooldownOver = bossFightSettings.CooldownOver;
+            CooldownTimePeriodMinutes = bossFightSetting.CooldownPeriodMin;
+            EntryPeriodSeconds = bossFightSetting.EntryPeriodSec;
+            EntryMessage = bossFightSetting.EntryMessage;
+            Cost = bossFightSetting.Cost;
+            CooldownEntry = bossFightSetting.CooldownEntry;
+            CooldownOver = bossFightSetting.CooldownOver;
 
             // next level messages
-            NextLevelMessages[0] = bossFightSettings.NextLevelMessage2;
-            NextLevelMessages[1] = bossFightSettings.NextLevelMessage3;
-            NextLevelMessages[2] = bossFightSettings.NextLevelMessage4;
-            NextLevelMessages[3] = bossFightSettings.NextLevelMessage5;
+            NextLevelMessages[0] = bossFightSetting.NextLevelMessage2;
+            NextLevelMessages[1] = bossFightSetting.NextLevelMessage3;
+            NextLevelMessages[2] = bossFightSetting.NextLevelMessage4;
+            NextLevelMessages[3] = bossFightSetting.NextLevelMessage5;
 
             // game outcomes
-            GameStart = bossFightSettings.GameStart;
-            ResultsMessage = bossFightSettings.ResultsMessage;
-            SingleUserSuccess = bossFightSettings.SingleUserSuccess;
-            SingleUserFail = bossFightSettings.SingleUserFail;
-            Success100 = bossFightSettings.Success100;
-            Success34 = bossFightSettings.Success34;
-            Success1 = bossFightSettings.Success1;
-            Success0 = bossFightSettings.Success0;
+            GameStart = bossFightSetting.GameStart;
+            ResultsMessage = bossFightSetting.ResultsMessage;
+            SingleUserSuccess = bossFightSetting.SingleUserSuccess;
+            SingleUserFail = bossFightSetting.SingleUserFail;
+            Success100 = bossFightSetting.Success100;
+            Success34 = bossFightSetting.Success34;
+            Success1 = bossFightSetting.Success1;
+            Success0 = bossFightSetting.Success0;
                 
             // fighter class stats
             ClassStats[0].ChatterType = ChatterType.Viewer;
@@ -233,7 +233,7 @@ namespace TwitchBot.Models
 
         public async Task CreateSettings(int broadcasterId, int? gameId, string twitchBotApiLink)
         {
-            BossFightSettings freshBossFightSettings = new BossFightSettings { Broadcaster = broadcasterId };
+            BossFightSetting freshBossFightSettings = new BossFightSetting { Broadcaster = broadcasterId };
             freshBossFightSettings = await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"bossfightsettings/create", freshBossFightSettings);
 
             BossFightClassStats bossFightClassStats = new BossFightClassStats { SettingsId = freshBossFightSettings.Id };

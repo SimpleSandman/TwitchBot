@@ -16,34 +16,34 @@ namespace TwitchBot.Services
             _songRequestDb = songRequestDb;
         }
 
-        public async Task<List<SongRequestBlacklist>> GetSongRequestBlackList(int broadcasterId)
+        public async Task<List<SongRequestIgnore>> GetSongRequestIgnore(int broadcasterId)
         {
-            return await _songRequestDb.GetSongRequestBlackList(broadcasterId);
+            return await _songRequestDb.GetSongRequestIgnore(broadcasterId);
         }
 
-        public async Task<SongRequestBlacklist> AddArtistToBlacklist(string artist, int broadcasterId)
+        public async Task<SongRequestIgnore> IgnoreArtist(string artist, int broadcasterId)
         {
-            return await _songRequestDb.AddArtistToBlacklist(artist, broadcasterId);
+            return await _songRequestDb.IgnoreArtist(artist, broadcasterId);
         }
 
-        public async Task<SongRequestBlacklist> AddSongToBlacklist(string title, string artist, int broadcasterId)
+        public async Task<SongRequestIgnore> IgnoreSong(string title, string artist, int broadcasterId)
         {
-            return await _songRequestDb.AddSongToBlacklist(title, artist, broadcasterId);
+            return await _songRequestDb.IgnoreSong(title, artist, broadcasterId);
         }
 
-        public async Task<List<SongRequestBlacklist>> DeleteArtistFromBlacklist(string artist, int broadcasterId)
+        public async Task<List<SongRequestIgnore>> AllowArtist(string artist, int broadcasterId)
         {
-            return await _songRequestDb.DeleteArtistFromBlacklist(artist, broadcasterId);
+            return await _songRequestDb.AllowArtist(artist, broadcasterId);
         }
 
-        public async Task<SongRequestBlacklist> DeleteSongFromBlacklist(string title, string artist, int broadcasterId)
+        public async Task<SongRequestIgnore> AllowSong(string title, string artist, int broadcasterId)
         {
-            return await _songRequestDb.DeleteSongFromBlacklist(title, artist, broadcasterId);
+            return await _songRequestDb.AllowSong(title, artist, broadcasterId);
         }
 
-        public async Task<List<SongRequestBlacklist>> ResetBlacklist(int broadcasterId)
+        public async Task<List<SongRequestIgnore>> ResetIgnoreList(int broadcasterId)
         {
-            return await _songRequestDb.ResetBlacklist(broadcasterId);
+            return await _songRequestDb.ResetIgnoreList(broadcasterId);
         }
     }
 }

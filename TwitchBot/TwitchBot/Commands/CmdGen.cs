@@ -391,38 +391,44 @@ namespace TwitchBot.Commands
 
                 // check if user entered something
                 if (message.Length < inputIndex)
-                    _irc.SendPublicChatMessage($"Please enter a party member @{username}");
-                else
                 {
-                    // get current game info
-                    ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
-                    string gameTitle = json.Game;
-                    string partyMember = message.Substring(inputIndex);
-                    GameList game = await _gameDirectory.GetGameId(gameTitle);
-
-                    // if the game is not found
-                    // tell users this game is not accepting party up requests
-                    if (game == null || game.Id == 0)
-                        _irc.SendPublicChatMessage("This game is not part of the \"Party Up\" system");
-                    else // check if user has already requested a party member
-                    {
-                        if (await _partyUp.IsDuplicateRequest(username, game.Id, _broadcasterId))
-                            _irc.SendPublicChatMessage($"You have already requested a party member. " 
-                                + $"Please wait until your request has been completed @{username}");
-                        else // search for party member user is requesting
-                        {
-                            if (!await _partyUp.HasPartyMember(partyMember, game.Id, _broadcasterId))
-                                _irc.SendPublicChatMessage($"I couldn't find the requested party member \"{partyMember}\" @{username}. "
-                                    + "Please check with the broadcaster for possible spelling errors");
-                            else // insert party member if they exists from database
-                            {
-                                await _partyUp.AddPartyMember(username, partyMember, game.Id, _broadcasterId);
-
-                                _irc.SendPublicChatMessage($"@{username}: {partyMember} has been added to the party queue");
-                            }
-                        }
-                    }
+                    _irc.SendPublicChatMessage($"Please enter a party member @{username}");
+                    return;
                 }
+
+                // get current game info
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                string gameTitle = json.Game;
+                string partyMemberName = message.Substring(inputIndex);
+                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+
+                // attempt to add requested party member into the queue
+                if (game == null || game.Id == 0)
+                {
+                    _irc.SendPublicChatMessage("This game is not part of the \"Party Up\" system");
+                    return;
+                }
+
+                PartyUp partyMember = await _partyUp.GetPartyMember(partyMemberName, game.Id, _broadcasterId);
+
+                if (partyMember == null)
+                {
+                    _irc.SendPublicChatMessage($"I couldn't find the requested party member \"{partyMemberName}\" @{username}. "
+                        + "Please check with the broadcaster for possible spelling errors");
+                    return;
+                }
+
+                if (await _partyUp.HasAlreadyRequested(username, partyMember.Id))
+                {
+                    _irc.SendPublicChatMessage($"You have already requested a party member. "
+                        + $"Please wait until your request has been completed @{username}");
+                    return;
+                }
+
+                await _partyUp.AddPartyMember(username, partyMember.Id);
+
+                _irc.SendPublicChatMessage($"@{username}: {partyMemberName} has been added to the party queue");
+
             }
             catch (Exception ex)
             {
@@ -440,7 +446,7 @@ namespace TwitchBot.Commands
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = json.Game;
-                GameList game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
 
                 if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
@@ -463,7 +469,7 @@ namespace TwitchBot.Commands
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = json.Game;
-                GameList game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
 
                 if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
@@ -812,7 +818,7 @@ namespace TwitchBot.Commands
                         Video video = await _youTubeClientInstance.GetVideoById(videoId, 2);
 
                         // Check if video's title and account match song request blacklist
-                        List<SongRequestBlacklist> blacklist = await _songRequestBlacklist.GetSongRequestBlackList(_broadcasterId);
+                        List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterId);
 
                         if (blacklist.Count > 0)
                         {
@@ -1054,7 +1060,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                IEnumerable<RankFollowers> highestRankedFollowers = await _follower.GetFollowersLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
+                IEnumerable<RankFollower> highestRankedFollowers = await _follower.GetFollowersLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
 
                 if (highestRankedFollowers.Count() == 0)
                 {
@@ -1065,10 +1071,10 @@ namespace TwitchBot.Commands
                 IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterId);
 
                 string resultMsg = "";
-                foreach (RankFollowers follower in highestRankedFollowers)
+                foreach (RankFollower follower in highestRankedFollowers)
                 {
-                    Rank currFollowerRank = _follower.GetCurrentRank(rankList, follower.Exp);
-                    decimal hoursWatched = _follower.GetHoursWatched(follower.Exp);
+                    Rank currFollowerRank = _follower.GetCurrentRank(rankList, follower.Experience);
+                    decimal hoursWatched = _follower.GetHoursWatched(follower.Experience);
 
                     resultMsg += $"\"{currFollowerRank.Name} {follower.Username}\" with {hoursWatched} hour(s), ";
                 }
@@ -1655,7 +1661,7 @@ namespace TwitchBot.Commands
             string gameTitle = json.Game;
 
             // Grab game id in order to find party member
-            GameList game = await _gameDirectory.GetGameId(gameTitle);
+            TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
 
             if (game == null || game.Id == 0)
             {

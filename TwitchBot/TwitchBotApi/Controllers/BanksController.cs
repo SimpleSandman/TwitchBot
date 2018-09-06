@@ -20,9 +20,9 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class BanksController : Controller
     {
-        private readonly TwitchBotDbContext _context;
+        private readonly SimpleBotContext _context;
 
-        public BanksController(TwitchBotDbContext context)
+        public BanksController(SimpleBotContext context)
         {
             _context = context;
         }

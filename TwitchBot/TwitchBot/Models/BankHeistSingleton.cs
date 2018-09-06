@@ -90,14 +90,14 @@ namespace TwitchBot.Models
         /// Load all of the settings from the database for the bank heist mini-game
         /// </summary>
         /// <param name="broadcasterId"></param>
-        public async Task LoadSettings(int broadcasterId, string twitchBotApiLink, BankHeistSettings bankHeistSettings = null)
+        public async Task LoadSettings(int broadcasterId, string twitchBotApiLink, BankHeistSetting bankHeistSetting = null)
         {
-            if (bankHeistSettings == null)
+            if (bankHeistSetting == null)
             {
-                bankHeistSettings =
-                    await ApiBotRequest.GetExecuteTaskAsync<BankHeistSettings>(twitchBotApiLink + $"bankheistsettings/get/{broadcasterId}");
+                bankHeistSetting =
+                    await ApiBotRequest.GetExecuteTaskAsync<BankHeistSetting>(twitchBotApiLink + $"bankheistsettings/get/{broadcasterId}");
 
-                if (bankHeistSettings == null) return; // check if settings were loaded successfully, else attempt to create new settings
+                if (bankHeistSetting == null) return; // check if settings were loaded successfully, else attempt to create new settings
             }
 
             // refresh arrays and lists
@@ -121,62 +121,62 @@ namespace TwitchBot.Models
             Robbers = new BlockingCollection<BankRobber>();
 
             // settings
-            Id = bankHeistSettings.Id;
-            CooldownTimePeriodMinutes = bankHeistSettings.CooldownPeriodMin;
-            EntryPeriodSeconds = bankHeistSettings.EntryPeriodSec;
-            EntryMessage = bankHeistSettings.EntryMessage;
-            MaxGamble = bankHeistSettings.MaxGamble;
-            MaxGambleText = bankHeistSettings.MaxGambleText;
-            EntryInstructions = bankHeistSettings.EntryInstructions;
-            CooldownEntry = bankHeistSettings.CooldownEntry;
-            CooldownOver = bankHeistSettings.CooldownOver;
+            Id = bankHeistSetting.Id;
+            CooldownTimePeriodMinutes = bankHeistSetting.CooldownPeriodMin;
+            EntryPeriodSeconds = bankHeistSetting.EntryPeriodSec;
+            EntryMessage = bankHeistSetting.EntryMessage;
+            MaxGamble = bankHeistSetting.MaxGamble;
+            MaxGambleText = bankHeistSetting.MaxGambleText;
+            EntryInstructions = bankHeistSetting.EntryInstructions;
+            CooldownEntry = bankHeistSetting.CooldownEntry;
+            CooldownOver = bankHeistSetting.CooldownOver;
 
             // next level messages
-            NextLevelMessages[0] = bankHeistSettings.NextLevelMessage2;
-            NextLevelMessages[1] = bankHeistSettings.NextLevelMessage3;
-            NextLevelMessages[2] = bankHeistSettings.NextLevelMessage4;
-            NextLevelMessages[3] = bankHeistSettings.NextLevelMessage5;
+            NextLevelMessages[0] = bankHeistSetting.NextLevelMessage2;
+            NextLevelMessages[1] = bankHeistSetting.NextLevelMessage3;
+            NextLevelMessages[2] = bankHeistSetting.NextLevelMessage4;
+            NextLevelMessages[3] = bankHeistSetting.NextLevelMessage5;
             
             // game outcomes
-            GameStart = bankHeistSettings.GameStart;
-            ResultsMessage = bankHeistSettings.ResultsMessage;
-            SingleUserSuccess = bankHeistSettings.SingleUserSuccess;
-            SingleUserFail = bankHeistSettings.SingleUserFail;
-            Success100 = bankHeistSettings.Success100;
-            Success34 = bankHeistSettings.Success34;
-            Success1 = bankHeistSettings.Success1;
-            Success0 = bankHeistSettings.Success0;
+            GameStart = bankHeistSetting.GameStart;
+            ResultsMessage = bankHeistSetting.ResultsMessage;
+            SingleUserSuccess = bankHeistSetting.SingleUserSuccess;
+            SingleUserFail = bankHeistSetting.SingleUserFail;
+            Success100 = bankHeistSetting.Success100;
+            Success34 = bankHeistSetting.Success34;
+            Success1 = bankHeistSetting.Success1;
+            Success0 = bankHeistSetting.Success0;
             
             // game levels
-            Levels[0].LevelBankName = bankHeistSettings.LevelName1;
-            Levels[0].MaxUsers = bankHeistSettings.LevelMaxUsers1;
-            Levels[1].LevelBankName = bankHeistSettings.LevelName2;
-            Levels[1].MaxUsers = bankHeistSettings.LevelMaxUsers2;
-            Levels[2].LevelBankName = bankHeistSettings.LevelName3;
-            Levels[2].MaxUsers = bankHeistSettings.LevelMaxUsers3;
-            Levels[3].LevelBankName = bankHeistSettings.LevelName4;
-            Levels[3].MaxUsers = bankHeistSettings.LevelMaxUsers4;
-            Levels[4].LevelBankName = bankHeistSettings.LevelName5;
-            Levels[4].MaxUsers = bankHeistSettings.LevelMaxUsers5;
+            Levels[0].LevelBankName = bankHeistSetting.LevelName1;
+            Levels[0].MaxUsers = bankHeistSetting.LevelMaxUsers1;
+            Levels[1].LevelBankName = bankHeistSetting.LevelName2;
+            Levels[1].MaxUsers = bankHeistSetting.LevelMaxUsers2;
+            Levels[2].LevelBankName = bankHeistSetting.LevelName3;
+            Levels[2].MaxUsers = bankHeistSetting.LevelMaxUsers3;
+            Levels[3].LevelBankName = bankHeistSetting.LevelName4;
+            Levels[3].MaxUsers = bankHeistSetting.LevelMaxUsers4;
+            Levels[4].LevelBankName = bankHeistSetting.LevelName5;
+            Levels[4].MaxUsers = bankHeistSetting.LevelMaxUsers5;
             
             // payout
-            Payouts[0].SuccessRate = bankHeistSettings.PayoutSuccessRate1;
-            Payouts[0].WinMultiplier = bankHeistSettings.PayoutMultiplier1;
-            Payouts[1].SuccessRate = bankHeistSettings.PayoutSuccessRate2;
-            Payouts[1].WinMultiplier = bankHeistSettings.PayoutMultiplier2;
-            Payouts[2].SuccessRate = bankHeistSettings.PayoutSuccessRate3;
-            Payouts[2].WinMultiplier = bankHeistSettings.PayoutMultiplier3;
-            Payouts[3].SuccessRate = bankHeistSettings.PayoutSuccessRate4;
-            Payouts[3].WinMultiplier = bankHeistSettings.PayoutMultiplier4;
-            Payouts[4].SuccessRate = bankHeistSettings.PayoutSuccessRate5;
-            Payouts[4].WinMultiplier = bankHeistSettings.PayoutMultiplier5;
+            Payouts[0].SuccessRate = bankHeistSetting.PayoutSuccessRate1;
+            Payouts[0].WinMultiplier = bankHeistSetting.PayoutMultiplier1;
+            Payouts[1].SuccessRate = bankHeistSetting.PayoutSuccessRate2;
+            Payouts[1].WinMultiplier = bankHeistSetting.PayoutMultiplier2;
+            Payouts[2].SuccessRate = bankHeistSetting.PayoutSuccessRate3;
+            Payouts[2].WinMultiplier = bankHeistSetting.PayoutMultiplier3;
+            Payouts[3].SuccessRate = bankHeistSetting.PayoutSuccessRate4;
+            Payouts[3].WinMultiplier = bankHeistSetting.PayoutMultiplier4;
+            Payouts[4].SuccessRate = bankHeistSetting.PayoutSuccessRate5;
+            Payouts[4].WinMultiplier = bankHeistSetting.PayoutMultiplier5;
         }
 
         public async Task CreateSettings(int broadcasterId, string twitchBotApiLink)
         {
-            BankHeistSettings freshSettings = new BankHeistSettings { Broadcaster = broadcasterId };
+            BankHeistSetting freshSettings = new BankHeistSetting { Broadcaster = broadcasterId };
 
-            await LoadSettings(broadcasterId, twitchBotApiLink, await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"bankheistsettings/create", freshSettings));
+            await LoadSettings(broadcasterId, twitchBotApiLink, await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"bankHeistSetting/create", freshSettings));
         }
     }
 

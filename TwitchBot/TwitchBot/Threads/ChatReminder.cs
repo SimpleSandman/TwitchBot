@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
@@ -25,7 +25,7 @@ namespace TwitchBot.Threads
         private static string _twitchClientId;
         private int? _gameId;
         private int _lastSecCountdownReminder;
-        private static List<Reminder> _reminders;
+        private static List<RemindUser> _reminders;
         private GameDirectoryService _gameDirectory;
 
         public ChatReminder(IrcClient irc, int broadcasterId, string twitchBotApiLink, string twitchClientId, GameDirectoryService gameDirectory)
@@ -56,7 +56,7 @@ namespace TwitchBot.Threads
                 ChannelJSON channelJSON = await TwitchApi.GetBroadcasterChannelById(_twitchClientId);
                 string gameTitle = channelJSON.Game;
 
-                GameList game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
 
                 if (game == null || game.Id == 0)
                     _gameId = null;
@@ -66,7 +66,7 @@ namespace TwitchBot.Threads
                 // remove pending reminders
                 Program.DelayedMessages.RemoveAll(r => r.ReminderId > 0);
 
-                foreach (Reminder reminder in _reminders.OrderBy(m => m.RemindEveryMin))
+                foreach (RemindUser reminder in _reminders.OrderBy(m => m.RemindEveryMin))
                 {
                     if (IsEveryMinReminder(reminder)) continue;
                     else if (IsCountdownEvent(reminder)) continue;
@@ -104,17 +104,17 @@ namespace TwitchBot.Threads
         /// </summary>
         private static async Task LoadReminderContext()
         {
-            _reminders = new List<Reminder>();
-            List<Reminders> reminders = await ApiBotRequest.GetExecuteTaskAsync<List<Reminders>>(_twitchBotApiLink + $"reminders/get/{_broadcasterId}");
+            _reminders = new List<RemindUser>();
+            List<Reminder> reminders = await ApiBotRequest.GetExecuteTaskAsync<List<Reminder>>(_twitchBotApiLink + $"reminders/get/{_broadcasterId}");
 
             if (reminders != null)
             {
                 foreach (var reminder in reminders.Where(m => m.ExpirationDateUtc == null || m.ExpirationDateUtc > DateTime.UtcNow))
                 {
-                    _reminders.Add(new Reminder
+                    _reminders.Add(new RemindUser
                     {
                         Id = reminder.Id,
-                        GameId = reminder.Game,
+                        GameId = reminder.GameId,
                         IsReminderDay = new bool[7]
                         {
                             reminder.Sunday,
@@ -149,7 +149,7 @@ namespace TwitchBot.Threads
         /// </summary>
         /// <param name="reminder"></param>
         /// <returns></returns>
-        private bool IsGameReminderBasedOnSetGame(Reminder reminder)
+        private bool IsGameReminderBasedOnSetGame(RemindUser reminder)
         {
             if (reminder.GameId != _gameId)
             {
@@ -164,7 +164,7 @@ namespace TwitchBot.Threads
         /// </summary>
         /// <param name="reminder"></param>
         /// <param name="dateTimeOfEvent"></param>
-        private void AddCustomReminderSeconds(Reminder reminder, DateTime dateTimeOfEvent)
+        private void AddCustomReminderSeconds(RemindUser reminder, DateTime dateTimeOfEvent)
         {
             foreach (int? reminderSecond in reminder.ReminderSeconds)
             {
@@ -192,7 +192,7 @@ namespace TwitchBot.Threads
         /// </summary>
         /// <param name="reminder"></param>
         /// <param name="dateTimeOfEvent"></param>
-        private void AddPresetCountdownSeconds(Reminder reminder, DateTime dateTimeOfEvent)
+        private void AddPresetCountdownSeconds(RemindUser reminder, DateTime dateTimeOfEvent)
         {
             if (reminder.HasCountdownTicker)
             {
@@ -222,7 +222,7 @@ namespace TwitchBot.Threads
         /// </summary>
         /// <param name="reminder"></param>
         /// <param name="dateTimeOfEvent"></param>
-        private void AddAnnouncementMessage(Reminder reminder, DateTime dateTimeOfEvent)
+        private void AddAnnouncementMessage(RemindUser reminder, DateTime dateTimeOfEvent)
         {
             Program.DelayedMessages.Add(new DelayedMessage
             {
@@ -238,7 +238,7 @@ namespace TwitchBot.Threads
         /// </summary>
         /// <param name="reminder"></param>
         /// <returns></returns>
-        private bool IsEveryMinReminder(Reminder reminder)
+        private bool IsEveryMinReminder(RemindUser reminder)
         {
             /* Set any reminders that happen every X minutes */
             if (reminder.RemindEveryMin != null
@@ -279,7 +279,7 @@ namespace TwitchBot.Threads
         /// Add reminder based on if it hasn't passed that day and time assigned
         /// </summary>
         /// <param name="reminder"></param>
-        private void AddDayOfReminder(Reminder reminder)
+        private void AddDayOfReminder(RemindUser reminder)
         {
             if (reminder.TimeOfEvent == null) return;
 
@@ -303,7 +303,7 @@ namespace TwitchBot.Threads
         /// Add reminder if set to a single time and set up the countdown reminders
         /// </summary>
         /// <param name="reminder"></param>
-        private bool IsCountdownEvent(Reminder reminder)
+        private bool IsCountdownEvent(RemindUser reminder)
         {
             if (reminder.ExpirationDate == null || !reminder.IsCountdownEvent) return false;
 

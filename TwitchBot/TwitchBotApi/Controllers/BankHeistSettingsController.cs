@@ -14,9 +14,9 @@ namespace TwitchBotApi.Controllers
     [Route("api/[controller]/[action]")]
     public class BankHeistSettingsController : Controller
     {
-        private readonly TwitchBotDbContext _context;
+        private readonly SimpleBotContext _context;
 
-        public BankHeistSettingsController(TwitchBotDbContext context)
+        public BankHeistSettingsController(SimpleBotContext context)
         {
             _context = context;
         }
@@ -30,31 +30,31 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            BankHeistSettings bankHeistSettings = await _context.BankHeistSettings.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId);
+            BankHeistSetting bankHeistSetting = await _context.BankHeistSetting.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId);
 
-            if (bankHeistSettings == null)
+            if (bankHeistSetting == null)
             {
                 return NotFound();
             }
 
-            return Ok(bankHeistSettings);
+            return Ok(bankHeistSetting);
         }
 
         // PUT: api/bankheistsettings/update/2
         [HttpPut("{broadcasterId:int}")]
-        public async Task<IActionResult> Update([FromRoute] int broadcasterId, [FromBody] BankHeistSettings bankHeistSettings)
+        public async Task<IActionResult> Update([FromRoute] int broadcasterId, [FromBody] BankHeistSetting bankHeistSetting)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (broadcasterId != bankHeistSettings.Broadcaster)
+            if (broadcasterId != bankHeistSetting.Broadcaster)
             {
                 return BadRequest();
             }
 
-            _context.Entry(bankHeistSettings).State = EntityState.Modified;
+            _context.Entry(bankHeistSetting).State = EntityState.Modified;
 
             try
             {
@@ -62,7 +62,7 @@ namespace TwitchBotApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!BankHeistSettingsExists(broadcasterId))
+                if (!BankHeistSettingExists(broadcasterId))
                 {
                     return NotFound();
                 }
@@ -78,22 +78,22 @@ namespace TwitchBotApi.Controllers
         // POST: api/bankheistsettings/create
         // Body (JSON): { "broadcaster": 2 }
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] BankHeistSettings bankHeistSettings)
+        public async Task<IActionResult> Create([FromBody] BankHeistSetting bankHeistSetting)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            _context.BankHeistSettings.Add(bankHeistSettings);
+            _context.BankHeistSetting.Add(bankHeistSetting);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { broadcasterId = bankHeistSettings.Broadcaster }, bankHeistSettings);
+            return CreatedAtAction("Get", new { broadcasterId = bankHeistSetting.Broadcaster }, bankHeistSetting);
         }
 
-        private bool BankHeistSettingsExists(int broadcasterId)
+        private bool BankHeistSettingExists(int broadcasterId)
         {
-            return _context.BankHeistSettings.Any(e => e.Broadcaster == broadcasterId);
+            return _context.BankHeistSetting.Any(e => e.Broadcaster == broadcasterId);
         }
     }
 }

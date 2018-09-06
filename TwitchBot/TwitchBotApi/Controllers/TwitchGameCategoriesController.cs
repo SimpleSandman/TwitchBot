@@ -1,42 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class GameListsController : ControllerBase
+    public class TwitchGameCategoriesController : ControllerBase
     {
-        private readonly TwitchBotDbContext _context;
+        private readonly SimpleBotContext _context;
 
-        public GameListsController(TwitchBotDbContext context)
+        public TwitchGameCategoriesController(SimpleBotContext context)
         {
             _context = context;
         }
 
-        // GET: api/gamelists/get
+        // GET: api/twitchgamecategories/get
         [HttpGet]
-        public IEnumerable<GameList> Get()
+        public IEnumerable<TwitchGameCategory> Get()
         {
-            return _context.GameList;
+            return _context.TwitchGameCategory;
         }
 
-        // GET: api/gamelists/get/5
+        // GET: api/twitchgamecategories/get/5
         [HttpGet("{name}")]
-        public async Task<IActionResult> Get([FromRoute] string name)
+        public async Task<IActionResult> Get([FromRoute] string title)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            GameList gameList = await _context.GameList.FirstOrDefaultAsync(m => m.Name == name);
+            TwitchGameCategory gameList = await _context.TwitchGameCategory.FirstOrDefaultAsync(m => m.Title == title);
 
             if (gameList == null)
             {

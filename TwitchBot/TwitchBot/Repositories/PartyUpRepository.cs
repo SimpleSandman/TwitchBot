@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using TwitchBot.Libraries;
@@ -21,9 +16,9 @@ namespace TwitchBot.Repositories
             _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public async Task<PartyUpRequests> GetExistingRequester(string username, int gameId, int broadcasterId)
+        public async Task<PartyUpRequest> HasAlreadyRequested(string username, int partyMemberId)
         {
-            return await ApiBotRequest.GetExecuteTaskAsync<PartyUpRequests>(_twitchBotApiLink + $"partyuprequests/get/{broadcasterId}?gameId={gameId}&username={username}");
+            return await ApiBotRequest.GetExecuteTaskAsync<PartyUpRequest>(_twitchBotApiLink + $"partyuprequests/get/{partyMemberId}?username={username}");
         }
 
         public async Task<PartyUp> GetPartyMember(string partyMember, int gameId, int broadcasterId)
@@ -31,17 +26,15 @@ namespace TwitchBot.Repositories
             return await ApiBotRequest.GetExecuteTaskAsync<PartyUp>(_twitchBotApiLink + $"partyups/get/{broadcasterId}?gameId={gameId}&partymember={partyMember}");
         }
 
-        public async Task AddRequestedPartyMember(string username, string partyMember, int gameId, int broadcasterId)
+        public async Task AddRequestedPartyMember(string username, int partyMember)
         {
-            PartyUpRequests requestedPartyMember = new PartyUpRequests
+            PartyUpRequest requestedPartyMember = new PartyUpRequest
             {
                 Username = username,
-                PartyMember = partyMember,
-                Broadcaster = broadcasterId,
-                Game = gameId
+                PartyMember = partyMember
             };
 
-            await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"partyuprequests/create/{broadcasterId}", requestedPartyMember);
+            await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"partyuprequests/create", requestedPartyMember);
         }
 
         public async Task<List<string>> GetPartyList(int gameId, int broadcasterId)
@@ -49,14 +42,14 @@ namespace TwitchBot.Repositories
             return await ApiBotRequest.GetExecuteTaskAsync<List<string>>(_twitchBotApiLink + $"partyups/get/{broadcasterId}?gameId={gameId}");
         }
 
-        public async Task<List<PartyUpRequests>> GetRequestList(int gameId, int broadcasterId)
+        public async Task<List<PartyUpRequest>> GetRequestList(int gameId, int broadcasterId)
         {
-            return await ApiBotRequest.GetExecuteTaskAsync<List<PartyUpRequests>>(_twitchBotApiLink + $"partyuprequests/get/{broadcasterId}?gameId={gameId}");
+            return await ApiBotRequest.GetExecuteTaskAsync<List<PartyUpRequest>>(_twitchBotApiLink + $"partyuprequests/get/{broadcasterId}?gameId={gameId}");
         }
 
-        public async Task<PartyUpRequests> PopRequestedPartyMember(int gameId, int broadcasterId)
+        public async Task<PartyUpRequest> PopRequestedPartyMember(int gameId, int broadcasterId)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<PartyUpRequests>(_twitchBotApiLink + $"partyuprequests/deletetopone/{broadcasterId}?gameid={gameId}");
+            return await ApiBotRequest.DeleteExecuteTaskAsync<PartyUpRequest>(_twitchBotApiLink + $"partyuprequests/deletetopone/{broadcasterId}?gameid={gameId}");
         }
     }
 }

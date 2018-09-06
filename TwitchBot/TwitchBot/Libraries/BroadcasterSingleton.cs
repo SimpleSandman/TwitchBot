@@ -37,12 +37,12 @@ namespace TwitchBot.Libraries
 
         public async Task FindBroadcaster(string twitchId, string twitchBotApiLink, string username = "")
         {
-            Broadcasters broadcaster = null;
+            Broadcaster broadcaster = null;
 
             if (!string.IsNullOrEmpty(username))
-                broadcaster = await ApiBotRequest.GetExecuteTaskAsync<Broadcasters>(twitchBotApiLink + $"broadcasters/get/{twitchId}?username={username}");
+                broadcaster = await ApiBotRequest.GetExecuteTaskAsync<Broadcaster>(twitchBotApiLink + $"broadcasters/get/{twitchId}?username={username}");
             else
-                broadcaster = await ApiBotRequest.GetExecuteTaskAsync<Broadcasters>(twitchBotApiLink + $"broadcasters/get/{twitchId}");
+                broadcaster = await ApiBotRequest.GetExecuteTaskAsync<Broadcaster>(twitchBotApiLink + $"broadcasters/get/{twitchId}");
 
             if (broadcaster != null)
             {
@@ -54,7 +54,7 @@ namespace TwitchBot.Libraries
 
         public async Task AddBroadcaster(string twitchBotApiLink)
         {
-            Broadcasters freshBroadcaster = new Broadcasters
+            Broadcaster freshBroadcaster = new Broadcaster
             {
                 Username = Username,
                 TwitchId = int.Parse(TwitchId)
@@ -65,7 +65,7 @@ namespace TwitchBot.Libraries
 
         public async Task UpdateBroadcaster(string twitchBotApiLink)
         {
-            Broadcasters updatedBroadcaster = new Broadcasters
+            Broadcaster updatedBroadcaster = new Broadcaster
             {
                 Username = Username,
                 TwitchId = int.Parse(TwitchId)

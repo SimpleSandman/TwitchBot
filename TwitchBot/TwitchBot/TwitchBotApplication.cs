@@ -225,7 +225,7 @@ namespace TwitchBot
                 string gameTitle = json.Game;
 
                 // Grab game id in order to find party member
-                GameList game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
 
                 await _bossFightInstance.LoadSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
 
@@ -955,9 +955,9 @@ namespace TwitchBot
             {
                 await _timeout.DeleteTimeouts(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
 
-                List<UserBotTimeout> botTimeouts = await _timeout.GetTimeouts(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
+                List<BotTimeout> botTimeouts = await _timeout.GetTimeouts(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
 
-                foreach (UserBotTimeout botTimeout in botTimeouts)
+                foreach (BotTimeout botTimeout in botTimeouts)
                 {
                     _timeout.TimedoutUsers.Add(new TimeoutUser
                     {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using TwitchBot.Extensions;
@@ -20,19 +17,19 @@ namespace TwitchBot.Services
             _partyUpDb = partyUpDb;
         }
 
-        public async Task<bool> IsDuplicateRequest(string username, int gameId, int broadcasterId)
+        public async Task<bool> HasAlreadyRequested(string username, int partyMember)
         {
-            return await _partyUpDb.GetExistingRequester(username, gameId, broadcasterId) != null ? true : false;
+            return await _partyUpDb.HasAlreadyRequested(username, partyMember) != null ? true : false;
         }
 
-        public async Task<bool> HasPartyMember(string partyMember, int gameId, int broadcasterId)
+        public async Task<PartyUp> GetPartyMember(string partyMember, int gameId, int broadcasterId)
         {
-            return await _partyUpDb.GetPartyMember(partyMember, gameId, broadcasterId) != null ? true : false;
+            return await _partyUpDb.GetPartyMember(partyMember, gameId, broadcasterId);
         }
 
-        public async Task AddPartyMember(string username, string partyMember, int gameId, int broadcasterId)
+        public async Task AddPartyMember(string username, int partyMember)
         {
-            await _partyUpDb.AddRequestedPartyMember(username, partyMember, gameId, broadcasterId);
+            await _partyUpDb.AddRequestedPartyMember(username, partyMember);
         }
 
         public async Task<string> GetPartyList(int gameId, int broadcasterId)
@@ -54,14 +51,14 @@ namespace TwitchBot.Services
 
         public async Task<string> GetRequestList(int gameId, int broadcasterId)
         {
-            List<PartyUpRequests> partyRequestList = await _partyUpDb.GetRequestList(gameId, broadcasterId);
+            List<PartyUpRequest> partyRequestList = await _partyUpDb.GetRequestList(gameId, broadcasterId);
 
             if (partyRequestList == null || partyRequestList.Count == 0)
                 return "The party request list is empty. Request a member with !partyup [name]";
 
             string message = "Here are the requested party members: ";
 
-            foreach (PartyUpRequests member in partyRequestList)
+            foreach (PartyUpRequest member in partyRequestList)
             {
                 message += member.PartyMember + " <-- " + member.Username + " || ";
             }
@@ -71,7 +68,7 @@ namespace TwitchBot.Services
 
         public async Task<string> PopRequestedPartyMember(int gameId, int broadcasterId)
         {
-            PartyUpRequests firstPartyMember = await _partyUpDb.PopRequestedPartyMember(gameId, broadcasterId);
+            PartyUpRequest firstPartyMember = await _partyUpDb.PopRequestedPartyMember(gameId, broadcasterId);
 
             if (firstPartyMember == null)
                 return "There are no party members that can be removed from the request list";
