@@ -24,10 +24,10 @@ namespace TwitchBotDb.Models
         public bool IsCountdownEvent { get; set; }
         public bool HasCountdownTicker { get; set; }
         public string Message { get; set; }
-        public int Broadcaster { get; set; }
+        public int BroadcasterId { get; set; }
         public int? GameId { get; set; }
 
-        public Broadcaster BroadcasterNavigation { get; set; }
+        public Broadcaster Broadcaster { get; set; }
         public TwitchGameCategory Game { get; set; }
     }
 }

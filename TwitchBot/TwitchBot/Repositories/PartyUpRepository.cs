@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using TwitchBot.Libraries;
 
+using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
 namespace TwitchBot.Repositories
@@ -16,9 +17,9 @@ namespace TwitchBot.Repositories
             _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public async Task<PartyUpRequest> HasAlreadyRequested(string username, int partyMemberId)
+        public async Task<PartyUpRequest> HasUserAlreadyRequested(string username, int partyMemberId)
         {
-            return await ApiBotRequest.GetExecuteTaskAsync<PartyUpRequest>(_twitchBotApiLink + $"partyuprequests/get/{partyMemberId}?username={username}");
+            return await ApiBotRequest.GetExecuteTaskAsync<PartyUpRequest>(_twitchBotApiLink + $"partyuprequests/getuserrequest/{partyMemberId}?username={username}");
         }
 
         public async Task<PartyUp> GetPartyMember(string partyMember, int gameId, int broadcasterId)
@@ -26,12 +27,12 @@ namespace TwitchBot.Repositories
             return await ApiBotRequest.GetExecuteTaskAsync<PartyUp>(_twitchBotApiLink + $"partyups/get/{broadcasterId}?gameId={gameId}&partymember={partyMember}");
         }
 
-        public async Task AddRequestedPartyMember(string username, int partyMember)
+        public async Task AddRequestedPartyMember(string username, int partyMemberId)
         {
             PartyUpRequest requestedPartyMember = new PartyUpRequest
             {
                 Username = username,
-                PartyMember = partyMember
+                PartyMemberId = partyMemberId
             };
 
             await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"partyuprequests/create", requestedPartyMember);
@@ -42,14 +43,14 @@ namespace TwitchBot.Repositories
             return await ApiBotRequest.GetExecuteTaskAsync<List<string>>(_twitchBotApiLink + $"partyups/get/{broadcasterId}?gameId={gameId}");
         }
 
-        public async Task<List<PartyUpRequest>> GetRequestList(int gameId, int broadcasterId)
+        public async Task<List<PartyUpRequestResult>> GetRequestList(int gameId, int broadcasterId)
         {
-            return await ApiBotRequest.GetExecuteTaskAsync<List<PartyUpRequest>>(_twitchBotApiLink + $"partyuprequests/get/{broadcasterId}?gameId={gameId}");
+            return await ApiBotRequest.GetExecuteTaskAsync<List<PartyUpRequestResult>>(_twitchBotApiLink + $"partyuprequests/getlist/{broadcasterId}?gameId={gameId}");
         }
 
         public async Task<PartyUpRequest> PopRequestedPartyMember(int gameId, int broadcasterId)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<PartyUpRequest>(_twitchBotApiLink + $"partyuprequests/deletetopone/{broadcasterId}?gameid={gameId}");
+            return await ApiBotRequest.DeleteExecuteTaskAsync<PartyUpRequest>(_twitchBotApiLink + $"partyuprequests/deletefirst/{broadcasterId}?gameid={gameId}");
         }
     }
 }

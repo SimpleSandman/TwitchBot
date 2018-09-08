@@ -33,7 +33,7 @@ namespace TwitchBot.Repositories
             {
                 Username = chatter,
                 Experience = 0,
-                Broadcaster = broadcasterId
+                BroadcasterId = broadcasterId
             };
 
             await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"rankfollowers/create", freshRecruit);

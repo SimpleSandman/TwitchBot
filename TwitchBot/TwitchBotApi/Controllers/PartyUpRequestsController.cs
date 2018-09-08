@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using Snickler.EFCore;
+
+using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
@@ -22,15 +23,15 @@ namespace TwitchBotApi.Controllers
         }
 
         // GET: api/partyuprequests/get/2?username=simple_sandman
-        [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int partyMemberId, [FromQuery] string username)
+        [HttpGet("{partyMemberId:int}")]
+        public async Task<IActionResult> GetUserRequest([FromRoute] int partyMemberId, [FromQuery] string username)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            PartyUpRequest partyUpRequests = await _context.PartyUpRequest.SingleOrDefaultAsync(m => m.PartyMember == partyMemberId && m.Username == username);
+            PartyUpRequest partyUpRequests = await _context.PartyUpRequest.SingleOrDefaultAsync(m => m.PartyMemberId == partyMemberId && m.Username == username);
 
             if (partyUpRequests == null)
             {
@@ -40,9 +41,31 @@ namespace TwitchBotApi.Controllers
             return Ok(partyUpRequests);
         }
 
+        // GET: api/partyuprequests/getlist/2?gameid=2
+        [HttpGet("{broadcasterId:int}")]
+        public async Task<IActionResult> GetList([FromRoute] int broadcasterId, [FromQuery] int gameId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            List<PartyUpRequestResult> results = new List<PartyUpRequestResult>();
+
+            await _context.LoadStoredProc("dbo.GetPartyUpRequestList")
+                .WithSqlParam("GameId", gameId)
+                .WithSqlParam("BroadcasterId", broadcasterId)
+                .ExecuteStoredProcAsync((handler) =>
+                {
+                    results = handler.ReadToList<PartyUpRequestResult>().ToList();
+                });
+
+            return Ok(results);
+        }
+
         // POST: api/partyuprequests/create
         // Body (JSON): { "username": "hello_world", "partyMember": 2 }
-        [HttpPost("{broadcasterId:int}")]
+        [HttpPost]
         public async Task<IActionResult> Create([FromBody] PartyUpRequest partyUpRequest)
         {
             if (!ModelState.IsValid)
@@ -50,7 +73,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (PartyUpRequestExists(partyUpRequest.Username, partyUpRequest.PartyMember))
+            if (PartyUpRequestExists(partyUpRequest.Username, partyUpRequest.PartyMemberId))
             {
                 return BadRequest();
             }
@@ -61,20 +84,32 @@ namespace TwitchBotApi.Controllers
             return NoContent();
         }
 
-        // DELETE: api/partyuprequests/deletetopone/2?gameid=2
+        // DELETE: api/partyuprequests/deletefirst/2?gameid=2
         [HttpDelete("{broadcasterId:int}")]
-        public async Task<IActionResult> DeleteTopOne([FromRoute] int broadcasterId, [FromQuery] int gameId)
+        public async Task<IActionResult> DeleteFirst([FromRoute] int broadcasterId, [FromQuery] int gameId)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            PartyUpRequest requestToBeDeleted = await _context.PartyUpRequest
-                //.Where(m => m.Broadcaster == broadcasterId && m.Game == gameId)
-                .OrderBy(m => m.TimeRequested)
-                .Take(1)
-                .SingleOrDefaultAsync();
+            PartyUpRequestResult result = new PartyUpRequestResult();
+
+            await _context.LoadStoredProc("dbo.GetPartyUpRequestList")
+                .WithSqlParam("GameId", gameId)
+                .WithSqlParam("BroadcasterId", broadcasterId)
+                .ExecuteStoredProcAsync((handler) =>
+                {
+                    result = handler.ReadToList<PartyUpRequestResult>().First();
+                });
+
+            PartyUpRequest requestToBeDeleted = new PartyUpRequest
+            {
+                Id = result.PartyRequestId,
+                PartyMemberId = result.PartyMemberId,
+                Username = result.Username,
+                TimeRequested = result.TimeRequested
+            };
 
             if (requestToBeDeleted == null)
             {
@@ -89,7 +124,7 @@ namespace TwitchBotApi.Controllers
 
         private bool PartyUpRequestExists(string username, int partyMemberId)
         {
-            return _context.PartyUpRequest.Any(e => e.Username == username && e.PartyMember == partyMemberId);
+            return _context.PartyUpRequest.Any(e => e.Username == username && e.PartyMemberId == partyMemberId);
         }
     }
 }

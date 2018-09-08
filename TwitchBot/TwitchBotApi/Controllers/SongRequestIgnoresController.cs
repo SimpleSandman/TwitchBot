@@ -33,9 +33,9 @@ namespace TwitchBotApi.Controllers
             var songRequestIgnore = new object();
 
             if (id > 0)
-                songRequestIgnore = await _context.SongRequestIgnore.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId && m.Id == id);
+                songRequestIgnore = await _context.SongRequestIgnore.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Id == id);
             else
-                songRequestIgnore = await _context.SongRequestIgnore.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+                songRequestIgnore = await _context.SongRequestIgnore.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
 
             if (songRequestIgnore == null)
             {
@@ -56,7 +56,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (id != songRequestIgnore.Id && broadcasterId != songRequestIgnore.Broadcaster)
+            if (id != songRequestIgnore.Id && broadcasterId != songRequestIgnore.BroadcasterId)
             {
                 return BadRequest();
             }
@@ -120,7 +120,7 @@ namespace TwitchBotApi.Controllers
             if (!string.IsNullOrEmpty(artist) && !string.IsNullOrEmpty(title))
             {
                 SongRequestIgnore songRequestIgnoredItem = await _context.SongRequestIgnore
-                    .SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId 
+                    .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId 
                         && m.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase) 
                         && m.Title.Equals(title, StringComparison.CurrentCultureIgnoreCase));
 
@@ -138,14 +138,14 @@ namespace TwitchBotApi.Controllers
                 if (!string.IsNullOrEmpty(artist))
                 {
                     songRequestBlacklistItems = await _context.SongRequestIgnore
-                        .Where(m => m.Broadcaster == broadcasterId 
+                        .Where(m => m.BroadcasterId == broadcasterId 
                             && m.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase))
                         .ToListAsync();
                 }
                 else
                 {
                     songRequestBlacklistItems = await _context.SongRequestIgnore
-                        .Where(m => m.Broadcaster == broadcasterId)
+                        .Where(m => m.BroadcasterId == broadcasterId)
                         .ToListAsync();
                 }
 

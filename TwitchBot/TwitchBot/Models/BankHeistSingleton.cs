@@ -174,7 +174,7 @@ namespace TwitchBot.Models
 
         public async Task CreateSettings(int broadcasterId, string twitchBotApiLink)
         {
-            BankHeistSetting freshSettings = new BankHeistSetting { Broadcaster = broadcasterId };
+            BankHeistSetting freshSettings = new BankHeistSetting { BroadcasterId = broadcasterId };
 
             await LoadSettings(broadcasterId, twitchBotApiLink, await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"bankHeistSetting/create", freshSettings));
         }

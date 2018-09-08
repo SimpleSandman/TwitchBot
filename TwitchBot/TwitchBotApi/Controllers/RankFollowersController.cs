@@ -32,11 +32,11 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            RankFollower rankFollower = await _context.RankFollower.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId && m.Username == username);
+            RankFollower rankFollower = await _context.RankFollower.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Username == username);
 
             if (rankFollower == null)
             {
-                return Ok(new RankFollower { Username = username, Experience = -1, Broadcaster = broadcasterId });
+                return Ok(new RankFollower { Username = username, Experience = -1, BroadcasterId = broadcasterId });
             }
 
             return Ok(rankFollower);
@@ -52,7 +52,7 @@ namespace TwitchBotApi.Controllers
             }
 
             IEnumerable<RankFollower> topFollowers = await _context.RankFollower
-                .Where(m => m.Broadcaster == broadcasterId)
+                .Where(m => m.BroadcasterId == broadcasterId)
                 .OrderByDescending(m => m.Experience)
                 .Take(topNumber)
                 .ToListAsync();
@@ -74,7 +74,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            RankFollower follower = _context.RankFollower.FirstOrDefault(t => t.Broadcaster == broadcasterId && t.Username == username);
+            RankFollower follower = _context.RankFollower.FirstOrDefault(t => t.BroadcasterId == broadcasterId && t.Username == username);
             if (follower == null)
             {
                 return NotFound();
@@ -120,7 +120,7 @@ namespace TwitchBotApi.Controllers
 
         private bool RankFollowersExists(int broadcasterId, string username)
         {
-            return _context.RankFollower.Any(e => e.Broadcaster == broadcasterId && e.Username == username);
+            return _context.RankFollower.Any(e => e.BroadcasterId == broadcasterId && e.Username == username);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿/****** Object:  Table [dbo].[Bank]    Script Date: 9/6/2018 12:10:41 AM ******/
+﻿/****** Object:  Table [dbo].[Bank]    Script Date: 9/7/2018 11:43:02 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -19,7 +19,7 @@ CREATE TABLE [dbo].[Bank](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BankHeistSetting]    Script Date: 9/6/2018 12:10:41 AM ******/
+/****** Object:  Table [dbo].[BankHeistSetting]    Script Date: 9/7/2018 11:43:02 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -28,7 +28,7 @@ GO
 
 CREATE TABLE [dbo].[BankHeistSetting](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[Broadcaster] [int] NOT NULL,
+	[BroadcasterId] [int] NOT NULL,
 	[CooldownPeriodMin] [int] NOT NULL,
 	[EntryPeriodSec] [int] NOT NULL,
 	[EntryMessage] [varchar](150) NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE [dbo].[BankHeistSetting](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BossFightBossStats]    Script Date: 9/6/2018 12:10:41 AM ******/
+/****** Object:  Table [dbo].[BossFightBossStats]    Script Date: 9/7/2018 11:43:02 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -139,7 +139,7 @@ CREATE TABLE [dbo].[BossFightBossStats](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BossFightClassStats]    Script Date: 9/6/2018 12:10:42 AM ******/
+/****** Object:  Table [dbo].[BossFightClassStats]    Script Date: 9/7/2018 11:43:02 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -176,7 +176,7 @@ CREATE TABLE [dbo].[BossFightClassStats](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BossFightSetting]    Script Date: 9/6/2018 12:10:42 AM ******/
+/****** Object:  Table [dbo].[BossFightSetting]    Script Date: 9/7/2018 11:43:02 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -203,7 +203,7 @@ CREATE TABLE [dbo].[BossFightSetting](
 	[Success34] [varchar](200) NOT NULL,
 	[Success1] [varchar](200) NOT NULL,
 	[Success0] [varchar](200) NOT NULL,
-	[Broadcaster] [int] NOT NULL,
+	[BroadcasterId] [int] NOT NULL,
  CONSTRAINT [PK_BossFightSetting] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -211,7 +211,7 @@ CREATE TABLE [dbo].[BossFightSetting](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BotTimeout]    Script Date: 9/6/2018 12:10:42 AM ******/
+/****** Object:  Table [dbo].[BotTimeout]    Script Date: 9/7/2018 11:43:02 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -223,7 +223,7 @@ CREATE TABLE [dbo].[BotTimeout](
 	[Username] [varchar](30) NOT NULL,
 	[Timeout] [datetime] NOT NULL,
 	[TimeAdded] [datetime] NOT NULL,
-	[Broadcaster] [int] NOT NULL,
+	[BroadcasterId] [int] NOT NULL,
  CONSTRAINT [PK_BotTimeout] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -231,7 +231,7 @@ CREATE TABLE [dbo].[BotTimeout](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Broadcaster]    Script Date: 9/6/2018 12:10:42 AM ******/
+/****** Object:  Table [dbo].[Broadcaster]    Script Date: 9/7/2018 11:43:03 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -250,7 +250,7 @@ CREATE TABLE [dbo].[Broadcaster](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[ErrorLog]    Script Date: 9/6/2018 12:10:42 AM ******/
+/****** Object:  Table [dbo].[ErrorLog]    Script Date: 9/7/2018 11:43:03 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -264,7 +264,7 @@ CREATE TABLE [dbo].[ErrorLog](
 	[ErrorClass] [varchar](100) NULL,
 	[ErrorMethod] [varchar](100) NULL,
 	[ErrorMsg] [varchar](4000) NOT NULL,
-	[Broadcaster] [int] NOT NULL,
+	[BroadcasterId] [int] NOT NULL,
 	[Command] [varchar](50) NULL,
 	[UserMsg] [varchar](500) NULL,
  CONSTRAINT [PK_ErrorLog] PRIMARY KEY CLUSTERED 
@@ -274,7 +274,7 @@ CREATE TABLE [dbo].[ErrorLog](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[PartyUp]    Script Date: 9/6/2018 12:10:43 AM ******/
+/****** Object:  Table [dbo].[PartyUp]    Script Date: 9/7/2018 11:43:03 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -283,9 +283,9 @@ GO
 
 CREATE TABLE [dbo].[PartyUp](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[PartyMember] [varchar](100) NOT NULL,
+	[PartyMemberName] [varchar](100) NOT NULL,
 	[GameId] [int] NOT NULL,
-	[Broadcaster] [int] NOT NULL,
+	[BroadcasterId] [int] NOT NULL,
  CONSTRAINT [PK_PartyUp] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -293,7 +293,7 @@ CREATE TABLE [dbo].[PartyUp](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[PartyUpRequest]    Script Date: 9/6/2018 12:10:43 AM ******/
+/****** Object:  Table [dbo].[PartyUpRequest]    Script Date: 9/7/2018 11:43:03 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -303,7 +303,7 @@ GO
 CREATE TABLE [dbo].[PartyUpRequest](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Username] [varchar](30) NOT NULL,
-	[PartyMember] [int] NOT NULL,
+	[PartyMemberId] [int] NOT NULL,
 	[TimeRequested] [datetime] NOT NULL,
  CONSTRAINT [PK_PartyUpRequest] PRIMARY KEY CLUSTERED 
 (
@@ -312,7 +312,7 @@ CREATE TABLE [dbo].[PartyUpRequest](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Quote]    Script Date: 9/6/2018 12:10:43 AM ******/
+/****** Object:  Table [dbo].[Quote]    Script Date: 9/7/2018 11:43:03 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -324,7 +324,7 @@ CREATE TABLE [dbo].[Quote](
 	[UserQuote] [varchar](500) NOT NULL,
 	[Username] [varchar](50) NOT NULL,
 	[TimeCreated] [datetime] NOT NULL,
-	[Broadcaster] [int] NOT NULL,
+	[BroadcasterId] [int] NOT NULL,
  CONSTRAINT [PK_Quote] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -332,7 +332,7 @@ CREATE TABLE [dbo].[Quote](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Rank]    Script Date: 9/6/2018 12:10:43 AM ******/
+/****** Object:  Table [dbo].[Rank]    Script Date: 9/7/2018 11:43:03 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -343,7 +343,7 @@ CREATE TABLE [dbo].[Rank](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Name] [varchar](50) NOT NULL,
 	[ExpCap] [int] NOT NULL,
-	[Broadcaster] [int] NOT NULL,
+	[BroadcasterId] [int] NOT NULL,
  CONSTRAINT [PK_Rank] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -351,7 +351,7 @@ CREATE TABLE [dbo].[Rank](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[RankFollower]    Script Date: 9/6/2018 12:10:43 AM ******/
+/****** Object:  Table [dbo].[RankFollower]    Script Date: 9/7/2018 11:43:04 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -361,9 +361,9 @@ GO
 CREATE TABLE [dbo].[RankFollower](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Username] [varchar](30) NOT NULL,
-	[Experience] [int] NOT NULL,
 	[TwitchId] [int] NULL,
-	[Broadcaster] [int] NOT NULL,
+	[Experience] [int] NOT NULL,
+	[BroadcasterId] [int] NOT NULL,
  CONSTRAINT [PK_RankFollower] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -371,7 +371,7 @@ CREATE TABLE [dbo].[RankFollower](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Reminder]    Script Date: 9/6/2018 12:10:44 AM ******/
+/****** Object:  Table [dbo].[Reminder]    Script Date: 9/7/2018 11:43:04 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -398,7 +398,7 @@ CREATE TABLE [dbo].[Reminder](
 	[IsCountdownEvent] [bit] NOT NULL,
 	[HasCountdownTicker] [bit] NOT NULL,
 	[Message] [varchar](500) NULL,
-	[Broadcaster] [int] NOT NULL,
+	[BroadcasterId] [int] NOT NULL,
 	[GameId] [int] NULL,
  CONSTRAINT [PK_Reminder] PRIMARY KEY CLUSTERED 
 (
@@ -407,7 +407,7 @@ CREATE TABLE [dbo].[Reminder](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[SongRequest]    Script Date: 9/6/2018 12:10:44 AM ******/
+/****** Object:  Table [dbo].[SongRequest]    Script Date: 9/7/2018 11:43:04 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -418,7 +418,7 @@ CREATE TABLE [dbo].[SongRequest](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Requests] [varchar](100) NOT NULL,
 	[Chatter] [varchar](30) NULL,
-	[Broadcaster] [int] NOT NULL,
+	[BroadcasterId] [int] NOT NULL,
  CONSTRAINT [PK_SongRequest] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -426,7 +426,7 @@ CREATE TABLE [dbo].[SongRequest](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[SongRequestIgnore]    Script Date: 9/6/2018 12:10:44 AM ******/
+/****** Object:  Table [dbo].[SongRequestIgnore]    Script Date: 9/7/2018 11:43:04 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -437,7 +437,7 @@ CREATE TABLE [dbo].[SongRequestIgnore](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Artist] [varchar](100) NOT NULL,
 	[Title] [varchar](100) NULL,
-	[Broadcaster] [int] NOT NULL,
+	[BroadcasterId] [int] NOT NULL,
  CONSTRAINT [PK_SongRequestIgnore] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -445,7 +445,7 @@ CREATE TABLE [dbo].[SongRequestIgnore](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[TwitchGameCategory]    Script Date: 9/6/2018 12:10:44 AM ******/
+/****** Object:  Table [dbo].[TwitchGameCategory]    Script Date: 9/7/2018 11:43:04 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -890,7 +890,7 @@ GO
 ALTER TABLE [dbo].[Bank] CHECK CONSTRAINT [FK_Bank_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[BankHeistSetting]  WITH CHECK ADD  CONSTRAINT [FK_BankHeistSetting_Broadcaster] FOREIGN KEY([Broadcaster])
+ALTER TABLE [dbo].[BankHeistSetting]  WITH CHECK ADD  CONSTRAINT [FK_BankHeistSetting_Broadcaster] FOREIGN KEY([BroadcasterId])
 REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
@@ -918,28 +918,28 @@ GO
 ALTER TABLE [dbo].[BossFightClassStats] CHECK CONSTRAINT [FK_BossFightClassStats_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[BossFightSetting]  WITH CHECK ADD  CONSTRAINT [FK_BossFightSetting_Broadcaster] FOREIGN KEY([Broadcaster])
+ALTER TABLE [dbo].[BossFightSetting]  WITH CHECK ADD  CONSTRAINT [FK_BossFightSetting_Broadcaster] FOREIGN KEY([BroadcasterId])
 REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
 ALTER TABLE [dbo].[BossFightSetting] CHECK CONSTRAINT [FK_BossFightSetting_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[BotTimeout]  WITH CHECK ADD  CONSTRAINT [FK_BotTimeout_Broadcaster] FOREIGN KEY([Broadcaster])
+ALTER TABLE [dbo].[BotTimeout]  WITH CHECK ADD  CONSTRAINT [FK_BotTimeout_Broadcaster] FOREIGN KEY([BroadcasterId])
 REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
 ALTER TABLE [dbo].[BotTimeout] CHECK CONSTRAINT [FK_BotTimeout_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[ErrorLog]  WITH CHECK ADD  CONSTRAINT [FK_ErrorLog_Broadcaster] FOREIGN KEY([Broadcaster])
+ALTER TABLE [dbo].[ErrorLog]  WITH CHECK ADD  CONSTRAINT [FK_ErrorLog_Broadcaster] FOREIGN KEY([BroadcasterId])
 REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
 ALTER TABLE [dbo].[ErrorLog] CHECK CONSTRAINT [FK_ErrorLog_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[PartyUp]  WITH CHECK ADD  CONSTRAINT [FK_PartyUp_Broadcaster] FOREIGN KEY([Broadcaster])
+ALTER TABLE [dbo].[PartyUp]  WITH CHECK ADD  CONSTRAINT [FK_PartyUp_Broadcaster] FOREIGN KEY([BroadcasterId])
 REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
@@ -953,7 +953,7 @@ GO
 ALTER TABLE [dbo].[PartyUp] CHECK CONSTRAINT [FK_PartyUp_TwitchGameCategory]
 GO
 
-ALTER TABLE [dbo].[PartyUpRequest]  WITH CHECK ADD  CONSTRAINT [FK_PartyUpRequest_PartyUp] FOREIGN KEY([PartyMember])
+ALTER TABLE [dbo].[PartyUpRequest]  WITH CHECK ADD  CONSTRAINT [FK_PartyUpRequest_PartyUp] FOREIGN KEY([PartyMemberId])
 REFERENCES [dbo].[PartyUp] ([Id])
 GO
 
@@ -967,28 +967,28 @@ GO
 ALTER TABLE [dbo].[PartyUpRequest] CHECK CONSTRAINT [FK_PartyUpRequest_PartyUpRequest]
 GO
 
-ALTER TABLE [dbo].[Quote]  WITH CHECK ADD  CONSTRAINT [FK_Quote_Broadcasters] FOREIGN KEY([Broadcaster])
+ALTER TABLE [dbo].[Quote]  WITH CHECK ADD  CONSTRAINT [FK_Quote_Broadcasters] FOREIGN KEY([BroadcasterId])
 REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
 ALTER TABLE [dbo].[Quote] CHECK CONSTRAINT [FK_Quote_Broadcasters]
 GO
 
-ALTER TABLE [dbo].[Rank]  WITH CHECK ADD  CONSTRAINT [FK_Rank_Broadcaster] FOREIGN KEY([Broadcaster])
+ALTER TABLE [dbo].[Rank]  WITH CHECK ADD  CONSTRAINT [FK_Rank_Broadcaster] FOREIGN KEY([BroadcasterId])
 REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
 ALTER TABLE [dbo].[Rank] CHECK CONSTRAINT [FK_Rank_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[RankFollower]  WITH CHECK ADD  CONSTRAINT [FK_RankFollower_Broadcaster] FOREIGN KEY([Broadcaster])
+ALTER TABLE [dbo].[RankFollower]  WITH CHECK ADD  CONSTRAINT [FK_RankFollower_Broadcaster] FOREIGN KEY([BroadcasterId])
 REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
 ALTER TABLE [dbo].[RankFollower] CHECK CONSTRAINT [FK_RankFollower_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[Reminder]  WITH CHECK ADD  CONSTRAINT [FK_Reminder_Broadcaster] FOREIGN KEY([Broadcaster])
+ALTER TABLE [dbo].[Reminder]  WITH CHECK ADD  CONSTRAINT [FK_Reminder_Broadcaster] FOREIGN KEY([BroadcasterId])
 REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
@@ -1002,14 +1002,14 @@ GO
 ALTER TABLE [dbo].[Reminder] CHECK CONSTRAINT [FK_Reminder_TwitchGameCategory]
 GO
 
-ALTER TABLE [dbo].[SongRequest]  WITH CHECK ADD  CONSTRAINT [FK_SongRequest_Broadcaster] FOREIGN KEY([Broadcaster])
+ALTER TABLE [dbo].[SongRequest]  WITH CHECK ADD  CONSTRAINT [FK_SongRequest_Broadcaster] FOREIGN KEY([BroadcasterId])
 REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
 ALTER TABLE [dbo].[SongRequest] CHECK CONSTRAINT [FK_SongRequest_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[SongRequestIgnore]  WITH CHECK ADD  CONSTRAINT [FK_SongRequestIgnore_Broadcaster] FOREIGN KEY([Broadcaster])
+ALTER TABLE [dbo].[SongRequestIgnore]  WITH CHECK ADD  CONSTRAINT [FK_SongRequestIgnore_Broadcaster] FOREIGN KEY([BroadcasterId])
 REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 

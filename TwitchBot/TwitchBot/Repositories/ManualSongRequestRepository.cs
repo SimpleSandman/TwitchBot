@@ -22,7 +22,7 @@ namespace TwitchBot.Repositories
             {
                 Requests = songRequestName,
                 Chatter = username,
-                Broadcaster = broadcasterId
+                BroadcasterId = broadcasterId
             };
 
             return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"songrequests/create", songRequest);

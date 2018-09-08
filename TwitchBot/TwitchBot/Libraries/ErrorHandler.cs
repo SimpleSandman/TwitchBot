@@ -68,7 +68,7 @@ namespace TwitchBot.Libraries
                     ErrorClass = className,
                     ErrorMethod = methodName,
                     ErrorMsg = ex.Message,
-                    Broadcaster = _broadcasterId,
+                    BroadcasterId = _broadcasterId,
                     Command = botCmd,
                     UserMsg = userMsg
                 };

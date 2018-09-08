@@ -9,8 +9,8 @@ namespace TwitchBotDb.Models
         public string Username { get; set; }
         public DateTime Timeout { get; set; }
         public DateTime TimeAdded { get; set; }
-        public int Broadcaster { get; set; }
+        public int BroadcasterId { get; set; }
 
-        public Broadcaster BroadcasterNavigation { get; set; }
+        public Broadcaster Broadcaster { get; set; }
     }
 }

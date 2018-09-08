@@ -29,7 +29,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            List<SongRequest> songRequests = await _context.SongRequest.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+            List<SongRequest> songRequests = await _context.SongRequest.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
 
             if (songRequests == null)
             {
@@ -70,7 +70,7 @@ namespace TwitchBotApi.Controllers
             if (popOne)
             {
                 SongRequest songRequest = await _context.SongRequest
-                    .Where(m => m.Broadcaster == broadcasterId)
+                    .Where(m => m.BroadcasterId == broadcasterId)
                     .OrderBy(m => m.Id)
                     .Take(1)
                     .SingleOrDefaultAsync();
@@ -84,7 +84,7 @@ namespace TwitchBotApi.Controllers
             }
             else
             {
-                List<SongRequest> removedSong = await _context.SongRequest.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+                List<SongRequest> removedSong = await _context.SongRequest.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
 
                 if (removedSong == null || removedSong.Count == 0)
                     return NotFound();

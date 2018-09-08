@@ -27,7 +27,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            BossFightSetting bossFightSetting = await _context.BossFightSetting.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId);
+            BossFightSetting bossFightSetting = await _context.BossFightSetting.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
 
             if (bossFightSetting == null)
             {
@@ -46,7 +46,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (broadcasterId != bossFightSetting.Broadcaster)
+            if (broadcasterId != bossFightSetting.BroadcasterId)
             {
                 return BadRequest();
             }
@@ -90,7 +90,7 @@ namespace TwitchBotApi.Controllers
 
         private bool BossFightSettingExists(int broadcasterId)
         {
-            return _context.BossFightSetting.Any(e => e.Broadcaster == broadcasterId);
+            return _context.BossFightSetting.Any(e => e.BroadcasterId == broadcasterId);
         }
     }
 }

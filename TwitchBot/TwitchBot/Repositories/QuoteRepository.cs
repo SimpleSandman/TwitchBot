@@ -27,7 +27,7 @@ namespace TwitchBot.Repositories
             {
                 Username = username,
                 UserQuote = quote,
-                Broadcaster = broadcasterId
+                BroadcasterId = broadcasterId
             };
 
             await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"quotes/create", freshQuote);

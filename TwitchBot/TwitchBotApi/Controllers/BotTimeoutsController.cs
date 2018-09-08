@@ -34,9 +34,9 @@ namespace TwitchBotApi.Controllers
             var botTimeouts = new object();
 
             if (string.IsNullOrEmpty(username))
-                botTimeouts = await _context.BotTimeout.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+                botTimeouts = await _context.BotTimeout.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
             else
-                botTimeouts = await _context.BotTimeout.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId && m.Username == username);
+                botTimeouts = await _context.BotTimeout.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Username == username);
 
             if (botTimeouts == null)
             {
@@ -52,7 +52,7 @@ namespace TwitchBotApi.Controllers
         [HttpPatch("{broadcasterId:int}")]
         public async Task<IActionResult> Patch([FromRoute] int broadcasterId, [FromQuery] string username, [FromBody]JsonPatchDocument<BotTimeout> botTimeoutPatch)
         {
-            BotTimeout userBotTimeout = _context.BotTimeout.SingleOrDefault(m => m.Username == username && m.Broadcaster == broadcasterId);
+            BotTimeout userBotTimeout = _context.BotTimeout.SingleOrDefault(m => m.Username == username && m.BroadcasterId == broadcasterId);
 
             if (userBotTimeout == null)
             {
@@ -119,7 +119,7 @@ namespace TwitchBotApi.Controllers
             if (!string.IsNullOrEmpty(username))
             {
                 BotTimeout userBotTimeout = await _context.BotTimeout
-                    .SingleOrDefaultAsync(m => m.Username == username && m.Broadcaster == broadcasterId);
+                    .SingleOrDefaultAsync(m => m.Username == username && m.BroadcasterId == broadcasterId);
 
                 if (userBotTimeout == null)
                     return NotFound();
@@ -131,7 +131,7 @@ namespace TwitchBotApi.Controllers
             else
             {
                 List<BotTimeout> userBotTimeouts = await _context.BotTimeout
-                    .Where(m => m.Broadcaster == broadcasterId && m.Timeout < DateTime.UtcNow)
+                    .Where(m => m.BroadcasterId == broadcasterId && m.Timeout < DateTime.UtcNow)
                     .ToListAsync();
 
                 if (userBotTimeouts == null || userBotTimeouts.Count == 0)

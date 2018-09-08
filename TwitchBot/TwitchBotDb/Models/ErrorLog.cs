@@ -11,10 +11,10 @@ namespace TwitchBotDb.Models
         public string ErrorClass { get; set; }
         public string ErrorMethod { get; set; }
         public string ErrorMsg { get; set; }
-        public int Broadcaster { get; set; }
+        public int BroadcasterId { get; set; }
         public string Command { get; set; }
         public string UserMsg { get; set; }
 
-        public Broadcaster BroadcasterNavigation { get; set; }
+        public Broadcaster Broadcaster { get; set; }
     }
 }

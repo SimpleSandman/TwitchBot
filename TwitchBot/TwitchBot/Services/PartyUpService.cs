@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using TwitchBot.Extensions;
 using TwitchBot.Repositories;
 
+using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
 namespace TwitchBot.Services
@@ -17,9 +19,9 @@ namespace TwitchBot.Services
             _partyUpDb = partyUpDb;
         }
 
-        public async Task<bool> HasAlreadyRequested(string username, int partyMember)
+        public async Task<bool> HasUserAlreadyRequested(string username, int partyMemberId)
         {
-            return await _partyUpDb.HasAlreadyRequested(username, partyMember) != null ? true : false;
+            return await _partyUpDb.HasUserAlreadyRequested(username, partyMemberId) != null ? true : false;
         }
 
         public async Task<PartyUp> GetPartyMember(string partyMember, int gameId, int broadcasterId)
@@ -27,9 +29,9 @@ namespace TwitchBot.Services
             return await _partyUpDb.GetPartyMember(partyMember, gameId, broadcasterId);
         }
 
-        public async Task AddPartyMember(string username, int partyMember)
+        public async Task AddPartyMember(string username, int partyMemberId)
         {
-            await _partyUpDb.AddRequestedPartyMember(username, partyMember);
+            await _partyUpDb.AddRequestedPartyMember(username, partyMemberId);
         }
 
         public async Task<string> GetPartyList(int gameId, int broadcasterId)
@@ -51,16 +53,16 @@ namespace TwitchBot.Services
 
         public async Task<string> GetRequestList(int gameId, int broadcasterId)
         {
-            List<PartyUpRequest> partyRequestList = await _partyUpDb.GetRequestList(gameId, broadcasterId);
+            List<PartyUpRequestResult> partyRequestList = await _partyUpDb.GetRequestList(gameId, broadcasterId);
 
             if (partyRequestList == null || partyRequestList.Count == 0)
                 return "The party request list is empty. Request a member with !partyup [name]";
 
             string message = "Here are the requested party members: ";
 
-            foreach (PartyUpRequest member in partyRequestList)
+            foreach (PartyUpRequestResult member in partyRequestList)
             {
-                message += member.PartyMember + " <-- " + member.Username + " || ";
+                message += member.PartyMemberName + " <-- " + member.Username + " || ";
             }
 
             return message.ReplaceLastOccurrence(" || ", "");

@@ -31,7 +31,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            List<Quote> quote = await _context.Quote.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+            List<Quote> quote = await _context.Quote.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
 
             if (quote == null || quote.Count == 0)
             {
@@ -46,7 +46,7 @@ namespace TwitchBotApi.Controllers
         [HttpPatch("{id:int}")]
         public async Task<IActionResult> Patch([FromRoute] int id, [FromQuery] int broadcasterId, [FromBody]JsonPatchDocument<Quote> quotePatch)
         {
-            Quote quote = _context.Quote.SingleOrDefault(m => m.Id == id && m.Broadcaster == broadcasterId);
+            Quote quote = _context.Quote.SingleOrDefault(m => m.Id == id && m.BroadcasterId == broadcasterId);
 
             if (quote == null)
             {
@@ -106,7 +106,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            Quote quote = await _context.Quote.SingleOrDefaultAsync(m => m.Id == id && m.Broadcaster == broadcasterId);
+            Quote quote = await _context.Quote.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
             if (quote == null)
             {
                 return NotFound();

@@ -8,8 +8,8 @@ namespace TwitchBotDb.Models
         public int Id { get; set; }
         public string Artist { get; set; }
         public string Title { get; set; }
-        public int Broadcaster { get; set; }
+        public int BroadcasterId { get; set; }
 
-        public Broadcaster BroadcasterNavigation { get; set; }
+        public Broadcaster Broadcaster { get; set; }
     }
 }

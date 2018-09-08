@@ -32,7 +32,7 @@ namespace TwitchBot.Libraries
             {
                 timedoutUser = await ApiBotRequest.PostExecuteTaskAsync(
                     twitchBotApiLink + $"bottimeouts/create",
-                    new BotTimeout { Username = recipient, Timeout = timeoutExpiration, Broadcaster = broadcasterId }
+                    new BotTimeout { Username = recipient, Timeout = timeoutExpiration, BroadcasterId = broadcasterId }
                 );
             }
 

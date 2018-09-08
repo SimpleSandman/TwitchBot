@@ -233,7 +233,7 @@ namespace TwitchBot.Models
 
         public async Task CreateSettings(int broadcasterId, int? gameId, string twitchBotApiLink)
         {
-            BossFightSetting freshBossFightSettings = new BossFightSetting { Broadcaster = broadcasterId };
+            BossFightSetting freshBossFightSettings = new BossFightSetting { BroadcasterId = broadcasterId };
             freshBossFightSettings = await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"bossfightsettings/create", freshBossFightSettings);
 
             BossFightClassStats bossFightClassStats = new BossFightClassStats { SettingsId = freshBossFightSettings.Id };

@@ -36,19 +36,19 @@ namespace TwitchBotApi.Controllers
             {
                 partyUp = await _context.PartyUp
                     .SingleOrDefaultAsync(m =>
-                        m.Broadcaster == broadcasterId
+                        m.BroadcasterId == broadcasterId
                             && m.GameId == gameId
-                            && m.PartyMember.Contains(partyMember, StringComparison.CurrentCultureIgnoreCase));
+                            && m.PartyMemberName.Contains(partyMember, StringComparison.CurrentCultureIgnoreCase));
             }
             else if (gameId > 0)
             {
-                partyUp = await _context.PartyUp.Where(m => m.Broadcaster == broadcasterId && m.GameId == gameId)
-                    .Select(m => m.PartyMember)
+                partyUp = await _context.PartyUp.Where(m => m.BroadcasterId == broadcasterId && m.GameId == gameId)
+                    .Select(m => m.PartyMemberName)
                     .ToListAsync();
             }
             else
             {
-                partyUp = await _context.PartyUp.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+                partyUp = await _context.PartyUp.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
             }
 
             if (partyUp == null)

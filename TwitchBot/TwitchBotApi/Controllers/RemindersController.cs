@@ -32,9 +32,9 @@ namespace TwitchBotApi.Controllers
             var reminders = new object();
 
             if (id == 0)
-                reminders = await _context.Reminder.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+                reminders = await _context.Reminder.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
             else
-                reminders = await _context.Reminder.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId && m.Id == id);
+                reminders = await _context.Reminder.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Id == id);
 
             if (reminders == null)
             {
@@ -53,7 +53,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (id != reminder.Id && broadcasterId != reminder.Broadcaster)
+            if (id != reminder.Id && broadcasterId != reminder.BroadcasterId)
             {
                 return BadRequest();
             }
@@ -103,7 +103,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            Reminder reminder = await _context.Reminder.SingleOrDefaultAsync(m => m.Id == id && m.Broadcaster == broadcasterId);
+            Reminder reminder = await _context.Reminder.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
             if (reminder == null)
             {
                 return NotFound();

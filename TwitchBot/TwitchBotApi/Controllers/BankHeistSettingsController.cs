@@ -30,7 +30,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            BankHeistSetting bankHeistSetting = await _context.BankHeistSetting.SingleOrDefaultAsync(m => m.Broadcaster == broadcasterId);
+            BankHeistSetting bankHeistSetting = await _context.BankHeistSetting.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
 
             if (bankHeistSetting == null)
             {
@@ -49,7 +49,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (broadcasterId != bankHeistSetting.Broadcaster)
+            if (broadcasterId != bankHeistSetting.BroadcasterId)
             {
                 return BadRequest();
             }
@@ -93,7 +93,7 @@ namespace TwitchBotApi.Controllers
 
         private bool BankHeistSettingExists(int broadcasterId)
         {
-            return _context.BankHeistSetting.Any(e => e.Broadcaster == broadcasterId);
+            return _context.BankHeistSetting.Any(e => e.BroadcasterId == broadcasterId);
         }
     }
 }

@@ -6,7 +6,7 @@ namespace TwitchBotDb.Models
     public partial class BankHeistSetting
     {
         public int Id { get; set; }
-        public int Broadcaster { get; set; }
+        public int BroadcasterId { get; set; }
         public int CooldownPeriodMin { get; set; }
         public int EntryPeriodSec { get; set; }
         public string EntryMessage { get; set; }
@@ -48,6 +48,6 @@ namespace TwitchBotDb.Models
         public decimal PayoutSuccessRate5 { get; set; }
         public decimal PayoutMultiplier5 { get; set; }
 
-        public Broadcaster BroadcasterNavigation { get; set; }
+        public Broadcaster Broadcaster { get; set; }
     }
 }

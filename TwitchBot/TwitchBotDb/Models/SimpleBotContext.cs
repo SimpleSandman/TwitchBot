@@ -243,9 +243,9 @@ namespace TwitchBotDb.Models
                     .IsUnicode(false)
                     .HasDefaultValueSql("('The crew suffered a few losses engaging the local security team.')");
 
-                entity.HasOne(d => d.BroadcasterNavigation)
+                entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.BankHeistSetting)
-                    .HasForeignKey(d => d.Broadcaster)
+                    .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_BankHeistSetting_Broadcaster");
             });
@@ -519,15 +519,18 @@ namespace TwitchBotDb.Models
                     .IsUnicode(false)
                     .HasDefaultValueSql("('The raid party suffered a few casualties as they fought valiantly.')");
 
-                entity.HasOne(d => d.BroadcasterNavigation)
+                entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.BossFightSetting)
-                    .HasForeignKey(d => d.Broadcaster)
+                    .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_BossFightSetting_Broadcaster");
             });
 
             modelBuilder.Entity<BotTimeout>(entity =>
             {
+                entity.HasIndex(e => e.BroadcasterId)
+                    .HasName("IX_BroadcasterId_BotTimeout");
+
                 entity.Property(e => e.TimeAdded)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
@@ -539,9 +542,9 @@ namespace TwitchBotDb.Models
                     .HasMaxLength(30)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.BroadcasterNavigation)
+                entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.BotTimeout)
-                    .HasForeignKey(d => d.Broadcaster)
+                    .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_BotTimeout_Broadcaster");
             });
@@ -562,6 +565,9 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<ErrorLog>(entity =>
             {
+                entity.HasIndex(e => e.BroadcasterId)
+                    .HasName("IX_BroadcasterId_ErrorLog");
+
                 entity.Property(e => e.Id).HasColumnName("ID");
 
                 entity.Property(e => e.Command)
@@ -587,23 +593,29 @@ namespace TwitchBotDb.Models
                     .HasMaxLength(500)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.BroadcasterNavigation)
+                entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.ErrorLog)
-                    .HasForeignKey(d => d.Broadcaster)
+                    .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ErrorLog_Broadcaster");
             });
 
             modelBuilder.Entity<PartyUp>(entity =>
             {
-                entity.Property(e => e.PartyMember)
+                entity.HasIndex(e => e.BroadcasterId)
+                    .HasName("IX_BroadcasterId_PartyUp");
+
+                entity.HasIndex(e => e.GameId)
+                    .HasName("IX_GameId_PartyUp");
+
+                entity.Property(e => e.PartyMemberName)
                     .IsRequired()
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.BroadcasterNavigation)
+                entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.PartyUp)
-                    .HasForeignKey(d => d.Broadcaster)
+                    .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_PartyUp_Broadcaster");
 
@@ -616,6 +628,9 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<PartyUpRequest>(entity =>
             {
+                entity.HasIndex(e => e.PartyMemberId)
+                    .HasName("IX_PartyMemberId_PartyUpRequest");
+
                 entity.Property(e => e.Id).ValueGeneratedOnAdd();
 
                 entity.Property(e => e.TimeRequested)
@@ -633,15 +648,18 @@ namespace TwitchBotDb.Models
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_PartyUpRequest_PartyUpRequest");
 
-                entity.HasOne(d => d.PartyMemberNavigation)
+                entity.HasOne(d => d.PartyMember)
                     .WithMany(p => p.PartyUpRequest)
-                    .HasForeignKey(d => d.PartyMember)
+                    .HasForeignKey(d => d.PartyMemberId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_PartyUpRequest_PartyUp");
             });
 
             modelBuilder.Entity<Quote>(entity =>
             {
+                entity.HasIndex(e => e.BroadcasterId)
+                    .HasName("IX_BroadcasterId_Quote");
+
                 entity.Property(e => e.TimeCreated)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
@@ -656,52 +674,64 @@ namespace TwitchBotDb.Models
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.BroadcasterNavigation)
+                entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.Quote)
-                    .HasForeignKey(d => d.Broadcaster)
+                    .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Quote_Broadcasters");
             });
 
             modelBuilder.Entity<Rank>(entity =>
             {
+                entity.HasIndex(e => e.BroadcasterId)
+                    .HasName("IX_BroadcasterId_Rank");
+
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.BroadcasterNavigation)
+                entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.Rank)
-                    .HasForeignKey(d => d.Broadcaster)
+                    .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Rank_Broadcaster");
             });
 
             modelBuilder.Entity<RankFollower>(entity =>
             {
+                entity.HasIndex(e => e.BroadcasterId)
+                    .HasName("IX_BroadcasterId_RankFollower");
+
                 entity.Property(e => e.Username)
                     .IsRequired()
                     .HasMaxLength(30)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.BroadcasterNavigation)
+                entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.RankFollower)
-                    .HasForeignKey(d => d.Broadcaster)
+                    .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_RankFollower_Broadcaster");
             });
 
             modelBuilder.Entity<Reminder>(entity =>
             {
+                entity.HasIndex(e => e.BroadcasterId)
+                    .HasName("IX_BroadcasterId_Reminder");
+
+                entity.HasIndex(e => e.GameId)
+                    .HasName("IX_GameId_Reminder");
+
                 entity.Property(e => e.ExpirationDateUtc).HasColumnType("datetime");
 
                 entity.Property(e => e.Message)
                     .HasMaxLength(500)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.BroadcasterNavigation)
+                entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.Reminder)
-                    .HasForeignKey(d => d.Broadcaster)
+                    .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Reminder_Broadcaster");
 
@@ -713,6 +743,9 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<SongRequest>(entity =>
             {
+                entity.HasIndex(e => e.BroadcasterId)
+                    .HasName("IX_BroadcasterId_SongRequest");
+
                 entity.Property(e => e.Chatter)
                     .HasMaxLength(30)
                     .IsUnicode(false);
@@ -722,15 +755,18 @@ namespace TwitchBotDb.Models
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.BroadcasterNavigation)
+                entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.SongRequest)
-                    .HasForeignKey(d => d.Broadcaster)
+                    .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_SongRequest_Broadcaster");
             });
 
             modelBuilder.Entity<SongRequestIgnore>(entity =>
             {
+                entity.HasIndex(e => e.BroadcasterId)
+                    .HasName("IX_BroadcasterId_SongRequestIgnore");
+
                 entity.Property(e => e.Artist)
                     .IsRequired()
                     .HasMaxLength(100)
@@ -740,9 +776,9 @@ namespace TwitchBotDb.Models
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.BroadcasterNavigation)
+                entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.SongRequestIgnore)
-                    .HasForeignKey(d => d.Broadcaster)
+                    .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_SongRequestIgnore_Broadcaster");
             });

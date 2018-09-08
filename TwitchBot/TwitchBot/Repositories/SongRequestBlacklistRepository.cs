@@ -34,7 +34,7 @@ namespace TwitchBot.Repositories
             {
                 Artist = artist,
                 Title = "",
-                Broadcaster = broadcasterId
+                BroadcasterId = broadcasterId
             };
 
             return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"songrequestignores/create", ignoreArtist);
@@ -46,7 +46,7 @@ namespace TwitchBot.Repositories
             {
                 Artist = artist,
                 Title = title,
-                Broadcaster = broadcasterId
+                BroadcasterId = broadcasterId
             };
 
             return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"songrequestignores/create", ignoreSong);

@@ -30,7 +30,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            List<Rank> rank = await _context.Rank.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+            List<Rank> rank = await _context.Rank.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
 
             if (rank == null || rank.Count == 0)
             {
@@ -50,7 +50,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (id != rank.Id || broadcasterId != rank.Broadcaster)
+            if (id != rank.Id || broadcasterId != rank.BroadcasterId)
             {
                 return BadRequest();
             }
@@ -101,7 +101,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            Rank rank = await _context.Rank.SingleOrDefaultAsync(m => m.Id == id && m.Broadcaster == broadcasterId);
+            Rank rank = await _context.Rank.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
             if (rank == null)
             {
                 return NotFound();

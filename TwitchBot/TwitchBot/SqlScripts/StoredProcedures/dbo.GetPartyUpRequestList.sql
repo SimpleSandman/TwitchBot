@@ -7,16 +7,16 @@ BEGIN
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON
 
-	SELECT pur.Id
-		 , pur.Username
-		 , pu.PartyMember AS PartyMemberName
-		 , pu.Broadcaster
-		 , pu.GameId
+	SELECT pur.Id AS PartyRequestId
+	     , pur.Username
+		 , pu.PartyMemberName
+		 , pur.PartyMemberId
 		 , pur.TimeRequested
 	FROM dbo.PartyUpRequest AS pur 
 	INNER JOIN dbo.PartyUp AS pu 
-		ON pur.PartyMember = pu.Id
-	WHERE GameId = @GameId AND Broadcaster = @Broadcaster
+	    ON pur.PartyMemberId = pu.Id
+	WHERE GameId = @GameId AND BroadcasterId = @Broadcaster
+	ORDER BY pur.TimeRequested
 END
 GO
 
