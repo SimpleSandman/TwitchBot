@@ -213,10 +213,6 @@ namespace TwitchBot
 
                 /* Load/create settings and start the queue for the heist */
                 await _bankHeistInstance.LoadSettings(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
-
-                if (_bankHeistInstance.Id == 0)
-                    await _bankHeistInstance.CreateSettings(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
-
                 _bankHeist.Start(_irc, _broadcasterInstance.DatabaseId);
 
                 /* Load/create settings and start the queue for the boss fight */
@@ -227,11 +223,8 @@ namespace TwitchBot
                 // Grab game id in order to find party member
                 TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
 
+                /* Load/create settings and start the queue for the boss fight */
                 await _bossFightInstance.LoadSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
-
-                if (_bossFightInstance.SettingsId == 0)
-                    await _bossFightInstance.CreateSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
-
                 _bossFight.Start(_irc, _broadcasterInstance.DatabaseId);
 
                 /* Ping to twitch server to prevent auto-disconnect */

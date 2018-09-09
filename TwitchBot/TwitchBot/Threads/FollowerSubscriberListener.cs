@@ -174,6 +174,11 @@ namespace TwitchBot.Threads
 
                 _rankList = await _follower.GetRankList(_broadcasterId);
 
+                if (_rankList == null)
+                {
+                    _rankList = await _follower.CreateDefaultRanks(_broadcasterId);
+                }
+
                 // Check for existing or new followers/subscribers
                 for (int i = 0; i < availableChatters.Count(); i++)
                 {

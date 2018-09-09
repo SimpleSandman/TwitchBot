@@ -93,7 +93,7 @@ namespace TwitchBotApi.Controllers
             _context.BossFightBossStats.Add(bossFightBossStats);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return CreatedAtAction("Get", new { settingsId = bossFightBossStats.Id, gameId = bossFightBossStats.GameId }, bossFightBossStats);
         }
 
         private bool BossFightBossStatsExists(int id)

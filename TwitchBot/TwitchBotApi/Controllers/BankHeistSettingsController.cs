@@ -88,7 +88,7 @@ namespace TwitchBotApi.Controllers
             _context.BankHeistSetting.Add(bankHeistSetting);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { broadcasterId = bankHeistSetting.Broadcaster }, bankHeistSetting);
+            return CreatedAtAction("Get", new { broadcasterId = bankHeistSetting.BroadcasterId }, bankHeistSetting);
         }
 
         private bool BankHeistSettingExists(int broadcasterId)

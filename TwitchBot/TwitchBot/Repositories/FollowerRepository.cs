@@ -44,6 +44,19 @@ namespace TwitchBot.Repositories
             return await ApiBotRequest.GetExecuteTaskAsync<List<Rank>>(_twitchBotApiLink + $"ranks/get/{broadcasterId}");
         }
 
+        public async Task<IEnumerable<Rank>> CreateDefaultRanks(int broadcasterId)
+        {
+            List<Rank> rank = new List<Rank>
+            {
+                new Rank
+                {
+                    BroadcasterId = broadcasterId
+                }
+            };
+
+            return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"ranks/createdefault", rank);
+        }
+
         public async Task<IEnumerable<RankFollower>> GetFollowersLeaderboard(string broadcasterName, int broadcasterId, string botName)
         {
             return await ApiBotRequest.GetExecuteTaskAsync<List<RankFollower>>(_twitchBotApiLink + $"rankfollowers/getleaderboard/{broadcasterId}?topnumber=3");

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,8 +26,8 @@ namespace TwitchBotApi.Controllers
             return _context.TwitchGameCategory;
         }
 
-        // GET: api/twitchgamecategories/get/5
-        [HttpGet("{name}")]
+        // GET: api/twitchgamecategories/get/IRL
+        [HttpGet("{title}")]
         public async Task<IActionResult> Get([FromRoute] string title)
         {
             if (!ModelState.IsValid)

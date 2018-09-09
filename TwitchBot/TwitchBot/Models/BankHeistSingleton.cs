@@ -90,15 +90,18 @@ namespace TwitchBot.Models
         /// Load all of the settings from the database for the bank heist mini-game
         /// </summary>
         /// <param name="broadcasterId"></param>
-        public async Task LoadSettings(int broadcasterId, string twitchBotApiLink, BankHeistSetting bankHeistSetting = null)
+        public async Task LoadSettings(int broadcasterId, string twitchBotApiLink)
         {
+            BankHeistSetting bankHeistSetting = await ApiBotRequest.GetExecuteTaskAsync<BankHeistSetting>(twitchBotApiLink + $"bankheistsettings/get/{broadcasterId}");
+
             if (bankHeistSetting == null)
             {
-                bankHeistSetting =
-                    await ApiBotRequest.GetExecuteTaskAsync<BankHeistSetting>(twitchBotApiLink + $"bankheistsettings/get/{broadcasterId}");
-
-                if (bankHeistSetting == null) return; // check if settings were loaded successfully, else attempt to create new settings
+                bankHeistSetting = new BankHeistSetting { BroadcasterId = broadcasterId };
+                bankHeistSetting = await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"bankheistsettings/create", bankHeistSetting);
             }
+
+            if (bankHeistSetting == null)
+                throw new Exception("Unable to create initial boss fight settings");
 
             // refresh arrays and lists
             NextLevelMessages = new string[4];
@@ -170,13 +173,6 @@ namespace TwitchBot.Models
             Payouts[3].WinMultiplier = bankHeistSetting.PayoutMultiplier4;
             Payouts[4].SuccessRate = bankHeistSetting.PayoutSuccessRate5;
             Payouts[4].WinMultiplier = bankHeistSetting.PayoutMultiplier5;
-        }
-
-        public async Task CreateSettings(int broadcasterId, string twitchBotApiLink)
-        {
-            BankHeistSetting freshSettings = new BankHeistSetting { BroadcasterId = broadcasterId };
-
-            await LoadSettings(broadcasterId, twitchBotApiLink, await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"bankHeistSetting/create", freshSettings));
         }
     }
 

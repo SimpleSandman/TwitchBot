@@ -38,6 +38,11 @@ namespace TwitchBot.Services
             return await _followerDb.GetRankList(broadcasterId);
         }
 
+        public async Task<IEnumerable<Rank>> CreateDefaultRanks(int broadcasterId)
+        {
+            return await _followerDb.CreateDefaultRanks(broadcasterId);
+        }
+
         public Rank GetCurrentRank(IEnumerable<Rank> rankList, int currExp)
         {
             Rank currentRank = new Rank();

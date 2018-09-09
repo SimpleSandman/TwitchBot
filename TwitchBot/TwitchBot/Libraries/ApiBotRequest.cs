@@ -146,7 +146,7 @@ namespace TwitchBot.Libraries
 
         public static async Task<T> PostExecuteTaskAsync<T>(string apiUrlCall, T createObject)
         {
-            // Send HTTP method PUT to base URI in order to change the game
+            // Send HTTP method POST to base URI in order to change the game
             RestClient client = new RestClient(apiUrlCall);
             RestRequest request = new RestRequest(Method.POST);
             request.AddHeader("Cache-Control", "no-cache");
@@ -191,7 +191,7 @@ namespace TwitchBot.Libraries
 
         public static async Task<T> PatchExecuteTaskAsync<T>(string apiUrlCall, string path, object value)
         {
-            // Send HTTP method PUT to base URI in order to change the game
+            // Send HTTP method PATCH to base URI in order to change the game
             RestClient client = new RestClient(apiUrlCall);
             RestRequest request = new RestRequest(Method.PATCH);
             request.AddHeader("Cache-Control", "no-cache");

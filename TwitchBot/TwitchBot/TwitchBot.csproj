@@ -285,6 +285,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="SqlScripts\StoredProcedures\dbo.CreateDefaultRanks.sql" />
     <Content Include="SqlScripts\StoredProcedures\dbo.GetPartyUpRequestList.sql" />
     <Content Include="SqlScripts\StoredProcedures\dbo.UpdateCreateBalance.sql" />
     <Content Include="SqlScripts\Tables\InitialCreation.sql" />

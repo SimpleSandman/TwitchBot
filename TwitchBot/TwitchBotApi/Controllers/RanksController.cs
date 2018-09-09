@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using Snickler.EFCore;
+
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
@@ -74,6 +76,28 @@ namespace TwitchBotApi.Controllers
             }
 
             return NoContent();
+        }
+
+        // POST: api/ranks/createdefault
+        // Body (JSON): { "name": "New Rank", "expCap": 24, "broadcaster": 2 }
+        [HttpPost]
+        public async Task<IActionResult> CreateDefault([FromBody] List<Rank> rank)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            List<Rank> results = new List<Rank>();
+
+            await _context.LoadStoredProc("dbo.CreateDefaultRanks")
+                .WithSqlParam("BroadcasterId", rank.First().BroadcasterId)
+                .ExecuteStoredProcAsync((handler) =>
+                {
+                    results = handler.ReadToList<Rank>().ToList();
+                });
+
+            return Ok(results);
         }
 
         // POST: api/ranks/create
