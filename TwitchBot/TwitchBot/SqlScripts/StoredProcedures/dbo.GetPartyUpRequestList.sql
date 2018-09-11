@@ -1,6 +1,6 @@
 ﻿CREATE PROCEDURE [dbo].[GetPartyUpRequestList]
 	@GameId INT,
-	@Broadcaster INT
+	@BroadcasterId INT
 AS
 BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets from
@@ -15,7 +15,7 @@ BEGIN
 	FROM dbo.PartyUpRequest AS pur 
 	INNER JOIN dbo.PartyUp AS pu 
 	    ON pur.PartyMemberId = pu.Id
-	WHERE GameId = @GameId AND BroadcasterId = @Broadcaster
+	WHERE GameId = @GameId AND BroadcasterId = @BroadcasterId
 	ORDER BY pur.TimeRequested
 END
 GO

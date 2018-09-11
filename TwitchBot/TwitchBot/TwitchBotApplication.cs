@@ -165,35 +165,40 @@ namespace TwitchBot
                 if (_hasYouTubeAuth)
                 {
                     Playlist broadcasterPlaylist = null;
+                    string playlistName = _botConfig.YouTubeBroadcasterPlaylistName;
+                    string defaultPlaylistName = "Twitch Song Requests";
+
+                    if (string.IsNullOrEmpty(playlistName))
+                    {
+                        playlistName = defaultPlaylistName;
+                    }
 
                     // Check if YouTube song request playlist still exists
                     if (!string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                     {
                         broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId);
+
+                        if (broadcasterPlaylist == null || broadcasterPlaylist.Id == null)
+                        {
+                            broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(playlistName);
+                        }
                     }
                     
                     if (string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId) || broadcasterPlaylist?.Id == null)
                     {
-                        string playlistName = _botConfig.YouTubeBroadcasterPlaylistName;
-                        string defaultPlaylistName = $"Twitch Song Requests";
-
-                        if (string.IsNullOrEmpty(playlistName))
-                        {
-                            playlistName = defaultPlaylistName;
-                        }
-
                         broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylist(playlistName,
                             "Songs requested via Twitch viewers on https://twitch.tv/" + _botConfig.Broadcaster
                                 + " (playlist created using https://github.com/SimpleSandman/TwitchBot)");
-
-                        _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
-                        _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistId");
-                        _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistId", broadcasterPlaylist.Id);
                     }
+
+                    _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
+                    _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistId");
+                    _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistId", broadcasterPlaylist.Id);
 
                     _botConfig.YouTubeBroadcasterPlaylistName = broadcasterPlaylist.Snippet.Title;
                     _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistName");
                     _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistName", broadcasterPlaylist.Snippet.Title);
+
                     _appConfig.Save(ConfigurationSaveMode.Modified);
                     ConfigurationManager.RefreshSection("TwitchBotConfiguration");
                 }
@@ -841,6 +846,9 @@ namespace TwitchBot
         /// <returns></returns>
         private async Task<bool> IsUserTimedout(string message, string username)
         {
+            if (username == _botConfig.Broadcaster)
+                return false;
+
             TimeoutUser user = _timeout.TimedoutUsers.FirstOrDefault(u => u.Username.Equals(username));
 
             if (user == null) return false;
@@ -946,8 +954,6 @@ namespace TwitchBot
         {
             try
             {
-                await _timeout.DeleteTimeouts(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
-
                 List<BotTimeout> botTimeouts = await _timeout.GetTimeouts(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
 
                 foreach (BotTimeout botTimeout in botTimeouts)

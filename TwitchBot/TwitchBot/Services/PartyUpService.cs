@@ -19,9 +19,11 @@ namespace TwitchBot.Services
             _partyUpDb = partyUpDb;
         }
 
-        public async Task<bool> HasUserAlreadyRequested(string username, int partyMemberId)
+        public async Task<bool> HasUserAlreadyRequested(string username, int gameId, int broadcasterId)
         {
-            return await _partyUpDb.HasUserAlreadyRequested(username, partyMemberId) != null ? true : false;
+            List<PartyUpRequestResult> partyRequestList = await _partyUpDb.GetRequestList(gameId, broadcasterId);
+
+            return partyRequestList.Any(m => m.Username == username);
         }
 
         public async Task<PartyUp> GetPartyMember(string partyMember, int gameId, int broadcasterId)
@@ -70,12 +72,12 @@ namespace TwitchBot.Services
 
         public async Task<string> PopRequestedPartyMember(int gameId, int broadcasterId)
         {
-            PartyUpRequest firstPartyMember = await _partyUpDb.PopRequestedPartyMember(gameId, broadcasterId);
+            PartyUpRequestResult firstPartyMember = await _partyUpDb.PopRequestedPartyMember(gameId, broadcasterId);
 
             if (firstPartyMember == null)
                 return "There are no party members that can be removed from the request list";
 
-            return $"The requested party member, \"{firstPartyMember.PartyMember}\" from @{firstPartyMember.Username}, has been removed";
+            return $"The requested party member, \"{firstPartyMember.PartyMemberName}\" from @{firstPartyMember.Username}, has been removed";
         }
     }
 }

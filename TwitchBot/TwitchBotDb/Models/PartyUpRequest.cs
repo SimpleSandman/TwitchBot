@@ -10,8 +10,6 @@ namespace TwitchBotDb.Models
         public int PartyMemberId { get; set; }
         public DateTime TimeRequested { get; set; }
 
-        public PartyUpRequest IdNavigation { get; set; }
         public PartyUp PartyMember { get; set; }
-        public PartyUpRequest InverseIdNavigation { get; set; }
     }
 }

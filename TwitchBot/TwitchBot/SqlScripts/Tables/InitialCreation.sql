@@ -1,4 +1,4 @@
-﻿/****** Object:  Table [dbo].[Bank]    Script Date: 9/7/2018 11:43:02 PM ******/
+﻿/****** Object:  Table [dbo].[Bank]    Script Date: 9/10/2018 7:10:25 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -19,7 +19,7 @@ CREATE TABLE [dbo].[Bank](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BankHeistSetting]    Script Date: 9/7/2018 11:43:02 PM ******/
+/****** Object:  Table [dbo].[BankHeistSetting]    Script Date: 9/10/2018 7:10:25 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -76,7 +76,7 @@ CREATE TABLE [dbo].[BankHeistSetting](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BossFightBossStats]    Script Date: 9/7/2018 11:43:02 PM ******/
+/****** Object:  Table [dbo].[BossFightBossStats]    Script Date: 9/10/2018 7:10:25 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -139,7 +139,7 @@ CREATE TABLE [dbo].[BossFightBossStats](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BossFightClassStats]    Script Date: 9/7/2018 11:43:02 PM ******/
+/****** Object:  Table [dbo].[BossFightClassStats]    Script Date: 9/10/2018 7:10:25 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -176,7 +176,7 @@ CREATE TABLE [dbo].[BossFightClassStats](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BossFightSetting]    Script Date: 9/7/2018 11:43:02 PM ******/
+/****** Object:  Table [dbo].[BossFightSetting]    Script Date: 9/10/2018 7:10:26 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -211,7 +211,7 @@ CREATE TABLE [dbo].[BossFightSetting](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[BotTimeout]    Script Date: 9/7/2018 11:43:02 PM ******/
+/****** Object:  Table [dbo].[BotTimeout]    Script Date: 9/10/2018 7:10:26 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -221,6 +221,7 @@ GO
 CREATE TABLE [dbo].[BotTimeout](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Username] [varchar](30) NOT NULL,
+	[TwitchId] [int] NOT NULL,
 	[Timeout] [datetime] NOT NULL,
 	[TimeAdded] [datetime] NOT NULL,
 	[BroadcasterId] [int] NOT NULL,
@@ -231,7 +232,7 @@ CREATE TABLE [dbo].[BotTimeout](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Broadcaster]    Script Date: 9/7/2018 11:43:03 PM ******/
+/****** Object:  Table [dbo].[Broadcaster]    Script Date: 9/10/2018 7:10:26 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -250,7 +251,7 @@ CREATE TABLE [dbo].[Broadcaster](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[ErrorLog]    Script Date: 9/7/2018 11:43:03 PM ******/
+/****** Object:  Table [dbo].[ErrorLog]    Script Date: 9/10/2018 7:10:26 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -274,7 +275,7 @@ CREATE TABLE [dbo].[ErrorLog](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[PartyUp]    Script Date: 9/7/2018 11:43:03 PM ******/
+/****** Object:  Table [dbo].[PartyUp]    Script Date: 9/10/2018 7:10:26 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -293,7 +294,7 @@ CREATE TABLE [dbo].[PartyUp](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[PartyUpRequest]    Script Date: 9/7/2018 11:43:03 PM ******/
+/****** Object:  Table [dbo].[PartyUpRequest]    Script Date: 9/10/2018 7:10:27 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -312,7 +313,7 @@ CREATE TABLE [dbo].[PartyUpRequest](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Quote]    Script Date: 9/7/2018 11:43:03 PM ******/
+/****** Object:  Table [dbo].[Quote]    Script Date: 9/10/2018 7:10:27 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -332,7 +333,7 @@ CREATE TABLE [dbo].[Quote](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Rank]    Script Date: 9/7/2018 11:43:03 PM ******/
+/****** Object:  Table [dbo].[Rank]    Script Date: 9/10/2018 7:10:27 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -351,7 +352,7 @@ CREATE TABLE [dbo].[Rank](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[RankFollower]    Script Date: 9/7/2018 11:43:04 PM ******/
+/****** Object:  Table [dbo].[RankFollower]    Script Date: 9/10/2018 7:10:27 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -371,7 +372,7 @@ CREATE TABLE [dbo].[RankFollower](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[Reminder]    Script Date: 9/7/2018 11:43:04 PM ******/
+/****** Object:  Table [dbo].[Reminder]    Script Date: 9/10/2018 7:10:27 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -407,7 +408,7 @@ CREATE TABLE [dbo].[Reminder](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[SongRequest]    Script Date: 9/7/2018 11:43:04 PM ******/
+/****** Object:  Table [dbo].[SongRequest]    Script Date: 9/10/2018 7:10:27 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -426,7 +427,7 @@ CREATE TABLE [dbo].[SongRequest](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[SongRequestIgnore]    Script Date: 9/7/2018 11:43:04 PM ******/
+/****** Object:  Table [dbo].[SongRequestIgnore]    Script Date: 9/10/2018 7:10:28 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -445,7 +446,7 @@ CREATE TABLE [dbo].[SongRequestIgnore](
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[TwitchGameCategory]    Script Date: 9/7/2018 11:43:04 PM ******/
+/****** Object:  Table [dbo].[TwitchGameCategory]    Script Date: 9/10/2018 7:10:28 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -958,13 +959,6 @@ REFERENCES [dbo].[PartyUp] ([Id])
 GO
 
 ALTER TABLE [dbo].[PartyUpRequest] CHECK CONSTRAINT [FK_PartyUpRequest_PartyUp]
-GO
-
-ALTER TABLE [dbo].[PartyUpRequest]  WITH CHECK ADD  CONSTRAINT [FK_PartyUpRequest_PartyUpRequest] FOREIGN KEY([Id])
-REFERENCES [dbo].[PartyUpRequest] ([Id])
-GO
-
-ALTER TABLE [dbo].[PartyUpRequest] CHECK CONSTRAINT [FK_PartyUpRequest_PartyUpRequest]
 GO
 
 ALTER TABLE [dbo].[Quote]  WITH CHECK ADD  CONSTRAINT [FK_Quote_Broadcasters] FOREIGN KEY([BroadcasterId])

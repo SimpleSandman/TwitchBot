@@ -418,7 +418,7 @@ namespace TwitchBot.Commands
                     return;
                 }
 
-                if (await _partyUp.HasUserAlreadyRequested(username, partyMember.Id))
+                if (await _partyUp.HasUserAlreadyRequested(username, game.Id, _broadcasterId))
                 {
                     _irc.SendPublicChatMessage($"You have already requested a party member. "
                         + $"Please wait until your request has been completed @{username}");

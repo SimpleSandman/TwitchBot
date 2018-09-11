@@ -631,8 +631,6 @@ namespace TwitchBotDb.Models
                 entity.HasIndex(e => e.PartyMemberId)
                     .HasName("IX_PartyMemberId_PartyUpRequest");
 
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
-
                 entity.Property(e => e.TimeRequested)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
@@ -641,12 +639,6 @@ namespace TwitchBotDb.Models
                     .IsRequired()
                     .HasMaxLength(30)
                     .IsUnicode(false);
-
-                entity.HasOne(d => d.IdNavigation)
-                    .WithOne(p => p.InverseIdNavigation)
-                    .HasForeignKey<PartyUpRequest>(d => d.Id)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_PartyUpRequest_PartyUpRequest");
 
                 entity.HasOne(d => d.PartyMember)
                     .WithMany(p => p.PartyUpRequest)

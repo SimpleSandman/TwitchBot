@@ -100,8 +100,13 @@ namespace TwitchBotApi.Controllers
                 .WithSqlParam("BroadcasterId", broadcasterId)
                 .ExecuteStoredProcAsync((handler) =>
                 {
-                    result = handler.ReadToList<PartyUpRequestResult>().First();
+                    result = handler.ReadToList<PartyUpRequestResult>().FirstOrDefault();
                 });
+
+            if (result == null)
+            {
+                return NotFound();
+            }
 
             PartyUpRequest requestToBeDeleted = new PartyUpRequest
             {
@@ -119,7 +124,7 @@ namespace TwitchBotApi.Controllers
             _context.PartyUpRequest.Remove(requestToBeDeleted);
             await _context.SaveChangesAsync();
 
-            return Ok(requestToBeDeleted);
+            return Ok(result);
         }
 
         private bool PartyUpRequestExists(string username, int partyMemberId)
