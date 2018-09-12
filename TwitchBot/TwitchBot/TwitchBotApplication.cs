@@ -731,7 +731,7 @@ namespace TwitchBot
                                 }
 
                                 /* Show the users that want to play with the broadcaster */
-                                else if (message.Equals("!listjoin", StringComparison.CurrentCultureIgnoreCase))
+                                else if (message.Equals("!joinlist", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdListJoin(username, _gameQueueUsers);
 
                                 /* Request to play with the broadcaster */

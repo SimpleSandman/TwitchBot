@@ -52,7 +52,7 @@ namespace TwitchBotApi.Controllers
             _context.SongRequest.Add(songRequests);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { broadcasterId = songRequests.Broadcaster }, songRequests);
+            return CreatedAtAction("Get", new { broadcasterId = songRequests.BroadcasterId }, songRequests);
         }
 
         // DELETE: api/songrequests/2

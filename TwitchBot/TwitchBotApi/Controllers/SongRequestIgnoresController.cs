@@ -96,7 +96,7 @@ namespace TwitchBotApi.Controllers
             _context.SongRequestIgnore.Add(songRequestIgnore);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { broadcasterId = songRequestIgnore.Broadcaster, id = songRequestIgnore.Id }, songRequestIgnore);
+            return CreatedAtAction("Get", new { broadcasterId = songRequestIgnore.BroadcasterId, id = songRequestIgnore.Id }, songRequestIgnore);
         }
 
         // DELETE: api/songrequestblacklists/delete/2

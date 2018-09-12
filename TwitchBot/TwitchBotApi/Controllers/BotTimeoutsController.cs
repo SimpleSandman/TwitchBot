@@ -101,7 +101,7 @@ namespace TwitchBotApi.Controllers
             _context.BotTimeout.Add(userBotTimeout);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { broadcasterId = userBotTimeout.Broadcaster, username = userBotTimeout.Username }, userBotTimeout);
+            return CreatedAtAction("Get", new { broadcasterId = userBotTimeout.BroadcasterId, username = userBotTimeout.Username }, userBotTimeout);
         }
 
         // DELETE: api/bottimeouts/delete/2
