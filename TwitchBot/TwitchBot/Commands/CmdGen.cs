@@ -1389,6 +1389,22 @@ namespace TwitchBot.Commands
             {
                 TwitchChatter chatter = _twitchChatterListInstance.TwitchSubscribers.FirstOrDefault(c => c.Username.Equals(username));
 
+                if (chatter == null)
+                {
+                    // get chatter info manually
+                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(username);
+
+                    using (HttpResponseMessage message = await _twitchInfo.CheckSubscriberStatus(rootUserJSON.Users.First().Id))
+                    {
+                        string body = await message.Content.ReadAsStringAsync();
+                        SubscriptionJSON response = JsonConvert.DeserializeObject<SubscriptionJSON>(body);
+
+                        if (!string.IsNullOrEmpty(response.CreatedAt))
+                            chatter = new TwitchChatter { Username = username, CreatedAt = Convert.ToDateTime(response.CreatedAt) };
+                    }
+                }
+
+                // mainly used if chatter was originally null
                 if (chatter != null)
                 {
                     DateTime startedSubscribing = Convert.ToDateTime(chatter.CreatedAt);
