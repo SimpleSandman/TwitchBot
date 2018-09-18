@@ -714,6 +714,8 @@ namespace TwitchBot.Commands
                             Console.WriteLine(_twitter.SendTweet($"Just switched to \"{game}\" on " 
                                 + $"twitch.tv/{_broadcasterInstance.Username}"));
                         }
+
+                        await Threads.ChatReminder.RefreshReminders();
                     }
                     else
                     {
