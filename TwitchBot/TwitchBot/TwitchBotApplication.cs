@@ -42,7 +42,7 @@ namespace TwitchBot
         private List<string> _greetedUsers;
         private Queue<string> _gameQueueUsers;
         private List<CooldownUser> _cooldownUsers;
-        private WebSpotifyClient _spotify;
+        private SpotifyWebClient _spotify;
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
         private FollowerSubscriberListener _followerSubscriberListener;
@@ -133,7 +133,7 @@ namespace TwitchBot
                 ErrorHandler.Configure(_broadcasterInstance.DatabaseId, _irc, _botConfig);
 
                 /* Connect to local Spotify client */
-                _spotify = new WebSpotifyClient(_botConfig);
+                _spotify = new SpotifyWebClient(_botConfig);
                 await _spotify.Connect();
 
                 // Password from www.twitchapps.com/tmi/

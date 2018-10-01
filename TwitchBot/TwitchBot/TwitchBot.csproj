@@ -262,7 +262,7 @@
     <Compile Include="Threads\ChatReminder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Libraries\WebSpotifyClient.cs" />
+    <Compile Include="Libraries\SpotifyWebClient.cs" />
     <Compile Include="Models\JSON\StreamJSON.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Libraries\TwitchApi.cs" />

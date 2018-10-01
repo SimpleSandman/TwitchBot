@@ -29,7 +29,7 @@ namespace TwitchBot.Commands
     public class CmdGen
     {
         private IrcClient _irc;
-        private WebSpotifyClient _spotify;
+        private SpotifyWebClient _spotify;
         private TwitchBotConfigurationSection _botConfig;
         private int _broadcasterId;
         private TwitchInfoService _twitchInfo;
@@ -46,7 +46,7 @@ namespace TwitchBot.Commands
         private BossFightSingleton _bossSettingsInstance = BossFightSingleton.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
-        public CmdGen(IrcClient irc, WebSpotifyClient spotify, TwitchBotConfigurationSection botConfig, int broadcasterId,
+        public CmdGen(IrcClient irc, SpotifyWebClient spotify, TwitchBotConfigurationSection botConfig, int broadcasterId,
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
             ManualSongRequestService manualSongRequest, PartyUpService partyUp, GameDirectoryService gameDirectory, QuoteService quote)
         {

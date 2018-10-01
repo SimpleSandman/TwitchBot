@@ -12,13 +12,13 @@ namespace TwitchBot.Libraries
 {
     /* Example Code for Web Spotify API */
     // https://github.com/JohnnyCrazy/SpotifyAPI-NET/blob/master/SpotifyAPI.Web.Example/Program.cs
-    public class WebSpotifyClient
+    public class SpotifyWebClient
     {
         private TwitchBotConfigurationSection _botConfig;
         private SpotifyWebAPI _spotify;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public WebSpotifyClient(TwitchBotConfigurationSection _botSection)
+        public SpotifyWebClient(TwitchBotConfigurationSection _botSection)
         {
             _botConfig = _botSection;
         }
@@ -27,14 +27,14 @@ namespace TwitchBot.Libraries
         {
             try
             {
+                if (!HasInitialConfig())
+                    return;
+
                 ImplictGrantAuth auth = new ImplictGrantAuth(
                     _botConfig.SpotifyClientId,
                     _botConfig.SpotifyRedirectUri, 
                     _botConfig.SpotifyServerUri,
-                    Scope.PlaylistReadPrivate 
-                        | Scope.PlaylistReadCollaborative 
-                        | Scope.UserLibraryRead 
-                        | Scope.UserReadCurrentlyPlaying
+                    Scope.UserReadCurrentlyPlaying
                         | Scope.UserReadPlaybackState
                         | Scope.UserModifyPlaybackState);
 
@@ -62,27 +62,48 @@ namespace TwitchBot.Libraries
 
         public async Task Play()
         {
-            await _spotify.ResumePlaybackAsync("", "", null, "");
+            if (HasInitialConfig() && !string.IsNullOrEmpty(_spotify?.AccessToken))
+                await _spotify.ResumePlaybackAsync("", "", null, "");
         }
 
         public async Task Pause()
         {
-            await _spotify.PausePlaybackAsync();
+            if (HasInitialConfig() && !string.IsNullOrEmpty(_spotify?.AccessToken))
+                await _spotify.PausePlaybackAsync();
         }
 
         public async Task SkipToPreviousPlayback()
         {
-            await _spotify.SkipPlaybackToPreviousAsync();
+            if (HasInitialConfig() && !string.IsNullOrEmpty(_spotify?.AccessToken))
+                await _spotify.SkipPlaybackToPreviousAsync();
         }
 
         public async Task SkipToNextPlayback()
         {
-            await _spotify.SkipPlaybackToNextAsync();
+            if (HasInitialConfig() && !string.IsNullOrEmpty(_spotify?.AccessToken))
+                await _spotify.SkipPlaybackToNextAsync();
         }
 
         public async Task<PlaybackContext> GetPlayback()
         {
-            return await _spotify.GetPlaybackAsync();
+            if (HasInitialConfig() && !string.IsNullOrEmpty(_spotify?.AccessToken))
+                return await _spotify.GetPlaybackAsync();
+
+            return null;
+        }
+
+        private bool HasInitialConfig()
+        {
+            if (string.IsNullOrEmpty(_botConfig.SpotifyClientId)
+                    || string.IsNullOrEmpty(_botConfig.SpotifyRedirectUri)
+                    || string.IsNullOrEmpty(_botConfig.SpotifyServerUri))
+            {
+                Console.WriteLine("Warning: Spotify hasn't been set up for this bot.");
+                Console.WriteLine("Please insert a Spotify client Id, redirect URI, and server URI in bot config\n");
+                return false;
+            }
+
+            return true;
         }
     }
 }
