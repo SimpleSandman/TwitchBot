@@ -75,6 +75,15 @@ namespace TwitchBot.Configuration
         private static readonly ConfigurationProperty _regularFollowerHours =
             new ConfigurationProperty("regularFollowerHours", typeof(int), 30, ConfigurationPropertyOptions.None);
 
+        private static readonly ConfigurationProperty _spotifyClientId =
+            new ConfigurationProperty("spotifyClientId", typeof(string), "", ConfigurationPropertyOptions.None);
+
+        private static readonly ConfigurationProperty _spotifyRedirectUri =
+            new ConfigurationProperty("spotifyRedirectUri", typeof(string), "", ConfigurationPropertyOptions.None);
+
+        private static readonly ConfigurationProperty _spotifyServerUri =
+            new ConfigurationProperty("spotifyServerUri", typeof(string), "", ConfigurationPropertyOptions.None);
+
         public TwitchBotConfigurationSection()
         {
             _properties = new ConfigurationPropertyCollection
@@ -99,7 +108,10 @@ namespace TwitchBot.Configuration
                 _youTubeBroadcasterPlaylistId,
                 _youTubeBroadcasterPlaylistName,
                 _manualSongRequestLink,
-                _regularFollowerHours
+                _regularFollowerHours,
+                _spotifyClientId,
+                _spotifyRedirectUri,
+                _spotifyServerUri
             };
         }
 
@@ -351,6 +363,36 @@ namespace TwitchBot.Configuration
             {
                 ThrowIfReadOnly("RegularFollowerHours");
                 this["regularFollowerHours"] = value;
+            }
+        }
+
+        public string SpotifyClientId
+        {
+            get { return (string)this["spotifyClientId"]; }
+            set
+            {
+                ThrowIfReadOnly("SpotifyClientId");
+                this["spotifyClientId"] = value;
+            }
+        }
+
+        public string SpotifyRedirectUri
+        {
+            get { return (string)this["spotifyRedirectUri"]; }
+            set
+            {
+                ThrowIfReadOnly("SpotifyRedirectUri");
+                this["spotifyRedirectUri"] = value;
+            }
+        }
+
+        public string SpotifyServerUri
+        {
+            get { return (string)this["spotifyServerUri"]; }
+            set
+            {
+                ThrowIfReadOnly("SpotifyServerUri");
+                this["spotifyServerUri"] = value;
             }
         }
     }

@@ -42,7 +42,7 @@ namespace TwitchBot
         private List<string> _greetedUsers;
         private Queue<string> _gameQueueUsers;
         private List<CooldownUser> _cooldownUsers;
-        private LocalSpotifyClient _spotify;
+        private WebSpotifyClient _spotify;
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
         private FollowerSubscriberListener _followerSubscriberListener;
@@ -133,7 +133,7 @@ namespace TwitchBot
                 ErrorHandler.Configure(_broadcasterInstance.DatabaseId, _irc, _botConfig);
 
                 /* Connect to local Spotify client */
-                _spotify = new LocalSpotifyClient(_botConfig);
+                _spotify = new WebSpotifyClient(_botConfig);
                 await _spotify.Connect();
 
                 // Password from www.twitchapps.com/tmi/
@@ -312,19 +312,19 @@ namespace TwitchBot
 
                                 /* Press local Spotify play button [>] */
                                 else if (message.Equals("!spotifyplay", StringComparison.CurrentCultureIgnoreCase))
-                                    _spotify.playBtn_Click();
+                                    await _spotify.Play();
 
                                 /* Press local Spotify pause button [||] */
                                 else if (message.Equals("!spotifypause", StringComparison.CurrentCultureIgnoreCase))
-                                    _spotify.pauseBtn_Click();
+                                    await _spotify.Pause();
 
                                 /* Press local Spotify previous button [|<] */
                                 else if (message.Equals("!spotifyprev", StringComparison.CurrentCultureIgnoreCase))
-                                    _spotify.prevBtn_Click();
+                                    await _spotify.SkipToPreviousPlayback();
 
                                 /* Press local Spotify next (skip) button [>|] */
                                 else if (message.Equals("!spotifynext", StringComparison.CurrentCultureIgnoreCase))
-                                    _spotify.skipBtn_Click();
+                                    await _spotify.SkipToNextPlayback();
 
                                 /* Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets) */
                                 else if (message.Equals("!sendtweet on", StringComparison.CurrentCultureIgnoreCase))
@@ -544,7 +544,7 @@ namespace TwitchBot
 
                                 /* Displays the current song being played from Spotify */
                                 else if (message.Equals("!spotifysong", StringComparison.CurrentCultureIgnoreCase))
-                                    _cmdGen.CmdSpotifyCurrentSong();
+                                    await _cmdGen.CmdSpotifyCurrentSong();
 
                                 /* Slaps a user and rates its effectiveness */
                                 // Usage: !slap @[username]

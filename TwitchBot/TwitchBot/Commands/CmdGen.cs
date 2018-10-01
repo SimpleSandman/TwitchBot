@@ -11,7 +11,7 @@ using Google.Apis.YouTube.v3.Data;
 
 using Newtonsoft.Json;
 
-using SpotifyAPI.Local.Models;
+using SpotifyAPI.Web.Models;
 
 using TwitchBot.Configuration;
 using TwitchBot.Enums;
@@ -29,7 +29,7 @@ namespace TwitchBot.Commands
     public class CmdGen
     {
         private IrcClient _irc;
-        private LocalSpotifyClient _spotify;
+        private WebSpotifyClient _spotify;
         private TwitchBotConfigurationSection _botConfig;
         private int _broadcasterId;
         private TwitchInfoService _twitchInfo;
@@ -46,7 +46,7 @@ namespace TwitchBot.Commands
         private BossFightSingleton _bossSettingsInstance = BossFightSingleton.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
-        public CmdGen(IrcClient irc, LocalSpotifyClient spotify, TwitchBotConfigurationSection botConfig, int broadcasterId,
+        public CmdGen(IrcClient irc, WebSpotifyClient spotify, TwitchBotConfigurationSection botConfig, int broadcasterId,
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
             ManualSongRequestService manualSongRequest, PartyUpService partyUp, GameDirectoryService gameDirectory, QuoteService quote)
         {
@@ -229,16 +229,25 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Displays the current song being played from Spotify
         /// </summary>
-        public async void CmdSpotifyCurrentSong()
+        public async Task CmdSpotifyCurrentSong()
         {
             try
             {
-                StatusResponse status = _spotify.GetStatus();
-                if (status != null)
+                PlaybackContext playbackContext = await _spotify.GetPlayback();
+                if (playbackContext != null && playbackContext.IsPlaying)
                 {
-                    _irc.SendPublicChatMessage("Current Song: " + status.Track.TrackResource.Name
-                        + " >< Artist: " + status.Track.ArtistResource.Name
-                        + " >< Album: " + status.Track.AlbumResource.Name);
+                    string artists = "";
+
+                    foreach (SimpleArtist artist in playbackContext.Item.Artists)
+                    {
+                        artists += $"{artist.Name}, ";
+                    }
+
+                    artists = artists.ReplaceLastOccurrence(", ", "");
+
+                    _irc.SendPublicChatMessage("Current Song: " + playbackContext.Item.Name
+                        + " >< Artist(s): " + artists
+                        + " >< Album: " + playbackContext.Item.Album.Name);
                 }
                 else
                     _irc.SendPublicChatMessage("The broadcaster is not playing a song at the moment");
