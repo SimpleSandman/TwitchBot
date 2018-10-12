@@ -160,7 +160,6 @@ namespace TwitchBot
                 Console.WriteLine();
 
                 /* Pull YouTube response tokens from user's account (request permission if needed) */
-                // ToDo: Move YouTube client secrets away from bot config
                 _hasYouTubeAuth = await _youTubeClientInstance.GetAuth(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret);
                 if (_hasYouTubeAuth)
                 {
@@ -177,18 +176,18 @@ namespace TwitchBot
                     if (!string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                     {
                         broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId);
-
-                        if (broadcasterPlaylist == null || broadcasterPlaylist.Id == null)
-                        {
-                            broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(playlistName);
-                        }
                     }
-                    
-                    if (string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId) || broadcasterPlaylist?.Id == null)
+
+                    if (broadcasterPlaylist?.Id == null)
                     {
-                        broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylist(playlistName,
-                            "Songs requested via Twitch viewers on https://twitch.tv/" + _botConfig.Broadcaster
-                                + " (playlist created using https://github.com/SimpleSandman/TwitchBot)");
+                        broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(playlistName);
+
+                        if (broadcasterPlaylist?.Id == null)
+                        {
+                            broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylist(playlistName,
+                                "Songs requested via Twitch viewers on https://twitch.tv/" + _botConfig.Broadcaster
+                                    + " . Playlist automatically created courtesy of https://github.com/SimpleSandman/TwitchBot");
+                        }
                     }
 
                     _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
@@ -544,7 +543,7 @@ namespace TwitchBot
 
                                 /* Displays the current song being played from Spotify */
                                 else if (message.Equals("!spotifysong", StringComparison.CurrentCultureIgnoreCase))
-                                    await _cmdGen.CmdSpotifyCurrentSong();
+                                    await _cmdGen.CmdSpotifyCurrentSong(username);
 
                                 /* Slaps a user and rates its effectiveness */
                                 // Usage: !slap @[username]
@@ -662,8 +661,8 @@ namespace TwitchBot
 
                                 /* Add song request to YouTube playlist */
                                 // Usage: !ytsr [video title/YouTube link]
-                                else if ((message.StartsWith("!ytsr ", StringComparison.CurrentCultureIgnoreCase) 
-                                                || message.StartsWith("!sr ", StringComparison.CurrentCultureIgnoreCase) 
+                                else if ((message.StartsWith("!ytsr ", StringComparison.CurrentCultureIgnoreCase)
+                                                || message.StartsWith("!sr ", StringComparison.CurrentCultureIgnoreCase)
                                                 || message.StartsWith("!songrequest ", StringComparison.CurrentCultureIgnoreCase))
                                             && !IsUserOnCooldown(username, "!ytsr"))
                                 {
@@ -811,6 +810,10 @@ namespace TwitchBot
                                 /* Display this project and creator's info */
                                 else if (message.Equals("!support", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdGen.CmdSupport();
+
+                                /* Display current song that's being played from WPF app */
+                                else if (message.Equals("!song", StringComparison.CurrentCultureIgnoreCase))
+                                    _cmdGen.CmdWpfCurrentSong(hasYouTubeAuth, username);
 
                                 /* add more general commands here */
                             }

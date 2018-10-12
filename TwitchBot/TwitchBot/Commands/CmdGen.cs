@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Globalization;
-using System.Text.RegularExpressions;
 
 using Google.Apis.YouTube.v3.Data;
 
@@ -23,6 +25,7 @@ using TwitchBot.Services;
 using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
+using TwitchBotDb.Temp;
 
 namespace TwitchBot.Commands
 {
@@ -229,28 +232,29 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Displays the current song being played from Spotify
         /// </summary>
-        public async Task CmdSpotifyCurrentSong()
+        public async Task CmdSpotifyCurrentSong(string username)
         {
             try
             {
                 PlaybackContext playbackContext = await _spotify.GetPlayback();
                 if (playbackContext != null && playbackContext.IsPlaying)
                 {
-                    string artists = "";
+                    string artistName = "";
 
-                    foreach (SimpleArtist artist in playbackContext.Item.Artists)
+                    foreach (SimpleArtist simpleArtist in playbackContext.Item.Artists)
                     {
-                        artists += $"{artist.Name}, ";
+                        artistName += $"{simpleArtist.Name}, ";
                     }
 
-                    artists = artists.ReplaceLastOccurrence(", ", "");
+                    artistName = artistName.ReplaceLastOccurrence(", ", "");
 
-                    _irc.SendPublicChatMessage("Current Song: " + playbackContext.Item.Name
-                        + " >< Artist(s): " + artists
-                        + " >< Album: " + playbackContext.Item.Album.Name);
+                    TimeSpan timeSpan = TimeSpan.FromMilliseconds(playbackContext.Item.DurationMs);
+
+                    _irc.SendPublicChatMessage($"Now Playing: \"{playbackContext.Item.Name}\" by {artistName} " 
+                        + $"({Math.Floor(timeSpan.TotalMinutes)}M{timeSpan.Seconds}S)");
                 }
                 else
-                    _irc.SendPublicChatMessage("The broadcaster is not playing a song at the moment");
+                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{username}");
             }
             catch (Exception ex)
             {
@@ -783,23 +787,11 @@ namespace TwitchBot.Commands
                     // Parse video ID based on different types of requests
                     if (message.Contains("youtube.com/watch?v=")) // full URL
                     {
-                        int videoIdIndex = message.IndexOf("?v=") + 3;
-                        int addParam = message.IndexOf("&", videoIdIndex);
-
-                        if (addParam == -1)
-                            videoId = message.Substring(videoIdIndex);
-                        else
-                            videoId = message.Substring(videoIdIndex, addParam - videoIdIndex);
+                        videoId = GetYouTubeVideoId(message, "?v=");
                     }
                     else if (message.Contains("youtu.be/")) // short URL
                     {
-                        int videoIdIndex = message.IndexOf("youtu.be/") + 9;
-                        int addParam = message.IndexOf("?", videoIdIndex);
-
-                        if (addParam == -1)
-                            videoId = message.Substring(videoIdIndex);
-                        else
-                            videoId = message.Substring(videoIdIndex, addParam - videoIdIndex);
+                        videoId = GetYouTubeVideoId(message, "youtu.be/");
                     }
                     else if (message.Substring(spaceIndex + 1).Length == 11
                         && message.Substring(spaceIndex + 1).IndexOf(" ") == -1
@@ -894,7 +886,8 @@ namespace TwitchBot.Commands
 
                             if (Convert.ToInt32(videoMin) >= videoMinLimit && Convert.ToInt32(videoSec) >= videoSecLimit)
                             {
-                                _irc.SendPublicChatMessage($"Song request is longer than or equal to {videoMinLimit} minute(s) and {videoSecLimit} second(s)");
+                                _irc.SendPublicChatMessage("Song request is longer than or equal to " 
+                                    + $"{videoMinLimit} minute(s) and {videoSecLimit} second(s) @{username}");
                             }
                             else
                             {
@@ -902,7 +895,7 @@ namespace TwitchBot.Commands
                                 await _bank.UpdateFunds(username, _broadcasterId, funds - cost);
 
                                 _irc.SendPublicChatMessage($"@{username} spent {cost} {_botConfig.CurrencyType} " + 
-                                    $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} was successfully requested!");
+                                    $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) was successfully requested!");
 
                                 // Return cooldown time by using one-third of the length of the video duration
                                 TimeSpan totalTimeSpan = new TimeSpan(0, Convert.ToInt32(videoMin), Convert.ToInt32(videoSec));
@@ -1677,6 +1670,87 @@ namespace TwitchBot.Commands
             {
                 await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSupport()", false, "!support");
             }
+        }
+
+        public async void CmdWpfCurrentSong(bool hasYouTubeAuth, string username)
+        {
+            try
+            {
+                string wpfTitle = "";
+
+                Process[] processes = Process.GetProcessesByName("TwitchBotWpf");
+                foreach (Process process in processes)
+                {
+                    wpfTitle = process.MainWindowTitle;
+                    break;
+                }
+
+                if (wpfTitle.Contains("<<Playing>>"))
+                {
+                    // ToDo: Store file name and path into config file
+                    string filepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TwitchBot");
+                    string filename = "CefSharpCache.json";
+
+                    CefSharpCache csCache = new CefSharpCache();
+
+                    using (StreamReader file = File.OpenText($"{filepath}\\{filename}"))
+                    {
+                        JsonSerializer serializer = new JsonSerializer();
+                        csCache = (CefSharpCache)serializer.Deserialize(file, typeof(CefSharpCache));
+                    }
+
+                    string playingMessage = $"Now Playing: \"{wpfTitle.Replace("<<Playing>>", "")}\"";
+                    string videoId = GetYouTubeVideoId(csCache.Url, "?v=");
+
+                    if (!string.IsNullOrEmpty(videoId))
+                    {
+                        Video video = await _youTubeClientInstance.GetVideoById(videoId, 2);
+
+                        if (video.ContentDetails != null && video.Snippet != null)
+                        {
+                            string videoDuration = video.ContentDetails.Duration;
+                            int timeIndex = videoDuration.IndexOf("T") + 1;
+                            string parsedDuration = videoDuration.Substring(timeIndex);
+                            int minIndex = parsedDuration.IndexOf("M");
+
+                            string videoMin = "0";
+                            string videoSec = "0";
+
+                            if (minIndex > 0)
+                                videoMin = parsedDuration.Substring(0, minIndex);
+
+                            if (parsedDuration.IndexOf("S") > 0)
+                                videoSec = parsedDuration.Substring(minIndex + 1).TrimEnd('S');
+
+                            playingMessage = $"Now Playing: \"{video.Snippet.Title}\" by " +
+                                $"{video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S)";
+                        }
+                    }
+
+                    _irc.SendPublicChatMessage(playingMessage);
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{username}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdWpfCurrentSong(bool, string)", false, "!song");
+            }
+        }
+
+        /// <summary>
+        /// Grab the YouTube video ID from the message passed
+        /// </summary>
+        /// <param name="message">String containing the YouTube link</param>
+        /// <param name="urlVideoIdParam">Parameter/value used to find the beginning of the video ID (ex: "?v=" or "youtu.be/")</param>
+        /// <returns></returns>
+        private string GetYouTubeVideoId(string message, string urlVideoIdParam)
+        {
+            int videoIdIndex = message.IndexOf(urlVideoIdParam) + urlVideoIdParam.Length;
+
+            return message.IndexOf(urlVideoIdParam) == -1 ? "" : message.Substring(videoIdIndex, 11);
         }
 
         private async Task<bool> IsMultiplayerGame(string username)
