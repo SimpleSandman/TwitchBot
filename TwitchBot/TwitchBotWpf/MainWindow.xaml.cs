@@ -46,7 +46,7 @@ namespace TwitchBotWpf
             Browser.LoadingStateChanged += Browser_LoadingStateChanged;
             Browser.ConsoleMessage += Browser_ConsoleMessage;
 
-            //Browser.ShowDevTools(); // debugging only
+            Browser.ShowDevTools(); // debugging only
         }
 
         private void Browser_ConsoleMessage(object sender, ConsoleMessageEventArgs e)
@@ -74,7 +74,6 @@ namespace TwitchBotWpf
 
         private void Browser_LoadingStateChanged(object sender, LoadingStateChangedEventArgs e)
         {
-            // Reference: https://stackoverflow.com/a/42121795/2113548
             Browser.ExecuteScriptAsync(@"
                 var youtubeMoviePlayer = document.getElementById('movie_player');
 
@@ -100,8 +99,19 @@ namespace TwitchBotWpf
                     }
                 }
             ");
+        }
 
-            Dispatcher.BeginInvoke((Action)(() => 
+        private void Browser_IsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            string playlistId = "PLps6TngL_FGtk-aXhNcMyMbf-PeVvY8Tk"; // ToDo: Make the playlist link dynamic
+            Browser.Load($"https://www.youtube.com/playlist?list={playlistId}");
+        }
+
+        private void Browser_TitleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            Title = Browser.Title.Replace("- YouTube", "");
+
+            Dispatcher.BeginInvoke((Action)(() =>
             {
                 if (Browser.IsLoaded)
                 {
@@ -123,17 +133,6 @@ namespace TwitchBotWpf
                     }
                 }
             }));
-        }
-
-        private void Browser_IsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            string playlistId = "PLps6TngL_FGtk-aXhNcMyMbf-PeVvY8Tk"; // ToDo: Make this dynamic
-            Browser.Load($"https://www.youtube.com/playlist?list={playlistId}");
-        }
-
-        private void Browser_TitleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            Title = Browser.Title.Replace("- YouTube", "");
         }
     }
 }

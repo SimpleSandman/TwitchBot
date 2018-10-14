@@ -785,13 +785,9 @@ namespace TwitchBot.Commands
                     int spaceIndex = message.IndexOf(" ");
 
                     // Parse video ID based on different types of requests
-                    if (message.Contains("youtube.com/watch?v=")) // full URL
+                    if (message.Contains("?v=") || message.Contains("&v=") || message.Contains("youtu.be/")) // full or short URL
                     {
-                        videoId = GetYouTubeVideoId(message, "?v=");
-                    }
-                    else if (message.Contains("youtu.be/")) // short URL
-                    {
-                        videoId = GetYouTubeVideoId(message, "youtu.be/");
+                        videoId = GetYouTubeVideoId(message);
                     }
                     else if (message.Substring(spaceIndex + 1).Length == 11
                         && message.Substring(spaceIndex + 1).IndexOf(" ") == -1
@@ -1700,7 +1696,7 @@ namespace TwitchBot.Commands
                     }
 
                     string playingMessage = $"Now Playing: \"{wpfTitle.Replace("<<Playing>>", "")}\"";
-                    string videoId = GetYouTubeVideoId(csCache.Url, "?v=");
+                    string videoId = GetYouTubeVideoId(csCache.Url);
 
                     if (!string.IsNullOrEmpty(videoId))
                     {
@@ -1744,13 +1740,25 @@ namespace TwitchBot.Commands
         /// Grab the YouTube video ID from the message passed
         /// </summary>
         /// <param name="message">String containing the YouTube link</param>
-        /// <param name="urlVideoIdParam">Parameter/value used to find the beginning of the video ID (ex: "?v=" or "youtu.be/")</param>
         /// <returns></returns>
-        private string GetYouTubeVideoId(string message, string urlVideoIdParam)
+        private string GetYouTubeVideoId(string message)
         {
-            int videoIdIndex = message.IndexOf(urlVideoIdParam) + urlVideoIdParam.Length;
+            int videoIdIndex = -1;
 
-            return message.IndexOf(urlVideoIdParam) == -1 ? "" : message.Substring(videoIdIndex, 11);
+            if (message.Contains("?v=")) // full URL
+            {
+                videoIdIndex = message.IndexOf("?v=") + 3;
+            }
+            else if (message.Contains("&v=")) // full URL
+            {
+                videoIdIndex = message.IndexOf("&v=") + 3;
+            }
+            else if (message.Contains("youtu.be/")) // short URL
+            {
+                videoIdIndex = message.IndexOf("youtu.be/") + 9;
+            }
+
+            return videoIdIndex == -1 ? "" : message.Substring(videoIdIndex, 11);
         }
 
         private async Task<bool> IsMultiplayerGame(string username)
