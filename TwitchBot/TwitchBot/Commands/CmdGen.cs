@@ -1668,7 +1668,7 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async void CmdWpfCurrentSong(bool hasYouTubeAuth, string username)
+        public async void CmdYouTubeCurrentSong(bool hasYouTubeAuth, string username)
         {
             try
             {
@@ -1683,7 +1683,6 @@ namespace TwitchBot.Commands
 
                 if (wpfTitle.Contains("<<Playing>>"))
                 {
-                    // ToDo: Store file name and path into config file
                     string filepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TwitchBot");
                     string filename = "CefSharpCache.json";
 

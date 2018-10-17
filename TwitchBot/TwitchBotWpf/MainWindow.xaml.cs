@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Windows;
 
@@ -24,20 +23,6 @@ namespace TwitchBotWpf
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             Browser.Dispose();
-            Cef.Shutdown();
-
-            // ToDo: More thorough testing
-            Process[] processes = Process.GetProcessesByName("CefSharp.BrowserSubprocess");
-            foreach (Process process in processes)
-            {
-                if (!process.HasExited)
-                {
-                    // Kill if subprocesses didn't close gracefully
-                    process.Kill();
-                }
-            }
-
-            Application.Current.Shutdown();
         }
 
         private void ChromiumWebBrowser_FrameLoadEnd(object sender, FrameLoadEndEventArgs e)
@@ -46,7 +31,7 @@ namespace TwitchBotWpf
             Browser.LoadingStateChanged += Browser_LoadingStateChanged;
             Browser.ConsoleMessage += Browser_ConsoleMessage;
 
-            Browser.ShowDevTools(); // debugging only
+            //Browser.ShowDevTools(); // debugging only
         }
 
         private void Browser_ConsoleMessage(object sender, ConsoleMessageEventArgs e)
@@ -103,8 +88,24 @@ namespace TwitchBotWpf
 
         private void Browser_IsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            string playlistId = "PLps6TngL_FGtk-aXhNcMyMbf-PeVvY8Tk"; // ToDo: Make the playlist link dynamic
-            Browser.Load($"https://www.youtube.com/playlist?list={playlistId}");
+            string filepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TwitchBot");
+            string filename = "YoutubePlaylistInfo.json";
+
+            YoutubePlaylistInfo youtubePlaylistInfo = new YoutubePlaylistInfo();
+
+            if (File.Exists($"{filepath}\\{filename}"))
+            {
+                using (StreamReader file = File.OpenText($"{filepath}\\{filename}"))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    youtubePlaylistInfo = (YoutubePlaylistInfo)serializer.Deserialize(file, typeof(YoutubePlaylistInfo));
+                }
+            }
+
+            if (!string.IsNullOrEmpty(youtubePlaylistInfo.Id))
+                Browser.Load($"https://www.youtube.com/playlist?list={youtubePlaylistInfo.Id}");
+            else
+                Browser.Load("https://www.youtube.com/");
         }
 
         private void Browser_TitleChanged(object sender, DependencyPropertyChangedEventArgs e)

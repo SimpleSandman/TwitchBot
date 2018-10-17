@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 using System.IO;
 using System.Windows;
 
@@ -23,6 +22,12 @@ namespace TwitchBotWpf
 
             //Perform dependency check to make sure all relevant resources are in our output directory.
             Cef.Initialize(settings, performDependencyCheck: true, browserProcessHandler: null);
+        }
+
+        private void Application_Exit(object sender, ExitEventArgs e)
+        {
+            Cef.Shutdown();
+            Environment.Exit(0);
         }
     }
 }

@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Google.Apis.YouTube.v3.Data;
-
 using TwitchBot.Configuration;
 using TwitchBot.Extensions;
 using TwitchBot.Libraries;
@@ -628,6 +627,9 @@ namespace TwitchBot.Commands
                 _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistName", broadcasterPlaylist.Snippet.Title);
                 _appConfig.Save(ConfigurationSaveMode.Modified);
                 ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+
+                // Save playlist info into JSON file for WPF app to reference
+                _youTubeClientInstance.SavePlaylistInfo(_botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubeBroadcasterPlaylistName);
 
                 _irc.SendPublicChatMessage($"YouTube playlist has been reset @{_botConfig.Broadcaster} " 
                     + "and is now at this link https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);
