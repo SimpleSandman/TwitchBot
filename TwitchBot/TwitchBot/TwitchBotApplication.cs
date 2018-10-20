@@ -22,6 +22,7 @@ using TwitchBot.Services;
 using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
+using TwitchBotDb.Temp;
 
 namespace TwitchBot
 {
@@ -204,7 +205,8 @@ namespace TwitchBot
                         ConfigurationManager.RefreshSection("TwitchBotConfiguration");
 
                         // Save playlist info into JSON file for WPF app to reference
-                        _youTubeClientInstance.SavePlaylistInfo(_botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubeBroadcasterPlaylistName);
+                        YoutubePlaylistInfo.Save(_botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubeBroadcasterPlaylistName,
+                            _botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret);
                     }
                 }
                 catch (Exception ex)

@@ -1,12 +1,21 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 using CefSharp;
 
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
+using Google.Apis.YouTube.v3;
+
 using Newtonsoft.Json;
 
 using TwitchBotDb.Temp;
+
+using TwitchBotWpf.Extensions;
 
 namespace TwitchBotWpf
 {
@@ -15,6 +24,8 @@ namespace TwitchBotWpf
     /// </summary>
     public partial class MainWindow : Window
     {
+        private YouTubeService _youtubeService;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -30,6 +41,9 @@ namespace TwitchBotWpf
             Browser.TitleChanged += Browser_TitleChanged;
             Browser.LoadingStateChanged += Browser_LoadingStateChanged;
             Browser.ConsoleMessage += Browser_ConsoleMessage;
+
+            if (Dispatcher.Invoke(GetAuth).Result)
+                Task.Factory.StartNew(this.YoutubePlaylistListener);
 
             //Browser.ShowDevTools(); // debugging only
         }
@@ -88,19 +102,7 @@ namespace TwitchBotWpf
 
         private void Browser_IsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            string filepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TwitchBot");
-            string filename = "YoutubePlaylistInfo.json";
-
-            YoutubePlaylistInfo youtubePlaylistInfo = new YoutubePlaylistInfo();
-
-            if (File.Exists($"{filepath}\\{filename}"))
-            {
-                using (StreamReader file = File.OpenText($"{filepath}\\{filename}"))
-                {
-                    JsonSerializer serializer = new JsonSerializer();
-                    youtubePlaylistInfo = (YoutubePlaylistInfo)serializer.Deserialize(file, typeof(YoutubePlaylistInfo));
-                }
-            }
+            YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
 
             if (!string.IsNullOrEmpty(youtubePlaylistInfo.Id))
                 Browser.Load($"https://www.youtube.com/playlist?list={youtubePlaylistInfo.Id}");
@@ -134,6 +136,54 @@ namespace TwitchBotWpf
                     }
                 }
             }));
+        }
+
+        private async Task YoutubePlaylistListener()
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                // do stuff here...please?!
+
+                Task.Delay(15000);
+            });
+        }
+
+        /// <summary>
+        /// Get access and refresh tokens from user's account
+        /// </summary>
+        private async Task<bool> GetAuth()
+        {
+            try
+            {
+                YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
+
+                string clientSecrets = @"{ 'installed': {'client_id': '" + youtubePlaylistInfo.ClientId + 
+                    "', 'client_secret': '" + youtubePlaylistInfo.ClientSecret + "'} }";
+
+                UserCredential credential;
+                using (Stream stream = clientSecrets.ToStream())
+                {
+                    credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                        GoogleClientSecrets.Load(stream).Secrets,
+                        new[] { YouTubeService.Scope.Youtube },
+                        "user",
+                        CancellationToken.None,
+                        new FileDataStore("Twitch Bot")
+                    );
+                }
+
+                _youtubeService = new YouTubeService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = "Twitch Bot"
+                });
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

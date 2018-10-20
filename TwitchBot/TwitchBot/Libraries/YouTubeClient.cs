@@ -10,11 +10,7 @@ using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
 
-using Newtonsoft.Json;
-
 using TwitchBot.Extensions;
-
-using TwitchBotDb.Temp;
 
 namespace TwitchBot.Libraries
 {
@@ -246,31 +242,6 @@ namespace TwitchBot.Libraries
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Save playlist info into JSON file for WPF app to reference
-        /// </summary>
-        /// <param name="playlistId">ID of the playlist</param>
-        /// <param name="playlistName">Name of the playlist</param>
-        public void SavePlaylistInfo(string playlistId, string playlistName)
-        {
-            YoutubePlaylistInfo youtubePlaylistInfo = new YoutubePlaylistInfo
-            {
-                Id = playlistId,
-                Name = playlistName
-            };
-
-            string filepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TwitchBot");
-            string filename = "YoutubePlaylistInfo.json";
-
-            Directory.CreateDirectory(filepath);
-
-            using (StreamWriter file = File.CreateText($"{filepath}\\{filename}"))
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Serialize(file, youtubePlaylistInfo);
-            }
         }
 
         /// <summary>
