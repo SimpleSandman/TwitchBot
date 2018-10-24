@@ -2,11 +2,12 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using TwitchBot.Extensions;
 using TwitchBot.Repositories;
 
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
+
+using TwitchBotUtil.Extensions;
 
 namespace TwitchBot.Services
 {

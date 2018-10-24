@@ -8,12 +8,14 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 using TwitchBot.Configuration;
-using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
+
 using TwitchBotDb.Models;
+
+using TwitchBotUtil.Extensions;
 
 namespace TwitchBot.Threads
 {

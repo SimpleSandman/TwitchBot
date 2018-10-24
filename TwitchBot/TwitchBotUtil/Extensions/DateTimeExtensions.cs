@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TwitchBot.Extensions
+namespace TwitchBotUtil.Extensions
 {
     public static class DateTimeExtensions
     {

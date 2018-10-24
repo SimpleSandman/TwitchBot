@@ -10,12 +10,11 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
-
-using Newtonsoft.Json;
+using Google.Apis.YouTube.v3.Data;
 
 using TwitchBotDb.Temp;
 
-using TwitchBotWpf.Extensions;
+using TwitchBotWpf.Libraries;
 
 namespace TwitchBotWpf
 {
@@ -24,11 +23,22 @@ namespace TwitchBotWpf
     /// </summary>
     public partial class MainWindow : Window
     {
-        private YouTubeService _youtubeService;
+        private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            // check if user has given permission to their YouTube account
+            YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
+            bool hasYoutubeAuth = Dispatcher.Invoke(() => _youTubeClientInstance.GetAuthAsync(youtubePlaylistInfo.ClientId, youtubePlaylistInfo.ClientSecret)).Result;
+
+            if (hasYoutubeAuth)
+            {
+                Task.Factory.StartNew(this.YoutubePlaylistListener);
+            }
+            
+            CefSharpCache.Save(new CefSharpCache());
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
@@ -42,14 +52,13 @@ namespace TwitchBotWpf
             Browser.LoadingStateChanged += Browser_LoadingStateChanged;
             Browser.ConsoleMessage += Browser_ConsoleMessage;
 
-            if (Dispatcher.Invoke(GetAuth).Result)
-                Task.Factory.StartNew(this.YoutubePlaylistListener);
-
+            
             //Browser.ShowDevTools(); // debugging only
         }
 
         private void Browser_ConsoleMessage(object sender, ConsoleMessageEventArgs e)
         {
+            // ToDo: Find something for loading between videos
             Dispatcher.BeginInvoke((Action) (() => 
             {
                 int index = Title.IndexOf("<<Playing>>") > 1 ? Title.IndexOf("<<Playing>>") : Title.IndexOf("<<Paused>>");
@@ -118,72 +127,50 @@ namespace TwitchBotWpf
             {
                 if (Browser.IsLoaded)
                 {
-                    CefSharpCache csCache = new CefSharpCache
+                    YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
+                    CefSharpCache cefSharpCache = new CefSharpCache { Url = Browser.Address };
+
+                    if (Browser.Address.Contains($"list={youtubePlaylistInfo.Id}") && Browser.Address.Contains("v="))
                     {
-                        Url = Browser.Address
-                    };
-
-                    // ToDo: Store file name and path into config file
-                    string filepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TwitchBot");
-                    string filename = "CefSharpCache.json";
-
-                    Directory.CreateDirectory(filepath);
-
-                    using (StreamWriter file = File.CreateText($"{filepath}\\{filename}"))
-                    {
-                        JsonSerializer serializer = new JsonSerializer();
-                        serializer.Serialize(file, csCache);
+                        cefSharpCache.LastPlaylistVideoId = _youTubeClientInstance.GetYouTubeVideoId(Browser.Address);
                     }
+                    else
+                    {
+                        cefSharpCache.LastPlaylistVideoId = CefSharpCache.Load().LastPlaylistVideoId;
+                    }
+
+                    CefSharpCache.Save(cefSharpCache);
                 }
             }));
         }
 
         private async Task YoutubePlaylistListener()
         {
-            await Dispatcher.InvokeAsync(() =>
+            await Dispatcher.InvokeAsync(async () =>
             {
-                // do stuff here...please?!
-
-                Task.Delay(15000);
-            });
-        }
-
-        /// <summary>
-        /// Get access and refresh tokens from user's account
-        /// </summary>
-        private async Task<bool> GetAuth()
-        {
-            try
-            {
-                YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
-
-                string clientSecrets = @"{ 'installed': {'client_id': '" + youtubePlaylistInfo.ClientId + 
-                    "', 'client_secret': '" + youtubePlaylistInfo.ClientSecret + "'} }";
-
-                UserCredential credential;
-                using (Stream stream = clientSecrets.ToStream())
+                while (true)
                 {
-                    credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                        GoogleClientSecrets.Load(stream).Secrets,
-                        new[] { YouTubeService.Scope.Youtube },
-                        "user",
-                        CancellationToken.None,
-                        new FileDataStore("Twitch Bot")
-                    );
+                    await Task.Delay(15000); // wait 15 seconds before checking if a video is being played
+
+                    // Check if a video is being played right now
+                    // Check if a video from the playlist was played at all
+                    // Check if a video was played at all
+                    if (Title.IndexOf("<<Playing>>") < 1 && Title.IndexOf("<<Paused>>") < 1)
+                    {
+                        // Check what video was played last from the song request playlist
+                        CefSharpCache cefSharpCache = CefSharpCache.Load();
+                        YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
+
+                        if (string.IsNullOrEmpty(cefSharpCache.LastPlaylistVideoId))
+                        {
+                            // play first song in the list
+                            string firstVideoId = await _youTubeClientInstance.GetFirstPlaylistVideoId(youtubePlaylistInfo.Id, 1);
+
+                            Browser.Load($"https://www.youtube.com/watch?v={firstVideoId}&list={youtubePlaylistInfo.Id}");
+                        }
+                    }
                 }
-
-                _youtubeService = new YouTubeService(new BaseClientService.Initializer()
-                {
-                    HttpClientInitializer = credential,
-                    ApplicationName = "Twitch Bot"
-                });
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            });
         }
     }
 }

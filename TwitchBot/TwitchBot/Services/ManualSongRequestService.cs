@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using TwitchBot.Extensions;
 using TwitchBot.Repositories;
 
 using TwitchBotDb.Models;
+
+using TwitchBotUtil.Extensions;
 
 namespace TwitchBot.Services
 {

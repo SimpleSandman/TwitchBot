@@ -17,7 +17,6 @@ using SpotifyAPI.Web.Models;
 
 using TwitchBot.Configuration;
 using TwitchBot.Enums;
-using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
@@ -26,6 +25,8 @@ using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
 using TwitchBotDb.Temp;
+
+using TwitchBotUtil.Extensions;
 
 namespace TwitchBot.Commands
 {
@@ -787,7 +788,7 @@ namespace TwitchBot.Commands
                     // Parse video ID based on different types of requests
                     if (message.Contains("?v=") || message.Contains("&v=") || message.Contains("youtu.be/")) // full or short URL
                     {
-                        videoId = GetYouTubeVideoId(message);
+                        videoId = _youTubeClientInstance.GetYouTubeVideoId(message);
                     }
                     else if (message.Substring(spaceIndex + 1).Length == 11
                         && message.Substring(spaceIndex + 1).IndexOf(" ") == -1
@@ -1683,19 +1684,10 @@ namespace TwitchBot.Commands
 
                 if (wpfTitle.Contains("<<Playing>>"))
                 {
-                    string filepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TwitchBot");
-                    string filename = "CefSharpCache.json";
-
-                    CefSharpCache csCache = new CefSharpCache();
-
-                    using (StreamReader file = File.OpenText($"{filepath}\\{filename}"))
-                    {
-                        JsonSerializer serializer = new JsonSerializer();
-                        csCache = (CefSharpCache)serializer.Deserialize(file, typeof(CefSharpCache));
-                    }
+                    CefSharpCache csCache = CefSharpCache.Load();
 
                     string playingMessage = $"Now Playing: \"{wpfTitle.Replace("<<Playing>>", "")}\"";
-                    string videoId = GetYouTubeVideoId(csCache.Url);
+                    string videoId = _youTubeClientInstance.GetYouTubeVideoId(csCache.Url);
 
                     if (!string.IsNullOrEmpty(videoId))
                     {
@@ -1733,31 +1725,6 @@ namespace TwitchBot.Commands
             {
                 await _errHndlrInstance.LogError(ex, "CmdGen", "CmdWpfCurrentSong(bool, string)", false, "!song");
             }
-        }
-
-        /// <summary>
-        /// Grab the YouTube video ID from the message passed
-        /// </summary>
-        /// <param name="message">String containing the YouTube link</param>
-        /// <returns></returns>
-        private string GetYouTubeVideoId(string message)
-        {
-            int videoIdIndex = -1;
-
-            if (message.Contains("?v=")) // full URL
-            {
-                videoIdIndex = message.IndexOf("?v=") + 3;
-            }
-            else if (message.Contains("&v=")) // full URL
-            {
-                videoIdIndex = message.IndexOf("&v=") + 3;
-            }
-            else if (message.Contains("youtu.be/")) // short URL
-            {
-                videoIdIndex = message.IndexOf("youtu.be/") + 9;
-            }
-
-            return videoIdIndex == -1 ? "" : message.Substring(videoIdIndex, 11);
         }
 
         private async Task<bool> IsMultiplayerGame(string username)

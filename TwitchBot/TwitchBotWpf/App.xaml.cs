@@ -5,6 +5,8 @@ using System.Windows;
 using CefSharp;
 using CefSharp.Wpf;
 
+using TwitchBotDb.Temp;
+
 namespace TwitchBotWpf
 {
     /// <summary>
@@ -26,7 +28,7 @@ namespace TwitchBotWpf
 
         private void Application_Exit(object sender, ExitEventArgs e)
         {
-            Cef.Shutdown();
+            Cef.Shutdown(); // ToDo: Try running this in the UI thread (Dispatcher)
             Environment.Exit(0);
         }
     }

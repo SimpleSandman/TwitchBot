@@ -5,13 +5,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 
 using TwitchBotDb.Models;
+
+using TwitchBotUtil.Extensions;
 
 namespace TwitchBot.Threads
 {

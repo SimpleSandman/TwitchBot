@@ -11,14 +11,12 @@ using Google.Apis.YouTube.v3;
 using TwitchBotUtil.Extensions;
 using TwitchBotUtil.Libraries;
 
-namespace TwitchBot.Libraries
+namespace TwitchBotWpf.Libraries
 {
     public class YoutubeClient : YoutubeClientApi
     {
         private static volatile YoutubeClient _instance;
         private static object _syncRoot = new object();
-
-        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public static YoutubeClient Instance
         {
@@ -72,11 +70,8 @@ namespace TwitchBot.Libraries
 
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
-                if (!ex.Message.Contains("access_denied")) // record unknown error
-                    await _errHndlrInstance.LogError(ex, "YouTubeClient", "GetAuth(string, string)", false);
-
                 return false;
             }
         }

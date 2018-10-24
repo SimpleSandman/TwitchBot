@@ -10,13 +10,14 @@ using RestSharp;
 
 using TwitchBot.Configuration;
 using TwitchBot.Enums;
-using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Services;
 using TwitchBot.Models.JSON;
 
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
+
+using TwitchBotUtil.Extensions;
 
 namespace TwitchBot.Commands
 {

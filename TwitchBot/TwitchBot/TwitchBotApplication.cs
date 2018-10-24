@@ -163,7 +163,7 @@ namespace TwitchBot
                 /* Configure YouTube song request from user's YT account (request permission if needed) */
                 try
                 {
-                    _hasYouTubeAuth = await _youTubeClientInstance.GetAuth(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret);
+                    _hasYouTubeAuth = await _youTubeClientInstance.GetAuthAsync(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret);
                     if (_hasYouTubeAuth)
                     {
                         Playlist broadcasterPlaylist = null;

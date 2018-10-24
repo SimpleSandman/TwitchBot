@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Google.Apis.YouTube.v3.Data;
 
 using TwitchBot.Configuration;
-using TwitchBot.Extensions;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
@@ -17,6 +16,8 @@ using TwitchBot.Services;
 
 using TwitchBotDb.Models;
 using TwitchBotDb.Temp;
+
+using TwitchBotUtil.Extensions;
 
 namespace TwitchBot.Commands
 {
