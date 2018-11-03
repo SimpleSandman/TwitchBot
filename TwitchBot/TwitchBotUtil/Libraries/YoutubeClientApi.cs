@@ -180,11 +180,10 @@ namespace TwitchBotUtil.Libraries
         /// Check if requested video is being requested again via video ID
         /// </summary>
         /// <param name="playlistId">Playlist ID</param>
-        /// <param name="partType">Part parameter types: 0 = "snippet", 1 = "contentDetails", 2 = "snippet,contentDetails", 3 = "id"</param>
         /// <returns></returns>
-        public virtual async Task<string> GetFirstPlaylistVideoId(string playlistId, int partType = 0)
+        public virtual async Task<string> GetFirstPlaylistVideoId(string playlistId)
         {
-            var userPlaylistItemsListRequest = YouTubeService.PlaylistItems.List(GetPartParam(partType));
+            var userPlaylistItemsListRequest = YouTubeService.PlaylistItems.List(GetPartParam(0));
             userPlaylistItemsListRequest.PlaylistId = playlistId;
             userPlaylistItemsListRequest.MaxResults = 1;
 
@@ -192,7 +191,56 @@ namespace TwitchBotUtil.Libraries
 
             foreach (var playlistItem in userPlaylistItemsListResponse.Items)
             {
-                return playlistItem.ContentDetails.VideoId;
+                return playlistItem.Snippet.ResourceId.VideoId;
+            }
+
+            return "";
+        }
+
+        /// <summary>
+        /// Check if requested video is being requested again via video ID
+        /// </summary>
+        /// <param name="playlistId">Playlist ID</param>
+        /// <param name="lastPlaylistItemVideoId">Requested video's ID</param>
+        /// <returns></returns>
+        public virtual async Task<string> GetNextPlaylistVideoId(string playlistId, string lastPlaylistItemVideoId)
+        {
+            string nextPageToken = "";
+            long? nextVideoPosition = null;
+
+            while (nextPageToken != null)
+            {
+                var userPlaylistItemsListRequest = YouTubeService.PlaylistItems.List(GetPartParam(0));
+                userPlaylistItemsListRequest.PlaylistId = playlistId;
+                userPlaylistItemsListRequest.MaxResults = 50;
+                userPlaylistItemsListRequest.PageToken = nextPageToken;
+
+                var userPlaylistItemsListResponse = await userPlaylistItemsListRequest.ExecuteAsync();
+
+                if (nextVideoPosition == null)
+                {
+                    foreach (var playlistItem in userPlaylistItemsListResponse.Items)
+                    {
+                        if (playlistItem.Snippet.ResourceId.VideoId == lastPlaylistItemVideoId)
+                        {
+                            nextVideoPosition = playlistItem.Snippet.Position + 1;
+                            break;
+                        }
+                    }
+                }
+
+                if (nextVideoPosition != null)
+                {
+                    foreach (var playlistItem in userPlaylistItemsListResponse.Items)
+                    {
+                        if (playlistItem.Snippet.Position == nextVideoPosition)
+                        {
+                            return playlistItem.Snippet.ResourceId.VideoId;
+                        }
+                    }
+                }
+
+                nextPageToken = userPlaylistItemsListResponse.NextPageToken;
             }
 
             return "";

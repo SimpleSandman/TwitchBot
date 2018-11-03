@@ -1,16 +1,8 @@
 ﻿using System;
-using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
 using CefSharp;
-
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
-using Google.Apis.Util.Store;
-using Google.Apis.YouTube.v3;
-using Google.Apis.YouTube.v3.Data;
 
 using TwitchBotDb.Temp;
 
@@ -23,6 +15,9 @@ namespace TwitchBotWpf
     /// </summary>
     public partial class MainWindow : Window
     {
+        private const string _playingStatus = "<<Playing>>";
+        private const string _pausedStatus = "<<Paused>>";
+
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
         public MainWindow()
@@ -33,6 +28,7 @@ namespace TwitchBotWpf
             YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
             bool hasYoutubeAuth = Dispatcher.Invoke(() => _youTubeClientInstance.GetAuthAsync(youtubePlaylistInfo.ClientId, youtubePlaylistInfo.ClientSecret)).Result;
 
+            // ToDo: Control listener using a boolean (possibly from youtubePlaylistInfo property)
             if (hasYoutubeAuth)
             {
                 Task.Factory.StartNew(this.YoutubePlaylistListener);
@@ -48,11 +44,6 @@ namespace TwitchBotWpf
 
         private void ChromiumWebBrowser_FrameLoadEnd(object sender, FrameLoadEndEventArgs e)
         {
-            Browser.TitleChanged += Browser_TitleChanged;
-            Browser.LoadingStateChanged += Browser_LoadingStateChanged;
-            Browser.ConsoleMessage += Browser_ConsoleMessage;
-
-            
             //Browser.ShowDevTools(); // debugging only
         }
 
@@ -61,33 +52,39 @@ namespace TwitchBotWpf
             // ToDo: Find something for loading between videos
             Dispatcher.BeginInvoke((Action) (() => 
             {
-                int index = Title.IndexOf("<<Playing>>") > 1 ? Title.IndexOf("<<Playing>>") : Title.IndexOf("<<Paused>>");
+                int index = -1;
+
+                // Find index of video status
+                if (Title.IndexOf(_playingStatus) > 1)
+                    index = Title.IndexOf(_playingStatus);
+                else if (Title.IndexOf(_pausedStatus) > 1)
+                    index = Title.IndexOf(_pausedStatus);
 
                 if (index > -1)
                 {
                     if (e.Message == "Video is playing")
-                        Title = Title.Replace(Title.Substring(index), "<<Playing>>");
+                        Title = Title.Replace(Title.Substring(index), _playingStatus);
                     else if (e.Message == "Video is not playing")
-                        Title = Title.Replace(Title.Substring(index), "<<Paused>>");
+                        Title = Title.Replace(Title.Substring(index), _pausedStatus);
                 }
                 else
                 {
                     if (e.Message == "Video is playing")
-                        Title += " <<Playing>>";
+                        Title += $" {_playingStatus}";
                     else if (e.Message == "Video is not playing")
-                        Title += " <<Paused>>";
+                        Title += $" {_pausedStatus}";
                 }
             }));
         }
 
         private void Browser_LoadingStateChanged(object sender, LoadingStateChangedEventArgs e)
         {
-            Browser.ExecuteScriptAsync(@"
+            Browser.GetMainFrame().ExecuteJavaScriptAsync(@"
                 var youtubeMoviePlayer = document.getElementById('movie_player');
 
                 var observer = new MutationObserver(function (event) {
                     twitchBotPlaybackStatus(event[0].target.className)   
-                })
+                });
 
                 observer.observe(youtubeMoviePlayer, {
                     attributes: true, 
@@ -95,13 +92,13 @@ namespace TwitchBotWpf
                     childList: false, 
                     characterData: false,
                     subtree: false
-                })
+                });
 
                 function twitchBotPlaybackStatus(mpClassAttr) {
-                    if (mpClassAttr.includes('playing-mode')) {
-                        console.log('Video is playing');
-                    } else if (mpClassAttr.includes('paused-mode') || mpClassAttr.includes('ended-mode')) {
+                    if (mpClassAttr.includes('paused-mode') || mpClassAttr.includes('ended-mode')) {
                         console.log('Video is not playing');
+                    } else if (mpClassAttr.includes('playing-mode')) {
+                        console.log('Video is playing');
                     } else {
                         console.log('Cannot find video player');
                     }
@@ -130,7 +127,8 @@ namespace TwitchBotWpf
                     YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
                     CefSharpCache cefSharpCache = new CefSharpCache { Url = Browser.Address };
 
-                    if (Browser.Address.Contains($"list={youtubePlaylistInfo.Id}") && Browser.Address.Contains("v="))
+                    if (Browser.Address.Contains($"list={youtubePlaylistInfo.Id}") 
+                        && Browser.Address.Contains("v="))
                     {
                         cefSharpCache.LastPlaylistVideoId = _youTubeClientInstance.GetYouTubeVideoId(Browser.Address);
                     }
@@ -146,31 +144,44 @@ namespace TwitchBotWpf
 
         private async Task YoutubePlaylistListener()
         {
-            await Dispatcher.InvokeAsync(async () =>
+            while (true)
             {
-                while (true)
-                {
-                    await Task.Delay(15000); // wait 15 seconds before checking if a video is being played
+                await Task.Delay(10000); // wait 10 seconds before checking if a video is being played
 
+                await Dispatcher.InvokeAsync(async () =>
+                {
                     // Check if a video is being played right now
-                    // Check if a video from the playlist was played at all
-                    // Check if a video was played at all
-                    if (Title.IndexOf("<<Playing>>") < 1 && Title.IndexOf("<<Paused>>") < 1)
+                    if (!Title.Contains(_playingStatus) && !Title.Contains(_pausedStatus))
                     {
                         // Check what video was played last from the song request playlist
-                        CefSharpCache cefSharpCache = CefSharpCache.Load();
                         YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
 
-                        if (string.IsNullOrEmpty(cefSharpCache.LastPlaylistVideoId))
+                        if (youtubePlaylistInfo.Name != Title.TrimEnd())
                         {
-                            // play first song in the list
-                            string firstVideoId = await _youTubeClientInstance.GetFirstPlaylistVideoId(youtubePlaylistInfo.Id, 1);
+                            CefSharpCache cefSharpCache = CefSharpCache.Load();
 
-                            Browser.Load($"https://www.youtube.com/watch?v={firstVideoId}&list={youtubePlaylistInfo.Id}");
+                            // Check if a video from the playlist was played at all
+                            if (string.IsNullOrEmpty(cefSharpCache.LastPlaylistVideoId))
+                            {
+                                // play first song in the list
+                                string firstVideoId = await _youTubeClientInstance.GetFirstPlaylistVideoId(youtubePlaylistInfo.Id);
+
+                                Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={firstVideoId}&list={youtubePlaylistInfo.Id}");
+                            }
+                            else
+                            {
+                                // find the next song in the playlist
+                                string nextVideoId = await _youTubeClientInstance.GetNextPlaylistVideoId(youtubePlaylistInfo.Id, cefSharpCache.LastPlaylistVideoId);
+
+                                if (!string.IsNullOrEmpty(nextVideoId))
+                                {
+                                    Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={nextVideoId}&list={youtubePlaylistInfo.Id}");
+                                }
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
     }
 }
