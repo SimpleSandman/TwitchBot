@@ -7,6 +7,7 @@ using CefSharp;
 using TwitchBotDb.Temp;
 
 using TwitchBotWpf.Libraries;
+using TwitchBotWpf.Handlers;
 
 namespace TwitchBotWpf
 {
@@ -24,6 +25,8 @@ namespace TwitchBotWpf
         {
             InitializeComponent();
 
+            Browser.MenuHandler = new MenuHandler();
+
             // check if user has given permission to their YouTube account
             YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
             bool hasYoutubeAuth = Dispatcher.Invoke(() => _youTubeClientInstance.GetAuthAsync(youtubePlaylistInfo.ClientId, youtubePlaylistInfo.ClientSecret)).Result;
@@ -40,11 +43,6 @@ namespace TwitchBotWpf
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             Browser.Dispose();
-        }
-
-        private void ChromiumWebBrowser_FrameLoadEnd(object sender, FrameLoadEndEventArgs e)
-        {
-            //Browser.ShowDevTools(); // debugging only
         }
 
         private void Browser_ConsoleMessage(object sender, ConsoleMessageEventArgs e)
@@ -156,7 +154,7 @@ namespace TwitchBotWpf
                         // Check what video was played last from the song request playlist
                         YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
 
-                        if (youtubePlaylistInfo.Name != Title.TrimEnd())
+                        if (!Title.TrimEnd().Contains(youtubePlaylistInfo.Name))
                         {
                             CefSharpCache cefSharpCache = CefSharpCache.Load();
 

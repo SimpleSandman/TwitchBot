@@ -189,12 +189,7 @@ namespace TwitchBotUtil.Libraries
 
             var userPlaylistItemsListResponse = await userPlaylistItemsListRequest.ExecuteAsync();
 
-            foreach (var playlistItem in userPlaylistItemsListResponse.Items)
-            {
-                return playlistItem.Snippet.ResourceId.VideoId;
-            }
-
-            return "";
+            return userPlaylistItemsListResponse?.Items[0]?.Snippet.ResourceId.VideoId ?? "";
         }
 
         /// <summary>

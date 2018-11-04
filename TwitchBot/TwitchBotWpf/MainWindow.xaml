@@ -10,7 +10,6 @@
     <Grid>
         <DockPanel>
             <cefsharpwpf:ChromiumWebBrowser 
-                FrameLoadEnd="ChromiumWebBrowser_FrameLoadEnd" 
                 IsBrowserInitializedChanged="Browser_IsBrowserInitializedChanged" 
                 ConsoleMessage="Browser_ConsoleMessage"
                 TitleChanged="Browser_TitleChanged"
