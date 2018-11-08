@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,6 +6,8 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
+
+using TwitchBotDb.Models;
 
 using TwitchBotUtil.Extensions;
 using TwitchBotUtil.Libraries;
@@ -36,6 +37,8 @@ namespace TwitchBotWpf.Libraries
                 return _instance;
             }
         }
+
+        public static SongRequestSetting SongRequestSetting { get; set; }
 
         protected override YouTubeService YouTubeService { get; set; }
 

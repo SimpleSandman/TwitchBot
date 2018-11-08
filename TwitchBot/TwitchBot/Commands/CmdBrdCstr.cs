@@ -15,7 +15,6 @@ using TwitchBot.Models.JSON;
 using TwitchBot.Services;
 
 using TwitchBotDb.Models;
-using TwitchBotDb.Temp;
 
 using TwitchBotUtil.Extensions;
 
@@ -30,6 +29,7 @@ namespace TwitchBot.Commands
         private SongRequestBlacklistService _songRequest;
         private TwitchInfoService _twitchInfo;
         private GameDirectoryService _gameDirectory;
+        private SongRequestSettingService _songRequestSetting;
         private TwitterClient _twitter = TwitterClient.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
@@ -38,7 +38,7 @@ namespace TwitchBot.Commands
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, int broadcasterId, 
             System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo, 
-            GameDirectoryService gameDirectory)
+            GameDirectoryService gameDirectory, SongRequestSettingService songRequestSetting)
         {
             _irc = irc;
             _botConfig = botConfig;
@@ -47,6 +47,7 @@ namespace TwitchBot.Commands
             _songRequest = songRequest;
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
+            _songRequestSetting = songRequestSetting;
         }
 
         /// <summary>
@@ -620,7 +621,7 @@ namespace TwitchBot.Commands
 
                 broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylist(playlistName,
                     "Songs requested via Twitch viewers on https://twitch.tv/" + _botConfig.Broadcaster
-                        + " (playlist created using https://github.com/SimpleSandman/TwitchBot)");
+                        + " . Playlist automatically created courtesy of https://github.com/SimpleSandman/TwitchBot");
 
                 _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
                 _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistId");
@@ -631,9 +632,9 @@ namespace TwitchBot.Commands
                 _appConfig.Save(ConfigurationSaveMode.Modified);
                 ConfigurationManager.RefreshSection("TwitchBotConfiguration");
 
-                // Save playlist info into JSON file for WPF app to reference
-                YoutubePlaylistInfo.Save(_botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubeBroadcasterPlaylistName,
-                    _botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret);
+                await _songRequestSetting.UpdateSongRequestSetting(
+                    _botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubePersonalPlaylistId, 
+                    _broadcasterInstance.DatabaseId, false);
 
                 _irc.SendPublicChatMessage($"YouTube playlist has been reset @{_botConfig.Broadcaster} " 
                     + "and is now at this link https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);
@@ -641,6 +642,40 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdResetYoutubeSongRequestList(bool)", false, "!resetytsr");
+            }
+        }
+
+        public async void CmdEnableDjMode()
+        {
+            try
+            {
+                // ToDo: Make HTTP PATCH request instead of full PUT
+                await _songRequestSetting.UpdateSongRequestSetting(
+                    _botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubePersonalPlaylistId,
+                    _broadcasterInstance.DatabaseId, true);
+
+                _irc.SendPublicChatMessage($"DJing has been enabled for YouTube song requests @{_botConfig.Broadcaster}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableDjMode()", false, "!djmode on");
+            }
+        }
+
+        public async void CmdDisableDjMode()
+        {
+            try
+            {
+                // ToDo: Make HTTP PATCH request instead of full PUT
+                await _songRequestSetting.UpdateSongRequestSetting(
+                    _botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubePersonalPlaylistId,
+                    _broadcasterInstance.DatabaseId, false);
+
+                _irc.SendPublicChatMessage($"DJing has been disabled for YouTube song requests @{_botConfig.Broadcaster}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableDjMode()", false, "!djmode off");
             }
         }
     }

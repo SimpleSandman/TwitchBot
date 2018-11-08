@@ -7,6 +7,8 @@ using TwitchBot.Models;
 
 using TwitchBotDb.Models;
 
+using TwitchBotUtil.Libraries;
+
 namespace TwitchBot.Libraries
 {
     public class TimeoutCmd

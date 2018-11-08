@@ -19,6 +19,7 @@ namespace TwitchBotDb.Models
             Reminder = new HashSet<Reminder>();
             SongRequest = new HashSet<SongRequest>();
             SongRequestIgnore = new HashSet<SongRequestIgnore>();
+            SongRequestSetting = new HashSet<SongRequestSetting>();
         }
 
         public int Id { get; set; }
@@ -38,5 +39,6 @@ namespace TwitchBotDb.Models
         public ICollection<Reminder> Reminder { get; set; }
         public ICollection<SongRequest> SongRequest { get; set; }
         public ICollection<SongRequestIgnore> SongRequestIgnore { get; set; }
+        public ICollection<SongRequestSetting> SongRequestSetting { get; set; }
     }
 }

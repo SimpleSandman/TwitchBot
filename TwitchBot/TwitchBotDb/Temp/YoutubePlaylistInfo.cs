@@ -7,24 +7,24 @@ namespace TwitchBotDb.Temp
 {
     public class YoutubePlaylistInfo
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
+        public int BroadcasterId { get; set; }
+        public string TwitchBotApiLink { get; set; }
+
+        private static readonly string _filepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TwitchBot");
+        private static readonly string _filename = "YoutubePlaylistInfo.json";
 
         /// <summary>
         /// Load playlist info from JSON file stored in local app data
         /// </summary>
         public static YoutubePlaylistInfo Load()
         {
-            string filepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TwitchBot");
-            string filename = "YoutubePlaylistInfo.json";
-
             YoutubePlaylistInfo youtubePlaylistInfo = new YoutubePlaylistInfo();
 
-            if (File.Exists($"{filepath}\\{filename}"))
+            if (File.Exists($"{_filepath}\\{_filename}"))
             {
-                using (StreamReader file = File.OpenText($"{filepath}\\{filename}"))
+                using (StreamReader file = File.OpenText($"{_filepath}\\{_filename}"))
                 {
                     JsonSerializer serializer = new JsonSerializer();
                     youtubePlaylistInfo = (YoutubePlaylistInfo)serializer.Deserialize(file, typeof(YoutubePlaylistInfo));
@@ -37,22 +37,19 @@ namespace TwitchBotDb.Temp
         /// <summary>
         /// Save playlist info into JSON file stored in local app data
         /// </summary>
-        public static void Save(string playlistId, string playlistName, string youTubeClientId, string youTubeClientSecret)
+        public static void Save(string youTubeClientId, string youTubeClientSecret, string twitchBotApiLink, int broadcasterId)
         {
             YoutubePlaylistInfo youtubePlaylistInfo = new YoutubePlaylistInfo
             {
-                Id = playlistId,
-                Name = playlistName,
                 ClientId = youTubeClientId,
-                ClientSecret = youTubeClientSecret
+                ClientSecret = youTubeClientSecret,
+                BroadcasterId = broadcasterId,
+                TwitchBotApiLink = twitchBotApiLink
             };
 
-            string filepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TwitchBot");
-            string filename = "YoutubePlaylistInfo.json";
+            Directory.CreateDirectory(_filepath);
 
-            Directory.CreateDirectory(filepath);
-
-            using (StreamWriter file = File.CreateText($"{filepath}\\{filename}"))
+            using (StreamWriter file = File.CreateText($"{_filepath}\\{_filename}"))
             {
                 JsonSerializer serializer = new JsonSerializer();
                 serializer.Serialize(file, youtubePlaylistInfo);

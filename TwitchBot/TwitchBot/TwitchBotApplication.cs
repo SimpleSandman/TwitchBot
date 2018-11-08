@@ -23,6 +23,7 @@ using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
 using TwitchBotDb.Temp;
+using System.IO;
 
 namespace TwitchBot
 {
@@ -53,6 +54,7 @@ namespace TwitchBot
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
         private QuoteService _quote;
+        private SongRequestSettingService _songRequestSetting;
         private BankHeist _bankHeist;
         private BossFight _bossFight;
         private TwitchChatterListener _twitchChatterListener;
@@ -66,7 +68,7 @@ namespace TwitchBot
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
             GameDirectoryService gameDirectory, QuoteService quote, BankHeist bankHeist, TwitchChatterListener twitchChatterListener,
-            BossFight bossFight)
+            BossFight bossFight, SongRequestSettingService songRequestSetting)
         {
             _appConfig = appConfig;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
@@ -92,6 +94,7 @@ namespace TwitchBot
             _bankHeist = bankHeist;
             _twitchChatterListener = twitchChatterListener;
             _bossFight = bossFight;
+            _songRequestSetting = songRequestSetting;
         }
 
         public async Task RunAsync()
@@ -135,7 +138,7 @@ namespace TwitchBot
 
                 /* Connect to local Spotify client */
                 _spotify = new SpotifyWebClient(_botConfig);
-                await _spotify.Connect();
+                //await _spotify.Connect();
 
                 // Password from www.twitchapps.com/tmi/
                 // include the "oauth:" portion
@@ -145,7 +148,7 @@ namespace TwitchBot
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
-                    _twitchInfo, _gameDirectory);
+                    _twitchInfo, _gameDirectory, _songRequestSetting);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
                     _manualSongRequest, _quote, _partyUp, _gameDirectory);
 
@@ -166,9 +169,10 @@ namespace TwitchBot
                     _hasYouTubeAuth = await _youTubeClientInstance.GetAuthAsync(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret);
                     if (_hasYouTubeAuth)
                     {
-                        Playlist broadcasterPlaylist = null;
+                        Playlist playlist = null;
                         string playlistName = _botConfig.YouTubeBroadcasterPlaylistName;
                         string defaultPlaylistName = "Twitch Song Requests";
+                        SongRequestSetting songRequestSetting = await _songRequestSetting.GetSongRequestSetting(_broadcasterInstance.DatabaseId);
 
                         if (string.IsNullOrEmpty(playlistName))
                         {
@@ -178,35 +182,91 @@ namespace TwitchBot
                         // Check if YouTube song request playlist still exists
                         if (!string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                         {
-                            broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId);
+                            playlist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId);
                         }
 
-                        if (broadcasterPlaylist?.Id == null)
+                        if (playlist?.Id == null)
                         {
-                            broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(playlistName);
+                            playlist = await _youTubeClientInstance.GetBroadcasterPlaylistById(songRequestSetting.RequestPlaylistId);
 
-                            if (broadcasterPlaylist?.Id == null)
+                            if (playlist?.Id == null)
                             {
-                                broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylist(playlistName,
+                                playlist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(playlistName);
+
+                                if (playlist?.Id == null)
+                                {
+                                    playlist = await _youTubeClientInstance.CreatePlaylist(playlistName,
                                     "Songs requested via Twitch viewers on https://twitch.tv/" + _botConfig.Broadcaster
                                         + " . Playlist automatically created courtesy of https://github.com/SimpleSandman/TwitchBot");
+                                }
                             }
                         }
 
-                        _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
+                        _botConfig.YouTubeBroadcasterPlaylistId = playlist.Id;
                         _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistId");
-                        _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistId", broadcasterPlaylist.Id);
+                        _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistId", playlist.Id);
 
-                        _botConfig.YouTubeBroadcasterPlaylistName = broadcasterPlaylist.Snippet.Title;
+                        _botConfig.YouTubeBroadcasterPlaylistName = playlist.Snippet.Title;
                         _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistName");
-                        _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistName", broadcasterPlaylist.Snippet.Title);
+                        _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistName", playlist.Snippet.Title);
+
+                        // Find personal playlist if requested
+                        playlist = null;
+                        playlistName = _botConfig.YouTubePersonalPlaylistName;
+
+                        // Check if YouTube song request playlist still exists
+                        if (!string.IsNullOrEmpty(_botConfig.YouTubePersonalPlaylistId))
+                        {
+                            playlist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubePersonalPlaylistId);
+                        }
+
+                        if (playlist?.Id == null)
+                        {
+                            playlist = await _youTubeClientInstance.GetBroadcasterPlaylistById(songRequestSetting.PersonalPlaylistId);
+
+                            if (playlist?.Id == null)
+                            {
+                                playlist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(playlistName);
+                            }
+                        }
+
+                        if (playlist?.Id != null && playlist?.Snippet != null)
+                        {
+                            _botConfig.YouTubePersonalPlaylistId = playlist.Id;
+                            _appConfig.AppSettings.Settings.Remove("youTubePersonalPlaylistId");
+                            _appConfig.AppSettings.Settings.Add("youTubePersonalPlaylistId", playlist.Id);
+
+                            _botConfig.YouTubePersonalPlaylistName = playlist.Snippet.Title;
+                            _appConfig.AppSettings.Settings.Remove("youTubePersonalPlaylistName");
+                            _appConfig.AppSettings.Settings.Add("youTubePersonalPlaylistName", playlist.Snippet.Title);
+                        }
 
                         _appConfig.Save(ConfigurationSaveMode.Modified);
                         ConfigurationManager.RefreshSection("TwitchBotConfiguration");
 
-                        // Save playlist info into JSON file for WPF app to reference
-                        YoutubePlaylistInfo.Save(_botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubeBroadcasterPlaylistName,
-                            _botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret);
+                        // Save song request info into database
+                        if (songRequestSetting?.Id != 0 
+                            && (_botConfig.YouTubeBroadcasterPlaylistId != songRequestSetting.RequestPlaylistId
+                                || _botConfig.YouTubePersonalPlaylistId != (songRequestSetting.PersonalPlaylistId ?? "")
+                                || _broadcasterInstance.DatabaseId != songRequestSetting.BroadcasterId))
+                        {
+                            await _songRequestSetting.UpdateSongRequestSetting(
+                                _botConfig.YouTubeBroadcasterPlaylistId,
+                                _botConfig.YouTubePersonalPlaylistId,
+                                _broadcasterInstance.DatabaseId,
+                                songRequestSetting.DjMode);
+                        }
+                        else if (songRequestSetting?.Id == 0)
+                        {
+                            await _songRequestSetting.CreateSongRequestSetting(
+                                _botConfig.YouTubeBroadcasterPlaylistId,
+                                _botConfig.YouTubePersonalPlaylistId,
+                                _broadcasterInstance.DatabaseId);
+                        }
+
+                        // Save credentials into JSON file for WPF app to reference
+                        YoutubePlaylistInfo.Save(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret, 
+                            _botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
                     }
                 }
                 catch (Exception ex)
@@ -414,6 +474,14 @@ namespace TwitchBot
                                 /* Reset the YouTube song request playlist */
                                 else if (message.Equals("!resetytsr", StringComparison.CurrentCultureIgnoreCase))
                                     await _cmdBrdCstr.CmdResetYoutubeSongRequestList(hasYouTubeAuth);
+
+                                /* Enable DJing mode for YouTube song requests */
+                                else if (message.Equals("!djmode on", StringComparison.CurrentCultureIgnoreCase))
+                                    _cmdBrdCstr.CmdEnableDjMode();
+
+                                /* Disable DJing mode for YouTube song requests */
+                                else if (message.Equals("!djmode off", StringComparison.CurrentCultureIgnoreCase))
+                                    _cmdBrdCstr.CmdDisableDjMode();
 
                                 /* insert more broadcaster commands here */
                             }

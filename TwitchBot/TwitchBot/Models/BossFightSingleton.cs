@@ -3,10 +3,9 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 using TwitchBot.Enums;
-using TwitchBot.Libraries;
 
 using TwitchBotDb.Models;
-
+using TwitchBotUtil.Libraries;
 
 namespace TwitchBot.Models
 {

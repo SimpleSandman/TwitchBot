@@ -37,6 +37,8 @@ namespace TwitchBot.Modules
                 .WithParameter(TwitchBotApiLink);
             builder.RegisterType<QuoteRepository>()
                 .WithParameter(TwitchBotApiLink);
+            builder.RegisterType<SongRequestSettingRepository>()
+                .WithParameter(TwitchBotApiLink);
 
             // services
             builder.RegisterType<BankService>();
@@ -47,6 +49,7 @@ namespace TwitchBot.Modules
             builder.RegisterType<GameDirectoryService>();
             builder.RegisterType<QuoteService>();
             builder.RegisterType<TwitchInfoService>();
+            builder.RegisterType<SongRequestSettingService>();
 
             // threads
             builder.RegisterType<FollowerSubscriberListener>()

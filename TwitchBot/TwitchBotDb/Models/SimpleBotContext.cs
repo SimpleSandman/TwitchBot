@@ -31,6 +31,7 @@ namespace TwitchBotDb.Models
         public virtual DbSet<Reminder> Reminder { get; set; }
         public virtual DbSet<SongRequest> SongRequest { get; set; }
         public virtual DbSet<SongRequestIgnore> SongRequestIgnore { get; set; }
+        public virtual DbSet<SongRequestSetting> SongRequestSetting { get; set; }
         public virtual DbSet<TwitchGameCategory> TwitchGameCategory { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -773,6 +774,27 @@ namespace TwitchBotDb.Models
                     .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_SongRequestIgnore_Broadcaster");
+            });
+
+            modelBuilder.Entity<SongRequestSetting>(entity =>
+            {
+                entity.HasIndex(e => e.BroadcasterId)
+                    .HasName("IX_BroadcasterId_SongRequestSetting");
+
+                entity.Property(e => e.PersonalPlaylistId)
+                    .HasMaxLength(35)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.RequestPlaylistId)
+                    .IsRequired()
+                    .HasMaxLength(35)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Broadcaster)
+                    .WithMany(p => p.SongRequestSetting)
+                    .HasForeignKey(d => d.BroadcasterId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_SongRequestSetting_Broadcaster");
             });
 
             modelBuilder.Entity<TwitchGameCategory>(entity =>

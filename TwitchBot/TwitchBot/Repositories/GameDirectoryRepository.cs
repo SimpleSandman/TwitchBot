@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 
-using TwitchBot.Libraries;
-
 using TwitchBotDb.Models;
+
+using TwitchBotUtil.Libraries;
 
 namespace TwitchBot.Repositories
 {

@@ -69,6 +69,12 @@ namespace TwitchBot.Configuration
         private static readonly ConfigurationProperty _youTubeBroadcasterPlaylistName =
             new ConfigurationProperty("youTubeBroadcasterPlaylistName", typeof(string), "", ConfigurationPropertyOptions.None);
 
+        private static readonly ConfigurationProperty _youTubePersonalPlaylistId =
+            new ConfigurationProperty("youTubePersonalPlaylistId", typeof(string), "", ConfigurationPropertyOptions.None);
+
+        private static readonly ConfigurationProperty _youTubePersonalPlaylistName =
+            new ConfigurationProperty("youTubePersonalPlaylistName", typeof(string), "", ConfigurationPropertyOptions.None);
+
         private static readonly ConfigurationProperty _manualSongRequestLink =
             new ConfigurationProperty("manualSongRequestLink", typeof(string), "", ConfigurationPropertyOptions.None);
 
@@ -107,6 +113,8 @@ namespace TwitchBot.Configuration
                 _youTubeClientSecret,
                 _youTubeBroadcasterPlaylistId,
                 _youTubeBroadcasterPlaylistName,
+                _youTubePersonalPlaylistId,
+                _youTubePersonalPlaylistName,
                 _manualSongRequestLink,
                 _regularFollowerHours,
                 _spotifyClientId,
@@ -393,6 +401,26 @@ namespace TwitchBot.Configuration
             {
                 ThrowIfReadOnly("SpotifyServerUri");
                 this["spotifyServerUri"] = value;
+            }
+        }
+
+        public string YouTubePersonalPlaylistId
+        {
+            get { return (string)this["youTubePersonalPlaylistId"]; }
+            set
+            {
+                ThrowIfReadOnly("YouTubePersonalPlaylistId");
+                this["youTubePersonalPlaylistId"] = value;
+            }
+        }
+
+        public string YouTubePersonalPlaylistName
+        {
+            get { return (string)this["youTubePersonalPlaylistName"]; }
+            set
+            {
+                ThrowIfReadOnly("YouTubePersonalPlaylistName");
+                this["youTubePersonalPlaylistName"] = value;
             }
         }
     }

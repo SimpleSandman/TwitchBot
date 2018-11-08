@@ -13,6 +13,7 @@ using TwitchBot.Services;
 using TwitchBotDb.Models;
 
 using TwitchBotUtil.Extensions;
+using TwitchBotUtil.Libraries;
 
 namespace TwitchBot.Threads
 {

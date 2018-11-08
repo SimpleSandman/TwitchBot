@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 
 using TwitchBotDb.Models;
 
+using TwitchBotUtil.Libraries;
+
 namespace TwitchBot.Libraries
 {
     public class BroadcasterSingleton

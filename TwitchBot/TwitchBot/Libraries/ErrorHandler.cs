@@ -6,6 +6,8 @@ using TwitchBot.Configuration;
 
 using TwitchBotDb.Models;
 
+using TwitchBotUtil.Libraries;
+
 namespace TwitchBot.Libraries
 {
     // Using Singleton design pattern
