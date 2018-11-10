@@ -782,12 +782,12 @@ namespace TwitchBotDb.Models
                     .HasName("IX_BroadcasterId_SongRequestSetting");
 
                 entity.Property(e => e.PersonalPlaylistId)
-                    .HasMaxLength(35)
+                    .HasMaxLength(34)
                     .IsUnicode(false);
 
                 entity.Property(e => e.RequestPlaylistId)
                     .IsRequired()
-                    .HasMaxLength(35)
+                    .HasMaxLength(34)
                     .IsUnicode(false);
 
                 entity.HasOne(d => d.Broadcaster)

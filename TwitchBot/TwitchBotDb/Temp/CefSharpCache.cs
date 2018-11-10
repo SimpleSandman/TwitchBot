@@ -8,7 +8,8 @@ namespace TwitchBotDb.Temp
     public class CefSharpCache
     {
         public string Url { get; set; }
-        public string LastPlaylistVideoId { get; set; }
+        public string LastRequestPlaylistVideoId { get; set; }
+        public string LastPersonalPlaylistVideoId { get; set; }
 
         /// <summary>
         /// Load CefSharp cache info from JSON file stored in local app data

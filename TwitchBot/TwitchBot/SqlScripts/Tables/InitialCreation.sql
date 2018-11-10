@@ -455,8 +455,8 @@ GO
 
 CREATE TABLE [dbo].[SongRequestSetting](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[RequestPlaylistId] [varchar](35) NOT NULL,
-	[PersonalPlaylistId] [varchar](35) NULL,
+	[RequestPlaylistId] [varchar](34) NOT NULL,
+	[PersonalPlaylistId] [varchar](34) NULL,
 	[DjMode] [bit] NOT NULL,
 	[BroadcasterId] [int] NOT NULL,
  CONSTRAINT [PK_SongRequestSetting] PRIMARY KEY CLUSTERED 

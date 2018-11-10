@@ -214,20 +214,15 @@ namespace TwitchBot
                         playlist = null;
                         playlistName = _botConfig.YouTubePersonalPlaylistName;
 
-                        // Check if YouTube song request playlist still exists
+                        // Check if personal YouTube playlist still exists
                         if (!string.IsNullOrEmpty(_botConfig.YouTubePersonalPlaylistId))
                         {
-                            playlist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubePersonalPlaylistId);
+                            playlist = await _youTubeClientInstance.GetPlaylistById(_botConfig.YouTubePersonalPlaylistId);
                         }
 
-                        if (playlist?.Id == null)
+                        if (playlist?.Id == null && songRequestSetting.PersonalPlaylistId != null)
                         {
-                            playlist = await _youTubeClientInstance.GetBroadcasterPlaylistById(songRequestSetting.PersonalPlaylistId);
-
-                            if (playlist?.Id == null)
-                            {
-                                playlist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(playlistName);
-                            }
+                            playlist = await _youTubeClientInstance.GetPlaylistById(songRequestSetting.PersonalPlaylistId);
                         }
 
                         if (playlist?.Id != null && playlist?.Snippet != null)
@@ -464,7 +459,7 @@ namespace TwitchBot
                                     await _cmdBrdCstr.CmdRefreshReminders();
 
                                 /* Set regular follower hours for dedicated followers */
-                                else if (message.StartsWith("!setregularhours", StringComparison.CurrentCultureIgnoreCase))
+                                else if (message.StartsWith("!setregularhours ", StringComparison.CurrentCultureIgnoreCase))
                                     _cmdBrdCstr.CmdSetRegularFollowerHours(message);
 
                                 /* Manually refresh boss fight */
@@ -477,11 +472,15 @@ namespace TwitchBot
 
                                 /* Enable DJing mode for YouTube song requests */
                                 else if (message.Equals("!djmode on", StringComparison.CurrentCultureIgnoreCase))
-                                    _cmdBrdCstr.CmdEnableDjMode();
+                                    await _cmdBrdCstr.CmdEnableDjMode();
 
                                 /* Disable DJing mode for YouTube song requests */
                                 else if (message.Equals("!djmode off", StringComparison.CurrentCultureIgnoreCase))
-                                    _cmdBrdCstr.CmdDisableDjMode();
+                                    await _cmdBrdCstr.CmdDisableDjMode();
+
+                                /* Set YouTube personal playlist as a backup when new requests  */
+                                else if (message.StartsWith("!setpersonalplaylistid ", StringComparison.CurrentCultureIgnoreCase))
+                                    await _cmdBrdCstr.CmdSetPersonalYoutubePlaylistById(message);
 
                                 /* insert more broadcaster commands here */
                             }

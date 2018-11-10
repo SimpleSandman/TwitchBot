@@ -645,7 +645,7 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async void CmdEnableDjMode()
+        public async Task CmdEnableDjMode()
         {
             try
             {
@@ -662,7 +662,7 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async void CmdDisableDjMode()
+        public async Task CmdDisableDjMode()
         {
             try
             {
@@ -676,6 +676,60 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableDjMode()", false, "!djmode off");
+            }
+        }
+
+        public async Task CmdSetPersonalYoutubePlaylistById(string message)
+        {
+            try
+            {
+                string personalPlaylistId = message.Substring(message.IndexOf(" ") + 1);
+                if (personalPlaylistId.Length != 34)
+                {
+                    _irc.SendPublicChatMessage("Please only insert the playlist ID that you want set " 
+                        + $"when the song requests are finished/not available @{_botConfig.Broadcaster}");
+                    return;
+                }
+
+                Playlist playlist = await _youTubeClientInstance.GetPlaylistById(personalPlaylistId);
+
+                if (playlist?.Id == null)
+                {
+                    _irc.SendPublicChatMessage($"I'm sorry @{_botConfig.Broadcaster} I cannot find your playlist " 
+                        + "you requested as a backup when song requests are finished/not available");
+                    return;
+                }
+
+                SongRequestSetting songRequestSetting = await _songRequestSetting.GetSongRequestSetting(_broadcasterInstance.DatabaseId);
+
+                // Save song request info into database
+                if (songRequestSetting?.BroadcasterId == _broadcasterInstance.DatabaseId)
+                {
+                    // ToDo: Make HTTP PATCH request instead of full PUT
+                    await _songRequestSetting.UpdateSongRequestSetting(
+                        _botConfig.YouTubeBroadcasterPlaylistId,
+                        _botConfig.YouTubePersonalPlaylistId,
+                        _broadcasterInstance.DatabaseId,
+                        songRequestSetting.DjMode);
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage("Cannot find settings in database! Please contact my creator using " 
+                        + $"the command \"!support\" if this problem persists @{_botConfig.Broadcaster}");
+                    return;
+                }
+
+                _botConfig.YouTubePersonalPlaylistId = personalPlaylistId;
+                _appConfig.AppSettings.Settings.Remove("youTubePersonalPlaylistId");
+                _appConfig.AppSettings.Settings.Add("youTubePersonalPlaylistId", personalPlaylistId);
+                _appConfig.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+
+                _irc.SendPublicChatMessage($"Your personal playlist has been set https://www.youtube.com/playlist?list={personalPlaylistId} @{_botConfig.Broadcaster}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdSetPersonalYoutubePlaylistById(string)", false, "!setpersonalplaylistid");
             }
         }
     }

@@ -37,13 +37,13 @@ namespace TwitchBotWpf
             // check if user has given permission to their YouTube account
             YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
             bool hasYoutubeAuth = Dispatcher.Invoke(() => _youTubeClientInstance.GetAuthAsync(youtubePlaylistInfo.ClientId, youtubePlaylistInfo.ClientSecret)).Result;
-            
+
+            CefSharpCache.Save(new CefSharpCache()); // reset cache file
+
             if (hasYoutubeAuth)
             {
                 Task.Factory.StartNew(() => YoutubePlaylistListener(youtubePlaylistInfo));
             }
-            
-            CefSharpCache.Save(new CefSharpCache());
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
@@ -126,19 +126,21 @@ namespace TwitchBotWpf
             {
                 if (Browser.IsLoaded)
                 {
-                    CefSharpCache cefSharpCache = new CefSharpCache { Url = Browser.Address };
+                    CefSharpCache loadedCefSharpCache = CefSharpCache.Load();
+                    loadedCefSharpCache.Url = Browser.Address;
 
                     if (Browser.Address.Contains($"list={YoutubeClient.SongRequestSetting.RequestPlaylistId}") 
                         && Browser.Address.Contains("v="))
                     {
-                        cefSharpCache.LastPlaylistVideoId = _youTubeClientInstance.GetYouTubeVideoId(Browser.Address);
+                        loadedCefSharpCache.LastRequestPlaylistVideoId = _youTubeClientInstance.GetYouTubeVideoId(Browser.Address);
                     }
-                    else
+                    else if (Browser.Address.Contains($"list={YoutubeClient.SongRequestSetting.PersonalPlaylistId}")
+                        && Browser.Address.Contains("v="))
                     {
-                        cefSharpCache.LastPlaylistVideoId = CefSharpCache.Load().LastPlaylistVideoId;
+                        loadedCefSharpCache.LastPersonalPlaylistVideoId = _youTubeClientInstance.GetYouTubeVideoId(Browser.Address);
                     }
 
-                    CefSharpCache.Save(cefSharpCache);
+                    CefSharpCache.Save(loadedCefSharpCache);
                 }
             }));
         }
@@ -146,7 +148,7 @@ namespace TwitchBotWpf
         private async Task YoutubePlaylistListener(YoutubePlaylistInfo youtubePlaylistInfo)
         {
             YoutubeClient.SongRequestSetting = ApiBotRequest.GetExecuteTaskAsync<SongRequestSetting>(
-                    youtubePlaylistInfo.TwitchBotApiLink + $"songrequestsettings/get/{youtubePlaylistInfo.BroadcasterId}").Result;
+                youtubePlaylistInfo.TwitchBotApiLink + $"songrequestsettings/get/{youtubePlaylistInfo.BroadcasterId}").Result;
 
             while (true)
             {
@@ -155,32 +157,53 @@ namespace TwitchBotWpf
                 await Dispatcher.InvokeAsync(async () =>
                 {
                     // Check if a video is being played right now
-                    if (!Title.Contains(_playingStatus) && !Title.Contains(_pausedStatus))
+                    if (!Title.Contains(_playingStatus) && !Title.Contains(_pausedStatus) && Browser.IsLoaded)
                     {
                         // Check what video was played last from the song request playlist
                         YoutubeClient.SongRequestSetting = await ApiBotRequest.GetExecuteTaskAsync<SongRequestSetting>(
-                                youtubePlaylistInfo.TwitchBotApiLink + $"songrequestsettings/get/{youtubePlaylistInfo.BroadcasterId}");
+                            youtubePlaylistInfo.TwitchBotApiLink + $"songrequestsettings/get/{youtubePlaylistInfo.BroadcasterId}");
                         
                         if (!Browser.Address.Contains(YoutubeClient.SongRequestSetting.RequestPlaylistId) && YoutubeClient.SongRequestSetting.DjMode)
                         {
                             CefSharpCache cefSharpCache = CefSharpCache.Load();
 
-                            // Check if a video from the playlist was played at all
-                            if (string.IsNullOrEmpty(cefSharpCache.LastPlaylistVideoId))
+                            /* Check if a video from the request playlist was played at all */
+                            if (string.IsNullOrEmpty(cefSharpCache.LastRequestPlaylistVideoId))
                             {
                                 // play first song in the list
-                                string firstVideoId = await _youTubeClientInstance.GetFirstPlaylistVideoId(YoutubeClient.SongRequestSetting.RequestPlaylistId);
-
-                                Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={firstVideoId}&list={YoutubeClient.SongRequestSetting.RequestPlaylistId}");
+                                string firstRequestedVideoId = await _youTubeClientInstance.GetFirstPlaylistVideoId(YoutubeClient.SongRequestSetting.RequestPlaylistId);
+                                
+                                Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={firstRequestedVideoId}&list={YoutubeClient.SongRequestSetting.RequestPlaylistId}");
                             }
                             else
                             {
                                 // find the next song in the playlist
-                                string nextVideoId = await _youTubeClientInstance.GetNextPlaylistVideoId(YoutubeClient.SongRequestSetting.RequestPlaylistId, cefSharpCache.LastPlaylistVideoId);
+                                string nextRequestedVideoId = await _youTubeClientInstance.GetNextPlaylistVideoId(YoutubeClient.SongRequestSetting.RequestPlaylistId, cefSharpCache.LastRequestPlaylistVideoId);
 
-                                if (!string.IsNullOrEmpty(nextVideoId))
+                                if (!string.IsNullOrEmpty(nextRequestedVideoId))
                                 {
-                                    Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={nextVideoId}&list={YoutubeClient.SongRequestSetting.RequestPlaylistId}");
+                                    Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={nextRequestedVideoId}&list={YoutubeClient.SongRequestSetting.RequestPlaylistId}");
+                                }
+                                else if (!string.IsNullOrEmpty(YoutubeClient.SongRequestSetting.PersonalPlaylistId))
+                                {
+                                    /* Check if a video from the personal playlist was played at all */
+                                    if (string.IsNullOrEmpty(cefSharpCache.LastPersonalPlaylistVideoId))
+                                    {
+                                        // play first song in the personal list
+                                        string firstPersonalVideoId = await _youTubeClientInstance.GetFirstPlaylistVideoId(YoutubeClient.SongRequestSetting.PersonalPlaylistId);
+
+                                        Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={firstPersonalVideoId}&list={YoutubeClient.SongRequestSetting.PersonalPlaylistId}");
+                                    }
+                                    else
+                                    {
+                                        // find the next song in the playlist
+                                        string nextPersonalVideoId = await _youTubeClientInstance.GetNextPlaylistVideoId(YoutubeClient.SongRequestSetting.PersonalPlaylistId, cefSharpCache.LastPersonalPlaylistVideoId);
+
+                                        if (!string.IsNullOrEmpty(nextPersonalVideoId))
+                                        {
+                                            Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={nextPersonalVideoId}&list={YoutubeClient.SongRequestSetting.PersonalPlaylistId}");
+                                        }
+                                    }
                                 }
                             }
                         }

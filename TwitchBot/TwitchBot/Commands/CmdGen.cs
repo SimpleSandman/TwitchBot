@@ -799,7 +799,7 @@ namespace TwitchBot.Commands
                     else // search by keyword
                     {
                         string videoKeyword = message.Substring(spaceIndex + 1);
-                        videoId = await _youTubeClientInstance.SearchVideoByKeyword(videoKeyword, 3);
+                        videoId = await _youTubeClientInstance.SearchVideoByKeyword(videoKeyword);
                     }
 
                     // Confirm if video ID has been found and is a new song request
@@ -813,7 +813,7 @@ namespace TwitchBot.Commands
                     }
                     else
                     {
-                        Video video = await _youTubeClientInstance.GetVideoById(videoId, 2);
+                        Video video = await _youTubeClientInstance.GetVideoById(videoId);
 
                         // Check if video's title and account match song request blacklist
                         List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterId);
@@ -1691,7 +1691,7 @@ namespace TwitchBot.Commands
 
                     if (!string.IsNullOrEmpty(videoId))
                     {
-                        Video video = await _youTubeClientInstance.GetVideoById(videoId, 2);
+                        Video video = await _youTubeClientInstance.GetVideoById(videoId);
 
                         if (video.ContentDetails != null && video.Snippet != null)
                         {
