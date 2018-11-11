@@ -40,6 +40,8 @@ namespace TwitchBotWpf.Libraries
 
         public static SongRequestSetting SongRequestSetting { get; set; }
 
+        public static bool HasLookedForNextVideo { get; set; } = false;
+
         protected override YouTubeService YouTubeService { get; set; }
 
         /// <summary>

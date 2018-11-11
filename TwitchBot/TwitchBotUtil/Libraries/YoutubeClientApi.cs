@@ -216,13 +216,13 @@ namespace TwitchBotUtil.Libraries
         /// </summary>
         /// <param name="playlistId">Playlist ID</param>
         /// <returns></returns>
-        public virtual async Task<string> GetFirstPlaylistVideoId(string playlistId)
+        public virtual string GetFirstPlaylistVideoId(string playlistId)
         {
             var userPlaylistItemsListRequest = YouTubeService.PlaylistItems.List(GetPartParam(0));
             userPlaylistItemsListRequest.PlaylistId = playlistId;
             userPlaylistItemsListRequest.MaxResults = 1;
 
-            var userPlaylistItemListResponse = await userPlaylistItemsListRequest.ExecuteAsync();
+            var userPlaylistItemListResponse = userPlaylistItemsListRequest.Execute();
 
             return userPlaylistItemListResponse?.Items[0]?.Snippet.ResourceId.VideoId ?? "";
         }
@@ -233,7 +233,7 @@ namespace TwitchBotUtil.Libraries
         /// <param name="playlistId">Playlist ID</param>
         /// <param name="lastPlaylistItemVideoId">Requested video's ID</param>
         /// <returns></returns>
-        public virtual async Task<string> GetNextPlaylistVideoId(string playlistId, string lastPlaylistItemVideoId)
+        public virtual string GetNextPlaylistVideoId(string playlistId, string lastPlaylistItemVideoId)
         {
             string nextPageToken = "";
             long? nextVideoPosition = null;
@@ -245,7 +245,7 @@ namespace TwitchBotUtil.Libraries
                 userPlaylistItemsListRequest.MaxResults = 50;
                 userPlaylistItemsListRequest.PageToken = nextPageToken;
 
-                var userPlaylistItemListResponse = await userPlaylistItemsListRequest.ExecuteAsync();
+                var userPlaylistItemListResponse = userPlaylistItemsListRequest.Execute();
 
                 if (nextVideoPosition == null)
                 {

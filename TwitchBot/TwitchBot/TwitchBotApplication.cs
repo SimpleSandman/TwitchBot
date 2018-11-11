@@ -23,7 +23,6 @@ using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
 using TwitchBotDb.Temp;
-using System.IO;
 
 namespace TwitchBot
 {
