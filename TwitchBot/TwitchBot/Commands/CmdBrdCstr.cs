@@ -632,9 +632,12 @@ namespace TwitchBot.Commands
                 _appConfig.Save(ConfigurationSaveMode.Modified);
                 ConfigurationManager.RefreshSection("TwitchBotConfiguration");
 
+                SongRequestSetting songRequestSetting = await _songRequestSetting.GetSongRequestSetting(_broadcasterInstance.DatabaseId);
+
+                // ToDo: Make HTTP PATCH request instead of full PUT
                 await _songRequestSetting.UpdateSongRequestSetting(
                     _botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubePersonalPlaylistId, 
-                    _broadcasterInstance.DatabaseId, false);
+                    _broadcasterInstance.DatabaseId, songRequestSetting.DjMode);
 
                 _irc.SendPublicChatMessage($"YouTube playlist has been reset @{_botConfig.Broadcaster} " 
                     + "and is now at this link https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);

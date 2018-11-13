@@ -227,24 +227,34 @@ namespace TwitchBotWpf
         {
             lock (_findNextVideoLock)
             {
+                // Check if the YouTube progress bar is showing
                 const string script = @"
-                (function() 
-                {
-                    return !!(document.getElementsByTagName('yt-page-navigation-progress').offsetParent);
-                })();";
+                    (function() 
+                    {
+                        return !!(document.getElementsByTagName('yt-page-navigation-progress').offsetParent);
+                    })();";
 
                 var response = Browser.EvaluateScriptAsync(script).Result;
                 bool valid = bool.TryParse(response.Result?.ToString(), out bool isProgressBarVisible);
 
                 if (response.Message == null && response.Success && valid && isProgressBarVisible)
                 {
-                    return false;
+                    return false; // don't look until the progress bar is gone
                 }
 
-                CefSharpCache cefSharpCache = CefSharpCache.Load();
+                CefSharpCache loadedCefSharpCache = CefSharpCache.Load();
+
+                // Check if request playlist ID has been reset
+                // If so, reset the last requested video ID
+                if (loadedCefSharpCache.RequestPlaylistId != YoutubeClient.SongRequestSetting.RequestPlaylistId)
+                {
+                    loadedCefSharpCache.RequestPlaylistId = YoutubeClient.SongRequestSetting.RequestPlaylistId;
+                    loadedCefSharpCache.LastRequestPlaylistVideoId = null;
+                    CefSharpCache.Save(loadedCefSharpCache);
+                }
 
                 /* Check if a video from the request playlist was played at all */
-                if (string.IsNullOrEmpty(cefSharpCache.LastRequestPlaylistVideoId))
+                if (string.IsNullOrEmpty(loadedCefSharpCache.LastRequestPlaylistVideoId))
                 {
                     // play first song in the list
                     string firstRequestedVideoId = _youTubeClientInstance.GetFirstPlaylistVideoId(YoutubeClient.SongRequestSetting.RequestPlaylistId);
@@ -254,7 +264,7 @@ namespace TwitchBotWpf
                 else
                 {
                     // find the next song in the playlist
-                    string nextRequestedVideoId = _youTubeClientInstance.GetNextPlaylistVideoId(YoutubeClient.SongRequestSetting.RequestPlaylistId, cefSharpCache.LastRequestPlaylistVideoId);
+                    string nextRequestedVideoId = _youTubeClientInstance.GetNextPlaylistVideoId(YoutubeClient.SongRequestSetting.RequestPlaylistId, loadedCefSharpCache.LastRequestPlaylistVideoId);
 
                     if (!string.IsNullOrEmpty(nextRequestedVideoId))
                     {
@@ -263,7 +273,7 @@ namespace TwitchBotWpf
                     else if (!string.IsNullOrEmpty(YoutubeClient.SongRequestSetting.PersonalPlaylistId))
                     {
                         /* Check if a video from the personal playlist was played at all */
-                        if (string.IsNullOrEmpty(cefSharpCache.LastPersonalPlaylistVideoId))
+                        if (string.IsNullOrEmpty(loadedCefSharpCache.LastPersonalPlaylistVideoId))
                         {
                             // play first song in the personal list
                             string firstPersonalVideoId = _youTubeClientInstance.GetFirstPlaylistVideoId(YoutubeClient.SongRequestSetting.PersonalPlaylistId);
@@ -273,7 +283,7 @@ namespace TwitchBotWpf
                         else
                         {
                             // find the next song in the playlist
-                            string nextPersonalVideoId = _youTubeClientInstance.GetNextPlaylistVideoId(YoutubeClient.SongRequestSetting.PersonalPlaylistId, cefSharpCache.LastPersonalPlaylistVideoId);
+                            string nextPersonalVideoId = _youTubeClientInstance.GetNextPlaylistVideoId(YoutubeClient.SongRequestSetting.PersonalPlaylistId, loadedCefSharpCache.LastPersonalPlaylistVideoId);
 
                             if (!string.IsNullOrEmpty(nextPersonalVideoId))
                             {

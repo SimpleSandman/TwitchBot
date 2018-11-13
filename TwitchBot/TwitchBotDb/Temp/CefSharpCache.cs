@@ -10,6 +10,7 @@ namespace TwitchBotDb.Temp
         public string Url { get; set; }
         public string LastRequestPlaylistVideoId { get; set; }
         public string LastPersonalPlaylistVideoId { get; set; }
+        public string RequestPlaylistId { get; set; }
 
         /// <summary>
         /// Load CefSharp cache info from JSON file stored in local app data
