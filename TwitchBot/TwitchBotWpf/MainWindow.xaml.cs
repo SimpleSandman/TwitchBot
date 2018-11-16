@@ -256,45 +256,60 @@ namespace TwitchBotWpf
                 /* Check if a video from the request playlist was played at all */
                 if (string.IsNullOrEmpty(loadedCefSharpCache.LastRequestPlaylistVideoId))
                 {
-                    // play first song in the list
-                    string firstRequestedVideoId = _youTubeClientInstance.GetFirstPlaylistVideoId(YoutubeClient.SongRequestSetting.RequestPlaylistId);
-
-                    Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={firstRequestedVideoId}&list={YoutubeClient.SongRequestSetting.RequestPlaylistId}");
+                    LoadFirstPlaylistVideo(YoutubeClient.SongRequestSetting.RequestPlaylistId);
                 }
                 else
                 {
-                    // find the next song in the playlist
-                    string nextRequestedVideoId = _youTubeClientInstance.GetNextPlaylistVideoId(YoutubeClient.SongRequestSetting.RequestPlaylistId, loadedCefSharpCache.LastRequestPlaylistVideoId);
-
-                    if (!string.IsNullOrEmpty(nextRequestedVideoId))
+                    if (LoadNextPlaylistVideo(YoutubeClient.SongRequestSetting.RequestPlaylistId, loadedCefSharpCache.LastRequestPlaylistVideoId))
                     {
-                        Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={nextRequestedVideoId}&list={YoutubeClient.SongRequestSetting.RequestPlaylistId}");
+                        return true;
                     }
                     else if (!string.IsNullOrEmpty(YoutubeClient.SongRequestSetting.PersonalPlaylistId))
                     {
                         /* Check if a video from the personal playlist was played at all */
                         if (string.IsNullOrEmpty(loadedCefSharpCache.LastPersonalPlaylistVideoId))
                         {
-                            // play first song in the personal list
-                            string firstPersonalVideoId = _youTubeClientInstance.GetFirstPlaylistVideoId(YoutubeClient.SongRequestSetting.PersonalPlaylistId);
-
-                            Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={firstPersonalVideoId}&list={YoutubeClient.SongRequestSetting.PersonalPlaylistId}");
+                            LoadFirstPlaylistVideo(YoutubeClient.SongRequestSetting.PersonalPlaylistId);
                         }
                         else
                         {
-                            // find the next song in the playlist
-                            string nextPersonalVideoId = _youTubeClientInstance.GetNextPlaylistVideoId(YoutubeClient.SongRequestSetting.PersonalPlaylistId, loadedCefSharpCache.LastPersonalPlaylistVideoId);
-
-                            if (!string.IsNullOrEmpty(nextPersonalVideoId))
-                            {
-                                Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={nextPersonalVideoId}&list={YoutubeClient.SongRequestSetting.PersonalPlaylistId}");
-                            }
+                            LoadNextPlaylistVideo(YoutubeClient.SongRequestSetting.PersonalPlaylistId, loadedCefSharpCache.LastPersonalPlaylistVideoId);
                         }
                     }
                 }
 
                 return true;
             }
+        }
+
+        /// <summary>
+        /// Play first song in the playlist
+        /// </summary>
+        /// <param name="playlistId"></param>
+        private void LoadFirstPlaylistVideo(string playlistId)
+        {
+            string firstVideoId = _youTubeClientInstance.GetFirstPlaylistVideoId(playlistId);
+
+            Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={firstVideoId}&list={playlistId}");
+        }
+
+        /// <summary>
+        /// Play the next song in the playlist based on last played video from that playlist
+        /// </summary>
+        /// <param name="playlistId"></param>
+        /// <param name="lastPlayedVideoId"></param>
+        /// <returns></returns>
+        private bool LoadNextPlaylistVideo(string playlistId, string lastPlayedVideoId)
+        {
+            string nextRequestedVideoId = _youTubeClientInstance.GetNextPlaylistVideoId(playlistId, lastPlayedVideoId);
+
+            if (!string.IsNullOrEmpty(nextRequestedVideoId))
+            {
+                Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={nextRequestedVideoId}&list={playlistId}");
+                return true;
+            }
+
+            return false;
         }
     }
 }
