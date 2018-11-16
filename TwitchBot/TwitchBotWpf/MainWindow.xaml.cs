@@ -149,10 +149,21 @@ namespace TwitchBotWpf
 
         private void Browser_IsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (!string.IsNullOrEmpty(YoutubeClient.SongRequestSetting.RequestPlaylistId))
-                Browser.Load($"https://www.youtube.com/playlist?list={YoutubeClient.SongRequestSetting.RequestPlaylistId}");
-            else
-                Browser.Load("https://www.youtube.com/");
+            Dispatcher.BeginInvoke((Action) (async () => 
+            {
+                YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
+
+                YoutubeClient.SongRequestSetting = await ApiBotRequest.GetExecuteTaskAsync<SongRequestSetting>(
+                    youtubePlaylistInfo.TwitchBotApiLink + $"songrequestsettings/get/{youtubePlaylistInfo.BroadcasterId}");
+
+                // reset cache file from last runtime
+                CefSharpCache.Save(new CefSharpCache { RequestPlaylistId = YoutubeClient.SongRequestSetting.RequestPlaylistId });
+
+                if (!string.IsNullOrEmpty(YoutubeClient.SongRequestSetting.RequestPlaylistId))
+                    Browser.Load($"https://www.youtube.com/playlist?list={YoutubeClient.SongRequestSetting.RequestPlaylistId}");
+                else
+                    Browser.Load("https://www.youtube.com/");
+            }));
         }
 
         private void Browser_TitleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -187,12 +198,6 @@ namespace TwitchBotWpf
 
         private async Task YoutubePlaylistListener(YoutubePlaylistInfo youtubePlaylistInfo)
         {
-            YoutubeClient.SongRequestSetting = ApiBotRequest.GetExecuteTaskAsync<SongRequestSetting>(
-                youtubePlaylistInfo.TwitchBotApiLink + $"songrequestsettings/get/{youtubePlaylistInfo.BroadcasterId}").Result;
-
-            // reset cache file from last runtime
-            CefSharpCache.Save(new CefSharpCache { RequestPlaylistId = YoutubeClient.SongRequestSetting.RequestPlaylistId });
-
             while (true)
             {
                 await Task.Delay(10000); // wait 10 seconds before checking if a video is being played
@@ -205,25 +210,28 @@ namespace TwitchBotWpf
 
                     DisplayDjMode();
 
-                    // Check if a video is being played right now
-                    if (!Title.Contains(_playingStatus) && !Title.Contains(_pausedStatus) && !Title.Contains(_bufferingStatus) && Browser.IsLoaded)
-                    {
-                        // Check if DJ mode is on and if the current URL is not looking at the requested or personal playlists
-                        if (YoutubeClient.SongRequestSetting.DjMode 
-                            && !YoutubeClient.HasLookedForNextVideo
-                            && (!Browser.Address.Contains("/playlist?list=" + YoutubeClient.SongRequestSetting.RequestPlaylistId)
-                                && (!string.IsNullOrEmpty(YoutubeClient.SongRequestSetting.PersonalPlaylistId)
-                                    && !Browser.Address.Contains("/playlist?list=" + YoutubeClient.SongRequestSetting.PersonalPlaylistId)
-                                    )
+                    /* 
+                     * Check if:
+                     * - A video is currently playing/paused/buffering
+                     * - Has a valid and loaded URL
+                     * - If DJ mode is on
+                     * - If the current URL is not looking at the requested or personal playlists
+                    */
+                    if (!Title.Contains(_playingStatus) 
+                        && !Title.Contains(_pausedStatus) 
+                        && !Title.Contains(_bufferingStatus) 
+                        && !string.IsNullOrEmpty(Browser.Address)
+                        && Browser.IsLoaded 
+                        && YoutubeClient.SongRequestSetting.DjMode 
+                        && !YoutubeClient.HasLookedForNextVideo
+                        && (!Browser.Address.Contains($"/playlist?list={YoutubeClient.SongRequestSetting.RequestPlaylistId}")
+                            && (!string.IsNullOrEmpty(YoutubeClient.SongRequestSetting.PersonalPlaylistId)
+                                    && !Browser.Address.Contains($"/playlist?list={YoutubeClient.SongRequestSetting.PersonalPlaylistId}")
                                 )
                             )
-                        {
-                            YoutubeClient.HasLookedForNextVideo = LookForNextVideo(youtubePlaylistInfo);
-                        }
-                        else
-                        {
-                            YoutubeClient.HasLookedForNextVideo = false;
-                        }
+                        )
+                    {
+                        YoutubeClient.HasLookedForNextVideo = LookForNextVideo(youtubePlaylistInfo);
                     }
                     else
                     {
