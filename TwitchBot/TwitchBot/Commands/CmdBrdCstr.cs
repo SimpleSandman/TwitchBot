@@ -300,23 +300,23 @@ namespace TwitchBot.Commands
                         || request.Count(c => c == '<') == 1
                         || request.Count(c => c == '>') == 1)
                     {
-                        _irc.SendPublicChatMessage($"Please use request type 2 for song-specific blacklist-restrictions @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"Please use request type 2 for song-specific blacklist restrictions @{_botConfig.Broadcaster}");
                         return;
                     }
 
                     List<SongRequestIgnore> blacklist = await _songRequest.GetSongRequestIgnore(_broadcasterId);
                     if (blacklist.Count > 0 && blacklist.Exists(b => b.Artist.Equals(request, StringComparison.CurrentCultureIgnoreCase)))
                     {
-                        _irc.SendPublicChatMessage($"This song is already on the blacklist @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"This artist/video is already on the blacklist @{_botConfig.Broadcaster}");
                         return;
                     }
 
                     SongRequestIgnore response = await _songRequest.IgnoreArtist(request, _broadcasterId);
 
                     if (response != null)
-                        _irc.SendPublicChatMessage($"The artist \"{response.Artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"The artist/video \"{response.Artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
                     else
-                        _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this artist to the blacklist at this time @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this artist/video to the blacklist at this time @{_botConfig.Broadcaster}");
                 }
                 else if (requestType.Equals("2")) // blackout a song by an artist
                 {
@@ -348,17 +348,12 @@ namespace TwitchBot.Commands
                             _irc.SendPublicChatMessage($"This song is already on the blacklist @{_botConfig.Broadcaster}");
                             return;
                         }
-                        else if (blacklist.Exists(b => b.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase)))
-                        {
-                            _irc.SendPublicChatMessage($"This song's artist is already on the blacklist @{_botConfig.Broadcaster}");
-                            return;
-                        }
                     }
 
                     SongRequestIgnore response = await _songRequest.IgnoreSong(songTitle, artist, _broadcasterId);
 
                     if (response != null)
-                        _irc.SendPublicChatMessage($"The song \"{response.Title} by {response.Artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"The song \"{response.Title}\" by \"{response.Artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
                     else
                         _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this song to the blacklist at this time @{_botConfig.Broadcaster}");
                 }

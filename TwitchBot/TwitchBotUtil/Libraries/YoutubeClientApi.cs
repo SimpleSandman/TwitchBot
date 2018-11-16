@@ -224,7 +224,10 @@ namespace TwitchBotUtil.Libraries
 
             var userPlaylistItemListResponse = userPlaylistItemsListRequest.Execute();
 
-            return userPlaylistItemListResponse?.Items[0]?.Snippet.ResourceId.VideoId ?? "";
+            if (userPlaylistItemListResponse?.Items.Count > 0)
+                return userPlaylistItemListResponse?.Items[0]?.Snippet.ResourceId.VideoId ?? "";
+            else
+                return "";
         }
 
         /// <summary>

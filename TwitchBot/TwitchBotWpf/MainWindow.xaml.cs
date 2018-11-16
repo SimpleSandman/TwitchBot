@@ -308,7 +308,8 @@ namespace TwitchBotWpf
         {
             string firstVideoId = _youTubeClientInstance.GetFirstPlaylistVideoId(playlistId);
 
-            Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={firstVideoId}&list={playlistId}");
+            if (!string.IsNullOrEmpty(firstVideoId))
+                Browser.GetMainFrame().LoadUrl($"https://www.youtube.com/watch?v={firstVideoId}&list={playlistId}");
         }
 
         /// <summary>

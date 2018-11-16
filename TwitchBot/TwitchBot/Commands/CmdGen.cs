@@ -828,7 +828,7 @@ namespace TwitchBot.Commands
                                             && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
                                 ))
                             {
-                                _irc.SendPublicChatMessage($"This artist/video cannot be requested at this time @{username}");
+                                _irc.SendPublicChatMessage($"I'm not allowing this artist/video to be queued on my master's behalf @{username}");
                                 return DateTime.Now;
                             }
                             // Check for song-specific blacklist
@@ -839,7 +839,7 @@ namespace TwitchBot.Commands
                                             && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // song in title and artist in channel title
                                 ))
                             {
-                                _irc.SendPublicChatMessage($"This song/video cannot be requested at this time @{username}");
+                                _irc.SendPublicChatMessage($"I'm not allowing this song to be queued on my master's behalf @{username}");
                                 return DateTime.Now;
                             }
                         }
