@@ -25,6 +25,7 @@ namespace TwitchBotWpf
             };
 
             // Used to play videos without user intervention (as of Google Chrome 66)
+            // Reference: https://peter.sh/experiments/chromium-command-line-switches/
             // Reference: https://developers.google.com/web/updates/2017/09/autoplay-policy-changes#developer-switches
             settings.CefCommandLineArgs.Add("--autoplay-policy", "no-user-gesture-required");
 
