@@ -657,7 +657,8 @@ namespace TwitchBot.Commands
                     _botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubePersonalPlaylistId,
                     _broadcasterInstance.DatabaseId, true);
 
-                _irc.SendPublicChatMessage($"DJing has been enabled for YouTube song requests @{_botConfig.Broadcaster}");
+                _irc.SendPublicChatMessage("DJing has been enabled for YouTube song requests. " 
+                    + $"Please wait a few seconds before this change is applied @{_botConfig.Broadcaster}");
             }
             catch (Exception ex)
             {
@@ -674,7 +675,8 @@ namespace TwitchBot.Commands
                     _botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubePersonalPlaylistId,
                     _broadcasterInstance.DatabaseId, false);
 
-                _irc.SendPublicChatMessage($"DJing has been disabled for YouTube song requests @{_botConfig.Broadcaster}");
+                _irc.SendPublicChatMessage($"DJing has been disabled for YouTube song requests. " 
+                    + $"Please wait a few seconds before this change is applied @{_botConfig.Broadcaster}");
             }
             catch (Exception ex)
             {

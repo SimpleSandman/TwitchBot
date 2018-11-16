@@ -29,6 +29,9 @@ namespace TwitchBotWpf
         private const string _endedMessage = "Video has ended";
         private const string _bufferingMessage = "Video is buffering";
 
+        private const string _djEnabledStatus = "==Bot DJ Mode ON==";
+        private const string _djDisabledStatus = "==Bot DJ Mode OFF==";
+
         private static readonly object _findNextVideoLock = new object();
 
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
@@ -47,8 +50,6 @@ namespace TwitchBotWpf
             YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
             bool hasYoutubeAuth = Dispatcher.Invoke(() => _youTubeClientInstance.GetAuthAsync(youtubePlaylistInfo.ClientId, youtubePlaylistInfo.ClientSecret)).Result;
 
-            CefSharpCache.Save(new CefSharpCache()); // reset cache file
-
             if (hasYoutubeAuth)
             {
                 Task.Factory.StartNew(() => YoutubePlaylistListener(youtubePlaylistInfo));
@@ -64,28 +65,29 @@ namespace TwitchBotWpf
         {
             Dispatcher.BeginInvoke((Action) (() => 
             {
-                int index = -1;
-
                 // Find index of video status
+                int startIndex = -1;
+                int endingIndex = Title.IndexOf(">>") + 2;
+                
                 if (Title.IndexOf(_playingStatus) > 1)
-                    index = Title.IndexOf(_playingStatus);
+                    startIndex = Title.IndexOf(_playingStatus);
                 else if (Title.IndexOf(_pausedStatus) > 1)
-                    index = Title.IndexOf(_pausedStatus);
+                    startIndex = Title.IndexOf(_pausedStatus);
                 else if (Title.IndexOf(_bufferingStatus) > 1)
-                    index = Title.IndexOf(_bufferingStatus);
+                    startIndex = Title.IndexOf(_bufferingStatus);
                 else if (Title.IndexOf(_endedStatus) > 1)
-                    index = Title.IndexOf(_endedStatus);
+                    startIndex = Title.IndexOf(_endedStatus);
 
-                if (index > -1)
+                if (startIndex > -1)
                 {
-                    if (e.Message == _playingMessage)
-                        Title = Title.Replace(Title.Substring(index), _playingStatus);
-                    else if (e.Message == _pausedMessage)
-                        Title = Title.Replace(Title.Substring(index), _pausedStatus);
-                    else if (e.Message == _bufferingMessage)
-                        Title = Title.Replace(Title.Substring(index), _bufferingStatus);
-                    else if (e.Message == _endedMessage)
-                        Title = Title.Replace(Title.Substring(index), _endedStatus);
+                    if (e.Message == _playingMessage && !Title.Contains(_playingStatus))
+                        Title = Title.Replace(Title.Substring(startIndex, endingIndex - startIndex), _playingStatus);
+                    else if (e.Message == _pausedMessage && !Title.Contains(_pausedStatus))
+                        Title = Title.Replace(Title.Substring(startIndex, endingIndex - startIndex), _pausedStatus);
+                    else if (e.Message == _bufferingMessage && !Title.Contains(_bufferingStatus))
+                        Title = Title.Replace(Title.Substring(startIndex, endingIndex - startIndex), _bufferingStatus);
+                    else if (e.Message == _endedMessage && !Title.Contains(_endedStatus))
+                        Title = Title.Replace(Title.Substring(startIndex, endingIndex - startIndex), _endedStatus);
                 }
                 else
                 {
@@ -157,10 +159,13 @@ namespace TwitchBotWpf
         {
             Title = Browser.Title.Replace("- YouTube", "");
 
+            DisplayDjMode();
+
             Dispatcher.BeginInvoke((Action)(() =>
             {
                 if (Browser.IsLoaded)
                 {
+                    // Save the last video that was played from either request or personal playlist by ID
                     CefSharpCache loadedCefSharpCache = CefSharpCache.Load();
                     loadedCefSharpCache.Url = Browser.Address;
 
@@ -185,19 +190,24 @@ namespace TwitchBotWpf
             YoutubeClient.SongRequestSetting = ApiBotRequest.GetExecuteTaskAsync<SongRequestSetting>(
                 youtubePlaylistInfo.TwitchBotApiLink + $"songrequestsettings/get/{youtubePlaylistInfo.BroadcasterId}").Result;
 
+            // reset cache file from last runtime
+            CefSharpCache.Save(new CefSharpCache { RequestPlaylistId = YoutubeClient.SongRequestSetting.RequestPlaylistId });
+
             while (true)
             {
                 await Task.Delay(10000); // wait 10 seconds before checking if a video is being played
 
                 await Dispatcher.BeginInvoke((Action)(async () =>
                 {
+                    // Check what video was played last from the song request playlist
+                    YoutubeClient.SongRequestSetting = await ApiBotRequest.GetExecuteTaskAsync<SongRequestSetting>(
+                        youtubePlaylistInfo.TwitchBotApiLink + $"songrequestsettings/get/{youtubePlaylistInfo.BroadcasterId}");
+
+                    DisplayDjMode();
+
                     // Check if a video is being played right now
                     if (!Title.Contains(_playingStatus) && !Title.Contains(_pausedStatus) && !Title.Contains(_bufferingStatus) && Browser.IsLoaded)
                     {
-                        // Check what video was played last from the song request playlist
-                        YoutubeClient.SongRequestSetting = await ApiBotRequest.GetExecuteTaskAsync<SongRequestSetting>(
-                            youtubePlaylistInfo.TwitchBotApiLink + $"songrequestsettings/get/{youtubePlaylistInfo.BroadcasterId}");
-
                         // Check if DJ mode is on and if the current URL is not looking at the requested or personal playlists
                         if (YoutubeClient.SongRequestSetting.DjMode 
                             && !YoutubeClient.HasLookedForNextVideo
@@ -310,6 +320,29 @@ namespace TwitchBotWpf
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Display the bot's current DJ mode in the Main Window title bar
+        /// </summary>
+        private void DisplayDjMode()
+        {
+            int djIndex = Title.IndexOf(_djEnabledStatus) > 1 ? Title.IndexOf(_djEnabledStatus) : Title.IndexOf(_djDisabledStatus);
+
+            if (djIndex > 1)
+            {
+                if (YoutubeClient.SongRequestSetting.DjMode && Title.Contains(_djDisabledStatus))
+                    Title = Title.Replace(_djDisabledStatus, _djEnabledStatus);
+                else if (!YoutubeClient.SongRequestSetting.DjMode && Title.Contains(_djEnabledStatus))
+                    Title = Title.Replace(_djEnabledStatus, _djDisabledStatus);
+            }
+            else
+            {
+                if (YoutubeClient.SongRequestSetting.DjMode)
+                    Title += $" {_djEnabledStatus}";
+                else
+                    Title += $" {_djDisabledStatus}";
+            }
         }
     }
 }

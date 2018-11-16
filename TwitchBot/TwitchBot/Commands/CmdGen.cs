@@ -1686,7 +1686,12 @@ namespace TwitchBot.Commands
                 {
                     CefSharpCache csCache = CefSharpCache.Load();
 
-                    string playingMessage = $"Now Playing: \"{wpfTitle.Replace("<<Playing>>", "")}\"";
+                    // Only get the title of the video
+                    wpfTitle = wpfTitle.Replace("<<Playing>>", "");
+                    wpfTitle = wpfTitle.Replace("==Bot DJ Mode ON==", "");
+                    wpfTitle = wpfTitle.Replace("==Bot DJ Mode OFF==", "");
+
+                    string playingMessage = $"Now Playing: \"{wpfTitle}\"";
                     string videoId = _youTubeClientInstance.GetYouTubeVideoId(csCache.Url);
 
                     if (!string.IsNullOrEmpty(videoId))
