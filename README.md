@@ -14,16 +14,31 @@ For a development environment (testing), create an `AppConfigSecrets.config` in 
 ## AppConfigSecrets.config
 
 ```xml
-<TwitchBotConfiguration botName="[BotName]" broadcaster="[BroadcasterName]" twitchBotApiLink="[TwitchBotApiLink]"
-    twitchOAuth="[OAuth]" twitchClientId="[ClientId]"
-    twitchAccessToken="[AccessToken]" twitterConsumerKey="[ConsumerKey]" 
+<TwitchBotConfiguration 
+    botName="[BotName]" 
+    broadcaster="[BroadcasterName]" 
+    currencyType="[CurrencyName] (optional)" 
+    discordLink="[DiscordLink]"
+    enableDisplaySong="false"
+    enableTweets="false"    
+    manualSongRequestLink="[ManualSongRequestLink]"
+    regularFollowerHours="[RegularFollowerHours]"
+    spotifyClientId="[SpotifyClientId]"
+    spotifyRedirectUri="[SpotifyRedirectUri]"
+    spotifyServerUri="[SpotifyServerUri]"
+    streamLatency="[Latency] (in seconds)" 
+    twitchBotApiLink="[TwitchBotApiLink]"
+    twitchOAuth="[OAuth]" 
+    twitchClientId="[ClientId]"
+    twitchAccessToken="[AccessToken]" 
+    twitterConsumerKey="[ConsumerKey]" 
     twitterConsumerSecret="[ConsumerSecret]"
-    twitterAccessToken="[AccessToken]" twitterAccessSecret="[AccessSecret]" discordLink="[DiscordLink]"
-    currencyType="[CurrencyName] (optional)" enableTweets="false" enableDisplaySong="false"
-    streamLatency="[Latency] (in seconds)" youTubeClientId="[YouTubeClientId]" 
-    youTubeClientSecret="[YouTubeClientSecret]" youTubeBroadcasterPlaylistId="[YouTubeBroadcasterPlaylistId]"
-    youTubeBroadcasterPlaylistName="[YouTubeBroadcasterPlaylistName]" manualSongRequestLink="[ManualSongRequestLink]"
-    regularFollowerHours="[RegularFollowerHours]" />
+    twitterAccessToken="[AccessToken]" 
+    twitterAccessSecret="[AccessSecret]" 
+    youTubeClientId="[YouTubeClientId]" 
+    youTubeClientSecret="[YouTubeClientSecret]" 
+    youTubeBroadcasterPlaylistId="[YouTubeBroadcasterPlaylistId]"
+    youTubeBroadcasterPlaylistName="[YouTubeBroadcasterPlaylistName]" />
 ```
 
 Set file to `copy-if-newer` so it's included in the compilation. For production, this file is not needed and the bot will ask for configuration on first run
