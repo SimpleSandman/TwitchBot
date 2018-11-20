@@ -12,31 +12,37 @@ namespace TwitchBot.Libraries
     {
         private static BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
 
+        // Reference: https://dev.twitch.tv/docs/v5/reference/channels/#get-channel-by-id
         public static async Task<ChannelJSON> GetBroadcasterChannelById(string clientId)
         {
             return await ApiTwitchRequest.GetExecuteTaskAsync<ChannelJSON>("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId, clientId);
         }
 
+        // Reference: https://dev.twitch.tv/docs/v5/reference/channels/#get-channel-by-id
         public static async Task<ChannelJSON> GetUserChannelById(string userId, string clientId)
         {
             return await ApiTwitchRequest.GetExecuteTaskAsync<ChannelJSON>("https://api.twitch.tv/kraken/channels/" + userId, clientId);
         }
 
+        // Reference: https://dev.twitch.tv/docs/v5/reference/streams/#get-stream-by-user
         public static async Task<RootStreamJSON> GetBroadcasterStream(string clientId)
         {
             return await ApiTwitchRequest.GetExecuteTaskAsync<RootStreamJSON>("https://api.twitch.tv/kraken/streams/" + _broadcasterInstance.TwitchId, clientId);
         }
 
+        // Reference: https://dev.twitch.tv/docs/v5/reference/streams/#get-stream-by-user
         public static async Task<RootStreamJSON> GetUserStream(string userId, string clientId)
         {
             return await ApiTwitchRequest.GetExecuteTaskAsync<RootStreamJSON>("https://api.twitch.tv/kraken/streams/" + userId, clientId);
         }
 
+        // Reference: https://dev.twitch.tv/docs/v5/reference/users/#get-users
         public static async Task<RootUserJSON> GetUsersByLoginName(string loginName, string clientId)
         {
             return await ApiTwitchRequest.GetExecuteTaskAsync<RootUserJSON>("https://api.twitch.tv/kraken/users?login=" + loginName, clientId);
         }
 
+        // Reference: https://dev.twitch.tv/docs/v5/reference/channels/#get-channel-subscribers
         public static async Task<RootSubscriptionJSON> GetSubscribersByChannel(string clientId, string accessToken)
         {
             string apiUriBaseCall = "https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId 
@@ -45,6 +51,7 @@ namespace TwitchBot.Libraries
             return await ApiTwitchRequest.GetWithOAuthExecuteTaskAsync<RootSubscriptionJSON>(apiUriBaseCall, accessToken, clientId);
         }
 
+        // Reference: https://dev.twitch.tv/docs/v5/reference/channels/#get-channel-followers
         public static async Task<RootFollowerJSON> GetFollowersByChannel(string clientId)
         {
             string apiUriBaseCall = "https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId
@@ -53,6 +60,7 @@ namespace TwitchBot.Libraries
             return await ApiTwitchRequest.GetExecuteTaskAsync<RootFollowerJSON>(apiUriBaseCall, clientId);
         }
 
+        // Reference: https://dev.twitch.tv/docs/v5/reference/users/#check-user-follows-by-channel
         public static async Task<HttpResponseMessage> GetFollowerStatus(string chatterTwitchId, string clientId)
         {
             string apiUriCall = "https://api.twitch.tv/kraken/users/" + chatterTwitchId + "/follows/channels/" 
@@ -66,6 +74,7 @@ namespace TwitchBot.Libraries
             return await client.GetAsync(apiUriCall);
         }
 
+        // Reference: https://discuss.dev.twitch.tv/t/how-can-i-get-chat-list-in-a-channel-by-api/12225
         public static async Task<HttpResponseMessage> GetChatters(string clientId)
         {
             string apiUriCall = "https://tmi.twitch.tv/group/user/" + _broadcasterInstance.Username 
@@ -79,6 +88,7 @@ namespace TwitchBot.Libraries
             return await client.GetAsync(apiUriCall);
         }
 
+        // Reference: https://dev.twitch.tv/docs/v5/reference/channels/#check-channel-subscription-by-user
         public static async Task<HttpResponseMessage> CheckSubscriberStatus(string userTwitchId, string clientId, string accessToken)
         {
             string apiUriCall = "https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId

@@ -16,6 +16,7 @@ namespace TwitchBot.Enums
         GlobalModerator,
         Admin,
         Staff,
-        Subscriber
+        Subscriber,
+        VIP
     }
 }

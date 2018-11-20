@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -72,9 +71,9 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.SendPublicChatMessage("---> !hello >< !slap @[username] >< !stab @[username] >< !throw [item] @[username] >< !shoot @[username] "
-                    + ">< !sr [youtube link/search] >< !ytsl >< !partyup [party member name] >< !gamble [money] >< !join "
-                    + ">< !quote >< !8ball [question] >< !" + _botConfig.CurrencyType.ToLower() + " (check stream currency) <---"
+                _irc.SendPublicChatMessage("---> !hello, !slap @[username], !stab @[username], !throw [item] @[username], !shoot @[username], "
+                    + "!sr [youtube link/search], !ytsl, !partyup [party member name], !gamble [money], !join, "
+                    + "!quote, !8ball [question], !" + _botConfig.CurrencyType.ToLower() + " (check stream currency) <---"
                     + " Link to full list of commands: http://bit.ly/2bXLlEe");
             }
             catch (Exception ex)
@@ -83,11 +82,12 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async void CmdHello(string username)
+        public async void CmdHello(TwitchChatter chatter)
         {
             try
             {
-                _irc.SendPublicChatMessage($"Hey @{username}! Thanks for talking to me.");
+                _irc.SendPublicChatMessage($"Hey @{chatter.Username}! Thanks for talking to me :) " 
+                    + $"I'll let @{_botConfig.Broadcaster.ToLower()} know you're here!");
             }
             catch (Exception ex)
             {
@@ -153,19 +153,19 @@ namespace TwitchBot.Commands
         /// Display list of requested songs
         /// </summary>
         /// <param name="isManualSongRequestAvail">Check if song requests are available</param>
-        /// <param name="username">User that sent the message</param>
-        public async Task CmdManualSrList(bool isManualSongRequestAvail, string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdManualSrList(bool isManualSongRequestAvail, TwitchChatter chatter)
         {
             try
             {
                 if (!isManualSongRequestAvail)
-                    _irc.SendPublicChatMessage($"Song requests are not available at this time @{username}");
+                    _irc.SendPublicChatMessage($"Song requests are not available at this time @{chatter.Username}");
                 else
                     _irc.SendPublicChatMessage(await _manualSongRequest.ListSongRequests(_broadcasterId));
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList(bool, string)", false, "!rbsrl");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList(bool, TwitchChatter)", false, "!rbsrl");
             }
         }
 
@@ -173,19 +173,19 @@ namespace TwitchBot.Commands
         /// Displays link to the list of songs that can be requested manually
         /// </summary>
         /// <param name="isManualSongRequestAvail">Check if song requests are available</param>
-        /// <param name="username">User that sent the message</param>
-        public async void CmdManualSrLink(bool isManualSongRequestAvail, string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async void CmdManualSrLink(bool isManualSongRequestAvail, TwitchChatter chatter)
         {
             try
             {
                 if (!isManualSongRequestAvail)
-                    _irc.SendPublicChatMessage($"Song requests are not available at this time @{username}");
+                    _irc.SendPublicChatMessage($"Song requests are not available at this time @{chatter.Username}");
                 else
                     _irc.SendPublicChatMessage($"Here is the link to the songs you can manually request {_botConfig.ManualSongRequestLink}");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrLink(bool, string)", false, "!rbsl");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrLink(bool, TwitchChatter)", false, "!rbsl");
             }
         }
 
@@ -193,9 +193,8 @@ namespace TwitchBot.Commands
         /// Request a song for the host to play
         /// </summary>
         /// <param name="isSongRequestAvail">Check if song request system is enabled</param>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public async Task CmdManualSr(bool isSongRequestAvail, string message, string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdManualSr(bool isSongRequestAvail, TwitchChatter chatter)
         {
             try
             {
@@ -203,9 +202,8 @@ namespace TwitchBot.Commands
                 if (isSongRequestAvail)
                 {
                     // Grab the song name from the request
-                    int index = message.IndexOf(" ");
-                    string songRequest = message.Substring(index + 1);
-                    Console.WriteLine("New song request: " + songRequest);
+                    int index = chatter.Message.IndexOf(" ");
+                    string songRequest = chatter.Message.Substring(index + 1);
 
                     // Check if song request has more than allowed symbols
                     if (!Regex.IsMatch(songRequest, @"^[a-zA-Z0-9 \-\(\)\'\?\,\/\""]+$"))
@@ -216,24 +214,25 @@ namespace TwitchBot.Commands
                     }
                     else
                     {
-                        await _manualSongRequest.AddSongRequest(songRequest, username, _broadcasterId);
+                        await _manualSongRequest.AddSongRequest(songRequest, chatter.Username, _broadcasterId);
 
-                        _irc.SendPublicChatMessage($"The song \"{songRequest}\" has been successfully requested @{username}");
+                        _irc.SendPublicChatMessage($"The song \"{songRequest}\" has been successfully requested @{chatter.Username}");
                     }
                 }
                 else
-                    _irc.SendPublicChatMessage("Song requests are disabled at the moment");
+                    _irc.SendPublicChatMessage($"Song requests are disabled at the moment @{chatter.Username}");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSr(bool, string, string)", false, "!rbsr", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSr(bool, TwitchChatter)", false, "!rbsr", chatter.Message);
             }
         }
 
         /// <summary>
         /// Displays the current song being played from Spotify
         /// </summary>
-        public async Task CmdSpotifyCurrentSong(string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdSpotifyCurrentSong(TwitchChatter chatter)
         {
             try
             {
@@ -255,30 +254,29 @@ namespace TwitchBot.Commands
                         + $"({Math.Floor(timeSpan.TotalMinutes)}M{timeSpan.Seconds}S)");
                 }
                 else
-                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{username}");
+                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.Username}");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSpotifyCurrentSong()", false, "!spotifysong");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSpotifyCurrentSong(TwitchChatter)", false, "!spotifysong");
             }
         }
 
         /// <summary>
         /// Slaps a user and rates its effectiveness
         /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public async Task<DateTime> CmdSlap(string message, string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task<DateTime> CmdSlap(TwitchChatter chatter)
         {
             try
             {
-                string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                ReactionCmd(username, recipient, "Stop smacking yourself", "slaps", Effectiveness());
+                string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
+                ReactionCmd(chatter.Username, recipient, "Stop smacking yourself", "slaps", Effectiveness());
                 return DateTime.Now.AddSeconds(20);
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSlap(string, string)", false, "!slap", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSlap(TwitchChatter)", false, "!slap", chatter.Message);
             }
 
             return DateTime.Now;
@@ -287,19 +285,18 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Stabs a user and rates its effectiveness
         /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public async Task<DateTime> CmdStab(string message, string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task<DateTime> CmdStab(TwitchChatter chatter)
         {
             try
             {
-                string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                ReactionCmd(username, recipient, "Stop stabbing yourself! You'll bleed out", "stabs", Effectiveness());
+                string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
+                ReactionCmd(chatter.Username, recipient, "Stop stabbing yourself! You'll bleed out", "stabs", Effectiveness());
                 return DateTime.Now.AddSeconds(20);
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdStab(string, string)", false, "!stab", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdStab(TwitchChatter)", false, "!stab", chatter.Message);
             }
 
             return DateTime.Now;
@@ -308,14 +305,13 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Shoots a viewer's random body part
         /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public async Task<DateTime> CmdShoot(string message, string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task<DateTime> CmdShoot(TwitchChatter chatter)
         {
             try
             {
                 string bodyPart = "'s ";
-                string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
                 Random rnd = new Random(DateTime.Now.Millisecond);
                 int bodyPartId = rnd.Next(8); // between 0 and 7
 
@@ -338,25 +334,25 @@ namespace TwitchBot.Commands
 
                 if (bodyPart.Equals(" but missed"))
                 {
-                    _irc.SendPublicChatMessage("Ha! You missed @" + username);
+                    _irc.SendPublicChatMessage($"Ha! You missed @{chatter.Username}");
                 }
                 else
                 {
                     // bot makes a special response if shot at
                     if (recipient.Equals(_botConfig.BotName.ToLower()))
                     {
-                        _irc.SendPublicChatMessage("You think shooting me in the " + bodyPart.Replace("'s ", "") + " would hurt me? I am a bot!");
+                        _irc.SendPublicChatMessage($"You think shooting me in the {bodyPart.Replace("'s ", "")} would hurt me? I am a bot!");
                     }
                     else // viewer is the target
                     {
-                        ReactionCmd(username, recipient, "You just shot your " + bodyPart.Replace("'s ", ""), "shoots", bodyPart);
+                        ReactionCmd(chatter.Username, recipient, $"You just shot your own {bodyPart.Replace("'s ", "")}", "shoots", bodyPart);
                         return DateTime.Now.AddSeconds(20);
                     }
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdShoot(string, string)", false, "!shoot", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdShoot(TwitchChatter)", false, "!shoot", chatter.Message);
             }
 
             return DateTime.Now;
@@ -365,28 +361,27 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Throws an item at a viewer and rates its effectiveness against the victim
         /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public async Task<DateTime> CmdThrow(string message, string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task<DateTime> CmdThrow(TwitchChatter chatter)
         {
             try
             {
-                int indexAction = message.IndexOf(" ");
+                int indexAction = chatter.Message.IndexOf(" ");
 
-                if (message.StartsWith("!throw @"))
-                    _irc.SendPublicChatMessage("Please throw an item to a user @" + username);
+                if (chatter.Message.StartsWith("!throw @"))
+                    _irc.SendPublicChatMessage($"Please throw an item to a user @{chatter.Username}");
                 else
                 {
-                    string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
-                    string item = message.Substring(indexAction, message.IndexOf("@") - indexAction - 1);
+                    string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
+                    string item = chatter.Message.Substring(indexAction, chatter.Message.IndexOf("@") - indexAction - 1);
 
-                    ReactionCmd(username, recipient, "Stop throwing " + item + " at yourself", "throws " + item + " at", ". " + Effectiveness());
+                    ReactionCmd(chatter.Username, recipient, $"Stop throwing {item} at yourself", $"throws {item} at", $". {Effectiveness()}");
                     return DateTime.Now.AddSeconds(20);
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdThrow(string, string)", false, "!throw", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdThrow(TwitchChatter)", false, "!throw", chatter.Message);
             }
 
             return DateTime.Now;
@@ -395,29 +390,36 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Request party member if game and character exists in party up system
         /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public async Task CmdPartyUp(string message, string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdPartyUp(TwitchChatter chatter)
         {
             try
             {
-                int inputIndex = message.IndexOf(" ") + 1;
+                int inputIndex = chatter.Message.IndexOf(" ") + 1;
 
                 // check if user entered something
-                if (message.Length < inputIndex)
+                if (chatter.Message.Length < inputIndex)
                 {
-                    _irc.SendPublicChatMessage($"Please enter a party member @{username}");
+                    _irc.SendPublicChatMessage($"Please enter a party member @{chatter.Username}");
                     return;
                 }
 
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = json.Game;
-                string partyMemberName = message.Substring(inputIndex);
+                string partyMemberName = chatter.Message.Substring(inputIndex);
                 TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
 
                 // attempt to add requested party member into the queue
-                if (game == null || game.Id == 0)
+                if (string.IsNullOrEmpty(gameTitle))
+                {
+                    _irc.SendPublicChatMessage("I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
+                        + "Please have the chat verify that the game has been set for this stream. "
+                        + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
+                        + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
+                    return;
+                }
+                else if (game == null || game.Id == 0)
                 {
                     _irc.SendPublicChatMessage("This game is not part of the \"Party Up\" system");
                     return;
@@ -427,26 +429,26 @@ namespace TwitchBot.Commands
 
                 if (partyMember == null)
                 {
-                    _irc.SendPublicChatMessage($"I couldn't find the requested party member \"{partyMemberName}\" @{username}. "
+                    _irc.SendPublicChatMessage($"I couldn't find the requested party member \"{partyMemberName}\" @{chatter.Username}. "
                         + "Please check with the broadcaster for possible spelling errors");
                     return;
                 }
 
-                if (await _partyUp.HasUserAlreadyRequested(username, game.Id, _broadcasterId))
+                if (await _partyUp.HasUserAlreadyRequested(chatter.Username, game.Id, _broadcasterId))
                 {
                     _irc.SendPublicChatMessage($"You have already requested a party member. "
-                        + $"Please wait until your request has been completed @{username}");
+                        + $"Please wait until your request has been completed @{chatter.Username}");
                     return;
                 }
 
-                await _partyUp.AddPartyMember(username, partyMember.Id);
+                await _partyUp.AddPartyMember(chatter.Username, partyMember.Id);
 
-                _irc.SendPublicChatMessage($"@{username}: {partyMemberName} has been added to the party queue");
+                _irc.SendPublicChatMessage($"@{chatter.Username}: {partyMemberName} has been added to the party queue");
 
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUp(string, string)", false, "!partyup", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUp(TwitchChatter)", false, "!partyup", chatter.Message);
             }
         }
 
@@ -462,7 +464,14 @@ namespace TwitchBot.Commands
                 string gameTitle = json.Game;
                 TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
 
-                if (game == null || game.Id == 0)
+                if (string.IsNullOrEmpty(gameTitle))
+                {
+                    _irc.SendPublicChatMessage("I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
+                        + "Please have the chat verify that the game has been set for this stream. "
+                        + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
+                        + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
+                }
+                else if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
                 else
                     _irc.SendPublicChatMessage(await _partyUp.GetRequestList(game.Id, _broadcasterId));
@@ -485,7 +494,15 @@ namespace TwitchBot.Commands
                 string gameTitle = json.Game;
                 TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
 
-                if (game == null || game.Id == 0)
+                if (string.IsNullOrEmpty(gameTitle))
+                {
+                    _irc.SendPublicChatMessage("I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
+                        + "Please have the chat verify that the game has been set for this stream. "
+                        + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
+                        + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
+                    return;
+                }
+                else if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
                 else
                     _irc.SendPublicChatMessage(await _partyUp.GetPartyList(game.Id, _broadcasterId));
@@ -499,36 +516,35 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Check user's account balance
         /// </summary>
-        /// <param name="username">User that sent the message</param>
-        public async Task CmdCheckFunds(string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdCheckFunds(TwitchChatter chatter)
         {
             try
             {
-                int balance = await _bank.CheckBalance(username, _broadcasterId);
+                int balance = await _bank.CheckBalance(chatter.Username, _broadcasterId);
 
                 if (balance == -1)
-                    _irc.SendPublicChatMessage("You are not currently banking with us at the moment. Please talk to a moderator about acquiring " + _botConfig.CurrencyType);
+                    _irc.SendPublicChatMessage($"You are not currently banking with us at the moment. Please talk to a moderator about acquiring {_botConfig.CurrencyType}");
                 else
-                    _irc.SendPublicChatMessage($"@{username} currently has {balance.ToString()} {_botConfig.CurrencyType}");
+                    _irc.SendPublicChatMessage($"@{chatter.Username} currently has {balance.ToString()} {_botConfig.CurrencyType}");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdCheckFunds(string)", false, "![currency name]");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdCheckFunds(TwitchChatter)", false, "![currency name]");
             }
         }
 
         /// <summary>
         /// Gamble away currency
         /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public async Task<DateTime> CmdGamble(string message, string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task<DateTime> CmdGamble(TwitchChatter chatter)
         {
             try
             {
                 int gambledMoney = 0; // Money put into the gambling system
                 bool isValidMsg = false;
-                string gambleMessage = message.Substring(message.IndexOf(" ") + 1);
+                string gambleMessage = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
 
                 // Check if user wants to gamble all of their wallet
                 // Else check if their message is a valid amount to gamble
@@ -536,11 +552,11 @@ namespace TwitchBot.Commands
 
                 if (!isValidMsg)
                 {
-                    _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{username}");
+                    _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{chatter.Username}");
                     return DateTime.Now;
                 }
 
-                int walletBalance = await _bank.CheckBalance(username, _broadcasterId);
+                int walletBalance = await _bank.CheckBalance(chatter.Username, _broadcasterId);
 
                 // Check if user wants to gamble all of their wallet
                 if (gambleMessage.Equals("all", StringComparison.CurrentCultureIgnoreCase))
@@ -549,16 +565,16 @@ namespace TwitchBot.Commands
                 }
 
                 if (gambledMoney < 1)
-                    _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{username}");
+                    _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{chatter.Username}");
                 else if (gambledMoney > walletBalance)
-                    _irc.SendPublicChatMessage($"You do not have the sufficient funds to gamble {gambledMoney} {_botConfig.CurrencyType} @{username}");
+                    _irc.SendPublicChatMessage($"You do not have the sufficient funds to gamble {gambledMoney} {_botConfig.CurrencyType} @{chatter.Username}");
                 else
                 {
                     Random rnd = new Random(DateTime.Now.Millisecond);
                     int diceRoll = rnd.Next(1, 101); // between 1 and 100
                     int newBalance = 0;
 
-                    string result = $"@{username} gambled ";
+                    string result = $"@{chatter.Username} gambled ";
                     string allResponse = "";
 
                     if (gambledMoney == walletBalance)
@@ -590,7 +606,7 @@ namespace TwitchBot.Commands
                         result += $"won {gambledMoney * 3} {_botConfig.CurrencyType}";
                     }
 
-                    await _bank.UpdateFunds(username, _broadcasterId, newBalance);
+                    await _bank.UpdateFunds(chatter.Username, _broadcasterId, newBalance);
 
                     // Show how much the user has left if they didn't gamble all of their currency or gambled all and lost
                     if (allResponse != "ALL " || (allResponse == "ALL " && diceRoll < 61))
@@ -609,7 +625,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGamble(string, string)", false, "!gamble", message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGamble(string, string)", false, "!gamble", chatter.Message);
             }
 
             return DateTime.Now;
@@ -618,7 +634,7 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Display random broadcaster quote
         /// </summary>
-        public async void CmdQuote()
+        public async Task CmdQuote()
         {
             try
             {
@@ -650,18 +666,24 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Tell the user how long they have been following the broadcaster
         /// </summary>
-        /// <param name="username">User that sent the message</param>
+        /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        public async void CmdFollowSince(string username)
+        public async Task CmdFollowSince(TwitchChatter chatter)
         {
             try
             {
-                TwitchChatter chatter = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username.Equals(username));
+                if (chatter.Username == _botConfig.Broadcaster.ToLower())
+                {
+                    _irc.SendPublicChatMessage($"Please don't tell me you're really following yourself...are you {_botConfig.Broadcaster.ToLower()}? WutFace");
+                    return;
+                }
 
-                if (chatter == null)
+                chatter.CreatedAt = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username == chatter.Username).CreatedAt;
+
+                if (chatter.CreatedAt == null)
                 {
                     // get chatter info manually
-                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(username);
+                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(chatter.Username);
 
                     using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
                     {
@@ -669,56 +691,64 @@ namespace TwitchBot.Commands
                         FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
 
                         if (!string.IsNullOrEmpty(response.CreatedAt))
-                            chatter = new TwitchChatter { Username = username, CreatedAt = Convert.ToDateTime(response.CreatedAt) };
+                        {
+                            chatter.CreatedAt = Convert.ToDateTime(response.CreatedAt);
+                        }
                     }
                 }
 
                 // mainly used if chatter was originally null
-                if (chatter != null)
+                if (chatter.CreatedAt != null)
                 {
                     DateTime startedFollowing = Convert.ToDateTime(chatter.CreatedAt);
-                    _irc.SendPublicChatMessage($"@{username} has been following since {startedFollowing.ToLongDateString()}");
+                    _irc.SendPublicChatMessage($"@{chatter.Username} has been following since {startedFollowing.ToLongDateString()}");
                 }
                 else
                 {
-                    _irc.SendPublicChatMessage($"{username} is not following {_botConfig.Broadcaster.ToLower()}");
+                    _irc.SendPublicChatMessage($"{chatter.Username} is not following {_botConfig.Broadcaster.ToLower()}");
                 }
+
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdFollowSince(string)", false, "!followsince");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdFollowSince(TwitchChatter)", false, "!followsince");
             }
         }
 
         /// <summary>
         /// Display the follower's stream rank
         /// </summary>
-        /// <param name="username">User that sent the message</param>
+        /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        public async void CmdViewRank(string username)
+        public async Task CmdViewRank(TwitchChatter chatter)
         {
             try
             {
-                TwitchChatter chatter = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username.Equals(username));
-
-                if (chatter == null)
+                if (chatter.Username == _botConfig.Broadcaster.ToLower())
                 {
-                    // get chatter info manually
-                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(username);
+                    _irc.SendPublicChatMessage($"Here goes {_botConfig.Broadcaster.ToLower()} flexing his rank...oh wait OpieOP");
+                    return;
+                }
 
-                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
+                chatter.CreatedAt = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username == chatter.Username).CreatedAt;
+
+                if (chatter.CreatedAt == null)
+                {
+                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(chatter.TwitchId))
                     {
                         string body = await message.Content.ReadAsStringAsync();
                         FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
 
                         if (!string.IsNullOrEmpty(response.CreatedAt))
-                            chatter = new TwitchChatter { Username = username, CreatedAt = Convert.ToDateTime(response.CreatedAt) };
+                        {
+                            chatter.CreatedAt = Convert.ToDateTime(response.CreatedAt);
+                        }
                     }
                 }
 
-                if (chatter != null)
+                if (chatter.CreatedAt != null)
                 {
-                    int currExp = await _follower.CurrentExp(username, _broadcasterId);
+                    int currExp = await _follower.CurrentExp(chatter.Username, _broadcasterId);
 
                     // Grab the follower's associated rank
                     if (currExp > -1)
@@ -727,36 +757,35 @@ namespace TwitchBot.Commands
                         Rank currFollowerRank = _follower.GetCurrentRank(rankList, currExp);
                         decimal hoursWatched = _follower.GetHoursWatched(currExp);
 
-                        _irc.SendPublicChatMessage($"@{username}: \"{currFollowerRank.Name}\" "
+                        _irc.SendPublicChatMessage($"@{chatter.Username}: \"{currFollowerRank.Name}\" "
                             + $"{currExp}/{currFollowerRank.ExpCap} EXP ({hoursWatched} hours watched)");
                     }
                     else
                     {
-                        await _follower.EnlistRecruit(username, _broadcasterId);
+                        await _follower.EnlistRecruit(chatter.Username, _broadcasterId);
 
-                        _irc.SendPublicChatMessage($"Welcome to the army @{username}. View your new rank using !rank");
+                        _irc.SendPublicChatMessage($"Welcome to the army @{chatter.Username}. View your new rank using !rank");
                     }
                 }
                 else
                 {
-                    _irc.SendPublicChatMessage($"{username} is not following {_botConfig.Broadcaster.ToLower()}");
+                    _irc.SendPublicChatMessage($"{chatter.Username} is not following {_botConfig.Broadcaster.ToLower()}");
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdViewRank(string)", false, "!rank");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdViewRank(TwitchChatter)", false, "!rank");
             }
         }
 
         /// <summary>
         /// Uses the Google API to add YouTube videos to the broadcaster's specified request playlist
         /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
+        /// <param name="chatter">User that sent the message</param>
         /// <param name="hasYouTubeAuth">Checks if broadcaster allowed this bot to post videos to the playlist</param>
         /// <param name="isYouTubeSongRequestAvail">Checks if users can request songs</param>
         /// <returns></returns>
-        public async Task<DateTime> CmdYouTubeSongRequest(string message, string username, bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
+        public async Task<DateTime> CmdYouTubeSongRequest(TwitchChatter chatter, bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
         {
             try
             {
@@ -772,44 +801,44 @@ namespace TwitchBot.Commands
                     return DateTime.Now;
                 }
 
-                int funds = await _bank.CheckBalance(username, _broadcasterId);
+                int funds = await _bank.CheckBalance(chatter.Username, _broadcasterId);
                 int cost = 250; // ToDo: Set YTSR currency cost into settings
 
                 if (funds < cost)
                 {
                     _irc.SendPublicChatMessage($"You do not have enough {_botConfig.CurrencyType} to make a song request. "
-                        + $"You currently have {funds} {_botConfig.CurrencyType} @{username}");
+                        + $"You currently have {funds} {_botConfig.CurrencyType} @{chatter.Username}");
                 }
                 else
                 {
                     string videoId = "";
-                    int spaceIndex = message.IndexOf(" ");
+                    int spaceIndex = chatter.Message.IndexOf(" ");
 
                     // Parse video ID based on different types of requests
-                    if (message.Contains("?v=") || message.Contains("&v=") || message.Contains("youtu.be/")) // full or short URL
+                    if (chatter.Message.Contains("?v=") || chatter.Message.Contains("&v=") || chatter.Message.Contains("youtu.be/")) // full or short URL
                     {
-                        videoId = _youTubeClientInstance.GetYouTubeVideoId(message);
+                        videoId = _youTubeClientInstance.GetYouTubeVideoId(chatter.Message);
                     }
-                    else if (message.Substring(spaceIndex + 1).Length == 11
-                        && message.Substring(spaceIndex + 1).IndexOf(" ") == -1
-                        && Regex.Match(message, @"[\w\-]").Success) // assume only video ID
+                    else if (chatter.Message.Substring(spaceIndex + 1).Length == 11
+                        && chatter.Message.Substring(spaceIndex + 1).IndexOf(" ") == -1
+                        && Regex.Match(chatter.Message, @"[\w\-]").Success) // assume only video ID
                     {
-                        videoId = message.Substring(spaceIndex + 1);
+                        videoId = chatter.Message.Substring(spaceIndex + 1);
                     }
                     else // search by keyword
                     {
-                        string videoKeyword = message.Substring(spaceIndex + 1);
+                        string videoKeyword = chatter.Message.Substring(spaceIndex + 1);
                         videoId = await _youTubeClientInstance.SearchVideoByKeyword(videoKeyword);
                     }
 
                     // Confirm if video ID has been found and is a new song request
                     if (string.IsNullOrEmpty(videoId))
                     {
-                        _irc.SendPublicChatMessage($"Couldn't find video ID for song request @{username}");
+                        _irc.SendPublicChatMessage($"Couldn't find video ID for song request @{chatter.Username}");
                     }
                     else if (await _youTubeClientInstance.HasDuplicatePlaylistItem(_botConfig.YouTubeBroadcasterPlaylistId, videoId))
                     {
-                        _irc.SendPublicChatMessage($"Song has already been requested @{username}");
+                        _irc.SendPublicChatMessage($"Song has already been requested @{chatter.Username}");
                     }
                     else
                     {
@@ -828,7 +857,7 @@ namespace TwitchBot.Commands
                                             && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
                                 ))
                             {
-                                _irc.SendPublicChatMessage($"I'm not allowing this artist/video to be queued on my master's behalf @{username}");
+                                _irc.SendPublicChatMessage($"I'm not allowing this artist/video to be queued on my master's behalf @{chatter.Username}");
                                 return DateTime.Now;
                             }
                             // Check for song-specific blacklist
@@ -839,7 +868,7 @@ namespace TwitchBot.Commands
                                             && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // song in title and artist in channel title
                                 ))
                             {
-                                _irc.SendPublicChatMessage($"I'm not allowing this song to be queued on my master's behalf @{username}");
+                                _irc.SendPublicChatMessage($"I'm not allowing this song to be queued on my master's behalf @{chatter.Username}");
                                 return DateTime.Now;
                             }
                         }
@@ -862,7 +891,7 @@ namespace TwitchBot.Commands
                         // ToDo: Make bot setting for duration limit based on minutes (if set)
                         if (!videoDuration.Contains("PT") || videoDuration.Contains("H"))
                         {
-                            _irc.SendPublicChatMessage($"Either couldn't find the video duration or it was way too long for the stream @{username}");
+                            _irc.SendPublicChatMessage($"Either couldn't find the video duration or it was way too long for the stream @{chatter.Username}");
                         }
                         else
                         {
@@ -884,14 +913,14 @@ namespace TwitchBot.Commands
                             if (Convert.ToInt32(videoMin) >= videoMinLimit && Convert.ToInt32(videoSec) >= videoSecLimit)
                             {
                                 _irc.SendPublicChatMessage("Song request is longer than or equal to " 
-                                    + $"{videoMinLimit} minute(s) and {videoSecLimit} second(s) @{username}");
+                                    + $"{videoMinLimit} minute(s) and {videoSecLimit} second(s) @{chatter.Username}");
                             }
                             else
                             {
-                                await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, username);
-                                await _bank.UpdateFunds(username, _broadcasterId, funds - cost);
+                                await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.Username);
+                                await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - cost);
 
-                                _irc.SendPublicChatMessage($"@{username} spent {cost} {_botConfig.CurrencyType} " + 
+                                _irc.SendPublicChatMessage($"@{chatter.Username} spent {cost} {_botConfig.CurrencyType} " + 
                                     $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) was successfully requested!");
 
                                 // Return cooldown time by using one-third of the length of the video duration
@@ -906,7 +935,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest(string, string, bool, bool)", false, "!ytsr");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest(TwitchChatter, bool, bool)", false, "!ytsr");
             }
 
             return DateTime.Now;
@@ -940,14 +969,14 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Displays MultiStream link so multiple streamers can be watched at once
         /// </summary>
-        /// <param name="username">User that sent the message</param>
+        /// <param name="chatter">User that sent the message</param>
         /// <param name="multiStreamUsers">List of broadcasters that are a part of the link</param>
-        public async void CmdMultiStreamLink(string username, List<string> multiStreamUsers)
+        public async void CmdMultiStreamLink(TwitchChatter chatter, List<string> multiStreamUsers)
         {
             try
             {
                 if (multiStreamUsers.Count == 0)
-                    _irc.SendPublicChatMessage($"MultiStream link is not set up @{username}");
+                    _irc.SendPublicChatMessage($"MultiStream link is not set up @{chatter.Username}");
                 else
                 {
                     string multiStreamLink = "https://multitwitch.live/" + _botConfig.Broadcaster.ToLower();
@@ -960,15 +989,15 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdMultiStream(string, List<string>)", false, "!msl");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdMultiStreamLink(TwitchChatter, List<string>)", false, "!msl");
             }
         }
 
         /// <summary>
         /// Ask any question and the Magic 8 Ball will give a fortune
         /// </summary>
-        /// <param name="username">User that sent the message</param>
-        public async Task<DateTime> CmdMagic8Ball(string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task<DateTime> CmdMagic8Ball(TwitchChatter chatter)
         {
             try
             {
@@ -977,26 +1006,26 @@ namespace TwitchBot.Commands
 
                 string[] possibleAnswers = new string[20]
                 {
-                    $"It is certain @{username}",
-                    $"It is decidedly so @{username}",
-                    $"Without a doubt @{username}",
-                    $"Yes definitely @{username}",
-                    $"You may rely on it @{username}",
-                    $"As I see it, yes @{username}",
-                    $"Most likely @{username}",
-                    $"Outlook good @{username}",
-                    $"Yes @{username}",
-                    $"Signs point to yes @{username}",
-                    $"Reply hazy try again @{username}",
-                    $"Ask again later @{username}",
-                    $"Better not tell you now @{username}",
-                    $"Cannot predict now @{username}",
-                    $"Concentrate and ask again @{username}",
-                    $"Don't count on it @{username}",
-                    $"My reply is no @{username}",
-                    $"My sources say no @{username}",
-                    $"Outlook not so good @{username}",
-                    $"Very doubtful @{username}"
+                    $"It is certain @{chatter.Username}",
+                    $"It is decidedly so @{chatter.Username}",
+                    $"Without a doubt @{chatter.Username}",
+                    $"Yes definitely @{chatter.Username}",
+                    $"You may rely on it @{chatter.Username}",
+                    $"As I see it, yes @{chatter.Username}",
+                    $"Most likely @{chatter.Username}",
+                    $"Outlook good @{chatter.Username}",
+                    $"Yes @{chatter.Username}",
+                    $"Signs point to yes @{chatter.Username}",
+                    $"Reply hazy try again @{chatter.Username}",
+                    $"Ask again later @{chatter.Username}",
+                    $"Better not tell you now @{chatter.Username}",
+                    $"Cannot predict now @{chatter.Username}",
+                    $"Concentrate and ask again @{chatter.Username}",
+                    $"Don't count on it @{chatter.Username}",
+                    $"My reply is no @{chatter.Username}",
+                    $"My sources say no @{chatter.Username}",
+                    $"Outlook not so good @{chatter.Username}",
+                    $"Very doubtful @{chatter.Username}"
                 };
 
                 _irc.SendPublicChatMessage(possibleAnswers[answerId]);
@@ -1004,7 +1033,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdMagic8Ball(string)", false, "!8ball");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdMagic8Ball(TwitchChatter)", false, "!8ball");
             }
 
             return DateTime.Now;
@@ -1013,8 +1042,8 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Disply the top 3 richest users (if available)
         /// </summary>
-        /// <param name="username">User that sent the message</param>
-        public async void CmdLeaderboardCurrency(string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdLeaderboardCurrency(TwitchChatter chatter)
         {
             try
             {
@@ -1022,7 +1051,7 @@ namespace TwitchBot.Commands
 
                 if (richestUsers.Count == 0)
                 {
-                    _irc.SendPublicChatMessage($"Everyone's broke! @{username}");
+                    _irc.SendPublicChatMessage($"Everyone's broke! @{chatter.Username} NotLikeThis");
                     return;
                 }
 
@@ -1047,15 +1076,15 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardCurrency(string)", false, "![currency name]top3");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardCurrency(TwitchChatter)", false, "![currency name]top3");
             }
         }
 
         /// <summary>
         /// Display the top 3 highest ranking members (if available)
         /// </summary>
-        /// <param name="username">User that sent the message</param>
-        public async void CmdLeaderboardRank(string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdLeaderboardRank(TwitchChatter chatter)
         {
             try
             {
@@ -1063,7 +1092,7 @@ namespace TwitchBot.Commands
 
                 if (highestRankedFollowers.Count() == 0)
                 {
-                    _irc.SendPublicChatMessage($"There's no one in your ranks. Start recruiting today! @{username}");
+                    _irc.SendPublicChatMessage($"There's no one in your ranks. Start recruiting today! @{chatter.Username}");
                     return;
                 }
 
@@ -1093,19 +1122,19 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardRank(string)", false, "!ranktop3");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardRank(TwitchChatter)", false, "!ranktop3");
             }
         }
 
         /// <summary>
         /// Play a friendly game of Russian Roulette and risk chat privileges for stream currency
         /// </summary>
-        /// <param name="username">User that sent the message</param>
-        public async Task<DateTime> CmdRussianRoulette(string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task<DateTime> CmdRussianRoulette(TwitchChatter chatter)
         {
             try
             {
-                RouletteUser rouletteUser = Program.RouletteUsers.FirstOrDefault(u => u.Username.Equals(username));
+                RouletteUser rouletteUser = Program.RouletteUsers.FirstOrDefault(u => u.Username == chatter.Username);
 
                 Random rnd = new Random(DateTime.Now.Millisecond);
                 int bullet = rnd.Next(6); // between 0 and 5
@@ -1115,23 +1144,23 @@ namespace TwitchBot.Commands
                     if (rouletteUser != null)
                         Program.RouletteUsers.Remove(rouletteUser);
 
-                    if (_botConfig.Broadcaster.Equals(username) || _twitchChatterListInstance.GetUserChatterType(username) == ChatterType.Moderator)
+                    if (_botConfig.Broadcaster.ToLower() == chatter.Username || chatter.Badges.Contains("moderator"))
                     {
-                        _irc.SendPublicChatMessage($"Enjoy your 15 minutes without russian roulette @{username}");
+                        _irc.SendPublicChatMessage($"Enjoy your 15 minutes without russian roulette @{chatter.Username}");
                         return DateTime.Now.AddMinutes(15);
                     }
 
-                    _irc.SendChatTimeout(username, 300); // 5 minute timeout
-                    _irc.SendPublicChatMessage($"You are dead @{username}. Enjoy your 5 minutes in limbo (cannot talk)");
+                    _irc.SendChatTimeout(chatter.Username, 300); // 5 minute timeout
+                    _irc.SendPublicChatMessage($"You are dead @{chatter.Username}. Enjoy your 5 minutes in limbo (cannot talk)");
                     return DateTime.Now;
                 }
 
                 if (rouletteUser == null) // new roulette user
                 {
-                    rouletteUser = new RouletteUser() { Username = username, ShotsTaken = 1 };
+                    rouletteUser = new RouletteUser() { Username = chatter.Username, ShotsTaken = 1 };
                     Program.RouletteUsers.Add(rouletteUser);
 
-                    _irc.SendPublicChatMessage($"@{username} -> 1/6 attempts");
+                    _irc.SendPublicChatMessage($"@{chatter.Username} -> 1/6 attempts");
                 }
                 else // existing roulette user
                 {
@@ -1139,7 +1168,7 @@ namespace TwitchBot.Commands
                     {
                         foreach (RouletteUser user in Program.RouletteUsers)
                         {
-                            if (user.Username.Equals(username))
+                            if (user.Username == chatter.Username)
                             {
                                 user.ShotsTaken++;
                                 break;
@@ -1147,27 +1176,27 @@ namespace TwitchBot.Commands
                         }
                     }
 
-                    string responseMessage = $"@{username} -> {rouletteUser.ShotsTaken}/6 attempts";
+                    string responseMessage = $"@{chatter.Username} -> {rouletteUser.ShotsTaken}/6 attempts";
 
                     if (rouletteUser.ShotsTaken == 6)
                     {
-                        int funds = await _bank.CheckBalance(username, _broadcasterId);
+                        int funds = await _bank.CheckBalance(chatter.Username, _broadcasterId);
                         int reward = 3000; // ToDo: Make roulette reward deposit config setting
 
                         if (funds > -1)
                         {
                             funds += reward; // deposit 500 stream currency
-                            await _bank.UpdateFunds(username, _broadcasterId, funds);
+                            await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds);
                         }
                         else
-                            await _bank.CreateAccount(username, _broadcasterId, reward);
+                            await _bank.CreateAccount(chatter.Username, _broadcasterId, reward);
 
-                        Program.RouletteUsers.RemoveAll(u => u.Username.Equals(username));
+                        Program.RouletteUsers.RemoveAll(u => u.Username == chatter.Username);
 
                         responseMessage = $"Congrats on surviving russian roulette. Here's {reward} {_botConfig.CurrencyType}!";
 
                         // Special cooldown for moderators/broadcasters after they win
-                        if (_botConfig.Broadcaster.Equals(username) || _twitchChatterListInstance.GetUserChatterType(username) == ChatterType.Moderator)
+                        if (_botConfig.Broadcaster.ToLower() == chatter.Username || chatter.Badges.Contains("moderator"))
                         {
                             _irc.SendPublicChatMessage(responseMessage);
                             return DateTime.Now.AddMinutes(5);
@@ -1179,7 +1208,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdRussianRoulette(string, ref List<RouletteUser>)", false, "!roulette");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdRussianRoulette(TwitchChatter)", false, "!roulette");
             }
 
             return DateTime.Now;
@@ -1188,13 +1217,13 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Show a list of users that are queued to play with the broadcaster
         /// </summary>
-        /// <param name="username">User that sent the message</param>
+        /// <param name="chatter">User that sent the message</param>
         /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
-        public async void CmdListJoin(string username, Queue<string> gameQueueUsers)
+        public async Task CmdListJoin(TwitchChatter chatter, Queue<string> gameQueueUsers)
         {
             try
             {
-                if (!await IsMultiplayerGame(username)) return;
+                if (!await IsMultiplayerGame(chatter.Username)) return;
 
                 if (gameQueueUsers.Count == 0)
                 {
@@ -1215,36 +1244,36 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdListJoin(string, Queue<string>)", false, "!listjoin");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdListJoin(TwitchChatter, Queue<string>)", false, "!listjoin");
             }
         }
 
         /// <summary>
         /// Add a user to the queue of users that want to play with the broadcaster
         /// </summary>
-        /// <param name="username">User that sent the message</param>
+        /// <param name="chatter">User that sent the message</param>
         /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
-        public async Task<Queue<string>> CmdJoin(string username, Queue<string> gameQueueUsers)
+        public async Task<Queue<string>> CmdJoin(TwitchChatter chatter, Queue<string> gameQueueUsers)
         {
             try
             {
-                if (gameQueueUsers.Contains(username))
+                if (gameQueueUsers.Contains(chatter.Username))
                 {
-                    _irc.SendPublicChatMessage($"Don't worry @{username}. You're on the list to play with " +
-                        $"the streamer with your current position at {gameQueueUsers.ToList().IndexOf(username) + 1} " +
+                    _irc.SendPublicChatMessage($"Don't worry @{chatter.Username}. You're on the list to play with " +
+                        $"the streamer with your current position at {gameQueueUsers.ToList().IndexOf(chatter.Username) + 1} " +
                         $"of {gameQueueUsers.Count} user(s)");
                 }
-                else if (await IsMultiplayerGame(username))
+                else if (await IsMultiplayerGame(chatter.Username))
                 {
-                    gameQueueUsers.Enqueue(username);
+                    gameQueueUsers.Enqueue(chatter.Username);
 
-                    _irc.SendPublicChatMessage($"Congrats @{username}! You're currently in line with your current position at " +
-                        $"{gameQueueUsers.ToList().IndexOf(username) + 1}");
+                    _irc.SendPublicChatMessage($"Congrats @{chatter.Username}! You're currently in line with your current position at " +
+                        $"{gameQueueUsers.ToList().IndexOf(chatter.Username) + 1}");
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdJoin(string, Queue<string>)", false, "!join");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdJoin(TwitchChatter, Queue<string>)", false, "!join");
             }
 
             return gameQueueUsers;
@@ -1253,15 +1282,14 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Engage in the bank heist minigame
         /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public async Task CmdBankHeist(string message, string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdBankHeist(TwitchChatter chatter)
         {
             try
             {
                 BankHeist bankHeist = new BankHeist();
-                int funds = await _bank.CheckBalance(username, _broadcasterId);
-                bool isValid = int.TryParse(message.Substring(message.IndexOf(" ")), out int gamble);
+                int funds = await _bank.CheckBalance(chatter.Username, _broadcasterId);
+                bool isValid = int.TryParse(chatter.Message.Substring(chatter.Message.IndexOf(" ")), out int gamble);
 
                 if (_heistSettingsInstance.IsHeistOnCooldown())
                 {
@@ -1282,37 +1310,37 @@ namespace TwitchBot.Commands
                     return;
                 }
 
-                if (bankHeist.HasRobberAlreadyEntered(username))
+                if (bankHeist.HasRobberAlreadyEntered(chatter.Username))
                 {
-                    _irc.SendPublicChatMessage($"You are already in this heist @{username}");
+                    _irc.SendPublicChatMessage($"You are already in this heist @{chatter.Username}");
                     return;
                 }
 
                 // check if funds and gambling amount are valid
                 if (!isValid)
                 {
-                    _irc.SendPublicChatMessage($"Please gamble with a positive amount of {_botConfig.CurrencyType} @{username}");
+                    _irc.SendPublicChatMessage($"Please gamble with a positive amount of {_botConfig.CurrencyType} @{chatter.Username}");
                     return;
                 }
                 else if (gamble < 1)
                 {
-                    _irc.SendPublicChatMessage($"You cannot gamble less than one {_botConfig.CurrencyType} @{username}");
+                    _irc.SendPublicChatMessage($"You cannot gamble less than one {_botConfig.CurrencyType} @{chatter.Username}");
                     return;
                 }
                 else if (funds < 1)
                 {
-                    _irc.SendPublicChatMessage($"You need at least one {_botConfig.CurrencyType} to join the heist @{username}");
+                    _irc.SendPublicChatMessage($"You need at least one {_botConfig.CurrencyType} to join the heist @{chatter.Username}");
                     return;
                 }
                 else if (funds < gamble)
                 {
-                    _irc.SendPublicChatMessage($"You do not have enough to gamble {gamble} {_botConfig.CurrencyType} @{username}");
+                    _irc.SendPublicChatMessage($"You do not have enough to gamble {gamble} {_botConfig.CurrencyType} @{chatter.Username}");
                     return;
                 }
                 else if (gamble > _heistSettingsInstance.MaxGamble)
                 {
                     _irc.SendPublicChatMessage($"{_heistSettingsInstance.MaxGamble} {_botConfig.CurrencyType} is the most you can put in. " + 
-                        $"Please try again with less {_botConfig.CurrencyType} @{username}");
+                        $"Please try again with less {_botConfig.CurrencyType} @{chatter.Username}");
                     return;
                 }
                 
@@ -1322,13 +1350,13 @@ namespace TwitchBot.Commands
                     if (_heistSettingsInstance.Robbers.Count == 0)
                     {
                         _heistSettingsInstance.EntryPeriod = DateTime.Now.AddSeconds(_heistSettingsInstance.EntryPeriodSeconds);
-                        _irc.SendPublicChatMessage(_heistSettingsInstance.EntryMessage.Replace("user@", username));
+                        _irc.SendPublicChatMessage(_heistSettingsInstance.EntryMessage.Replace("user@", chatter.Username));
                     }
 
                     // join bank heist
-                    BankRobber robber = new BankRobber { Username = username, Gamble = gamble };
+                    BankRobber robber = new BankRobber { Username = chatter.Username, Gamble = gamble };
                     bankHeist.Produce(robber);
-                    await _bank.UpdateFunds(username, _broadcasterId, funds - gamble);
+                    await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - gamble);
 
                     // display new heist level
                     if (!string.IsNullOrEmpty(bankHeist.NextLevelMessage()))
@@ -1339,13 +1367,13 @@ namespace TwitchBot.Commands
                     // display if more than one robber joins
                     if (_heistSettingsInstance.Robbers.Count > 1)
                     {
-                        _irc.SendPublicChatMessage($"@{username} has joined the heist");
+                        _irc.SendPublicChatMessage($"@{chatter.Username} has joined the heist");
                     }
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdBankHeist(string, string)", false, "!bankheist");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdBankHeist(TwitchChatter)", false, "!bankheist");
             }
         }
 
@@ -1368,7 +1396,7 @@ namespace TwitchBot.Commands
                 else
                 {
                     _irc.SendPublicChatMessage($"{_botConfig.Broadcaster} is not a Twitch Affiliate/Partner. "
-                        + "Please stick around and make their dream not a meme Kappa");
+                        + "Please stick around and make their dream not a meme BlessRNG");
                 }
             }
             catch (Exception ex)
@@ -1378,59 +1406,15 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
-        /// Tell the user how long they have been subscribing to the broadcaster
-        /// </summary>
-        /// <param name="username">User that sent the message</param>
-        /// <returns></returns>
-        public async Task CmdSubscribeSince(string username)
-        {
-            try
-            {
-                TwitchChatter chatter = _twitchChatterListInstance.TwitchSubscribers.FirstOrDefault(c => c.Username.Equals(username));
-
-                if (chatter == null)
-                {
-                    // get chatter info manually
-                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(username);
-
-                    using (HttpResponseMessage message = await _twitchInfo.CheckSubscriberStatus(rootUserJSON.Users.First().Id))
-                    {
-                        string body = await message.Content.ReadAsStringAsync();
-                        SubscriptionJSON response = JsonConvert.DeserializeObject<SubscriptionJSON>(body);
-
-                        if (!string.IsNullOrEmpty(response.CreatedAt))
-                            chatter = new TwitchChatter { Username = username, CreatedAt = Convert.ToDateTime(response.CreatedAt) };
-                    }
-                }
-
-                // mainly used if chatter was originally null
-                if (chatter != null)
-                {
-                    DateTime startedSubscribing = Convert.ToDateTime(chatter.CreatedAt);
-                    _irc.SendPublicChatMessage($"@{username} has been a subscriber since {startedSubscribing.ToLongDateString()}");
-                }
-                else
-                {
-                    _irc.SendPublicChatMessage($"{username} is not subscriber to {_botConfig.Broadcaster.ToLower()}");
-                }
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSubscribeSince(string)", false, "!subsince");
-            }
-        }
-
-        /// <summary>
         /// Engage in the boss fight minigame
         /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public async Task CmdBossFight(string message, string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdBossFight(TwitchChatter chatter)
         {
             try
             {
                 BossFight bossFight = new BossFight();
-                int funds = await _bank.CheckBalance(username, _broadcasterId);
+                int funds = await _bank.CheckBalance(chatter.Username, _broadcasterId);
 
                 if (_bossSettingsInstance.IsBossFightOnCooldown())
                 {
@@ -1453,83 +1437,94 @@ namespace TwitchBot.Commands
 
                 if (_bossSettingsInstance.RefreshBossFight)
                 {
-                    _irc.SendPublicChatMessage($"The boss fight is currently being refreshed with new settings @{username}");
+                    _irc.SendPublicChatMessage($"The boss fight is currently being refreshed with new settings @{chatter.Username}");
                     return;
                 }
 
-                if (bossFight.HasFighterAlreadyEntered(username))
+                if (bossFight.HasFighterAlreadyEntered(chatter.Username))
                 {
-                    _irc.SendPublicChatMessage($"You are already in this fight @{username}");
+                    _irc.SendPublicChatMessage($"You are already in this fight @{chatter.Username}");
                     return;
                 }
 
                 if (funds < _bossSettingsInstance.Cost)
                 {
-                    _irc.SendPublicChatMessage($"You do need {_bossSettingsInstance.Cost} {_botConfig.CurrencyType} to enter this fight @{username}");
+                    _irc.SendPublicChatMessage($"You do need {_bossSettingsInstance.Cost} {_botConfig.CurrencyType} to enter this fight @{chatter.Username}");
                     return;
                 }
 
                 if (!bossFight.IsEntryPeriodOver())
                 {
-                    // join boss fight
-                    ChatterType chatterType = _twitchChatterListInstance.GetUserChatterType(username);
-                    if (chatterType == ChatterType.DoesNotExist)
-                    {
-                        _irc.SendPublicChatMessage($"I'm not able to find you in the chatter list. Please try again in 15 seconds @{username}");
-                        return;
-                    }
+                    ChatterType chatterType = ChatterType.DoesNotExist;
 
-                    if (chatterType == ChatterType.Staff || chatterType == ChatterType.Admin || chatterType == ChatterType.GlobalModerator)
+                    // join boss fight
+                    if (chatter.Badges.Contains("moderator")
+                        || chatter.Badges.Contains("admin")
+                        || chatter.Badges.Contains("global_mod")
+                        || chatter.Badges.Contains("staff")
+                        || chatter.Username == _botConfig.Broadcaster.ToLower())
                     {
                         chatterType = ChatterType.Moderator;
+                    }
+                    else if (chatter.Badges.Contains("subscriber") || chatter.Badges.Contains("vip"))
+                    {
+                        chatterType = ChatterType.Subscriber;
+                    }
+                    // ToDo: Create new columns in the BossFightClassStats table for VIP stats
+                    //else if (chatter.Badges.Contains("vip"))
+                    //{
+                    //    chatterType = ChatterType.VIP;
+                    //}
+                    else
+                    {
+                        chatterType = _twitchChatterListInstance.GetUserChatterType(chatter.Username);
+                        if (chatterType == ChatterType.DoesNotExist)
+                        {
+                            _irc.SendPublicChatMessage($"I'm not able to find you in the chatter list. Please try again in 15 seconds @{chatter.Username}");
+                            return;
+                        }
                     }
 
                     // make boss fight announcement if first fighter and start recruiting members
                     if (_bossSettingsInstance.Fighters.Count == 0)
                     {
                         _bossSettingsInstance.EntryPeriod = DateTime.Now.AddSeconds(_bossSettingsInstance.EntryPeriodSeconds);
-                        _irc.SendPublicChatMessage(_bossSettingsInstance.EntryMessage.Replace("user@", username));
+                        _irc.SendPublicChatMessage(_bossSettingsInstance.EntryMessage.Replace("user@", chatter.Username));
                     }
 
                     FighterClass fighterClass = _bossSettingsInstance.ClassStats.Single(c => c.ChatterType == chatterType);
-                    BossFighter fighter = new BossFighter { Username = username, FighterClass = fighterClass };
+                    BossFighter fighter = new BossFighter { Username = chatter.Username, FighterClass = fighterClass };
                     bossFight.Produce(fighter);
-                    await _bank.UpdateFunds(username, _broadcasterId, funds - _bossSettingsInstance.Cost);
+                    await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - _bossSettingsInstance.Cost);
 
                     // display new boss level
                     if (!string.IsNullOrEmpty(bossFight.NextLevelMessage()))
                     {
                         _irc.SendPublicChatMessage(bossFight.NextLevelMessage());
                     }
-
-                    // display if more than one fighter joins
-                    //if (_bossSettingsInstance.Fighters.Count > 1)
-                    //{
-                    //    _irc.SendPublicChatMessage($"@{username} has joined the fight");
-                    //}
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdBossFight(string, string)", false, "!raid");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdBossFight(TwitchChatter)", false, "!raid");
             }
         }
 
         /// <summary>
         /// Tell the streamer the user is lurking
         /// </summary>
-        /// <param name="username">User that sent the message</param>
+        /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        public async Task<DateTime> CmdLurk(string username)
+        public async Task<DateTime> CmdLurk(TwitchChatter chatter)
         {
             try
             {
-                _irc.SendPublicChatMessage($"Okay {username}! @{_botConfig.Broadcaster} will be waiting for you TPFufun");
+                _irc.SendPublicChatMessage($"Okay {chatter.Username}! @{_botConfig.Broadcaster} will be waiting for you TPFufun");
                 return DateTime.Now.AddMinutes(5);
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLurk(string)", false, "!lurk");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLurk(TwitchChatter)", false, "!lurk");
             }
 
             return DateTime.Now;
@@ -1538,18 +1533,18 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Tell the streamer the user is back from lurking
         /// </summary>
-        /// <param name="username">User that sent the message</param>
+        /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        public async Task<DateTime> CmdUnlurk(string username)
+        public async Task<DateTime> CmdUnlurk(TwitchChatter chatter)
         {
             try
             {
-                _irc.SendPublicChatMessage($"Welcome back {username}! KonCha I'll let @{_botConfig.Broadcaster} know you're here!");
+                _irc.SendPublicChatMessage($"Welcome back {chatter.Username}! KonCha I'll let @{_botConfig.Broadcaster} know you're here!");
                 return DateTime.Now.AddMinutes(5);
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdUnlurk(string)", false, "!unlurk");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdUnlurk(TwitchChatter)", false, "!unlurk");
             }
 
             return DateTime.Now;
@@ -1558,21 +1553,20 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Let a user give an amount of their funds to another chatter
         /// </summary>
-        /// <param name="message">Chat message from the user</param>
-        /// <param name="username">User that sent the message</param>
-        public async Task<DateTime> CmdGiveFunds(string message, string username)
+        /// <param name="chatter">User that sent the message</param>
+        public async Task<DateTime> CmdGiveFunds(TwitchChatter chatter)
         {
             try
             {
-                if (message.StartsWith("!give @"))
+                if (chatter.Message.StartsWith("!give @"))
                 {
-                    _irc.SendPublicChatMessage($"Please enter a valid amount @{username} (ex: !give [amount/all] @[username])");
+                    _irc.SendPublicChatMessage($"Please enter a valid amount @{chatter.Username} (ex: !give [amount/all] @[username])");
                     return DateTime.Now;
                 }
 
                 int giftAmount = 0;
                 bool validGiftAmount = false;
-                string giftMessage = message.Substring(message.IndexOf(" ") + 1, message.GetNthCharIndex(' ', 2) - message.IndexOf(" ") - 1);
+                string giftMessage = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1, chatter.Message.GetNthCharIndex(' ', 2) - chatter.Message.IndexOf(" ") - 1);
 
                 // Check if user wants to give all of their wallet to another user
                 // Else check if their message is a valid amount to give
@@ -1580,26 +1574,26 @@ namespace TwitchBot.Commands
 
                 if (!validGiftAmount)
                 {
-                    _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{username}");
+                    _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{chatter.Username}");
                     return DateTime.Now;
                 }
 
                 // Get and check recipient
-                string recipient = message.Substring(message.IndexOf("@") + 1).ToLower();
+                string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
 
-                if (string.IsNullOrEmpty(recipient) || message.IndexOf("@") == -1)
+                if (string.IsNullOrEmpty(recipient) || chatter.Message.IndexOf("@") == -1)
                 {
-                    _irc.SendPublicChatMessage($"I don't know who I'm supposed to send this to. Please specify a recipient @{username}");
+                    _irc.SendPublicChatMessage($"I don't know who I'm supposed to send this to. Please specify a recipient @{chatter.Username}");
                     return DateTime.Now;
                 }
-                else if (recipient == username)
+                else if (recipient == chatter.Username)
                 {
-                    _irc.SendPublicChatMessage($"Stop trying to give {_botConfig.CurrencyType} to yourself @{username}");
+                    _irc.SendPublicChatMessage($"Stop trying to give {_botConfig.CurrencyType} to yourself @{chatter.Username}");
                     return DateTime.Now;
                 }
 
                 // Get and check wallet balance
-                int balance = await _bank.CheckBalance(username, _broadcasterId);
+                int balance = await _bank.CheckBalance(chatter.Username, _broadcasterId);
 
                 if (giftMessage == "all")
                 {
@@ -1607,31 +1601,31 @@ namespace TwitchBot.Commands
                 }
 
                 if (balance == -1)
-                    _irc.SendPublicChatMessage($"You are not currently banking with us @{username} . Please talk to a moderator about acquiring {_botConfig.CurrencyType}");
+                    _irc.SendPublicChatMessage($"You are not currently banking with us @{chatter.Username} . Please talk to a moderator about acquiring {_botConfig.CurrencyType}");
                 else if (giftAmount < 1)
-                    _irc.SendPublicChatMessage($"That is not a valid amount of {_botConfig.CurrencyType} to give. Please try again with a positive whole amount (no decimals) @{username}");
+                    _irc.SendPublicChatMessage($"That is not a valid amount of {_botConfig.CurrencyType} to give. Please try again with a positive whole amount (no decimals) @{chatter.Username}");
                 else if (balance < giftAmount)
-                    _irc.SendPublicChatMessage($"You do not have enough to give {giftAmount} {_botConfig.CurrencyType} @{username}");
+                    _irc.SendPublicChatMessage($"You do not have enough to give {giftAmount} {_botConfig.CurrencyType} @{chatter.Username}");
                 else
                 {
                     // make sure the user exists in the database to prevent fake accounts from being created
                     int recipientBalance = await _bank.CheckBalance(recipient, _broadcasterId);
 
                     if (recipientBalance == -1)
-                        _irc.SendPublicChatMessage($"The user \"{recipient}\" is currently not banking with us. Please talk to a moderator about creating their account @{username}");
+                        _irc.SendPublicChatMessage($"The user \"{recipient}\" is currently not banking with us. Please talk to a moderator about creating their account @{chatter.Username}");
                     else
                     {
-                        await _bank.UpdateFunds(username, _broadcasterId, balance - giftAmount); // take away from sender
+                        await _bank.UpdateFunds(chatter.Username, _broadcasterId, balance - giftAmount); // take away from sender
                         await _bank.UpdateFunds(recipient, _broadcasterId, giftAmount + recipientBalance); // give to recipient
 
-                        _irc.SendPublicChatMessage($"@{username} gave {giftAmount} {_botConfig.CurrencyType} to @{recipient}");
+                        _irc.SendPublicChatMessage($"@{chatter.Username} gave {giftAmount} {_botConfig.CurrencyType} to @{recipient}");
                         return DateTime.Now.AddSeconds(20);
                     }
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGiveFunds(string, string)", false, "!give");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGiveFunds(TwitchChatter)", false, "!give");
             }
 
             return DateTime.Now;
@@ -1650,7 +1644,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdTwitterLink(string)", false, "!twitter");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdTwitterLink(bool, string)", false, "!twitter");
             }
         }
 
@@ -1669,7 +1663,7 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async void CmdYouTubeCurrentSong(bool hasYouTubeAuth, string username)
+        public async Task CmdYouTubeCurrentSong(bool hasYouTubeAuth, TwitchChatter chatter)
         {
             try
             {
@@ -1723,12 +1717,12 @@ namespace TwitchBot.Commands
                 }
                 else
                 {
-                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{username}");
+                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.Username}");
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdWpfCurrentSong(bool, string)", false, "!song");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdWpfCurrentSong(bool, TwitchChatter)", false, "!song");
             }
         }
 
@@ -1741,15 +1735,25 @@ namespace TwitchBot.Commands
             // Grab game id in order to find party member
             TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
 
-            if (game == null || game.Id == 0)
+            if (string.IsNullOrEmpty(gameTitle))
             {
-                _irc.SendPublicChatMessage($"I cannot find this game in the database. Have my master resolve this issue @{username}");
+                _irc.SendPublicChatMessage("I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
+                    + "Please have the chat verify that the game has been set for this stream. "
+                    + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
+                    + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
+                return false;
+            }
+            else if (game == null || game.Id == 0)
+            {
+                _irc.SendPublicChatMessage($"I cannot find the game, \"{gameTitle}\", in the database. " 
+                    + $"Have my master resolve this issue by typing !support in this chat @{username}");
                 return false;
             }
 
-            if (game.Multiplayer == false)
+            if (!game.Multiplayer)
             {
-                _irc.SendPublicChatMessage($"This game is set to single-player only. Verify with my master with this game @{username}");
+                _irc.SendPublicChatMessage("This game is set to single-player only. " 
+                    + $"Contact my master with !support in this chat if this isn't correct @{username}");
                 return false;
             }
 

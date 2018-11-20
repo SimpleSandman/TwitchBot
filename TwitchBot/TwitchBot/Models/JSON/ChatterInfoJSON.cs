@@ -20,6 +20,8 @@ namespace TwitchBot.Models.JSON
         public List<string> GlobalMods { get; set; }
         [JsonProperty("viewers")]
         public List<string> Viewers { get; set; }
+        [JsonProperty("vips")]
+        public List<string> VIPs { get; set; }
     }
 
     public class ChatterInfoJSON

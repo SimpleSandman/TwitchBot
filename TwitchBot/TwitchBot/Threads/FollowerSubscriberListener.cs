@@ -198,7 +198,10 @@ namespace TwitchBot.Threads
                     string userTwitchId = rootUserJSON.Users.FirstOrDefault()?.Id;
 
                     // skip chatter if Twitch ID is missing
-                    if (string.IsNullOrEmpty(userTwitchId)) continue;
+                    if (string.IsNullOrEmpty(userTwitchId))
+                    {
+                        continue;
+                    }
 
                     // check for follower and/or subscriber and add then to their respective lists
                     await CheckFollower(chatter, userTwitchId);
@@ -207,7 +210,7 @@ namespace TwitchBot.Threads
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error inside FollowerSubscriberListener.CheckChatterFollowersSubscribers(): " + ex.Message);
+                Console.WriteLine($"Error inside FollowerSubscriberListener.CheckChatterFollowersSubscribers(): {ex.Message}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
@@ -279,23 +282,7 @@ namespace TwitchBot.Threads
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error inside FollowerSubscriberListener.CheckFollower(string, string): " + ex.Message);
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                }
-            }
-        }
-
-        private async Task CheckSubscriber(string chatter, string userTwitchId)
-        {
-            try
-            {
-                await GetTwitchSubscriberInfo(chatter, userTwitchId);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error inside FollowerSubscriberListener.CheckSubscriber(string, string): " + ex.Message);
+                Console.WriteLine($"Error inside FollowerSubscriberListener.CheckFollower(string, string): {ex.Message}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
@@ -315,10 +302,10 @@ namespace TwitchBot.Threads
                     if (!message.IsSuccessStatusCode)
                     {
                         // check if user was a follower but isn't anymore
-                        if (_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username.Equals(chatter)))
+                        if (_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username == chatter))
                         {
-                            _twitchChatterListInstance.TwitchFollowers.RemoveAll(c => c.Username.Equals(chatter));
-                            _twitchChatterListInstance.TwitchRegularFollowers.RemoveAll(c => c.Username.Equals(chatter));
+                            _twitchChatterListInstance.TwitchFollowers.RemoveAll(c => c.Username == chatter);
+                            _twitchChatterListInstance.TwitchRegularFollowers.RemoveAll(c => c.Username == chatter);
                         }
 
                         return null;
@@ -328,15 +315,15 @@ namespace TwitchBot.Threads
                     FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
                     DateTime startedFollowing = Convert.ToDateTime(response.CreatedAt);
 
-                    follower = new TwitchChatter { Username = chatter, CreatedAt = startedFollowing };
+                    follower = new TwitchChatter { Username = chatter, CreatedAt = startedFollowing, TwitchId = userTwitchId };
 
-                    if (!_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username.Equals(chatter)))
+                    if (!_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username == chatter))
                         _twitchChatterListInstance.TwitchFollowers.Add(follower);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error inside FollowerSubscriberListener.GetTwitchFollowerInfo(string, string): " + ex.Message);
+                Console.WriteLine($"Error inside FollowerSubscriberListener.GetTwitchFollowerInfo(string, string): {ex.Message}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
@@ -344,6 +331,22 @@ namespace TwitchBot.Threads
             }
 
             return follower;
+        }
+
+        private async Task CheckSubscriber(string chatter, string userTwitchId)
+        {
+            try
+            {
+                await GetTwitchSubscriberInfo(chatter, userTwitchId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inside FollowerSubscriberListener.CheckSubscriber(string, string): {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+            }
         }
 
         private async Task<TwitchChatter> GetTwitchSubscriberInfo(string chatter, string userTwitchId)
@@ -368,7 +371,7 @@ namespace TwitchBot.Threads
                     SubscriptionJSON response = JsonConvert.DeserializeObject<SubscriptionJSON>(body);
                     DateTime startedSubscribing = Convert.ToDateTime(response.CreatedAt);
 
-                    subscriber = new TwitchChatter { Username = chatter, CreatedAt = startedSubscribing };
+                    subscriber = new TwitchChatter { Username = chatter, CreatedAt = startedSubscribing, TwitchId = userTwitchId };
 
                     // add subscriber to global instance
                     if (!_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Equals(chatter)))
@@ -379,7 +382,7 @@ namespace TwitchBot.Threads
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error inside FollowerSubscriberListener.GetTwitchSubscriberInfo(string, string): " + ex.Message);
+                Console.WriteLine($"Error inside FollowerSubscriberListener.GetTwitchSubscriberInfo(string, string): {ex.Message}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");

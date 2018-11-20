@@ -55,7 +55,7 @@ namespace TwitchBot.Libraries
 
             foreach (TwitchChatterType chatterType in ChattersByType.OrderByDescending(t => t.ChatterType))
             {
-                if (chatterType.TwitchChatters.Any(u => u.Username.Equals(username)))
+                if (chatterType.TwitchChatters.Any(u => u.Username == username))
                     return chatterType.ChatterType;
             }
 

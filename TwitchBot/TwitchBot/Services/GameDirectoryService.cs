@@ -21,6 +21,11 @@ namespace TwitchBot.Services
 
         public async Task<TwitchGameCategory> GetGameId(string gameTitle)
         {
+            if (string.IsNullOrEmpty(gameTitle))
+            {
+                return null;
+            }
+
             return await _gameDirectoryDb.GetGameId(gameTitle);
         }
     }

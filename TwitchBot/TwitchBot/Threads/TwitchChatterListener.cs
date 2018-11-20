@@ -101,6 +101,17 @@ namespace TwitchBot.Threads
                                 }
                             );
                         }
+                        if (chatters.VIPs.Count > 0)
+                        {
+                            _twitchChatterListInstance.ChattersByType.Add
+                            (
+                                new TwitchChatterType
+                                {
+                                    TwitchChatters = GroupTmiTwitchChatters(chatters.VIPs),
+                                    ChatterType = ChatterType.VIP
+                                }
+                            );
+                        }
                         if (chatters.Moderators.Count > 0)
                         {
                             _twitchChatterListInstance.ChattersByType.Add

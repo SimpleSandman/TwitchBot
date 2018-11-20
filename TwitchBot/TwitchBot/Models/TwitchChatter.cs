@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TwitchBot.Models
 {
@@ -10,5 +6,8 @@ namespace TwitchBot.Models
     {
         public string Username { get; set; }
         public DateTime? CreatedAt { get; set; }
+        public string Badges { get; set; }
+        public string Message { get; set; }
+        public string TwitchId { get; set; }
     }
 }

@@ -24,10 +24,13 @@ namespace TwitchBot.Libraries
                 this.username = username;
                 this.channel = channel;
 
-                tcpClient = new TcpClient("irc.twitch.tv", 6667);
+                tcpClient = new TcpClient("irc.chat.twitch.tv", 6667);
                 inputStream = new StreamReader(tcpClient.GetStream());
                 outputStream = new StreamWriter(tcpClient.GetStream());
 
+                outputStream.WriteLine("CAP REQ :twitch.tv/tags"); // Reference: https://dev.twitch.tv/docs/irc/tags/
+                outputStream.WriteLine("CAP REQ :twitch.tv/commands"); // Reference: https://dev.twitch.tv/docs/irc/commands/
+                outputStream.WriteLine("CAP REQ :twitch.tv/membership"); // Reference: https://dev.twitch.tv/docs/irc/membership/
                 outputStream.WriteLine("PASS " + password);
                 outputStream.WriteLine("NICK " + username);
                 outputStream.WriteLine("USER " + username + " 8 * :" + username);
