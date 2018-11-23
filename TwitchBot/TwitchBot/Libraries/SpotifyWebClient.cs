@@ -44,7 +44,7 @@ namespace TwitchBot.Libraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "Connect()", true);
+                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "Connect()", false);
             }
         }
 

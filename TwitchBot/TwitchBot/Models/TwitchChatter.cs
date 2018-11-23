@@ -9,5 +9,6 @@ namespace TwitchBot.Models
         public string Badges { get; set; }
         public string Message { get; set; }
         public string TwitchId { get; set; }
+        public string MessageId { get; set; }
     }
 }

@@ -69,7 +69,7 @@ namespace TwitchBot.Libraries
             }
         }
 
-        public async void SendChatTimeout(string offender, int timeout = 1, string reason = "N/A")
+        public async void SendChatTimeout(string offender, int timeout = 1)
         {
             try
             {
@@ -78,7 +78,7 @@ namespace TwitchBot.Libraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "IrcClient", "SendChatTimeout(string, int, string)", false);
+                await _errHndlrInstance.LogError(ex, "IrcClient", "SendChatTimeout(string, int)", false);
             }
         }
 

@@ -137,7 +137,7 @@ namespace TwitchBot
 
                 /* Connect to local Spotify client */
                 _spotify = new SpotifyWebClient(_botConfig);
-                //await _spotify.Connect();
+                await _spotify.Connect();
 
                 // Password from www.twitchapps.com/tmi/
                 // include the "oauth:" portion
@@ -370,9 +370,10 @@ namespace TwitchBot
                             TwitchChatter chatter = new TwitchChatter
                             {
                                 Username = username,
-                                Badges = PrivMsgParameterValue(rawMessage, "badges"),
                                 Message = message,
-                                TwitchId = PrivMsgParameterValue(rawMessage, "user-id")
+                                Badges = PrivMsgParameterValue(rawMessage, "badges"),
+                                TwitchId = PrivMsgParameterValue(rawMessage, "user-id"),
+                                MessageId = PrivMsgParameterValue(rawMessage, "id")
                             };
 
                             await GreetNewUser(chatter);
@@ -404,11 +405,13 @@ namespace TwitchBot
                                     await _spotify.Pause();
 
                                 /* Press local Spotify previous button [|<] */
-                                else if (message.Equals("!spotifyprev", StringComparison.CurrentCultureIgnoreCase))
+                                else if (message.Equals("!spotifyprev", StringComparison.CurrentCultureIgnoreCase) 
+                                    || message.Equals("!spotifyback", StringComparison.CurrentCultureIgnoreCase))
                                     await _spotify.SkipToPreviousPlayback();
 
                                 /* Press local Spotify next (skip) button [>|] */
-                                else if (message.Equals("!spotifynext", StringComparison.CurrentCultureIgnoreCase))
+                                else if (message.Equals("!spotifynext", StringComparison.CurrentCultureIgnoreCase)
+                                    || message.Equals("!spotifyskip", StringComparison.CurrentCultureIgnoreCase))
                                     await _spotify.SkipToNextPlayback();
 
                                 /* Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets) */
