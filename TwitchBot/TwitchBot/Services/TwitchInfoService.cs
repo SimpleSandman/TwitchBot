@@ -52,6 +52,11 @@ namespace TwitchBot.Services
             return await TwitchApi.GetFollowersByChannel(_botConfig.TwitchClientId);
         }
 
+        public async Task<ClipJSON> GetClip(string slug)
+        {
+            return await TwitchApi.GetClip(_botConfig.TwitchClientId, slug);
+        }
+
         public async Task<HttpResponseMessage> CheckFollowerStatus(string username)
         {
             return await TwitchApi.GetFollowerStatus(username, _botConfig.TwitchClientId);

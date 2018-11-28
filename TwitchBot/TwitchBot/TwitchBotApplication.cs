@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
-using System.Text;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using Tweetinvi.Models;
 
 using TwitchBot.Commands;
 using TwitchBot.Configuration;
-using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
@@ -23,6 +21,8 @@ using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
 using TwitchBotDb.Temp;
+
+using TwitchBotUtil.Extensions;
 
 namespace TwitchBot
 {
@@ -311,7 +311,7 @@ namespace TwitchBot
                 ping.Start();
 
                 /* Send reminders of certain events */
-                ChatReminder chatReminder = new ChatReminder(_irc, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink, _botConfig.TwitchClientId, _gameDirectory);
+                ChatReminder chatReminder = new ChatReminder(_irc, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink, _twitchInfo, _gameDirectory);
                 chatReminder.Start();
 
                 /* Authenticate to Twitter if possible */
@@ -375,6 +375,17 @@ namespace TwitchBot
                                 TwitchId = PrivMsgParameterValue(rawMessage, "user-id"),
                                 MessageId = PrivMsgParameterValue(rawMessage, "id")
                             };
+
+                            // Purge any clips that aren't from the broadcaster that a viewer posts
+                            if (chatter.Message.Contains("https://clips.twitch.tv/", StringComparison.CurrentCultureIgnoreCase) 
+                                && !await IsBroadcasterClip(chatter, "https://clips.twitch.tv/")
+                                && _botConfig.Broadcaster.ToLower() != chatter.Username 
+                                && !chatter.Badges.Contains("moderator"))
+                            {
+                                _irc.ClearMessage(chatter);
+                                _irc.SendPublicChatMessage($"Please refrain from posting a clip that isn't from this channel @{chatter.Username}");
+                                continue;
+                            }
 
                             await GreetNewUser(chatter);
 
@@ -1253,6 +1264,30 @@ namespace TwitchBot
             int parameterParseIndex = rawMessage.IndexOf($"{parameterName}=") + parameterName.Length + 1;
             int indexParseSign = rawMessage.IndexOf(";", parameterParseIndex);
             return rawMessage.Substring(parameterParseIndex, indexParseSign - parameterParseIndex);
+        }
+
+        /// <summary>
+        /// Check if broadcaster clip or not
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <param name="clipUrl"></param>
+        /// <returns></returns>
+        private async Task<bool> IsBroadcasterClip(TwitchChatter chatter, string clipUrl)
+        {
+            int slugIndex = chatter.Message.IndexOf(clipUrl) + clipUrl.Length;
+            int endSlugIndex = chatter.Message.IndexOf(" ", slugIndex);
+
+            string slug = endSlugIndex > 0 ? chatter.Message.Substring(slugIndex, endSlugIndex) : chatter.Message.Substring(slugIndex);
+
+            ClipJSON clip = await _twitchInfo.GetClip(slug);
+
+            if (clip.Broadcaster.Name == _botConfig.Broadcaster.ToLower())
+            {
+                return true;
+            }
+            
+
+            return false;
         }
     }
 }

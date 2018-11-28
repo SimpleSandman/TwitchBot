@@ -3,6 +3,8 @@ using System.Net.Sockets;
 using System.IO;
 using System.Threading.Tasks;
 
+using TwitchBot.Models;
+
 namespace TwitchBot.Libraries
 {
     // Reference: https://www.youtube.com/watch?v=Ss-OzV9aUZg
@@ -66,6 +68,19 @@ namespace TwitchBot.Libraries
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "IrcClient", "SendPublicChatMessage(string)", false);
+            }
+        }
+
+        public async void ClearMessage(TwitchChatter chatter)
+        {
+            try
+            {
+                SendIrcMessage(":" + username + "!" + username + "@" + username +
+                    ".tmi.twitch.tv PRIVMSG #" + channel + " :/delete " + chatter.MessageId);
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "IrcClient", "ClearMessage(TwitchChatter)", false);
             }
         }
 

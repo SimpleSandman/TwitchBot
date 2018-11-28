@@ -326,6 +326,7 @@
   <ItemGroup>
     <Compile Include="Enums\ChatterType.cs" />
     <Compile Include="Libraries\TwitchChatterList.cs" />
+    <Compile Include="Models\JSON\ClipJSON.cs" />
     <Compile Include="Models\JSON\SubscriptionJSON.cs" />
     <Compile Include="Models\TwitchChatter.cs" />
     <Compile Include="Repositories\SongRequestSettingRepository.cs" />

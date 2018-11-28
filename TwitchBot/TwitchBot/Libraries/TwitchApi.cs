@@ -60,6 +60,14 @@ namespace TwitchBot.Libraries
             return await ApiTwitchRequest.GetExecuteTaskAsync<RootFollowerJSON>(apiUriBaseCall, clientId);
         }
 
+        // Reference: https://dev.twitch.tv/docs/v5/reference/clips/#get-clip
+        public static async Task<ClipJSON> GetClip(string clientId, string slug)
+        {
+            string apiUriBaseCall = "https://api.twitch.tv/kraken/clips/" + slug;
+
+            return await ApiTwitchRequest.GetExecuteTaskAsync<ClipJSON>(apiUriBaseCall, clientId);
+        }
+
         // Reference: https://dev.twitch.tv/docs/v5/reference/users/#check-user-follows-by-channel
         public static async Task<HttpResponseMessage> GetFollowerStatus(string chatterTwitchId, string clientId)
         {

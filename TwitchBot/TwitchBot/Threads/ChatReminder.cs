@@ -24,18 +24,18 @@ namespace TwitchBot.Threads
         private static string _twitchBotApiLink;
         private static bool _refreshReminders;
         private static int _broadcasterId;
-        private static string _twitchClientId;
         private int? _gameId;
         private int _lastSecCountdownReminder;
         private static List<RemindUser> _reminders;
         private GameDirectoryService _gameDirectory;
+        private TwitchInfoService _twitchInfo;
 
-        public ChatReminder(IrcClient irc, int broadcasterId, string twitchBotApiLink, string twitchClientId, GameDirectoryService gameDirectory)
+        public ChatReminder(IrcClient irc, int broadcasterId, string twitchBotApiLink, TwitchInfoService twitchInfo, GameDirectoryService gameDirectory)
         {
             _irc = irc;
             _broadcasterId = broadcasterId;
             _twitchBotApiLink = twitchBotApiLink;
-            _twitchClientId = twitchClientId;
+            _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
             _lastSecCountdownReminder = -10;
             _refreshReminders = false;
@@ -55,7 +55,7 @@ namespace TwitchBot.Threads
 
             while (true)
             {
-                ChannelJSON channelJSON = await TwitchApi.GetBroadcasterChannelById(_twitchClientId);
+                ChannelJSON channelJSON = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = channelJSON.Game;
 
                 TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
