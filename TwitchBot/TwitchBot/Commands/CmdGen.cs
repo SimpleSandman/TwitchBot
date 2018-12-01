@@ -634,7 +634,7 @@ namespace TwitchBot.Commands
         /// <summary>
         /// Display random broadcaster quote
         /// </summary>
-        public async Task CmdQuote()
+        public async Task<DateTime> CmdQuote()
         {
             try
             {
@@ -651,8 +651,9 @@ namespace TwitchBot.Commands
 
                     Quote resultingQuote = new Quote();
                     resultingQuote = quotes.ElementAt(index); // grab random quote from list of quotes
-                    string quoteResult = $"\"{resultingQuote.UserQuote}\" - {_botConfig.Broadcaster} " +
-                        $"({resultingQuote.TimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {resultingQuote.TimeCreated.Year})";
+                    string quoteResult = $"\"{resultingQuote.UserQuote}\" - {_botConfig.Broadcaster} "
+                        + $"({resultingQuote.TimeCreated.ToString("MMMM", CultureInfo.InvariantCulture)} {resultingQuote.TimeCreated.Year}) "
+                        + $"< Quoted by @{resultingQuote.Username} >";
 
                     _irc.SendPublicChatMessage(quoteResult);
                 }
@@ -661,6 +662,8 @@ namespace TwitchBot.Commands
             {
                 await _errHndlrInstance.LogError(ex, "CmdGen", "CmdQuote()", false, "!quote");
             }
+
+            return DateTime.Now.AddSeconds(20);
         }
 
         /// <summary>

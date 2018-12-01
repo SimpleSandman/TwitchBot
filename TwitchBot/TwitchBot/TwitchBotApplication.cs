@@ -764,8 +764,20 @@ namespace TwitchBot
                                 }
 
                                 /* Display random broadcaster quote */
-                                else if (message.Equals("!quote", StringComparison.CurrentCultureIgnoreCase))
-                                    await _cmdGen.CmdQuote();
+                                else if (message.Equals("!quote", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(chatter, "!quote"))
+                                {
+                                    DateTime cooldown = await _cmdGen.CmdQuote();
+                                    if (cooldown > DateTime.Now)
+                                    {
+                                        _cooldownUsers.Add(new CooldownUser
+                                        {
+                                            Username = chatter.Username,
+                                            Cooldown = cooldown,
+                                            Command = "!quote",
+                                            Warned = false
+                                        });
+                                    }
+                                }
 
                                 /* Display how long a user has been following the broadcaster */
                                 else if (message.Equals("!followsince", StringComparison.CurrentCultureIgnoreCase) || message.Equals("!followage", StringComparison.CurrentCultureIgnoreCase))
@@ -1006,11 +1018,13 @@ namespace TwitchBot
             if (!user.Warned)
             {
                 user.Warned = true; // prevent spamming cooldown message
-                TimeSpan timespan = user.Cooldown - DateTime.Now;
                 string timespanMessage = "";
+                TimeSpan timespan = user.Cooldown - DateTime.Now;
 
                 if (timespan.Minutes > 0)
                     timespanMessage = $"{timespan.Minutes} minute(s) and {timespan.Seconds} second(s)";
+                else if (timespan.Seconds == 0)
+                    timespanMessage = $"0.{timespan.Milliseconds} second(s)";
                 else
                     timespanMessage = $"{timespan.Seconds} second(s)";
 
