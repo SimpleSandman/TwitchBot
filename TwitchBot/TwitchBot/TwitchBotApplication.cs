@@ -1024,7 +1024,7 @@ namespace TwitchBot
                 if (timespan.Minutes > 0)
                     timespanMessage = $"{timespan.Minutes} minute(s) and {timespan.Seconds} second(s)";
                 else if (timespan.Seconds == 0)
-                    timespanMessage = $"0.{timespan.Milliseconds} second(s)";
+                    timespanMessage = $"{timespan.Milliseconds} millisecond(s)";
                 else
                     timespanMessage = $"{timespan.Seconds} second(s)";
 
