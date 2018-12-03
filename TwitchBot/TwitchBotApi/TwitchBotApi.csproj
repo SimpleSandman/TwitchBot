@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <StartupObject></StartupObject>
     <Platforms>AnyCPU;x64</Platforms>
+    <UserSecretsId>93a62223-8749-4db2-8bce-9fad6e700565</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
