@@ -1291,7 +1291,7 @@ namespace TwitchBot
             int slugIndex = chatter.Message.IndexOf(clipUrl) + clipUrl.Length;
             int endSlugIndex = chatter.Message.IndexOf(" ", slugIndex);
 
-            string slug = endSlugIndex > 0 ? chatter.Message.Substring(slugIndex, endSlugIndex) : chatter.Message.Substring(slugIndex);
+            string slug = endSlugIndex > 0 ? chatter.Message.Substring(slugIndex, endSlugIndex - slugIndex) : chatter.Message.Substring(slugIndex);
 
             ClipJSON clip = await _twitchInfo.GetClip(slug);
 
