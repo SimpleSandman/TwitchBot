@@ -377,10 +377,9 @@ namespace TwitchBot
                             };
 
                             // Purge any clips that aren't from the broadcaster that a viewer posts
-                            if (chatter.Message.Contains("https://clips.twitch.tv/", StringComparison.CurrentCultureIgnoreCase) 
-                                && !await IsBroadcasterClip(chatter, "https://clips.twitch.tv/")
-                                && _botConfig.Broadcaster.ToLower() != chatter.Username 
-                                && !chatter.Badges.Contains("moderator"))
+                            if (_botConfig.Broadcaster.ToLower() != chatter.Username 
+                                && !chatter.Badges.Contains("moderator")
+                                && !await IsBroadcasterTwitchLink(chatter))
                             {
                                 _irc.ClearMessage(chatter);
                                 _irc.SendPublicChatMessage($"Please refrain from posting a clip that isn't from this channel @{chatter.Username}");
@@ -1281,17 +1280,33 @@ namespace TwitchBot
         }
 
         /// <summary>
+        /// Check if Twitch link is from the broadcaster's channel
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        private async Task<bool> IsBroadcasterTwitchLink(TwitchChatter chatter)
+        {
+            if (chatter.Message.Contains("https://clips.twitch.tv/", StringComparison.CurrentCultureIgnoreCase))
+                return await IsBroadcasterClip(chatter);
+
+            return false;
+        }
+
+        /// <summary>
         /// Check if broadcaster clip or not
         /// </summary>
         /// <param name="chatter"></param>
-        /// <param name="clipUrl"></param>
         /// <returns></returns>
-        private async Task<bool> IsBroadcasterClip(TwitchChatter chatter, string clipUrl)
+        private async Task<bool> IsBroadcasterClip(TwitchChatter chatter)
         {
+            string clipUrl = "https://clips.twitch.tv/";
+
             int slugIndex = chatter.Message.IndexOf(clipUrl) + clipUrl.Length;
             int endSlugIndex = chatter.Message.IndexOf(" ", slugIndex);
 
-            string slug = endSlugIndex > 0 ? chatter.Message.Substring(slugIndex, endSlugIndex - slugIndex) : chatter.Message.Substring(slugIndex);
+            string slug = endSlugIndex > 0 
+                ? chatter.Message.Substring(slugIndex, endSlugIndex - slugIndex) 
+                : chatter.Message.Substring(slugIndex);
 
             ClipJSON clip = await _twitchInfo.GetClip(slug);
 
@@ -1299,7 +1314,6 @@ namespace TwitchBot
             {
                 return true;
             }
-            
 
             return false;
         }
