@@ -377,8 +377,9 @@ namespace TwitchBot
                             };
 
                             // Purge any clips that aren't from the broadcaster that a viewer posts
-                            if (_botConfig.Broadcaster.ToLower() != chatter.Username 
+                            if (_botConfig.Broadcaster.ToLower() != chatter.Username
                                 && !chatter.Badges.Contains("moderator")
+                                && Program.TwitchUrls.Contains(chatter.Message)
                                 && !await IsBroadcasterTwitchLink(chatter))
                             {
                                 _irc.ClearMessage(chatter);

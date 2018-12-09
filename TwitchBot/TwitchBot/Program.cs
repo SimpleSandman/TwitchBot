@@ -18,6 +18,7 @@ namespace TwitchBot
         public static List<DelayedMessage> DelayedMessages = new List<DelayedMessage>(); // used to handle delayed msgs
         public static List<RouletteUser> RouletteUsers = new List<RouletteUser>(); // used to handle russian roulette
         public static readonly HttpClient HttpClient = new HttpClient();
+        public static List<string> TwitchUrls = new List<string> { "https://clips.twitch.tv/" }; // ToDo: Please put this somewhere else!!!
 
         static void Main(string[] args)
         {
