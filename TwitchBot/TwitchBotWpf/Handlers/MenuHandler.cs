@@ -18,35 +18,26 @@ namespace TwitchBotWpf.Handlers
 
         public bool OnContextMenuCommand(IWebBrowser browserControl, IBrowser browser, IFrame frame, IContextMenuParams parameters, CefMenuCommand commandId, CefEventFlags eventFlags)
         {
-            if (commandId == (CefMenuCommand)26501)
+            switch (commandId)
             {
-                browser.GetHost().ShowDevTools();
-                return true;
-            }
-            if (commandId == (CefMenuCommand)26502)
-            {
-                browser.GetHost().CloseDevTools();
-                return true;
-            }
-            if (commandId == CefMenuCommand.Back)
-            {
-                browser.GoBack();
-                return true;
-            }
-            if (commandId == CefMenuCommand.Forward)
-            {
-                browser.GoForward();
-                return true;
-            }
-            if (commandId == CefMenuCommand.Print)
-            {
-                browser.GetHost().Print();
-                return true;
-            }
-            if (commandId == CefMenuCommand.ViewSource)
-            {
-                browser.FocusedFrame.ViewSource();
-                return true;
+                case (CefMenuCommand)26501:
+                    browser.GetHost().ShowDevTools();
+                    return true;
+                case (CefMenuCommand)26502:
+                    browser.GetHost().CloseDevTools();
+                    return true;
+                case CefMenuCommand.Back:
+                    browser.GoBack();
+                    return true;
+                case CefMenuCommand.Forward:
+                    browser.GoForward();
+                    return true;
+                case CefMenuCommand.Print:
+                    browser.GetHost().Print();
+                    return true;
+                case CefMenuCommand.ViewSource:
+                    browser.FocusedFrame.ViewSource();
+                    return true;
             }
 
             return false;

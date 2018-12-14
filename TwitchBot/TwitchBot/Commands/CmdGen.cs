@@ -315,22 +315,33 @@ namespace TwitchBot.Commands
                 Random rnd = new Random(DateTime.Now.Millisecond);
                 int bodyPartId = rnd.Next(8); // between 0 and 7
 
-                if (bodyPartId == 0)
-                    bodyPart += "head";
-                else if (bodyPartId == 1)
-                    bodyPart += "left leg";
-                else if (bodyPartId == 2)
-                    bodyPart += "right leg";
-                else if (bodyPartId == 3)
-                    bodyPart += "left arm";
-                else if (bodyPartId == 4)
-                    bodyPart += "right arm";
-                else if (bodyPartId == 5)
-                    bodyPart += "stomach";
-                else if (bodyPartId == 6)
-                    bodyPart += "neck";
-                else // found largest random value
-                    bodyPart = " but missed";
+                switch(bodyPartId)
+                {
+                    case 0:
+                        bodyPart += "head";
+                        break;
+                    case 1:
+                        bodyPart += "left leg";
+                        break;
+                    case 2:
+                        bodyPart += "right leg";
+                        break;
+                    case 3:
+                        bodyPart += "left arm";
+                        break;
+                    case 4:
+                        bodyPart += "right arm";
+                        break;
+                    case 5:
+                        bodyPart += "stomach";
+                        break;
+                    case 6:
+                        bodyPart += "neck";
+                        break;
+                    default: // found largest random value
+                        bodyPart += " but missed";
+                        break;
+                }
 
                 if (bodyPart.Equals(" but missed"))
                 {
@@ -1817,12 +1828,18 @@ namespace TwitchBot.Commands
             int effectiveLvl = rnd.Next(3); // between 0 and 2
             string effectiveness = "";
 
-            if (effectiveLvl == 0)
-                effectiveness = "It's super effective!";
-            else if (effectiveLvl == 1)
-                effectiveness = "It wasn't very effective";
-            else
-                effectiveness = "It had no effect";
+            switch(effectiveLvl.ToString())
+            {
+                case "0":
+                    effectiveness = "It's super effective!";
+                    break;
+                case "1":
+                    effectiveness = "It wasn't very effective";
+                    break;
+                default:
+                    effectiveness = "It had no effect";
+                    break;
+            }
 
             return effectiveness;
         }

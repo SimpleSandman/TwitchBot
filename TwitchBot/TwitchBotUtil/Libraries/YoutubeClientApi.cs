@@ -313,16 +313,24 @@ namespace TwitchBotUtil.Libraries
         {
             string part = "";
 
-            if (partType == 0)
-                part = "snippet";
-            else if (partType == 1)
-                part = "contentDetails";
-            else if (partType == 2)
-                part = "snippet,contentDetails";
-            else if (partType == 3)
-                part = "id";
-            else if (partType == 4)
-                part = "snippet,status";
+            switch(partType)
+            {
+                case 0:
+                    part = "snippet";
+                    break;
+                case 1:
+                    part = "contentDetails";
+                    break;
+                case 2:
+                    part = "snippet,contentDetails";
+                    break;
+                case 3:
+                    part = "id";
+                    break;
+                case 4:
+                    part = "snippet,status";
+                    break;
+            }
 
             return part;
         }
