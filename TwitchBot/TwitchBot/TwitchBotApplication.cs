@@ -565,7 +565,7 @@ namespace TwitchBot
                                                 await _cmdMod.CmdUpdateGame(chatter, hasTwitterInfo);
 
                                             /* Display the streamer's channel and game status */
-                                            else if (message.StartsWith("!streamer @", StringComparison.CurrentCultureIgnoreCase) || message.StartsWith("!so @", StringComparison.CurrentCultureIgnoreCase))
+                                            else if (message.StartsWith("!streamer @") || message.StartsWith("!so @"))
                                                 await _cmdMod.CmdPromoteStreamer(chatter);
 
                                             /* insert moderator commands here */
