@@ -1174,7 +1174,7 @@ namespace TwitchBot.Commands
                     rouletteUser = new RouletteUser() { Username = chatter.Username, ShotsTaken = 1 };
                     Program.RouletteUsers.Add(rouletteUser);
 
-                    _irc.SendPublicChatMessage($"@{chatter.Username} -> 1/6 attempts");
+                    _irc.SendPublicChatMessage($"@{chatter.Username} -> 1/6 attempts...good luck Kappa");
                 }
                 else // existing roulette user
                 {
@@ -1190,8 +1190,6 @@ namespace TwitchBot.Commands
                         }
                     }
 
-                    string responseMessage = $"@{chatter.Username} -> {rouletteUser.ShotsTaken}/6 attempts";
-
                     if (rouletteUser.ShotsTaken == 6)
                     {
                         int funds = await _bank.CheckBalance(chatter.Username, _broadcasterId);
@@ -1203,21 +1201,15 @@ namespace TwitchBot.Commands
                             await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds);
                         }
                         else
+                        {
                             await _bank.CreateAccount(chatter.Username, _broadcasterId, reward);
+                        }
 
                         Program.RouletteUsers.RemoveAll(u => u.Username == chatter.Username);
 
-                        responseMessage = $"Congrats on surviving russian roulette. Here's {reward} {_botConfig.CurrencyType}!";
-
-                        // Special cooldown for moderators/broadcasters after they win
-                        if (_botConfig.Broadcaster.ToLower() == chatter.Username || chatter.Badges.Contains("moderator"))
-                        {
-                            _irc.SendPublicChatMessage(responseMessage);
-                            return DateTime.Now.AddMinutes(5);
-                        }
+                        _irc.SendPublicChatMessage($"Congrats on surviving russian roulette. Here's {reward} {_botConfig.CurrencyType}!");
+                        return DateTime.Now.AddMinutes(5);
                     }
-
-                    _irc.SendPublicChatMessage(responseMessage);
                 }
             }
             catch (Exception ex)

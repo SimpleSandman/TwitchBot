@@ -467,23 +467,23 @@ namespace TwitchBot
                                         break;
                                     default: //Check commands that depend on special cases
                                         /* Sends a manual tweet (if credentials have been provided) */
-                                        if (message.StartsWith("!tweet "))
+                                        if (message.StartsWith("!tweet ", StringComparison.CurrentCultureIgnoreCase))
                                             _cmdBrdCstr.CmdTweet(hasTwitterInfo, message);
 
                                         /* Add song or artist to song request blacklist */
-                                        else if (message.StartsWith("!srbl "))
+                                        else if (message.StartsWith("!srbl ", StringComparison.CurrentCultureIgnoreCase))
                                             await _cmdBrdCstr.CmdAddSongRequestBlacklist(message);
 
                                         /* Remove song or artist from song request blacklist */
-                                        else if (message.StartsWith("!delsrbl "))
+                                        else if (message.StartsWith("!delsrbl ", StringComparison.CurrentCultureIgnoreCase))
                                             await _cmdBrdCstr.CmdRemoveSongRequestBlacklist(message);
 
                                         /* Set regular follower hours for dedicated followers */
-                                        else if (message.StartsWith("!setregularhours "))
+                                        else if (message.StartsWith("!setregularhours ", StringComparison.CurrentCultureIgnoreCase))
                                             _cmdBrdCstr.CmdSetRegularFollowerHours(message);
 
                                         /* Set YouTube personal playlist as a backup when new requests  */
-                                        else if (message.StartsWith("!setpersonalplaylistid "))
+                                        else if (message.StartsWith("!setpersonalplaylistid ", StringComparison.CurrentCultureIgnoreCase))
                                             await _cmdBrdCstr.CmdSetPersonalYoutubePlaylistById(message);
 
                                         /* insert more broadcaster commands here */
@@ -525,47 +525,48 @@ namespace TwitchBot
                                             break;
                                         default: //Check commands that depend on special cases
                                             /* Takes money away from a user */
-                                            if (message.StartsWith("!charge ") && message.Contains("@"))
+                                            if (message.StartsWith("!charge ", StringComparison.CurrentCultureIgnoreCase) && message.Contains("@"))
                                                 await _cmdMod.CmdCharge(chatter);
 
                                             /* Gives money to user */
-                                            else if (message.StartsWith("!deposit ") && message.Contains("@"))
+                                            else if (message.StartsWith("!deposit ", StringComparison.CurrentCultureIgnoreCase) && message.Contains("@"))
                                                 await _cmdMod.CmdDeposit(chatter);
 
                                             /* Bot-specific timeout on a user for a set amount of time */
-                                            else if (message.StartsWith("!addtimeout ") && message.Contains("@"))
+                                            else if (message.StartsWith("!addtimeout ", StringComparison.CurrentCultureIgnoreCase) && message.Contains("@"))
                                                 await _cmdMod.CmdAddTimeout(chatter);
 
                                             /* Remove bot-specific timeout on a user for a set amount of time */
-                                            else if (message.StartsWith("!deltimeout @"))
+                                            else if (message.StartsWith("!deltimeout @", StringComparison.CurrentCultureIgnoreCase))
                                                 await _cmdMod.CmdDeleteTimeout(chatter);
 
                                             /* Set delay for messages based on the latency of the stream */
-                                            else if (message.StartsWith("!setlatency "))
+                                            else if (message.StartsWith("!setlatency ", StringComparison.CurrentCultureIgnoreCase))
                                                 _cmdMod.CmdSetLatency(chatter);
 
                                             /* Add a broadcaster quote */
-                                            else if (message.StartsWith("!addquote "))
+                                            else if (message.StartsWith("!addquote ", StringComparison.CurrentCultureIgnoreCase))
                                                 await _cmdMod.CmdAddQuote(chatter);
 
                                             /* Gives every viewer a set amount of currency */
-                                            else if (message.StartsWith("!bonusall "))
+                                            else if (message.StartsWith("!bonusall ", StringComparison.CurrentCultureIgnoreCase))
                                                 await _cmdMod.CmdBonusAll(chatter);
 
                                             /* Add MultiStream user to link */
-                                            else if (message.StartsWith("!addmsl "))
+                                            else if (message.StartsWith("!addmsl ", StringComparison.CurrentCultureIgnoreCase))
                                                 _multiStreamUsers = await _cmdMod.CmdAddMultiStreamUser(chatter, _multiStreamUsers);
 
                                             /* Updates the title of the Twitch channel */
-                                            else if (message.StartsWith("!updatetitle "))
+                                            else if (message.StartsWith("!updatetitle ", StringComparison.CurrentCultureIgnoreCase))
                                                 await _cmdMod.CmdUpdateTitle(chatter);
 
                                             /* Updates the game of the Twitch channel */
-                                            else if (message.StartsWith("!updategame "))
+                                            else if (message.StartsWith("!updategame ", StringComparison.CurrentCultureIgnoreCase))
                                                 await _cmdMod.CmdUpdateGame(chatter, hasTwitterInfo);
 
                                             /* Display the streamer's channel and game status */
-                                            else if (message.StartsWith("!streamer @") || message.StartsWith("!so @"))
+                                            else if (message.StartsWith("!streamer @", StringComparison.CurrentCultureIgnoreCase) 
+                                                || message.StartsWith("!so @", StringComparison.CurrentCultureIgnoreCase))
                                                 await _cmdMod.CmdPromoteStreamer(chatter);
 
                                             /* insert moderator commands here */
@@ -653,11 +654,11 @@ namespace TwitchBot
                                         break;
                                     default: //Check commands that depend on special cases
                                         /* Request a song for the host to play */
-                                        if (message.StartsWith("!rbsr "))
+                                        if (message.StartsWith("!rbsr ", StringComparison.CurrentCultureIgnoreCase))
                                             await _cmdGen.CmdManualSr(isManualSongRequestAvail, chatter);
 
                                         /* Slaps a user and rates its effectiveness */
-                                        else if (message.StartsWith("!slap @") && !IsUserOnCooldown(chatter, "!slap"))
+                                        else if (message.StartsWith("!slap @", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(chatter, "!slap"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdSlap(chatter);
                                             if (cooldown > DateTime.Now)
@@ -673,7 +674,7 @@ namespace TwitchBot
                                         }
 
                                         /* Stabs a user and rates its effectiveness */
-                                        else if (message.StartsWith("!stab @") && !IsUserOnCooldown(chatter, "!stab"))
+                                        else if (message.StartsWith("!stab @", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(chatter, "!stab"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdStab(chatter);
                                             if (cooldown > DateTime.Now)
@@ -689,7 +690,7 @@ namespace TwitchBot
                                         }
 
                                         /* Shoots a viewer's random body part */
-                                        else if (message.StartsWith("!shoot @") && !IsUserOnCooldown(chatter, "!shoot"))
+                                        else if (message.StartsWith("!shoot @", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(chatter, "!shoot"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdShoot(chatter);
                                             if (cooldown > DateTime.Now)
@@ -705,7 +706,7 @@ namespace TwitchBot
                                         }
 
                                         /* Throws an item at a viewer and rates its effectiveness against the victim */
-                                        else if (message.StartsWith("!throw ") && message.Contains("@") && !IsUserOnCooldown(chatter, "!throw"))
+                                        else if (message.StartsWith("!throw ", StringComparison.CurrentCultureIgnoreCase) && message.Contains("@") && !IsUserOnCooldown(chatter, "!throw"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdThrow(chatter);
                                             if (cooldown > DateTime.Now)
@@ -721,15 +722,15 @@ namespace TwitchBot
                                         }
 
                                         /* Request party member if game and character exists in party up system */
-                                        else if (message.StartsWith("!partyup "))
+                                        else if (message.StartsWith("!partyup ", StringComparison.CurrentCultureIgnoreCase))
                                             await _cmdGen.CmdPartyUp(chatter);
 
                                         /* Check user's account balance */
-                                        else if (message.Equals($"!{_botConfig.CurrencyType}"))
+                                        else if (message.Equals($"!{_botConfig.CurrencyType}", StringComparison.CurrentCultureIgnoreCase))
                                             await _cmdGen.CmdCheckFunds(chatter);
 
                                         /* Gamble money away */
-                                        else if (message.StartsWith("!gamble ") && !IsUserOnCooldown(chatter, "!gamble"))
+                                        else if (message.StartsWith("!gamble ", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(chatter, "!gamble"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdGamble(chatter);
                                             if (cooldown > DateTime.Now)
@@ -745,7 +746,7 @@ namespace TwitchBot
                                         }
 
                                         /* Display random broadcaster quote */
-                                        else if (message.Equals("!quote") && !IsUserOnCooldown(chatter, "!quote"))
+                                        else if (message.Equals("!quote", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(chatter, "!quote"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdQuote();
                                             if (cooldown > DateTime.Now)
@@ -761,7 +762,9 @@ namespace TwitchBot
                                         }
 
                                         /* Add song request to YouTube playlist */
-                                        else if ((message.StartsWith("!ytsr ") || message.StartsWith("!sr ") || message.StartsWith("!songrequest ")) && !IsUserOnCooldown(chatter, "!ytsr"))
+                                        else if ((message.StartsWith("!ytsr ", StringComparison.CurrentCultureIgnoreCase) 
+                                            || message.StartsWith("!sr ", StringComparison.CurrentCultureIgnoreCase) 
+                                            || message.StartsWith("!songrequest ", StringComparison.CurrentCultureIgnoreCase)) && !IsUserOnCooldown(chatter, "!ytsr"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdYouTubeSongRequest(chatter, hasYouTubeAuth, isYouTubeSongRequestAvail);
                                             if (cooldown > DateTime.Now)
@@ -777,7 +780,7 @@ namespace TwitchBot
                                         }
 
                                         /* Display Magic 8-ball response */
-                                        else if (message.StartsWith("!8ball ") && !IsUserOnCooldown(chatter, "!8ball"))
+                                        else if (message.StartsWith("!8ball ", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(chatter, "!8ball"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdMagic8Ball(chatter);
                                             if (cooldown > DateTime.Now)
@@ -793,11 +796,11 @@ namespace TwitchBot
                                         }
 
                                         /* Disply the top 3 richest users */
-                                        else if (message.Equals($"!{_botConfig.CurrencyType}top3"))
+                                        else if (message.Equals($"!{_botConfig.CurrencyType}top3", StringComparison.CurrentCultureIgnoreCase))
                                             await _cmdGen.CmdLeaderboardCurrency(chatter);
 
                                         /* Play russian roulette */
-                                        else if (message.Equals("!roulette") && !IsUserOnCooldown(chatter, "!roulette"))
+                                        else if (message.Equals("!roulette", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(chatter, "!roulette"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdRussianRoulette(chatter);
                                             if (cooldown > DateTime.Now)
@@ -813,11 +816,12 @@ namespace TwitchBot
                                         }
 
                                         /* Join the heist and gamble your currency for a higher payout */
-                                        else if (message.StartsWith("!bankheist ") || message.StartsWith("!heist "))
+                                        else if (message.StartsWith("!bankheist ", StringComparison.CurrentCultureIgnoreCase) 
+                                            || message.StartsWith("!heist ", StringComparison.CurrentCultureIgnoreCase))
                                             await _cmdGen.CmdBankHeist(chatter);
 
                                         /* Tell the broadcaster a user is lurking */
-                                        else if (message.Equals("!lurk") && !IsUserOnCooldown(chatter, "!lurk"))
+                                        else if (message.Equals("!lurk", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(chatter, "!lurk"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdLurk(chatter);
                                             if (cooldown > DateTime.Now)
@@ -833,7 +837,7 @@ namespace TwitchBot
                                         }
 
                                         /* Tell the broadcaster a user is no longer lurking */
-                                        else if (message.Equals("!unlurk") && !IsUserOnCooldown(chatter, "!unlurk"))
+                                        else if (message.Equals("!unlurk", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(chatter, "!unlurk"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdUnlurk(chatter);
                                             if (cooldown > DateTime.Now)
@@ -849,7 +853,7 @@ namespace TwitchBot
                                         }
 
                                         /* Give funds to another chatter */
-                                        else if (message.StartsWith("!give ") && !IsUserOnCooldown(chatter, "!give"))
+                                        else if (message.StartsWith("!give ", StringComparison.CurrentCultureIgnoreCase) && !IsUserOnCooldown(chatter, "!give"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdGiveFunds(chatter);
                                             if (cooldown > DateTime.Now)
