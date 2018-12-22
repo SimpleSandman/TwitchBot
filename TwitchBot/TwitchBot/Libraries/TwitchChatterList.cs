@@ -47,8 +47,10 @@ namespace TwitchBot.Libraries
 
         public ChatterType GetUserChatterType(string username)
         {
+            DateTime timeToGetOut = DateTime.Now.AddSeconds(3);
+
             // wait until lists are available
-            while (!AreListsAvailable)
+            while (!AreListsAvailable && DateTime.Now < timeToGetOut)
             {
 
             }

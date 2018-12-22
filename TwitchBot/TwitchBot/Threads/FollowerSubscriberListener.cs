@@ -162,8 +162,10 @@ namespace TwitchBot.Threads
         {
             try
             {
+                DateTime timeToGetOut = DateTime.Now.AddSeconds(3);
+
                 // Wait until chatter lists are available
-                while (!_twitchChatterListInstance.AreListsAvailable)
+                while (!_twitchChatterListInstance.AreListsAvailable && DateTime.Now < timeToGetOut)
                 {
                     Thread.Sleep(500);
                 }

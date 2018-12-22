@@ -1791,10 +1791,12 @@ namespace TwitchBot.Commands
             if (recipient.Equals(_botConfig.BotName.ToLower()) || recipient.Equals(_botConfig.Broadcaster.ToLower()))
                 return true;
 
+            DateTime timeToGetOut = DateTime.Now.AddSeconds(3);
+
             // Wait until chatter lists are available
-            while (!_twitchChatterListInstance.AreListsAvailable)
+            while (!_twitchChatterListInstance.AreListsAvailable && DateTime.Now < timeToGetOut)
             {
-                
+
             }
 
             // Grab user's chatter info (viewers, mods, etc.)
