@@ -727,7 +727,7 @@ namespace TwitchBot
                                             await _cmdGen.CmdPartyUp(chatter);
 
                                         /* Check user's account balance */
-                                        else if (message.Equals($"!{_botConfig.CurrencyType}"))
+                                        else if (message.Equals($"!{_botConfig.CurrencyType.ToLower()}"))
                                             await _cmdGen.CmdCheckFunds(chatter);
 
                                         /* Gamble money away */
@@ -795,7 +795,7 @@ namespace TwitchBot
                                         }
 
                                         /* Disply the top 3 richest users */
-                                        else if (message.Equals($"!{_botConfig.CurrencyType}top3"))
+                                        else if (message.Equals($"!{_botConfig.CurrencyType.ToLower()}top3"))
                                             await _cmdGen.CmdLeaderboardCurrency(chatter);
 
                                         /* Play russian roulette */
