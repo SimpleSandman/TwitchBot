@@ -20,16 +20,15 @@ namespace TwitchBotApi.Controllers
         }
 
         // GET: api/twitchgamecategories/get
-        [HttpGet]
-        public IEnumerable<TwitchGameCategory> Get()
+        // GET: api/twitchgamecategories/get?title=IRL
+        [HttpGet()]
+        public async Task<IActionResult> Get([FromQuery] string title)
         {
-            return _context.TwitchGameCategory;
-        }
+            if (string.IsNullOrEmpty(title))
+            {
+                return Ok(_context.TwitchGameCategory);
+            }
 
-        // GET: api/twitchgamecategories/get/IRL
-        [HttpGet("{title}")]
-        public async Task<IActionResult> Get([FromRoute] string title)
-        {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
