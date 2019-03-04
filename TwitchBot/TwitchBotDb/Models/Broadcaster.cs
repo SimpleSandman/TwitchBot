@@ -12,6 +12,7 @@ namespace TwitchBotDb.Models
             BossFightSetting = new HashSet<BossFightSetting>();
             BotTimeout = new HashSet<BotTimeout>();
             ErrorLog = new HashSet<ErrorLog>();
+            InGameUsername = new HashSet<InGameUsername>();
             PartyUp = new HashSet<PartyUp>();
             Quote = new HashSet<Quote>();
             Rank = new HashSet<Rank>();
@@ -32,6 +33,7 @@ namespace TwitchBotDb.Models
         public ICollection<BossFightSetting> BossFightSetting { get; set; }
         public ICollection<BotTimeout> BotTimeout { get; set; }
         public ICollection<ErrorLog> ErrorLog { get; set; }
+        public ICollection<InGameUsername> InGameUsername { get; set; }
         public ICollection<PartyUp> PartyUp { get; set; }
         public ICollection<Quote> Quote { get; set; }
         public ICollection<Rank> Rank { get; set; }

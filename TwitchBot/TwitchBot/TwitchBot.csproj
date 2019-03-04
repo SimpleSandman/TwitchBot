@@ -324,6 +324,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\CmdVip.cs" />
     <Compile Include="Enums\ChatterType.cs" />
     <Compile Include="Libraries\TwitchChatterList.cs" />
     <Compile Include="Models\JSON\ClipJSON.cs" />

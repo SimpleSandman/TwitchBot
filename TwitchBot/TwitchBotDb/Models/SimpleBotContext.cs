@@ -23,6 +23,7 @@ namespace TwitchBotDb.Models
         public virtual DbSet<BotTimeout> BotTimeout { get; set; }
         public virtual DbSet<Broadcaster> Broadcaster { get; set; }
         public virtual DbSet<ErrorLog> ErrorLog { get; set; }
+        public virtual DbSet<InGameUsername> InGameUsername { get; set; }
         public virtual DbSet<PartyUp> PartyUp { get; set; }
         public virtual DbSet<PartyUpRequest> PartyUpRequest { get; set; }
         public virtual DbSet<Quote> Quote { get; set; }
@@ -38,10 +39,6 @@ namespace TwitchBotDb.Models
         {
             modelBuilder.Entity<Bank>(entity =>
             {
-                entity.Property(e => e.LastUpdated)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
                 entity.Property(e => e.Username)
                     .IsRequired()
                     .HasMaxLength(30)
@@ -529,9 +526,6 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<BotTimeout>(entity =>
             {
-                entity.HasIndex(e => e.BroadcasterId)
-                    .HasName("IX_BroadcasterId_BotTimeout");
-
                 entity.Property(e => e.TimeAdded)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
@@ -552,8 +546,6 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<Broadcaster>(entity =>
             {
-                entity.HasIndex(e => e.Username);
-
                 entity.Property(e => e.LastUpdated)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
@@ -566,9 +558,6 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<ErrorLog>(entity =>
             {
-                entity.HasIndex(e => e.BroadcasterId)
-                    .HasName("IX_BroadcasterId_ErrorLog");
-
                 entity.Property(e => e.Id).HasColumnName("ID");
 
                 entity.Property(e => e.Command)
@@ -601,14 +590,27 @@ namespace TwitchBotDb.Models
                     .HasConstraintName("FK_ErrorLog_Broadcaster");
             });
 
+            modelBuilder.Entity<InGameUsername>(entity =>
+            {
+                entity.Property(e => e.Message)
+                    .IsRequired()
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.BroadcasterNavigation)
+                    .WithMany(p => p.InGameUsername)
+                    .HasForeignKey(d => d.Broadcaster)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__InGameUsername__Broadcaster");
+
+                entity.HasOne(d => d.Game)
+                    .WithMany(p => p.InGameUsername)
+                    .HasForeignKey(d => d.GameId)
+                    .HasConstraintName("FK__InGameUsername__GameId");
+            });
+
             modelBuilder.Entity<PartyUp>(entity =>
             {
-                entity.HasIndex(e => e.BroadcasterId)
-                    .HasName("IX_BroadcasterId_PartyUp");
-
-                entity.HasIndex(e => e.GameId)
-                    .HasName("IX_GameId_PartyUp");
-
                 entity.Property(e => e.PartyMemberName)
                     .IsRequired()
                     .HasMaxLength(100)
@@ -629,9 +631,6 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<PartyUpRequest>(entity =>
             {
-                entity.HasIndex(e => e.PartyMemberId)
-                    .HasName("IX_PartyMemberId_PartyUpRequest");
-
                 entity.Property(e => e.TimeRequested)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
@@ -650,9 +649,6 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<Quote>(entity =>
             {
-                entity.HasIndex(e => e.BroadcasterId)
-                    .HasName("IX_BroadcasterId_Quote");
-
                 entity.Property(e => e.TimeCreated)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
@@ -676,9 +672,6 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<Rank>(entity =>
             {
-                entity.HasIndex(e => e.BroadcasterId)
-                    .HasName("IX_BroadcasterId_Rank");
-
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -693,9 +686,6 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<RankFollower>(entity =>
             {
-                entity.HasIndex(e => e.BroadcasterId)
-                    .HasName("IX_BroadcasterId_RankFollower");
-
                 entity.Property(e => e.Username)
                     .IsRequired()
                     .HasMaxLength(30)
@@ -710,12 +700,6 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<Reminder>(entity =>
             {
-                entity.HasIndex(e => e.BroadcasterId)
-                    .HasName("IX_BroadcasterId_Reminder");
-
-                entity.HasIndex(e => e.GameId)
-                    .HasName("IX_GameId_Reminder");
-
                 entity.Property(e => e.ExpirationDateUtc).HasColumnType("datetime");
 
                 entity.Property(e => e.Message)
@@ -736,9 +720,6 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<SongRequest>(entity =>
             {
-                entity.HasIndex(e => e.BroadcasterId)
-                    .HasName("IX_BroadcasterId_SongRequest");
-
                 entity.Property(e => e.Chatter)
                     .HasMaxLength(30)
                     .IsUnicode(false);
@@ -757,9 +738,6 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<SongRequestIgnore>(entity =>
             {
-                entity.HasIndex(e => e.BroadcasterId)
-                    .HasName("IX_BroadcasterId_SongRequestIgnore");
-
                 entity.Property(e => e.Artist)
                     .IsRequired()
                     .HasMaxLength(100)
@@ -778,9 +756,6 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<SongRequestSetting>(entity =>
             {
-                entity.HasIndex(e => e.BroadcasterId)
-                    .HasName("IX_BroadcasterId_SongRequestSetting");
-
                 entity.Property(e => e.PersonalPlaylistId)
                     .HasMaxLength(34)
                     .IsUnicode(false);

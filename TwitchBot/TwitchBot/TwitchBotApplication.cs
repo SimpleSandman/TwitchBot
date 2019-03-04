@@ -35,6 +35,7 @@ namespace TwitchBot
         private CmdBrdCstr _cmdBrdCstr;
         private CmdMod _cmdMod;
         private CmdGen _cmdGen;
+        private CmdVip _cmdVip;
         private bool _isManualSongRequestAvail;
         private bool _isYouTubeSongRequestAvail;
         private bool _hasTwitterInfo;
@@ -149,6 +150,8 @@ namespace TwitchBot
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
                     _twitchInfo, _gameDirectory, _songRequestSetting);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
+                    _manualSongRequest, _quote, _partyUp, _gameDirectory);
+                _cmdVip = new CmdVip(_irc, _timeout, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
                     _manualSongRequest, _quote, _partyUp, _gameDirectory);
 
                 /* Whisper broadcaster bot settings */
@@ -500,27 +503,15 @@ namespace TwitchBot
                                 if (username == _botConfig.Broadcaster.ToLower() || chatter.Badges.Contains("moderator"))
                                 {
                                     switch (message)
-                                    {
-                                        case "!poprbsr": // Removes the first song in the queue of song requests
-                                            await _cmdMod.CmdPopManualSr();
-                                            break;
+                                    {                                        
                                         case "!resetrbsr": // Resets the song request queue
                                             await _cmdMod.CmdResetManualSr();
-                                            break;
-                                        case "!poppartyuprequest": // Removes first party memeber in queue of party up requests
-                                            await _cmdMod.CmdPopPartyUpRequest();
                                             break;
                                         case "!modafk": // Tell the stream the specified moderator will be AFK
                                             _cmdMod.CmdModAfk(chatter);
                                             break;
                                         case "!modback": // Tell the stream the specified moderator has returned
                                             _cmdMod.CmdModBack(chatter);
-                                            break;
-                                        case "!resetmsl": // Reset MultiStream link so link can be reconfigured
-                                            _multiStreamUsers = await _cmdMod.CmdResetMultiStreamLink(chatter, _multiStreamUsers);
-                                            break;
-                                        case "!popjoin": // Pops user from the queue of users that want to play with the broadcaster
-                                            _gameQueueUsers = await _cmdMod.CmdPopJoin(chatter, _gameQueueUsers);
                                             break;
                                         case "!resetjoin": // Resets game queue of users that want to play with the broadcaster
                                             _gameQueueUsers = await _cmdMod.CmdResetJoin(chatter, _gameQueueUsers);
@@ -546,17 +537,9 @@ namespace TwitchBot
                                             else if (message.StartsWith("!setlatency "))
                                                 _cmdMod.CmdSetLatency(chatter);
 
-                                            /* Add a broadcaster quote */
-                                            else if (message.StartsWith("!addquote "))
-                                                await _cmdMod.CmdAddQuote(chatter);
-
                                             /* Gives every viewer a set amount of currency */
                                             else if (message.StartsWith("!bonusall "))
                                                 await _cmdMod.CmdBonusAll(chatter);
-
-                                            /* Add MultiStream user to link */
-                                            else if (message.StartsWith("!addmsl "))
-                                                _multiStreamUsers = await _cmdMod.CmdAddMultiStreamUser(chatter, _multiStreamUsers);
 
                                             /* Updates the title of the Twitch channel */
                                             else if (message.StartsWith("!updatetitle "))
@@ -566,16 +549,48 @@ namespace TwitchBot
                                             else if (message.StartsWith("!updategame "))
                                                 await _cmdMod.CmdUpdateGame(chatter, hasTwitterInfo);
 
-                                            /* Display the streamer's channel and game status */
-                                            else if (message.StartsWith("!streamer @") || message.StartsWith("!so @"))
-                                                await _cmdMod.CmdPromoteStreamer(chatter);
-
                                             /* insert moderator commands here */
                                             break;
                                     }
                                     
                                 }
                                 #endregion Moderator Commands
+
+                                #region VIP Commands
+                                if (username == _botConfig.Broadcaster.ToLower() || chatter.Badges.Contains("moderator") || chatter.Badges.Contains("vip"))
+                                {
+                                    switch (message)
+                                    {
+                                        case "!resetmsl": // Reset MultiStream link so link can be reconfigured
+                                            _multiStreamUsers = await _cmdVip.CmdResetMultiStreamLink(chatter, _multiStreamUsers);
+                                            break;
+                                        case "!popjoin": // Pops user from the queue of users that want to play with the broadcaster
+                                            _gameQueueUsers = await _cmdVip.CmdPopJoin(chatter, _gameQueueUsers);
+                                            break;
+                                        case "!poprbsr": // Removes the first song in the queue of song requests
+                                            await _cmdVip.CmdPopManualSr();
+                                            break;
+                                        case "!poppartyuprequest": // Removes first party memeber in queue of party up requests
+                                            await _cmdVip.CmdPopPartyUpRequest();
+                                            break;
+                                        default:
+                                            /* Add MultiStream user to link */
+                                            if (message.StartsWith("!addmsl "))
+                                                _multiStreamUsers = await _cmdVip.CmdAddMultiStreamUser(chatter, _multiStreamUsers);
+
+                                            /* Add a broadcaster quote */
+                                            else if (message.StartsWith("!addquote "))
+                                                await _cmdVip.CmdAddQuote(chatter);
+
+                                            /* Display the streamer's channel and game status */
+                                            else if (message.StartsWith("!streamer @") || message.StartsWith("!so @"))
+                                                await _cmdVip.CmdPromoteStreamer(chatter);
+
+                                            /* insert vip commands here */
+                                            break;
+                                    }
+                                }
+                                #endregion VIP Commands
 
                                 #region Viewer Commands
                                 switch (message)
