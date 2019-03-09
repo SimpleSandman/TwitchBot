@@ -597,9 +597,9 @@ namespace TwitchBotDb.Models
                     .HasMaxLength(500)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.BroadcasterNavigation)
+                entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.InGameUsername)
-                    .HasForeignKey(d => d.Broadcaster)
+                    .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__InGameUsername__Broadcaster");
 

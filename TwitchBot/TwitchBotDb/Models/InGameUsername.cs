@@ -7,10 +7,10 @@ namespace TwitchBotDb.Models
     {
         public int Id { get; set; }
         public string Message { get; set; }
-        public int Broadcaster { get; set; }
+        public int BroadcasterId { get; set; }
         public int? GameId { get; set; }
 
-        public Broadcaster BroadcasterNavigation { get; set; }
+        public Broadcaster Broadcaster { get; set; }
         public TwitchGameCategory Game { get; set; }
     }
 }

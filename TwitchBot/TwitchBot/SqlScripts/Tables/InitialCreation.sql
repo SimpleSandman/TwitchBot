@@ -283,7 +283,7 @@ GO
 CREATE TABLE [dbo].[InGameUsername](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Message] [varchar](500) NOT NULL,
-	[Broadcaster] [int] NOT NULL,
+	[BroadcasterId] [int] NOT NULL,
 	[GameId] [int] NULL,
  CONSTRAINT [PK__InGameUsername] PRIMARY KEY CLUSTERED 
 (
@@ -977,7 +977,7 @@ GO
 ALTER TABLE [dbo].[ErrorLog] CHECK CONSTRAINT [FK_ErrorLog_Broadcaster]
 GO
 
-ALTER TABLE [dbo].[InGameUsername]  WITH CHECK ADD  CONSTRAINT [FK__InGameUsername__Broadcaster] FOREIGN KEY([Broadcaster])
+ALTER TABLE [dbo].[InGameUsername]  WITH CHECK ADD  CONSTRAINT [FK__InGameUsername__Broadcaster] FOREIGN KEY([BroadcasterId])
 REFERENCES [dbo].[Broadcaster] ([Id])
 GO
 
