@@ -55,6 +55,7 @@ namespace TwitchBot
         private GameDirectoryService _gameDirectory;
         private QuoteService _quote;
         private SongRequestSettingService _songRequestSetting;
+        private InGameUsernameService _ign;
         private BankHeist _bankHeist;
         private BossFight _bossFight;
         private TwitchChatterListener _twitchChatterListener;
@@ -68,7 +69,7 @@ namespace TwitchBot
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
             GameDirectoryService gameDirectory, QuoteService quote, BankHeist bankHeist, TwitchChatterListener twitchChatterListener,
-            BossFight bossFight, SongRequestSettingService songRequestSetting)
+            BossFight bossFight, SongRequestSettingService songRequestSetting, InGameUsernameService ign)
         {
             _appConfig = appConfig;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
@@ -95,6 +96,7 @@ namespace TwitchBot
             _twitchChatterListener = twitchChatterListener;
             _bossFight = bossFight;
             _songRequestSetting = songRequestSetting;
+            _ign = ign;
         }
 
         public async Task RunAsync()
@@ -146,7 +148,7 @@ namespace TwitchBot
                 /* main server: irc.chat.twitch.tv, 6667 */
                 _irc.Connect(_botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
-                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote);
+                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
                     _twitchInfo, _gameDirectory, _songRequestSetting);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
@@ -638,7 +640,9 @@ namespace TwitchBot
                                         await _cmdGen.CmdViewRank(chatter);
                                         break;
                                     case "!ytsl": // Display YouTube link to song request playlist 
-                                        _cmdGen.CmdYouTubeSongRequestList(hasYouTubeAuth, isYouTubeSongRequestAvail);
+                                    case "!playlist":
+                                    case "!songlist":
+                                        _cmdGen.CmdYouTubeSongRequestList(hasYouTubeAuth);
                                         break;
                                     case "!msl": // Display MultiStream link
                                         _cmdGen.CmdMultiStreamLink(chatter, _multiStreamUsers);
@@ -667,6 +671,11 @@ namespace TwitchBot
                                     case "!song": // Display current song that's being played from WPF app
                                     case "!currentsong":
                                         await _cmdGen.CmdYouTubeCurrentSong(hasYouTubeAuth, chatter);
+                                        break;
+                                    case "!ign":
+                                    case "!gt":
+                                    case "!fc":
+                                        await _cmdGen.CmdInGameUsername(chatter);
                                         break;
                                     default: // Check commands that depend on special cases
                                         /* Request a song for the host to play */

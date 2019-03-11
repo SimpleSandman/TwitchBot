@@ -24,7 +24,7 @@ namespace TwitchBotApi.Controllers
         // GET: api/ingameusernames/get/5
         // GET: api/ingameusernames/get/5?gameId=1
         [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] int gameId = 0)
+        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] int? gameId = 0)
         {
             if (!ModelState.IsValid)
             {
@@ -40,7 +40,13 @@ namespace TwitchBotApi.Controllers
 
             if (inGameUsername == null)
             {
-                return NotFound();
+                // try getting the generic username message
+                inGameUsername = await _context.InGameUsername.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == null);
+
+                if (inGameUsername == null)
+                {
+                    return NotFound();
+                }
             }
 
             return Ok(inGameUsername);

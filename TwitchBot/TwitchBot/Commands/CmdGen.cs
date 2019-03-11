@@ -43,6 +43,7 @@ namespace TwitchBot.Commands
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
         private QuoteService _quote;
+        private InGameUsernameService _ign;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private BankHeistSingleton _heistSettingsInstance = BankHeistSingleton.Instance;
@@ -51,7 +52,8 @@ namespace TwitchBot.Commands
 
         public CmdGen(IrcClient irc, SpotifyWebClient spotify, TwitchBotConfigurationSection botConfig, int broadcasterId,
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
-            ManualSongRequestService manualSongRequest, PartyUpService partyUp, GameDirectoryService gameDirectory, QuoteService quote)
+            ManualSongRequestService manualSongRequest, PartyUpService partyUp, GameDirectoryService gameDirectory, QuoteService quote,
+            InGameUsernameService ign)
         {
             _irc = irc;
             _spotify = spotify;
@@ -65,6 +67,7 @@ namespace TwitchBot.Commands
             _partyUp = partyUp;
             _gameDirectory = gameDirectory;
             _quote = quote;
+            _ign = ign;
         }
 
         public async void CmdDisplayCmds()
@@ -959,12 +962,11 @@ namespace TwitchBot.Commands
         /// Display's link to broadcaster's YouTube song request playlist
         /// </summary>
         /// <param name="hasYouTubeAuth">Checks if broadcaster allowed this bot to post videos to the playlist</param>
-        /// <param name="isYouTubeSongRequestAvail">Checks if users can request songs</param>
-        public async void CmdYouTubeSongRequestList(bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
+        public async void CmdYouTubeSongRequestList(bool hasYouTubeAuth)
         {
             try
             {
-                if (hasYouTubeAuth && isYouTubeSongRequestAvail && !string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
+                if (hasYouTubeAuth && !string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                 {
                     _irc.SendPublicChatMessage($"{_botConfig.Broadcaster.ToLower()}'s song request list is at " +
                         "https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);
@@ -976,7 +978,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequestList(bool, bool)", false, "!ytsl");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequestList(bool)", false, "!ytsl");
             }
         }
 
@@ -1728,7 +1730,29 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdWpfCurrentSong(bool, TwitchChatter)", false, "!song");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeCurrentSong(bool, TwitchChatter)", false, "!song");
+            }
+        }
+
+        public async Task CmdInGameUsername(TwitchChatter chatter)
+        {
+            try
+            {
+                // Get current game name
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                string gameTitle = json.Game;
+
+                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                InGameUsername ign = await _ign.GetInGameUsername(game, _broadcasterId);
+
+                if (ign != null && !string.IsNullOrEmpty(ign.Message))
+                    _irc.SendPublicChatMessage(ign.Message);
+                else
+                    _irc.SendPublicChatMessage($"I cannot find an in-game username for this streamer @{chatter.Username}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGetInGameUsername(TwitchChatter)", false, "!ign");
             }
         }
 

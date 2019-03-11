@@ -330,7 +330,9 @@
     <Compile Include="Models\JSON\ClipJSON.cs" />
     <Compile Include="Models\JSON\SubscriptionJSON.cs" />
     <Compile Include="Models\TwitchChatter.cs" />
+    <Compile Include="Repositories\InGameUsernameRepository.cs" />
     <Compile Include="Repositories\SongRequestSettingRepository.cs" />
+    <Compile Include="Services\InGameUsernameService.cs" />
     <Compile Include="Services\SongRequestSettingService.cs" />
     <Compile Include="Threads\TwitchChatterListener.cs" />
     <Compile Include="Libraries\TwitterClient.cs" />
