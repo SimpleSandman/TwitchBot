@@ -672,7 +672,7 @@ namespace TwitchBot
                                     case "!currentsong":
                                         await _cmdGen.CmdYouTubeCurrentSong(hasYouTubeAuth, chatter);
                                         break;
-                                    case "!ign":
+                                    case "!ign": // Display the broadcaster's in-game (user)name based on what they're streaming
                                     case "!gt":
                                     case "!fc":
                                         await _cmdGen.CmdInGameUsername(chatter);
