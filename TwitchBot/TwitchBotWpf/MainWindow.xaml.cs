@@ -338,19 +338,22 @@ namespace TwitchBotWpf
         {
             int djIndex = Title.IndexOf(_djEnabledStatus) > 1 ? Title.IndexOf(_djEnabledStatus) : Title.IndexOf(_djDisabledStatus);
 
-            if (djIndex > 1)
+            if (YoutubeClient.SongRequestSetting != null)
             {
-                if (YoutubeClient.SongRequestSetting.DjMode && Title.Contains(_djDisabledStatus))
-                    Title = Title.Replace(_djDisabledStatus, _djEnabledStatus);
-                else if (!YoutubeClient.SongRequestSetting.DjMode && Title.Contains(_djEnabledStatus))
-                    Title = Title.Replace(_djEnabledStatus, _djDisabledStatus);
-            }
-            else
-            {
-                if (YoutubeClient.SongRequestSetting.DjMode)
-                    Title += $" {_djEnabledStatus}";
+                if (djIndex > 1)
+                {
+                    if (YoutubeClient.SongRequestSetting.DjMode && Title.Contains(_djDisabledStatus))
+                        Title = Title.Replace(_djDisabledStatus, _djEnabledStatus);
+                    else if (!YoutubeClient.SongRequestSetting.DjMode && Title.Contains(_djEnabledStatus))
+                        Title = Title.Replace(_djEnabledStatus, _djDisabledStatus);
+                }
                 else
-                    Title += $" {_djDisabledStatus}";
+                {
+                    if (YoutubeClient.SongRequestSetting.DjMode)
+                        Title += $" {_djEnabledStatus}";
+                    else
+                        Title += $" {_djDisabledStatus}";
+                }
             }
         }
     }

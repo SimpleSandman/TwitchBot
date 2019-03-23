@@ -30,6 +30,7 @@ namespace TwitchBot.Commands
         private TwitchInfoService _twitchInfo;
         private GameDirectoryService _gameDirectory;
         private SongRequestSettingService _songRequestSetting;
+        private InGameUsernameService _ign;
         private TwitterClient _twitter = TwitterClient.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
@@ -38,7 +39,7 @@ namespace TwitchBot.Commands
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, int broadcasterId, 
             System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo, 
-            GameDirectoryService gameDirectory, SongRequestSettingService songRequestSetting)
+            GameDirectoryService gameDirectory, SongRequestSettingService songRequestSetting, InGameUsernameService ign)
         {
             _irc = irc;
             _botConfig = botConfig;
@@ -48,6 +49,7 @@ namespace TwitchBot.Commands
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
             _songRequestSetting = songRequestSetting;
+            _ign = ign;
         }
 
         /// <summary>
@@ -730,6 +732,100 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdSetPersonalYoutubePlaylistById(string)", false, "!setpersonalplaylistid");
+            }
+        }
+
+        public async Task CmdSetGameIgn(string message)
+        {
+            try
+            {
+                string gameIgn = message.Substring(message.IndexOf(" ") + 1);
+
+                // Get current game name
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                string gameTitle = json.Game;
+
+                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                InGameUsername ign = await _ign.GetInGameUsername(_broadcasterId, game);
+
+                if (ign == null || (ign != null && ign.GameId == null))
+                {
+                    await _ign.CreateInGameUsername(game.Id, _broadcasterId, gameIgn);
+
+                    _irc.SendPublicChatMessage($"Yay! You've set your IGN for {gameTitle} to \"{gameIgn}\"");
+                }
+                else
+                {
+                    ign.Message = gameIgn;
+                    await _ign.UpdateInGameUsername(ign.Id, _broadcasterId, ign);
+
+                    _irc.SendPublicChatMessage($"Yay! You've updated your IGN for {gameTitle} to \"{gameIgn}\"");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdSetGameIgn(string)", false, "!setgameign");
+            }
+        }
+
+        public async Task CmdSetGenericIgn(string message)
+        {
+            try
+            {
+                string gameIgn = message.Substring(message.IndexOf(" ") + 1);
+
+                // Get current game name
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                string gameTitle = json.Game;
+
+                InGameUsername ign = await _ign.GetInGameUsername(_broadcasterId);
+
+                if (ign == null)
+                {
+                    await _ign.CreateInGameUsername(null, _broadcasterId, gameIgn);
+
+                    _irc.SendPublicChatMessage($"Yay! You've set your generic IGN to \"{gameIgn}\"");
+                }
+                else
+                {
+                    ign.Message = gameIgn;
+                    await _ign.UpdateInGameUsername(ign.Id, _broadcasterId, ign);
+
+                    _irc.SendPublicChatMessage($"Yay! You've updated your generic IGN to \"{gameIgn}\"");
+                }                
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdSetGenericIgn(string)", false, "!setgenericign");
+            }
+        }
+
+        public async Task CmdDeleteIgn()
+        {
+            try
+            {
+                // Get current game name
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                string gameTitle = json.Game;
+
+                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                InGameUsername ign = await _ign.GetInGameUsername(_broadcasterId, game);
+
+                if (ign != null && ign.GameId != null)
+                {
+                    await _ign.DeleteInGameUsername(ign.Id, _broadcasterId);
+
+                    _irc.SendPublicChatMessage($"Successfully deleted IGN set for the category \"{game.Title}\"");
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"Wasn't able to find an IGN to delete for the category \"{game.Title}\"");
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDeleteIgn()", false, "!deleteign");
             }
         }
     }

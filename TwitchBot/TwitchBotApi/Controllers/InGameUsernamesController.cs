@@ -35,10 +35,12 @@ namespace TwitchBotApi.Controllers
 
             if (gameId == 0)
                 inGameUsername = await _context.InGameUsername.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
-            else
+            else if (gameId != null)
                 inGameUsername = await _context.InGameUsername.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == gameId);
+            else if (gameId == null)
+                inGameUsername = await _context.InGameUsername.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == null);
 
-            if (inGameUsername == null)
+            if (inGameUsername == null && gameId != null)
             {
                 // try getting the generic username message
                 inGameUsername = await _context.InGameUsername.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == null);
@@ -55,7 +57,7 @@ namespace TwitchBotApi.Controllers
         // PUT: api/ingameusernames/update/2?id=1
         // Body (JSON): { "id": 1, "message": "GenericUsername123", "broadcasterid": 2, "gameid": null }
         // Body (JSON): { "id": 1, "message": "UniqueUsername456", "broadcasterid": 2, "gameid": 2 }
-        [HttpPut("{id:int}")]
+        [HttpPut("{broadcasterId:int}")]
         public async Task<IActionResult> Update([FromRoute] int broadcasterId, [FromQuery] int id, [FromBody] InGameUsername inGameUsername)
         {
             if (!ModelState.IsValid)
@@ -106,9 +108,9 @@ namespace TwitchBotApi.Controllers
             return CreatedAtAction("Get", new { broadcasterId = inGameUsername.BroadcasterId, gameId = inGameUsername.Game }, inGameUsername);
         }
 
-        // DELETE: api/ingameusernames/delete/5?broadcasterId=2
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int id, [FromQuery] int broadcasterId)
+        // DELETE: api/ingameusernames/delete/5?id=2
+        [HttpDelete("{broadcasterId:int}")]
+        public async Task<IActionResult> Delete([FromRoute] int broadcasterId, [FromQuery] int id)
         {
             if (!ModelState.IsValid)
             {
