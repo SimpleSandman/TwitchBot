@@ -23,5 +23,27 @@ namespace TwitchBot.Repositories
         {
             return await ApiBotRequest.GetExecuteTaskAsync<InGameUsername>(_twitchBotApiLink + $"ingameusernames/get/{broadcasterId}?gameid={gameId}");
         }
+
+        public async Task UpdateInGameUsername(int id, int broadcasterId, InGameUsername ign)
+        {
+            await ApiBotRequest.PutExecuteTaskAsync(_twitchBotApiLink + $"ingameusernames/update/{broadcasterId}?id={id}", ign);
+        }
+
+        public async Task CreateInGameUsername(int? gameId, int broadcasterId, string message)
+        {
+            InGameUsername ign = new InGameUsername
+            {
+                GameId = gameId,
+                BroadcasterId = broadcasterId,
+                Message = message
+            };
+
+            await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"ingameusernames/create", ign);
+        }
+
+        public async Task<InGameUsername> DeleteInGameUsername(int id, int broadcasterId)
+        {
+            return await ApiBotRequest.DeleteExecuteTaskAsync<InGameUsername>(_twitchBotApiLink + $"ingameusernames/delete/{broadcasterId}?id={id}");
+        }
     }
 }

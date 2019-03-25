@@ -150,7 +150,7 @@ namespace TwitchBot
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
-                    _twitchInfo, _gameDirectory, _songRequestSetting);
+                    _twitchInfo, _gameDirectory, _songRequestSetting, _ign);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
                     _manualSongRequest, _quote, _partyUp, _gameDirectory);
                 _cmdVip = new CmdVip(_irc, _timeout, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
@@ -472,26 +472,37 @@ namespace TwitchBot
                                     case "!djmode off": // Disable DJing mode for YouTube song requests
                                         await _cmdBrdCstr.CmdDisableDjMode();
                                         break;
+                                    case "!deleteign":
+                                        await _cmdBrdCstr.CmdDeleteIgn();
+                                        break;
                                     default: // Check commands that depend on special cases
                                         /* Sends a manual tweet (if credentials have been provided) */
                                         if (message.StartsWith("!tweet "))
-                                            _cmdBrdCstr.CmdTweet(hasTwitterInfo, message);
+                                            _cmdBrdCstr.CmdTweet(hasTwitterInfo, chatter.Message);
 
                                         /* Add song or artist to song request blacklist */
                                         else if (message.StartsWith("!srbl "))
-                                            await _cmdBrdCstr.CmdAddSongRequestBlacklist(message);
+                                            await _cmdBrdCstr.CmdAddSongRequestBlacklist(chatter.Message);
 
                                         /* Remove song or artist from song request blacklist */
                                         else if (message.StartsWith("!delsrbl "))
-                                            await _cmdBrdCstr.CmdRemoveSongRequestBlacklist(message);
+                                            await _cmdBrdCstr.CmdRemoveSongRequestBlacklist(chatter.Message);
 
                                         /* Set regular follower hours for dedicated followers */
                                         else if (message.StartsWith("!setregularhours "))
-                                            _cmdBrdCstr.CmdSetRegularFollowerHours(message);
+                                            _cmdBrdCstr.CmdSetRegularFollowerHours(chatter.Message);
 
                                         /* Set YouTube personal playlist as a backup when new requests  */
                                         else if (message.StartsWith("!setpersonalplaylistid "))
-                                            await _cmdBrdCstr.CmdSetPersonalYoutubePlaylistById(message);
+                                            await _cmdBrdCstr.CmdSetPersonalYoutubePlaylistById(chatter.Message);
+
+                                        /* Set in-game (user) name for the current game */
+                                        else if (message.StartsWith("!setgameign ") || message.StartsWith("!setgameid "))
+                                            await _cmdBrdCstr.CmdSetGameIgn(chatter.Message);
+
+                                        /* Set in-game (user) name for any non-specified game */
+                                        else if (message.StartsWith("!setgenericign ") || message.StartsWith("!setgenericid "))
+                                            await _cmdBrdCstr.CmdSetGenericIgn(chatter.Message);
 
                                         /* insert more broadcaster commands here */
                                         break;
@@ -672,9 +683,12 @@ namespace TwitchBot
                                     case "!currentsong":
                                         await _cmdGen.CmdYouTubeCurrentSong(hasYouTubeAuth, chatter);
                                         break;
-                                    case "!ign": // Display the broadcaster's in-game (user)name based on what they're streaming
+                                    case "!ign": // Display the broadcaster's in-game (user) name based on what they're streaming
                                     case "!gt":
                                     case "!fc":
+                                    case "!allign": // Display all of the broadcaster's in-game (user) names
+                                    case "!allgt":
+                                    case "!allfc":
                                         await _cmdGen.CmdInGameUsername(chatter);
                                         break;
                                     default: // Check commands that depend on special cases

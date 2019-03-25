@@ -828,124 +828,129 @@ namespace TwitchBot.Commands
                 }
                 else
                 {
-                    string videoId = "";
                     int spaceIndex = chatter.Message.IndexOf(" ");
+                    string videoId = ParseYoutubeVideoId(chatter, spaceIndex);
 
-                    // Parse video ID based on different types of requests
-                    if (chatter.Message.Contains("?v=") || chatter.Message.Contains("&v=") || chatter.Message.Contains("youtu.be/")) // full or short URL
+                    Video video = null;
+
+                    // Try to get video info using the parsed video ID
+                    if (!string.IsNullOrEmpty(videoId))
                     {
-                        videoId = _youTubeClientInstance.GetYouTubeVideoId(chatter.Message);
+                        video = await _youTubeClientInstance.GetVideoById(videoId);
                     }
-                    else if (chatter.Message.Substring(spaceIndex + 1).Length == 11
-                        && chatter.Message.Substring(spaceIndex + 1).IndexOf(" ") == -1
-                        && Regex.Match(chatter.Message, @"[\w\-]").Success) // assume only video ID
-                    {
-                        videoId = chatter.Message.Substring(spaceIndex + 1);
-                    }
-                    else // search by keyword
+
+                    // Default to search by keyword if parsed video ID was null or not available
+                    if (video == null || video.Id == null)
                     {
                         string videoKeyword = chatter.Message.Substring(spaceIndex + 1);
                         videoId = await _youTubeClientInstance.SearchVideoByKeyword(videoKeyword);
-                    }
 
-                    // Confirm if video ID has been found and is a new song request
-                    if (string.IsNullOrEmpty(videoId))
-                    {
-                        _irc.SendPublicChatMessage($"Couldn't find video ID for song request @{chatter.Username}");
-                    }
-                    else if (await _youTubeClientInstance.HasDuplicatePlaylistItem(_botConfig.YouTubeBroadcasterPlaylistId, videoId))
-                    {
-                        _irc.SendPublicChatMessage($"Song has already been requested @{chatter.Username}");
-                    }
-                    else
-                    {
-                        Video video = await _youTubeClientInstance.GetVideoById(videoId);
-
-                        // Check if video's title and account match song request blacklist
-                        List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterId);
-
-                        if (blacklist.Count > 0)
+                        if (string.IsNullOrEmpty(videoId))
                         {
-                            // Check for artist-wide blacklist
-                            if (blacklist.Any(
-                                    b => (string.IsNullOrEmpty(b.Title)
-                                            && video.Snippet.Title.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
-                                        || (string.IsNullOrEmpty(b.Title)
-                                            && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
-                                ))
-                            {
-                                _irc.SendPublicChatMessage($"I'm not allowing this artist/video to be queued on my master's behalf @{chatter.Username}");
-                                return DateTime.Now;
-                            }
-                            // Check for song-specific blacklist
-                            else if (blacklist.Any(
-                                    b => (!string.IsNullOrEmpty(b.Title) && video.Snippet.Title.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase)
-                                            && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // both song/artist in video title
-                                        || (!string.IsNullOrEmpty(b.Title) && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase)
-                                            && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // song in title and artist in channel title
-                                ))
-                            {
-                                _irc.SendPublicChatMessage($"I'm not allowing this song to be queued on my master's behalf @{chatter.Username}");
-                                return DateTime.Now;
-                            }
-                        }
-
-                        // Check if video is blocked in the broadcaster's country
-                        CultureInfo cultureInfo = Thread.CurrentThread.CurrentCulture;
-                        RegionInfo regionInfo = new RegionInfo(cultureInfo.Name);
-                        var regionRestriction = video.ContentDetails.RegionRestriction;
-
-                        if ((regionRestriction?.Allowed != null && !regionRestriction.Allowed.Contains(regionInfo.TwoLetterISORegionName))
-                            || (regionRestriction?.Blocked != null && regionRestriction.Blocked.Contains(regionInfo.TwoLetterISORegionName)))
-                        {
-                            _irc.SendPublicChatMessage($"Your song request is blocked in this broadcaster's country. Please request a different song");
+                            _irc.SendPublicChatMessage($"Couldn't find video ID for song request @{chatter.Username}");
                             return DateTime.Now;
                         }
 
-                        string videoDuration = video.ContentDetails.Duration;
+                        video = await _youTubeClientInstance.GetVideoById(videoId);
 
-                        // Check if time limit has been reached
-                        // ToDo: Make bot setting for duration limit based on minutes (if set)
-                        if (!videoDuration.Contains("PT") || videoDuration.Contains("H"))
+                        if (video == null || video.Id == null)
                         {
-                            _irc.SendPublicChatMessage($"Either couldn't find the video duration or it was way too long for the stream @{chatter.Username}");
+                            _irc.SendPublicChatMessage($"Video wasn't available for song request @{chatter.Username}");
+                            return DateTime.Now;
+                        }
+                    }
+
+                    // Confirm if video ID has been found and is a new song request
+                    if (await _youTubeClientInstance.HasDuplicatePlaylistItem(_botConfig.YouTubeBroadcasterPlaylistId, videoId))
+                    {
+                        _irc.SendPublicChatMessage($"Song has already been requested @{chatter.Username}");
+                        return DateTime.Now;
+                    }
+
+                    // Check if video's title and account match song request blacklist
+                    List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterId);
+
+                    if (blacklist.Count > 0)
+                    {
+                        // Check for artist-wide blacklist
+                        if (blacklist.Any(
+                                b => (string.IsNullOrEmpty(b.Title)
+                                        && video.Snippet.Title.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
+                                    || (string.IsNullOrEmpty(b.Title)
+                                        && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
+                            ))
+                        {
+                            _irc.SendPublicChatMessage($"I'm not allowing this artist/video to be queued on my master's behalf @{chatter.Username}");
+                            return DateTime.Now;
+                        }
+                        // Check for song-specific blacklist
+                        else if (blacklist.Any(
+                                b => (!string.IsNullOrEmpty(b.Title) && video.Snippet.Title.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase)
+                                        && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // both song/artist in video title
+                                    || (!string.IsNullOrEmpty(b.Title) && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase)
+                                        && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // song in title and artist in channel title
+                            ))
+                        {
+                            _irc.SendPublicChatMessage($"I'm not allowing this song to be queued on my master's behalf @{chatter.Username}");
+                            return DateTime.Now;
+                        }
+                    }
+
+                    // Check if video is blocked in the broadcaster's country
+                    CultureInfo cultureInfo = Thread.CurrentThread.CurrentCulture;
+                    RegionInfo regionInfo = new RegionInfo(cultureInfo.Name);
+                    var regionRestriction = video.ContentDetails.RegionRestriction;
+
+                    if ((regionRestriction?.Allowed != null && !regionRestriction.Allowed.Contains(regionInfo.TwoLetterISORegionName))
+                        || (regionRestriction?.Blocked != null && regionRestriction.Blocked.Contains(regionInfo.TwoLetterISORegionName)))
+                    {
+                        _irc.SendPublicChatMessage($"Your song request is blocked in this broadcaster's country. Please request a different song");
+                        return DateTime.Now;
+                    }
+
+                    string videoDuration = video.ContentDetails.Duration;
+
+                    // Check if time limit has been reached
+                    // ToDo: Make bot setting for duration limit based on minutes (if set)
+                    if (!videoDuration.Contains("PT") || videoDuration.Contains("H"))
+                    {
+                        _irc.SendPublicChatMessage($"Either couldn't find the video duration or it was way too long for the stream @{chatter.Username}");
+                    }
+                    else
+                    {
+                        int timeIndex = videoDuration.IndexOf("T") + 1;
+                        string parsedDuration = videoDuration.Substring(timeIndex);
+                        int minIndex = parsedDuration.IndexOf("M");
+
+                        string videoMin = "0";
+                        string videoSec = "0";
+                        int videoMinLimit = 10;
+                        int videoSecLimit = 0;
+
+                        if (minIndex > 0)
+                            videoMin = parsedDuration.Substring(0, minIndex);
+
+                        if (parsedDuration.IndexOf("S") > 0)
+                            videoSec = parsedDuration.Substring(minIndex + 1).TrimEnd('S');
+
+                        if (Convert.ToInt32(videoMin) >= videoMinLimit && Convert.ToInt32(videoSec) >= videoSecLimit)
+                        {
+                            _irc.SendPublicChatMessage("Song request is longer than or equal to " 
+                                + $"{videoMinLimit} minute(s) and {videoSecLimit} second(s) @{chatter.Username}");
                         }
                         else
                         {
-                            int timeIndex = videoDuration.IndexOf("T") + 1;
-                            string parsedDuration = videoDuration.Substring(timeIndex);
-                            int minIndex = parsedDuration.IndexOf("M");
+                            await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.Username);
+                            await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - cost);
 
-                            string videoMin = "0";
-                            string videoSec = "0";
-                            int videoMinLimit = 10;
-                            int videoSecLimit = 0;
+                            _irc.SendPublicChatMessage($"@{chatter.Username} spent {cost} {_botConfig.CurrencyType} " + 
+                                $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) was successfully requested!");
 
-                            if (minIndex > 0)
-                                videoMin = parsedDuration.Substring(0, minIndex);
+                            // Return cooldown time by using one-third of the length of the video duration
+                            TimeSpan totalTimeSpan = new TimeSpan(0, Convert.ToInt32(videoMin), Convert.ToInt32(videoSec));
+                            TimeSpan oneThirdTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 3);
 
-                            if (parsedDuration.IndexOf("S") > 0)
-                                videoSec = parsedDuration.Substring(minIndex + 1).TrimEnd('S');
-
-                            if (Convert.ToInt32(videoMin) >= videoMinLimit && Convert.ToInt32(videoSec) >= videoSecLimit)
-                            {
-                                _irc.SendPublicChatMessage("Song request is longer than or equal to " 
-                                    + $"{videoMinLimit} minute(s) and {videoSecLimit} second(s) @{chatter.Username}");
-                            }
-                            else
-                            {
-                                await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.Username);
-                                await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - cost);
-
-                                _irc.SendPublicChatMessage($"@{chatter.Username} spent {cost} {_botConfig.CurrencyType} " + 
-                                    $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) was successfully requested!");
-
-                                // Return cooldown time by using one-third of the length of the video duration
-                                TimeSpan totalTimeSpan = new TimeSpan(0, Convert.ToInt32(videoMin), Convert.ToInt32(videoSec));
-                                TimeSpan oneThirdTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 3);
-
-                                return DateTime.Now.AddSeconds(oneThirdTimeSpan.TotalSeconds);
-                            }
+                            return DateTime.Now.AddSeconds(oneThirdTimeSpan.TotalSeconds);
                         }
                     }
                 }
@@ -1168,7 +1173,7 @@ namespace TwitchBot.Commands
 
                     _irc.SendChatTimeout(chatter.Username, 300); // 5 minute timeout
                     _irc.SendPublicChatMessage($"You are dead @{chatter.Username}. Enjoy your 5 minutes in limbo (cannot talk)");
-                    return DateTime.Now;
+                    return DateTime.Now.AddMinutes(5);
                 }
 
                 if (rouletteUser == null) // new roulette user
@@ -1743,16 +1748,21 @@ namespace TwitchBot.Commands
                 string gameTitle = json.Game;
 
                 TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
-                InGameUsername ign = await _ign.GetInGameUsername(game, _broadcasterId);
+
+                InGameUsername ign = null;
+                if (chatter.Message.StartsWith("!all"))
+                    ign = await _ign.GetInGameUsername(_broadcasterId); // return generic IGN
+                else
+                    ign = await _ign.GetInGameUsername(_broadcasterId, game); // return specified IGN (if available)
 
                 if (ign != null && !string.IsNullOrEmpty(ign.Message))
                     _irc.SendPublicChatMessage(ign.Message);
                 else
-                    _irc.SendPublicChatMessage($"I cannot find an in-game username for this streamer @{chatter.Username}");
+                    _irc.SendPublicChatMessage($"I cannot find your in-game username @{chatter.Username}");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGetInGameUsername(TwitchChatter)", false, "!ign");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGetInGameUsername(TwitchChatter)", false, "!ign", chatter.Message);
             }
         }
 
@@ -1860,6 +1870,23 @@ namespace TwitchBot.Commands
             }
 
             return effectiveness;
+        }
+
+        private string ParseYoutubeVideoId(TwitchChatter chatter, int spaceIndex)
+        {
+            // Parse video ID based on different types of requests
+            if (chatter.Message.Contains("?v=") || chatter.Message.Contains("&v=") || chatter.Message.Contains("youtu.be/")) // full or short URL
+            {
+                return _youTubeClientInstance.GetYouTubeVideoId(chatter.Message);
+            }
+            else if (chatter.Message.Substring(spaceIndex + 1).Length == 11
+                && chatter.Message.Substring(spaceIndex + 1).IndexOf(" ") == -1
+                && Regex.Match(chatter.Message, @"[\w\-]").Success) // assume only video ID
+            {
+                return chatter.Message.Substring(spaceIndex + 1);
+            }
+
+            return "";
         }
     }
 }
