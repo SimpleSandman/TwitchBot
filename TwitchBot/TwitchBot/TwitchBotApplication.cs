@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
+using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -690,6 +691,14 @@ namespace TwitchBot
                                     case "!allgt":
                                     case "!allfc":
                                         await _cmdGen.CmdInGameUsername(chatter);
+                                        break;
+                                    case "!pika":
+                                        if (username == "Teimoli" || username == "Simple_Sandman")
+                                        {
+                                            SoundPlayer audio = new SoundPlayer(Resources.smashbros_pikachu);
+                                            audio.Play();
+                                        }
+
                                         break;
                                     default: // Check commands that depend on special cases
                                         /* Request a song for the host to play */
