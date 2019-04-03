@@ -377,6 +377,7 @@ namespace TwitchBot
                             {
                                 Username = username,
                                 Message = message,
+                                DisplayName = PrivMsgParameterValue(rawMessage, "display-name"),
                                 Badges = PrivMsgParameterValue(rawMessage, "badges"),
                                 TwitchId = PrivMsgParameterValue(rawMessage, "user-id"),
                                 MessageId = PrivMsgParameterValue(rawMessage, "id")
@@ -387,11 +388,10 @@ namespace TwitchBot
                             // Purge any clips that aren't from the broadcaster that a viewer posts
                             if (_botConfig.Broadcaster.ToLower() != chatter.Username
                                 && !chatter.Badges.Contains("moderator")
-                                && Program.TwitchUrls.Contains(message)
-                                && !await IsBroadcasterTwitchLink(chatter))
+                                && !await IsAllowedChatMessage(chatter))
                             {
                                 _irc.ClearMessage(chatter);
-                                _irc.SendPublicChatMessage($"Please refrain from posting a clip that isn't from this channel @{chatter.Username}");
+                                _irc.SendPublicChatMessage($"Please refrain from posting a message that isn't for this channel @{chatter.Username}");
                                 continue;
                             }
 
@@ -693,12 +693,11 @@ namespace TwitchBot
                                         await _cmdGen.CmdInGameUsername(chatter);
                                         break;
                                     case "!pika":
-                                        if (username == "Teimoli" || username == "Simple_Sandman")
+                                        if (chatter.DisplayName == "Teimoli" || chatter.DisplayName == "Simple_Sandman")
                                         {
                                             SoundPlayer audio = new SoundPlayer(Resources.smashbros_pikachu);
                                             audio.Play();
                                         }
-
                                         break;
                                     default: // Check commands that depend on special cases
                                         /* Request a song for the host to play */
@@ -1261,12 +1260,20 @@ namespace TwitchBot
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        private async Task<bool> IsBroadcasterTwitchLink(TwitchChatter chatter)
+        private async Task<bool> IsAllowedChatMessage(TwitchChatter chatter)
         {
-            if (chatter.Message.Contains("https://clips.twitch.tv/"))
+            if (chatter.Message.Contains("clips.twitch.tv/"))
+            {
                 return await IsBroadcasterClip(chatter);
+            }
+            else if (chatter.Message.Contains("twitch.tv/") 
+                && chatter.Message.Contains("/clip/")
+                && !chatter.Message.ToLower().Contains(_botConfig.Broadcaster.ToLower()))
+            {
+                return false;
+            }
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -1276,7 +1283,7 @@ namespace TwitchBot
         /// <returns></returns>
         private async Task<bool> IsBroadcasterClip(TwitchChatter chatter)
         {
-            string clipUrl = "https://clips.twitch.tv/";
+            string clipUrl = "clips.twitch.tv/";
 
             int slugIndex = chatter.Message.IndexOf(clipUrl) + clipUrl.Length;
             int endSlugIndex = chatter.Message.IndexOf(" ", slugIndex);
