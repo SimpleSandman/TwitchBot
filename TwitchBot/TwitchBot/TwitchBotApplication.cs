@@ -695,8 +695,9 @@ namespace TwitchBot
                                     case "!pika":
                                         if (chatter.DisplayName == "Teimoli" || chatter.DisplayName == "Simple_Sandman")
                                         {
-                                            SoundPlayer audio = new SoundPlayer(Resources.smashbros_pikachu);
-                                            audio.Play();
+                                            _cmdGen.PlayCommandSound(@"C:/folder/smashbros_pikachu");
+                                            //SoundPlayer audio = new SoundPlayer(Resources.smashbros_pikachu);
+                                            //audio.Play();
                                         }
                                         break;
                                     default: // Check commands that depend on special cases

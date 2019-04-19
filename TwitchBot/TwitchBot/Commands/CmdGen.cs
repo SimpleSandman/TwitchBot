@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 using Google.Apis.YouTube.v3.Data;
 
@@ -1887,6 +1888,15 @@ namespace TwitchBot.Commands
             }
 
             return "";
+        }
+
+        //untested POC -- may cause unknown issues
+        public void PlayCommandSound(string filepath) //could add desired volume as int parameter with a default set (string filepath, int volume = 75)
+        {
+            MediaPlayer mediaPlayer = new MediaPlayer();
+            mediaPlayer.Volume = 75 / 100.0f; //mediaPlayer.Volume = volume / 100.0f;
+            mediaPlayer.Open(new Uri(filepath));  //local file
+            mediaPlayer.Play();
         }
     }
 }
