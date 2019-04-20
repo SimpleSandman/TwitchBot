@@ -334,11 +334,6 @@
     <Compile Include="Models\TwitchChatter.cs" />
     <Compile Include="Repositories\InGameUsernameRepository.cs" />
     <Compile Include="Repositories\SongRequestSettingRepository.cs" />
-    <Compile Include="Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Services\InGameUsernameService.cs" />
     <Compile Include="Services\SongRequestSettingService.cs" />
     <Compile Include="Threads\TwitchChatterListener.cs" />
@@ -420,9 +415,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\smashbros_pikachu.wav">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <Content Include="SqlScripts\StoredProcedures\dbo.CreateDefaultRanks.sql" />
     <Content Include="SqlScripts\StoredProcedures\dbo.GetPartyUpRequestList.sql" />
     <Content Include="SqlScripts\StoredProcedures\dbo.UpdateCreateBalance.sql" />
@@ -439,12 +431,6 @@
       <Project>{7633db4d-c143-46a8-9b3e-6d4063d08831}</Project>
       <Name>TwitchBotUtil</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
-using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,8 +21,6 @@ using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
 using TwitchBotDb.Temp;
-
-using TwitchBotUtil.Extensions;
 
 namespace TwitchBot
 {
@@ -695,9 +692,7 @@ namespace TwitchBot
                                     case "!pika":
                                         if (chatter.DisplayName == "Teimoli" || chatter.DisplayName == "Simple_Sandman")
                                         {
-                                            _cmdGen.PlayCommandSound(@"C:/folder/smashbros_pikachu");
-                                            //SoundPlayer audio = new SoundPlayer(Resources.smashbros_pikachu);
-                                            //audio.Play();
+                                            _cmdGen.PlayCommandSound(@"C:/temp/smashbros_pikachu.wav", 40);
                                         }
                                         break;
                                     default: // Check commands that depend on special cases
@@ -1257,7 +1252,7 @@ namespace TwitchBot
         }
 
         /// <summary>
-        /// Check if Twitch link is from the broadcaster's channel
+        /// Check if chat message is allowed
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
