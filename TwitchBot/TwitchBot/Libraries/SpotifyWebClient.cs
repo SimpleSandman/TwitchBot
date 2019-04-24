@@ -30,7 +30,7 @@ namespace TwitchBot.Libraries
                 if (!HasInitialConfig())
                     return;
 
-                ImplictGrantAuth auth = new ImplictGrantAuth(
+                ImplicitGrantAuth auth = new ImplicitGrantAuth(
                     _botConfig.SpotifyClientId,
                     _botConfig.SpotifyRedirectUri, 
                     _botConfig.SpotifyServerUri,
@@ -50,7 +50,7 @@ namespace TwitchBot.Libraries
 
         private void OnAuthReceived(object sender, Token token)
         {
-            ImplictGrantAuth auth = (ImplictGrantAuth)sender;
+            ImplicitGrantAuth auth = (ImplicitGrantAuth)sender;
             auth.Stop();
 
             _spotify = new SpotifyWebAPI
