@@ -689,7 +689,8 @@ namespace TwitchBot
                                     case "!allfc":
                                         await _cmdGen.CmdInGameUsername(chatter);
                                         break;
-                                    case "!pika":
+                                    case "!pika": // Proof of concept for sound commands
+                                        // ToDo: Make sound commands dynamic (both sound and role access to command)
                                         if (chatter.DisplayName == "Teimoli" || chatter.DisplayName == "Simple_Sandman")
                                         {
                                             _cmdGen.PlayCommandSound(@"C:/temp/smashbros_pikachu.wav", 40);
