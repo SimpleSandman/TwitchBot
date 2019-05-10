@@ -1700,7 +1700,7 @@ namespace TwitchBot.Commands
                     wpfTitle = wpfTitle.Replace("==Bot DJ Mode OFF==", "");
 
                     string playingMessage = $"Now Playing: \"{wpfTitle}\"";
-                    string videoId = _youTubeClientInstance.GetYouTubeVideoId(csCache.Url);
+                    string videoId = _youTubeClientInstance.ParseYouTubeVideoId(csCache.Url);
 
                     if (!string.IsNullOrEmpty(videoId))
                     {
@@ -1878,7 +1878,7 @@ namespace TwitchBot.Commands
             // Parse video ID based on different types of requests
             if (chatter.Message.Contains("?v=") || chatter.Message.Contains("&v=") || chatter.Message.Contains("youtu.be/")) // full or short URL
             {
-                return _youTubeClientInstance.GetYouTubeVideoId(chatter.Message);
+                return _youTubeClientInstance.ParseYouTubeVideoId(chatter.Message);
             }
             else if (chatter.Message.Substring(spaceIndex + 1).Length == 11
                 && chatter.Message.Substring(spaceIndex + 1).IndexOf(" ") == -1

@@ -183,12 +183,12 @@ namespace TwitchBotWpf
                     if (Browser.Address.Contains($"list={YoutubeClient.SongRequestSetting.RequestPlaylistId}") 
                         && Browser.Address.Contains("v="))
                     {
-                        loadedCefSharpCache.LastRequestPlaylistVideoId = _youTubeClientInstance.GetYouTubeVideoId(Browser.Address);
+                        loadedCefSharpCache.LastRequestPlaylistVideoId = _youTubeClientInstance.ParseYouTubeVideoId(Browser.Address);
                     }
                     else if (Browser.Address.Contains($"list={YoutubeClient.SongRequestSetting.PersonalPlaylistId}")
                         && Browser.Address.Contains("v="))
                     {
-                        loadedCefSharpCache.LastPersonalPlaylistVideoId = _youTubeClientInstance.GetYouTubeVideoId(Browser.Address);
+                        loadedCefSharpCache.LastPersonalPlaylistVideoId = _youTubeClientInstance.ParseYouTubeVideoId(Browser.Address);
                     }
 
                     CefSharpCache.Save(loadedCefSharpCache);

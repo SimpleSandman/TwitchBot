@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -216,6 +217,36 @@ namespace TwitchBotUtil.Libraries
         /// </summary>
         /// <param name="playlistId">Playlist ID</param>
         /// <returns></returns>
+        public virtual async Task<List<string>> GetPlaylistVideoIds(string playlistId)
+        {
+            List<string> playlistVideoIds = new List<string>();
+
+            string nextPageToken = "";
+            while (nextPageToken != null)
+            {
+                var userPlaylistItemsListRequest = YouTubeService.PlaylistItems.List(GetPartParam(0));
+                userPlaylistItemsListRequest.PlaylistId = playlistId;
+                userPlaylistItemsListRequest.MaxResults = 50;
+                userPlaylistItemsListRequest.PageToken = nextPageToken;
+
+                var userPlaylistItemListResponse = await userPlaylistItemsListRequest.ExecuteAsync();
+
+                foreach (var playlistItem in userPlaylistItemListResponse.Items)
+                {
+                    playlistVideoIds.Add(playlistItem.ContentDetails.VideoId);
+                }
+
+                nextPageToken = userPlaylistItemListResponse.NextPageToken;
+            }
+
+            return playlistVideoIds;
+        }
+
+        /// <summary>
+        /// Check if requested video is being requested again via video ID
+        /// </summary>
+        /// <param name="playlistId">Playlist ID</param>
+        /// <returns></returns>
         public virtual string GetFirstPlaylistVideoId(string playlistId)
         {
             var userPlaylistItemsListRequest = YouTubeService.PlaylistItems.List(GetPartParam(0));
@@ -284,7 +315,7 @@ namespace TwitchBotUtil.Libraries
         /// </summary>
         /// <param name="message">String containing the YouTube link</param>
         /// <returns></returns>
-        public virtual string GetYouTubeVideoId(string message)
+        public virtual string ParseYouTubeVideoId(string message)
         {
             int videoIdIndex = -1;
 
