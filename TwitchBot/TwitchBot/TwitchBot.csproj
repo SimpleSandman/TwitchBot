@@ -96,7 +96,7 @@
       <HintPath>..\packages\Google.Apis.YouTube.v3.1.38.2.1565\lib\net45\Google.Apis.YouTube.v3.dll</HintPath>
     </Reference>
     <Reference Include="LibVLCSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LibVLCSharp.0.8.1\lib\net471\LibVLCSharp.dll</HintPath>
+      <HintPath>..\packages\LibVLCSharp.3.0.0\lib\net471\LibVLCSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.dll</HintPath>
