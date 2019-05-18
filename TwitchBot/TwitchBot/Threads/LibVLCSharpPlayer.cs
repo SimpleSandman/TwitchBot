@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,14 +30,17 @@ namespace TwitchBot.Threads
                 "--compressor-ratio=2.00",
                 "--compressor-knee=4.50",
                 "--compressor-makeup-gain=17.00"
-            };
+        };
 
-        public LibVLCSharpPlayer(LibVLC libVLC, TwitchBotConfigurationSection botConfig)
+        public LibVLCSharpPlayer() { }
+
+        public LibVLCSharpPlayer(TwitchBotConfigurationSection botConfig)
         {
-            _libVLC = libVLC;
             _botConfig = botConfig;
             _vlcPlayerThread = new Thread(new ThreadStart(this.Run));
         }
+
+        private MediaPlayer MediaPlayer { get; set; }
 
         public void Start()
         {
@@ -46,18 +50,34 @@ namespace TwitchBot.Threads
 
         private async void Run()
         {
+            List<string> songRequestPlaylistIds = await _youTubeClientInstance.GetPlaylistVideoIds(_botConfig.YouTubeBroadcasterPlaylistId);
+            List<string> personalYoutubePlaylistIds = await _youTubeClientInstance.GetPlaylistVideoIds(_botConfig.YouTubePersonalPlaylistId);
+
+            string videoId = songRequestPlaylistIds.FirstOrDefault();
+            if (string.IsNullOrEmpty(videoId))
+            {
+                videoId = personalYoutubePlaylistIds.FirstOrDefault();
+                if (string.IsNullOrEmpty(videoId))
+                {
+                    return; // exit without playing anything because either playlists aren't configured
+                }
+            }
+
             Core.Initialize();
             _libVLC = new LibVLC(_commandLineOptions);
-            
-            // ToDo: Load YouTube song request playlist video IDs into memory
-            List<string> songRequestPlaylistIds = await _youTubeClientInstance.GetPlaylistVideoIds(_botConfig.YouTubeBroadcasterPlaylistId);
-
-            // ToDo: Load YouTube backup playlist video IDs into memory
-            List<string> personalYoutubePlaylistIds = await _youTubeClientInstance.GetPlaylistVideoIds(_botConfig.YouTubePersonalPlaylistId);
+            Media media = await SetMedia(_libVLC, "https://youtu.be/" + videoId);
 
             while (true)
             {
-                Thread.Sleep(300000); // 5 minutes
+                while (MediaPlayer != null && MediaPlayer.IsPlaying)
+                {
+                    // wait
+                }
+
+                // ToDo: Load next song
+                media = await SetMedia(_libVLC, "https://youtu.be/" + videoId);
+
+                //Thread.Sleep(300000); // 5 minutes
             }
         }
 
@@ -67,6 +87,11 @@ namespace TwitchBot.Threads
             await media.Parse(MediaParseOptions.ParseNetwork);
 
             return media;
+        }
+
+        public void Play()
+        {
+            MediaPlayer.Play();
         }
     }
 }
