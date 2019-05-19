@@ -9,6 +9,8 @@ using LibVLCSharp.Shared;
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 
+using TwitchBotUtil.Extensions;
+
 namespace TwitchBot.Threads
 {
     public class LibVLCSharpPlayer
@@ -42,6 +44,8 @@ namespace TwitchBot.Threads
 
         private MediaPlayer MediaPlayer { get; set; }
 
+        public bool IsPersonalPlaylistShuffle { get; set; }
+
         public void Start()
         {
             _vlcPlayerThread.IsBackground = true;
@@ -50,13 +54,18 @@ namespace TwitchBot.Threads
 
         private async void Run()
         {
-            List<string> songRequestPlaylistIds = await _youTubeClientInstance.GetPlaylistVideoIds(_botConfig.YouTubeBroadcasterPlaylistId);
-            List<string> personalYoutubePlaylistIds = await _youTubeClientInstance.GetPlaylistVideoIds(_botConfig.YouTubePersonalPlaylistId);
+            List<string> songRequestPlaylistVideoIds = await _youTubeClientInstance.GetPlaylistVideoIds(_botConfig.YouTubeBroadcasterPlaylistId);
+            List<string> personalYoutubePlaylistVideoIds = await _youTubeClientInstance.GetPlaylistVideoIds(_botConfig.YouTubePersonalPlaylistId);
 
-            string videoId = songRequestPlaylistIds.FirstOrDefault();
+            if (IsPersonalPlaylistShuffle)
+            {
+                personalYoutubePlaylistVideoIds.Shuffle(new Random());
+            }
+
+            string videoId = songRequestPlaylistVideoIds.FirstOrDefault();
             if (string.IsNullOrEmpty(videoId))
             {
-                videoId = personalYoutubePlaylistIds.FirstOrDefault();
+                videoId = personalYoutubePlaylistVideoIds.FirstOrDefault();
                 if (string.IsNullOrEmpty(videoId))
                 {
                     return; // exit without playing anything because either playlists aren't configured
@@ -65,19 +74,19 @@ namespace TwitchBot.Threads
 
             Core.Initialize();
             _libVLC = new LibVLC(_commandLineOptions);
-            Media media = await SetMedia(_libVLC, "https://youtu.be/" + videoId);
 
             while (true)
             {
+                await PlayMedia(videoId);
+
+                await Task.Delay(1000);
+
                 while (MediaPlayer != null && MediaPlayer.IsPlaying)
                 {
                     // wait
                 }
 
-                // ToDo: Load next song
-                media = await SetMedia(_libVLC, "https://youtu.be/" + videoId);
-
-                //Thread.Sleep(300000); // 5 minutes
+                // ToDo: Move onto the next video
             }
         }
 
@@ -87,6 +96,13 @@ namespace TwitchBot.Threads
             await media.Parse(MediaParseOptions.ParseNetwork);
 
             return media;
+        }
+
+        private async Task PlayMedia(string videoId)
+        {
+            Media media = await SetMedia(_libVLC, "https://youtu.be/" + videoId);
+            MediaPlayer = new MediaPlayer(media.SubItems.First());
+            MediaPlayer.Play();
         }
 
         public void Play()
