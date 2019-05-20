@@ -56,6 +56,7 @@ namespace TwitchBot
         private InGameUsernameService _ign;
         private BankHeist _bankHeist;
         private BossFight _bossFight;
+        private LibVLCSharpPlayer _libVLCSharpPlayer;
         private TwitchChatterListener _twitchChatterListener;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
@@ -67,7 +68,7 @@ namespace TwitchBot
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
             GameDirectoryService gameDirectory, QuoteService quote, BankHeist bankHeist, TwitchChatterListener twitchChatterListener,
-            BossFight bossFight, SongRequestSettingService songRequestSetting, InGameUsernameService ign)
+            BossFight bossFight, SongRequestSettingService songRequestSetting, InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer)
         {
             _appConfig = appConfig;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
@@ -95,6 +96,7 @@ namespace TwitchBot
             _bossFight = bossFight;
             _songRequestSetting = songRequestSetting;
             _ign = ign;
+            _libVLCSharpPlayer = libVLCSharpPlayer;
         }
 
         public async Task RunAsync()
@@ -260,6 +262,9 @@ namespace TwitchBot
                                 _botConfig.YouTubePersonalPlaylistId,
                                 _broadcasterInstance.DatabaseId);
                         }
+
+                        _libVLCSharpPlayer.SetAudioOutputDevice("CABLE Input (VB-Audio Virtual Cable)");
+                        _libVLCSharpPlayer.Start();
 
                         // Save credentials into JSON file for WPF app to reference
                         YoutubePlaylistInfo.Save(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret, 
@@ -473,14 +478,22 @@ namespace TwitchBot
                                     case "!deleteign":
                                         await _cmdBrdCstr.CmdDeleteIgn();
                                         break;
+                                    case "!srplay":
+                                        _libVLCSharpPlayer.Play();
+                                        break;
+                                    case "!srpause":
+                                        _libVLCSharpPlayer.Pause();
+                                        break;
+                                    case "!srshuffle on":
+                                        _libVLCSharpPlayer.IsPersonalPlaylistShuffle = true;
+                                        break;
+                                    case "!srshuffle off":
+                                        _libVLCSharpPlayer.IsPersonalPlaylistShuffle = false;
+                                        break;
                                     default: // Check commands that depend on special cases
                                         /* Sends a manual tweet (if credentials have been provided) */
                                         if (message.StartsWith("!tweet "))
                                             _cmdBrdCstr.CmdTweet(hasTwitterInfo, chatter.Message);
-
-                                        /* Add song or artist to song request blacklist */
-                                        else if (message.StartsWith("!srbl "))
-                                            await _cmdBrdCstr.CmdAddSongRequestBlacklist(chatter.Message);
 
                                         /* Remove song or artist from song request blacklist */
                                         else if (message.StartsWith("!delsrbl "))
@@ -527,6 +540,9 @@ namespace TwitchBot
                                         case "!resetjoin": // Resets game queue of users that want to play with the broadcaster
                                             _gameQueueUsers = await _cmdMod.CmdResetJoin(chatter, _gameQueueUsers);
                                             break;
+                                        case "!srskip":
+                                            _libVLCSharpPlayer.Skip();
+                                            break;
                                         default: // Check commands that depend on special cases
                                             /* Takes money away from a user */
                                             if (message.StartsWith("!charge ") && message.Contains("@"))
@@ -559,6 +575,10 @@ namespace TwitchBot
                                             /* Updates the game of the Twitch channel */
                                             else if (message.StartsWith("!updategame "))
                                                 await _cmdMod.CmdUpdateGame(chatter, hasTwitterInfo);
+
+                                            /* Add song or artist to song request blacklist */
+                                            else if (message.StartsWith("!srbl "))
+                                                await _cmdBrdCstr.CmdAddSongRequestBlacklist(chatter.Message);
 
                                             /* insert moderator commands here */
                                             break;

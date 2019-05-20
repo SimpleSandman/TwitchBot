@@ -213,7 +213,7 @@ namespace TwitchBotUtil.Libraries
         }
 
         /// <summary>
-        /// Check if requested video is being requested again via video ID
+        /// Get every videos' info from playlist
         /// </summary>
         /// <param name="playlistId">Playlist ID</param>
         /// <returns></returns>
@@ -224,7 +224,7 @@ namespace TwitchBotUtil.Libraries
             string nextPageToken = "";
             while (nextPageToken != null)
             {
-                var userPlaylistItemsListRequest = YouTubeService.PlaylistItems.List(GetPartParam(0));
+                var userPlaylistItemsListRequest = YouTubeService.PlaylistItems.List(GetPartParam(2));
                 userPlaylistItemsListRequest.PlaylistId = playlistId;
                 userPlaylistItemsListRequest.MaxResults = 50;
                 userPlaylistItemsListRequest.PageToken = nextPageToken;
