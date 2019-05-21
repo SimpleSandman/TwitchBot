@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +18,7 @@ namespace TwitchBot.Threads
         private Thread _vlcPlayerThread;
         private TwitchBotConfigurationSection _botConfig;
         private MediaPlayer _mediaPlayer;
+        private IrcClient _irc;
         private Queue<string> _songRequestPlaylistVideoIds;
         private Queue<string> _personalYoutubePlaylistVideoIds;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
@@ -52,8 +52,10 @@ namespace TwitchBot.Threads
                 "--compressor-makeup-gain=17.00"
         };
 
-        public void Start()
+        public void Start(IrcClient irc)
         {
+            _irc = irc;
+
             _vlcPlayerThread.IsBackground = true;
             _vlcPlayerThread.Start();
         }
@@ -132,25 +134,42 @@ namespace TwitchBot.Threads
             _mediaPlayer.Media = media.SubItems.First();
             _mediaPlayer.Play();
 
+            _irc.SendPublicChatMessage($"Now playing: "); // ToDo: Insert video info
+
             media.Dispose();
         }
 
-        public void Play()
+        public string Play()
         {
             if (_mediaPlayer != null)
+            {
                 _mediaPlayer.Play();
+                return "Something cool"; // ToDo: Insert video info
+            }
+
+            return "";
         }
 
-        public void Pause()
+        public bool Pause()
         {
             if (_mediaPlayer != null)
+            {
                 _mediaPlayer.Pause();
+                return true;
+            }
+
+            return false;
         }
 
-        public void Stop()
+        public bool Stop()
         {
             if (_mediaPlayer != null)
+            {
                 _mediaPlayer.Stop();
+                return true;
+            }
+
+            return false;
         }
 
         public void Skip()
@@ -161,18 +180,28 @@ namespace TwitchBot.Threads
             }
         }
 
-        public void Volume(int volumePercentage)
+        public bool SetVolume(int volumePercentage)
         {
             if (_mediaPlayer != null && volumePercentage > 0 && volumePercentage <= 100)
             {
                 _mediaPlayer.Volume = volumePercentage;
+                return true;
             }
+
+            return false;
+        }
+
+        public int DisplayVolume()
+        {
+            return _mediaPlayer.Volume;
         }
 
         public void SetAudioOutputDevice(string audioOutputDevice)
         {
             if (_mediaPlayer != null)
+            {
                 _mediaPlayer.SetOutputDevice(_mediaPlayer.AudioOutputDeviceEnum.FirstOrDefault(a => a.Description == audioOutputDevice).DeviceIdentifier);
+            }
         }
 
         public void AddSongRequest(string videoId)

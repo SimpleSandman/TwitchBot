@@ -13,6 +13,7 @@ using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
+using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
 
@@ -31,6 +32,7 @@ namespace TwitchBot.Commands
         private GameDirectoryService _gameDirectory;
         private SongRequestSettingService _songRequestSetting;
         private InGameUsernameService _ign;
+        private LibVLCSharpPlayer _libVLCSharpPlayer;
         private TwitterClient _twitter = TwitterClient.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
@@ -39,7 +41,8 @@ namespace TwitchBot.Commands
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, int broadcasterId, 
             System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo, 
-            GameDirectoryService gameDirectory, SongRequestSettingService songRequestSetting, InGameUsernameService ign)
+            GameDirectoryService gameDirectory, SongRequestSettingService songRequestSetting, InGameUsernameService ign,
+            LibVLCSharpPlayer libVLCSharpPlayer)
         {
             _irc = irc;
             _botConfig = botConfig;
@@ -50,6 +53,7 @@ namespace TwitchBot.Commands
             _gameDirectory = gameDirectory;
             _songRequestSetting = songRequestSetting;
             _ign = ign;
+            _libVLCSharpPlayer = libVLCSharpPlayer;
         }
 
         /// <summary>
@@ -821,11 +825,53 @@ namespace TwitchBot.Commands
                 {
                     _irc.SendPublicChatMessage($"Wasn't able to find an IGN to delete for the category \"{game.Title}\"");
                 }
-                
             }
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDeleteIgn()", false, "!deleteign");
+            }
+        }
+
+        public async void CmdLibVLCSharpPlayerPlay()
+        {
+            try
+            {
+                string songRequest = _libVLCSharpPlayer.Play();
+
+                if (!string.IsNullOrEmpty(songRequest))
+                    _irc.SendPublicChatMessage($"Now playing: {songRequest} @{_botConfig.Broadcaster}");
+                else
+                    _irc.SendPublicChatMessage($"Unable to play song requests");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLibVLCSharpPlayerPlay()", false, "!srplay");
+            }
+        }
+
+        public async void CmdLibVLCSharpPlayerPause()
+        {
+            try
+            {
+                _libVLCSharpPlayer.Pause();
+                _irc.SendPublicChatMessage($"Paused current song request @{_botConfig.Broadcaster}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLibVLCSharpPlayerPause()", false, "!srpause");
+            }
+        }
+
+        public async void CmdLibVLCSharpPlayerStop()
+        {
+            try
+            {
+                _libVLCSharpPlayer.Stop();
+                _irc.SendPublicChatMessage($"Stopped song requests @{_botConfig.Broadcaster}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLibVLCSharpPlayerStop()", false, "!srstop");
             }
         }
     }

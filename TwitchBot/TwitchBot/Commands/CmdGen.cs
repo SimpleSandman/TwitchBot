@@ -45,6 +45,7 @@ namespace TwitchBot.Commands
         private GameDirectoryService _gameDirectory;
         private QuoteService _quote;
         private InGameUsernameService _ign;
+        private LibVLCSharpPlayer _libVLCSharpPlayer;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private BankHeistSingleton _heistSettingsInstance = BankHeistSingleton.Instance;
@@ -54,7 +55,7 @@ namespace TwitchBot.Commands
         public CmdGen(IrcClient irc, SpotifyWebClient spotify, TwitchBotConfigurationSection botConfig, int broadcasterId,
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
             ManualSongRequestService manualSongRequest, PartyUpService partyUp, GameDirectoryService gameDirectory, QuoteService quote,
-            InGameUsernameService ign)
+            InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer)
         {
             _irc = irc;
             _spotify = spotify;
@@ -69,6 +70,7 @@ namespace TwitchBot.Commands
             _gameDirectory = gameDirectory;
             _quote = quote;
             _ign = ign;
+            _libVLCSharpPlayer = libVLCSharpPlayer;
         }
 
         public async void CmdDisplayCmds()
@@ -943,6 +945,7 @@ namespace TwitchBot.Commands
                         {
                             await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.Username);
                             await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - cost);
+                            _libVLCSharpPlayer.AddSongRequest(videoId);
 
                             _irc.SendPublicChatMessage($"@{chatter.Username} spent {cost} {_botConfig.CurrencyType} " + 
                                 $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) was successfully requested!");
@@ -1387,7 +1390,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdBankHeist(TwitchChatter)", false, "!bankheist");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdBankHeist(TwitchChatter)", false, "!bankheist", chatter.Message);
             }
         }
 
@@ -1639,7 +1642,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGiveFunds(TwitchChatter)", false, "!give");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGiveFunds(TwitchChatter)", false, "!give", chatter.Message);
             }
 
             return DateTime.Now;
@@ -1763,7 +1766,19 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGetInGameUsername(TwitchChatter)", false, "!ign", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGetInGameUsername(TwitchChatter)", false, "!ign");
+            }
+        }
+
+        public async void CmdLibVLCSharpPlayerShowVolume(TwitchChatter chatter)
+        {
+            try
+            {
+                _irc.SendPublicChatMessage($"Song request volume is currently at {_libVLCSharpPlayer.DisplayVolume()}% @{chatter.DisplayName}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLibVLCSharpPlayerShowVolume(TwitchChatter)", false, "!srvolume");
             }
         }
 

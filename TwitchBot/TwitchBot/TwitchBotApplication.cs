@@ -148,11 +148,11 @@ namespace TwitchBot
                 /* main server: irc.chat.twitch.tv, 6667 */
                 _irc.Connect(_botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
-                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign);
+                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
-                    _twitchInfo, _gameDirectory, _songRequestSetting, _ign);
+                    _twitchInfo, _gameDirectory, _songRequestSetting, _ign, _libVLCSharpPlayer);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
-                    _manualSongRequest, _quote, _partyUp, _gameDirectory);
+                    _manualSongRequest, _quote, _partyUp, _gameDirectory, _libVLCSharpPlayer);
                 _cmdVip = new CmdVip(_irc, _timeout, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
                     _manualSongRequest, _quote, _partyUp, _gameDirectory);
 
@@ -264,7 +264,7 @@ namespace TwitchBot
                         }
 
                         _libVLCSharpPlayer.SetAudioOutputDevice("CABLE Input (VB-Audio Virtual Cable)");
-                        _libVLCSharpPlayer.Start();
+                        _libVLCSharpPlayer.Start(_irc);
 
                         // Save credentials into JSON file for WPF app to reference
                         YoutubePlaylistInfo.Save(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret, 
@@ -479,10 +479,13 @@ namespace TwitchBot
                                         await _cmdBrdCstr.CmdDeleteIgn();
                                         break;
                                     case "!srplay":
-                                        _libVLCSharpPlayer.Play();
+                                        _cmdBrdCstr.CmdLibVLCSharpPlayerPlay();
                                         break;
                                     case "!srpause":
-                                        _libVLCSharpPlayer.Pause();
+                                        _cmdBrdCstr.CmdLibVLCSharpPlayerPause();
+                                        break;
+                                    case "!srstop":
+                                        _cmdBrdCstr.CmdLibVLCSharpPlayerStop();
                                         break;
                                     case "!srshuffle on":
                                         _libVLCSharpPlayer.IsPersonalPlaylistShuffle = true;
@@ -540,8 +543,8 @@ namespace TwitchBot
                                         case "!resetjoin": // Resets game queue of users that want to play with the broadcaster
                                             _gameQueueUsers = await _cmdMod.CmdResetJoin(chatter, _gameQueueUsers);
                                             break;
-                                        case "!srskip":
-                                            _libVLCSharpPlayer.Skip();
+                                        case "!srskip": // Skip the current song request
+                                            _cmdMod.CmdLibVLCSharpPlayerSkip(chatter);
                                             break;
                                         default: // Check commands that depend on special cases
                                             /* Takes money away from a user */
@@ -579,6 +582,10 @@ namespace TwitchBot
                                             /* Add song or artist to song request blacklist */
                                             else if (message.StartsWith("!srbl "))
                                                 await _cmdBrdCstr.CmdAddSongRequestBlacklist(chatter.Message);
+
+                                            /* Set the song request volume */
+                                            else if (message.StartsWith("!srvolume "))
+                                                _cmdMod.CmdLibVLCSharpPlayerVolume(chatter);
 
                                             /* insert moderator commands here */
                                             break;
@@ -708,6 +715,9 @@ namespace TwitchBot
                                     case "!allgt":
                                     case "!allfc":
                                         await _cmdGen.CmdInGameUsername(chatter);
+                                        break;
+                                    case "!srvolume":
+                                        _cmdGen.CmdLibVLCSharpPlayerShowVolume(chatter);
                                         break;
                                     case "!pika": // Proof of concept for sound commands
                                         // ToDo: Make sound commands dynamic (both sound and role access to command)
