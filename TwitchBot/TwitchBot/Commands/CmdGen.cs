@@ -943,12 +943,13 @@ namespace TwitchBot.Commands
                         }
                         else
                         {
-                            await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.Username);
+                            PlaylistItem playlistItem = await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.Username);
                             await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - cost);
-                            _libVLCSharpPlayer.AddSongRequest(videoId);
+                            _libVLCSharpPlayer.AddSongRequest(playlistItem);
 
-                            _irc.SendPublicChatMessage($"@{chatter.Username} spent {cost} {_botConfig.CurrencyType} " + 
-                                $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) was successfully requested!");
+                            _irc.SendPublicChatMessage($"@{chatter.Username} spent {cost} {_botConfig.CurrencyType} "
+                                + $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) " 
+                                + "was successfully requested! https://youtu.be/" + video.Id);
 
                             // Return cooldown time by using one-third of the length of the video duration
                             TimeSpan totalTimeSpan = new TimeSpan(0, Convert.ToInt32(videoMin), Convert.ToInt32(videoSec));
@@ -1684,58 +1685,21 @@ namespace TwitchBot.Commands
         {
             try
             {
-                string wpfTitle = "";
-
-                Process[] processes = Process.GetProcessesByName("TwitchBotWpf");
-                foreach (Process process in processes)
+                if (!_libVLCSharpPlayer.MediaPlayerStatus())
                 {
-                    wpfTitle = process.MainWindowTitle;
-                    break;
+                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.DisplayName}");
+                    return;
                 }
 
-                if (wpfTitle.Contains("<<Playing>>"))
-                {
-                    CefSharpCache csCache = CefSharpCache.Load();
+                PlaylistItem playlistItem = _libVLCSharpPlayer.CurrentSongRequestPlaylistItem;
+                Video video = await _youTubeClientInstance.GetVideoById(playlistItem.ContentDetails.VideoId);
 
-                    // Only get the title of the video
-                    wpfTitle = wpfTitle.Replace("<<Playing>>", "");
-                    wpfTitle = wpfTitle.Replace("==Bot DJ Mode ON==", "");
-                    wpfTitle = wpfTitle.Replace("==Bot DJ Mode OFF==", "");
+                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem, video);
 
-                    string playingMessage = $"Now Playing: \"{wpfTitle}\"";
-                    string videoId = _youTubeClientInstance.ParseYouTubeVideoId(csCache.Url);
-
-                    if (!string.IsNullOrEmpty(videoId))
-                    {
-                        Video video = await _youTubeClientInstance.GetVideoById(videoId);
-
-                        if (video.ContentDetails != null && video.Snippet != null)
-                        {
-                            string videoDuration = video.ContentDetails.Duration;
-                            int timeIndex = videoDuration.IndexOf("T") + 1;
-                            string parsedDuration = videoDuration.Substring(timeIndex);
-                            int minIndex = parsedDuration.IndexOf("M");
-
-                            string videoMin = "0";
-                            string videoSec = "0";
-
-                            if (minIndex > 0)
-                                videoMin = parsedDuration.Substring(0, minIndex);
-
-                            if (parsedDuration.IndexOf("S") > 0)
-                                videoSec = parsedDuration.Substring(minIndex + 1).TrimEnd('S');
-
-                            playingMessage = $"Now Playing: \"{video.Snippet.Title}\" by " +
-                                $"{video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S)";
-                        }
-                    }
-
-                    _irc.SendPublicChatMessage(playingMessage);
-                }
+                if (!string.IsNullOrEmpty(songRequest))
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest}");
                 else
-                {
-                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.Username}");
-                }
+                    _irc.SendPublicChatMessage($"Unable to display the current song @{chatter.DisplayName}");
             }
             catch (Exception ex)
             {

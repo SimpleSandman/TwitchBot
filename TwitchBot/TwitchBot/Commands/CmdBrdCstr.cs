@@ -832,16 +832,21 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async void CmdLibVLCSharpPlayerPlay()
+        public async Task CmdLibVLCSharpPlayerPlay()
         {
             try
             {
-                string songRequest = _libVLCSharpPlayer.Play();
+                _libVLCSharpPlayer.Play();
+
+                PlaylistItem playlistItem = _libVLCSharpPlayer.CurrentSongRequestPlaylistItem;
+                Video video = await _youTubeClientInstance.GetVideoById(playlistItem.ContentDetails.VideoId);
+
+                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem, video);
 
                 if (!string.IsNullOrEmpty(songRequest))
-                    _irc.SendPublicChatMessage($"Now playing: {songRequest} @{_botConfig.Broadcaster}");
+                    _irc.SendPublicChatMessage($"@{_botConfig.Broadcaster} <-- Now playing: {songRequest}");
                 else
-                    _irc.SendPublicChatMessage($"Unable to play song requests");
+                    _irc.SendPublicChatMessage($"Unable to display the current song @{_botConfig.Broadcaster}");
             }
             catch (Exception ex)
             {
@@ -862,16 +867,17 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async void CmdLibVLCSharpPlayerStop()
+        public async void CmdLibVLCSharpPlayerSetAudioOutputDevice(string message)
         {
             try
             {
-                _libVLCSharpPlayer.Stop();
-                _irc.SendPublicChatMessage($"Stopped song requests @{_botConfig.Broadcaster}");
+                string audioOutputDevice = message.Substring(message.IndexOf(" ") + 1);
+
+                _irc.SendPublicChatMessage($"{_libVLCSharpPlayer.SetAudioOutputDevice(audioOutputDevice)} @{_botConfig.Broadcaster}");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLibVLCSharpPlayerStop()", false, "!srstop");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLibVLCSharpPlayerSetAudioOutputDevice(string)", false, "!sraod");
             }
         }
     }

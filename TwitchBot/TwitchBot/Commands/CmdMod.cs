@@ -20,6 +20,7 @@ using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
 using TwitchBotUtil.Extensions;
+using Google.Apis.YouTube.v3.Data;
 
 namespace TwitchBot.Commands
 {
@@ -41,6 +42,7 @@ namespace TwitchBot.Commands
         private TwitterClient _twitter = TwitterClient.Instance;
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
+        private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
         public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, int broadcasterId, 
             System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo, ManualSongRequestService manualSongRequest,
@@ -599,6 +601,16 @@ namespace TwitchBot.Commands
             try
             {
                 _libVLCSharpPlayer.Skip();
+
+                PlaylistItem playlistItem = _libVLCSharpPlayer.CurrentSongRequestPlaylistItem;
+                Video video = await _youTubeClientInstance.GetVideoById(playlistItem.ContentDetails.VideoId);
+
+                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem, video);
+
+                if (!string.IsNullOrEmpty(songRequest))
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest}");
+                else
+                    _irc.SendPublicChatMessage($"Unable to display the current song @{chatter.DisplayName}");
             }
             catch (Exception ex)
             {

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -31,23 +30,23 @@ namespace TwitchBotUtil.Libraries
             await YouTubeService.Playlists.Delete(playlistId).ExecuteAsync();
         }
 
-        public virtual async Task AddVideoToPlaylist(string videoId, string playlistId, string username, long position = -1)
+        public virtual async Task<PlaylistItem> AddVideoToPlaylist(string videoId, string playlistId, string username, long position = -1)
         {
-            var newPlaylistItem = new PlaylistItem();
+            PlaylistItem newPlaylistItem = new PlaylistItem();
             newPlaylistItem.Snippet = new PlaylistItemSnippet();
             newPlaylistItem.Snippet.PlaylistId = playlistId;
             newPlaylistItem.Snippet.ResourceId = new ResourceId();
             newPlaylistItem.Snippet.ResourceId.Kind = "youtube#video";
             newPlaylistItem.Snippet.ResourceId.VideoId = videoId;
             newPlaylistItem.ContentDetails = new PlaylistItemContentDetails();
-            newPlaylistItem.ContentDetails.Note = $"Requested by: {username}";
+            newPlaylistItem.ContentDetails.Note = $"{username}";
 
             if (position > -1)
                 newPlaylistItem.Snippet.Position = position;
 
             newPlaylistItem = await YouTubeService.PlaylistItems.Insert(newPlaylistItem, GetPartParam(2)).ExecuteAsync();
 
-            Console.WriteLine($"YouTube video has been added to playlist");
+            return newPlaylistItem;
         }
 
         /// <summary>
@@ -83,7 +82,7 @@ namespace TwitchBotUtil.Libraries
 
             var videoListResponse = await videoListRequest.ExecuteAsync();
 
-            foreach (var video in videoListResponse.Items)
+            foreach (Video video in videoListResponse.Items)
             {
                 if (video.Id.Equals(videoId))
                 {
@@ -98,7 +97,6 @@ namespace TwitchBotUtil.Libraries
         /// Get broadcaster's specified playlist by keyword
         /// </summary>
         /// <param name="playlistTitle">Title of playlist</param>
-        /// <param name="partType">Part parameter types: 0 = "snippet", 1 = "contentDetails", 2 = "snippet,contentDetails", 3 = "id"</param>
         /// <returns></returns>
         public virtual async Task<Playlist> GetBroadcasterPlaylistByKeyword(string playlistTitle)
         {
@@ -111,7 +109,7 @@ namespace TwitchBotUtil.Libraries
 
                 var userPlaylistResponse = await userPlaylistRequest.ExecuteAsync();
 
-                foreach (var playlist in userPlaylistResponse.Items)
+                foreach (Playlist playlist in userPlaylistResponse.Items)
                 {
                     if (playlist.Snippet.Title.Equals(playlistTitle))
                     {
@@ -143,7 +141,7 @@ namespace TwitchBotUtil.Libraries
 
                 var userPlaylistResponse = await userPlaylistRequest.ExecuteAsync();
 
-                foreach (var playlist in userPlaylistResponse.Items)
+                foreach (Playlist playlist in userPlaylistResponse.Items)
                 {
                     if (playlist.Id.Equals(playlistId))
                     {
@@ -169,7 +167,7 @@ namespace TwitchBotUtil.Libraries
 
             var userPlaylistResponse = await userPlaylistRequest.ExecuteAsync();
 
-            foreach (var playlist in userPlaylistResponse.Items)
+            foreach (Playlist playlist in userPlaylistResponse.Items)
             {
                 if (playlist.Id.Equals(playlistId))
                 {
@@ -198,7 +196,7 @@ namespace TwitchBotUtil.Libraries
 
                 var userPlaylistItemListResponse = await userPlaylistItemsListRequest.ExecuteAsync();
 
-                foreach (var playlistItem in userPlaylistItemListResponse.Items)
+                foreach (PlaylistItem playlistItem in userPlaylistItemListResponse.Items)
                 {
                     if (playlistItem.Snippet.ResourceId.VideoId.Equals(playlistItemVideoId))
                     {
@@ -217,9 +215,9 @@ namespace TwitchBotUtil.Libraries
         /// </summary>
         /// <param name="playlistId">Playlist ID</param>
         /// <returns></returns>
-        public virtual async Task<List<string>> GetPlaylistVideoIds(string playlistId)
+        public virtual async Task<List<PlaylistItem>> GetPlaylistItems(string playlistId)
         {
-            List<string> playlistVideoIds = new List<string>();
+            List<PlaylistItem> playlistVideoIds = new List<PlaylistItem>();
 
             string nextPageToken = "";
             while (nextPageToken != null)
@@ -231,9 +229,9 @@ namespace TwitchBotUtil.Libraries
 
                 var userPlaylistItemListResponse = await userPlaylistItemsListRequest.ExecuteAsync();
 
-                foreach (var playlistItem in userPlaylistItemListResponse.Items)
+                foreach (PlaylistItem playlistItem in userPlaylistItemListResponse.Items)
                 {
-                    playlistVideoIds.Add(playlistItem.ContentDetails.VideoId);
+                    playlistVideoIds.Add(playlistItem);
                 }
 
                 nextPageToken = userPlaylistItemListResponse.NextPageToken;
@@ -333,6 +331,44 @@ namespace TwitchBotUtil.Libraries
             }
 
             return videoIdIndex == -1 ? "" : message.Substring(videoIdIndex, 11);
+        }
+
+        /// <summary>
+        /// Using content details and snippet parts, display the song request currently being played
+        /// </summary>
+        /// <param name="playlistItem"></param>
+        /// <param name="video"></param>
+        /// <returns></returns>
+        public virtual string ShowPlayingSongRequest(PlaylistItem playlistItem, Video video)
+        {
+            string songRequest = "";
+
+            if (video.ContentDetails != null && video.Snippet != null)
+            {
+                string videoDuration = video.ContentDetails.Duration;
+                int timeIndex = videoDuration.IndexOf("T") + 1;
+                string parsedDuration = videoDuration.Substring(timeIndex);
+                int minIndex = parsedDuration.IndexOf("M");
+
+                string videoMin = "0";
+                string videoSec = "0";
+
+                if (minIndex > 0)
+                    videoMin = parsedDuration.Substring(0, minIndex);
+
+                if (parsedDuration.IndexOf("S") > 0)
+                    videoSec = parsedDuration.Substring(minIndex + 1).TrimEnd('S');
+
+                songRequest = $"\"{video.Snippet.Title}\" by " +
+                    $"{video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S)";
+
+                if (!string.IsNullOrEmpty(playlistItem.ContentDetails.Note))
+                    songRequest += $" and requested by {playlistItem.ContentDetails.Note}";
+
+                songRequest += " https://youtu.be/" + video.Id;
+            }
+
+            return songRequest;
         }
 
         /// <summary>
