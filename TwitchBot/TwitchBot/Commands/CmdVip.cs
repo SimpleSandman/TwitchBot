@@ -110,9 +110,9 @@ namespace TwitchBot.Commands
             {
                 string quote = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
 
-                await _quote.AddQuote(quote, chatter.Username, _broadcasterId);
+                await _quote.AddQuote(quote, chatter.DisplayName, _broadcasterId);
 
-                _irc.SendPublicChatMessage($"Quote has been created @{chatter.Username}");
+                _irc.SendPublicChatMessage($"Quote has been created @{chatter.DisplayName}");
             }
             catch (Exception ex)
             {
@@ -134,13 +134,13 @@ namespace TwitchBot.Commands
                 // Hard-coded limit to 4 users (including broadcaster) 
                 // because of possible video bandwidth issues for users...for now
                 if (multiStreamUsers.Count >= userLimit)
-                    _irc.SendPublicChatMessage($"Max limit of users set for the MultiStream link! Please reset the link @{chatter.Username}");
+                    _irc.SendPublicChatMessage($"Max limit of users set for the MultiStream link! Please reset the link @{chatter.DisplayName}");
                 else if (chatter.Message.IndexOf("@") == -1)
-                    _irc.SendPublicChatMessage($"Please use the \"@\" to define new user(s) to add @{chatter.Username}");
+                    _irc.SendPublicChatMessage($"Please use the \"@\" to define new user(s) to add @{chatter.DisplayName}");
                 else if (chatter.Message.Contains(_botConfig.Broadcaster, StringComparison.CurrentCultureIgnoreCase)
                             || chatter.Message.Contains(_botConfig.BotName, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    _irc.SendPublicChatMessage($"I cannot add the broadcaster or myself to the MultiStream link @{chatter.Username}");
+                    _irc.SendPublicChatMessage($"I cannot add the broadcaster or myself to the MultiStream link @{chatter.DisplayName}");
                 }
                 else
                 {
@@ -149,7 +149,7 @@ namespace TwitchBot.Commands
                     if (multiStreamUsers.Count + indexNewUsers.Count > userLimit)
                         _irc.SendPublicChatMessage("Too many users are being added to the MultiStream link " + 
                             $"< Number of users already added: \"{multiStreamUsers.Count}\" >" + 
-                            $"< User limit (without broadcaster): \"{userLimit}\" > @{chatter.Username}");
+                            $"< User limit (without broadcaster): \"{userLimit}\" > @{chatter.DisplayName}");
                     else
                     {
                         string setMultiStreamUsers = "";
@@ -192,7 +192,7 @@ namespace TwitchBot.Commands
                             verbUsage = "have ";
                         }
 
-                        string resultMsg = $"{setMultiStreamUsers} {verbUsage} been set up for the MultiStream link @{chatter.Username}";
+                        string resultMsg = $"{setMultiStreamUsers} {verbUsage} been set up for the MultiStream link @{chatter.DisplayName}";
 
                         if (chatter.Username.ToLower().Equals(_botConfig.Broadcaster.ToLower()))
                             _irc.SendPublicChatMessage(resultMsg);
@@ -223,7 +223,7 @@ namespace TwitchBot.Commands
                 multiStreamUsers = new List<string>();
 
                 string resultMsg = "MultiStream link has been reset. " + 
-                    $"Please reconfigure the link if you are planning on using it in the near future @{chatter.Username}";
+                    $"Please reconfigure the link if you are planning on using it in the near future @{chatter.DisplayName}";
 
                 if (chatter.Username == _botConfig.Broadcaster.ToLower())
                     _irc.SendPublicChatMessage(resultMsg);
@@ -245,11 +245,11 @@ namespace TwitchBot.Commands
             try
             {
                 if (gameQueueUsers.Count == 0)
-                    _irc.SendPublicChatMessage($"Queue is empty @{chatter.Username}");
+                    _irc.SendPublicChatMessage($"Queue is empty @{chatter.DisplayName}");
                 else
                 {
                     string poppedUser = gameQueueUsers.Dequeue();
-                    _irc.SendPublicChatMessage($"{poppedUser} has been removed from the queue @{chatter.Username}");
+                    _irc.SendPublicChatMessage($"{poppedUser} has been removed from the queue @{chatter.DisplayName}");
                 }
             }
             catch (Exception ex)
@@ -269,7 +269,7 @@ namespace TwitchBot.Commands
                 RootUserJSON userInfo = await _twitchInfo.GetUsersByLoginName(streamerUsername);
                 if (userInfo.Users.Count == 0)
                 {
-                    _irc.SendPublicChatMessage($"Cannot find the requested user @{chatter.Username}");
+                    _irc.SendPublicChatMessage($"Cannot find the requested user @{chatter.DisplayName}");
                     return;
                 }
 

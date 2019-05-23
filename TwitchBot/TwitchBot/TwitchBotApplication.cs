@@ -392,7 +392,7 @@ namespace TwitchBot
                                 && !await IsAllowedChatMessage(chatter))
                             {
                                 _irc.ClearMessage(chatter);
-                                _irc.SendPublicChatMessage($"Please refrain from posting a message that isn't for this channel @{chatter.Username}");
+                                _irc.SendPublicChatMessage($"Please refrain from posting a message that isn't for this channel @{chatter.DisplayName}");
                                 continue;
                             }
 
@@ -1031,7 +1031,7 @@ namespace TwitchBot
                 else
                     timespanMessage = $"{timespan.Seconds} second(s)";
 
-                _irc.SendPublicChatMessage($"The {command} command is currently on cooldown @{chatter.Username} for {timespanMessage}");
+                _irc.SendPublicChatMessage($"The {command} command is currently on cooldown @{chatter.DisplayName} for {timespanMessage}");
             }
 
             return true;
@@ -1128,7 +1128,7 @@ namespace TwitchBot
 
                     _greetedUsers.Add(chatter.Username);
 
-                    _irc.SendPublicChatMessage($"Welcome to the channel @{chatter.Username}! Thanks for saying something! "
+                    _irc.SendPublicChatMessage($"Welcome to the channel @{chatter.DisplayName}! Thanks for saying something! "
                         + $"Let me show you my appreciation with {greetedDeposit} {_botConfig.CurrencyType}");
                 }
             }
