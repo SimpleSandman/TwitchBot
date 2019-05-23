@@ -944,11 +944,20 @@ namespace TwitchBot.Commands
                         {
                             PlaylistItem playlistItem = await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.DisplayName);
                             await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - cost);
-                            _libVLCSharpPlayer.AddSongRequest(playlistItem);
+                            int position = _libVLCSharpPlayer.AddSongRequest(playlistItem);
 
-                            _irc.SendPublicChatMessage($"@{chatter.DisplayName} spent {cost} {_botConfig.CurrencyType} "
-                                + $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) " 
-                                + "was successfully requested! https://youtu.be/" + video.Id);
+                            string response = $"@{chatter.DisplayName} spent {cost} {_botConfig.CurrencyType} "
+                                + $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) "
+                                + $"was successfully added to the queue";
+
+                            if (position == 1)
+                                response += " and will be playing next!";
+                            else
+                                response += $" at #{position}!";
+
+                            response += " https://youtu.be/" + video.Id;
+
+                            _irc.SendPublicChatMessage(response);
 
                             // Return cooldown time by using one-third of the length of the video duration
                             TimeSpan totalTimeSpan = new TimeSpan(0, Convert.ToInt32(videoMin), Convert.ToInt32(videoSec));

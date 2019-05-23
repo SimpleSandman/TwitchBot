@@ -209,9 +209,10 @@ namespace TwitchBot.Threads
             return "I cannot find the song request media player";
         }
 
-        public void AddSongRequest(PlaylistItem playlistItem)
+        public int AddSongRequest(PlaylistItem playlistItem)
         {
             _songRequestPlaylistVideoIds.Enqueue(playlistItem);
+            return _songRequestPlaylistVideoIds.Count;
         }
 
         public bool MediaPlayerStatus()
