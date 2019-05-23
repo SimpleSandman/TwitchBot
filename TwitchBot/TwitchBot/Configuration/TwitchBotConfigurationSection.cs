@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Configuration;
 
 namespace TwitchBot.Configuration
 {
@@ -90,6 +85,9 @@ namespace TwitchBot.Configuration
         private static readonly ConfigurationProperty _spotifyServerUri =
             new ConfigurationProperty("spotifyServerUri", typeof(string), "", ConfigurationPropertyOptions.None);
 
+        private static readonly ConfigurationProperty _libVLCAudioOutputDevice =
+            new ConfigurationProperty("libVLCAudioOutputDevice", typeof(string), "", ConfigurationPropertyOptions.None);
+
         public TwitchBotConfigurationSection()
         {
             _properties = new ConfigurationPropertyCollection
@@ -119,7 +117,8 @@ namespace TwitchBot.Configuration
                 _regularFollowerHours,
                 _spotifyClientId,
                 _spotifyRedirectUri,
-                _spotifyServerUri
+                _spotifyServerUri,
+                _libVLCAudioOutputDevice
             };
         }
 
@@ -421,6 +420,16 @@ namespace TwitchBot.Configuration
             {
                 ThrowIfReadOnly("YouTubePersonalPlaylistName");
                 this["youTubePersonalPlaylistName"] = value;
+            }
+        }
+
+        public string LibVLCAudioOutputDevice
+        {
+            get { return (string)this["libVLCAudioOutputDevice"]; }
+            set
+            {
+                ThrowIfReadOnly("LibVLCAudioOutputDevice");
+                this["libVLCAudioOutputDevice"] = value;
             }
         }
     }

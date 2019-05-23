@@ -603,9 +603,8 @@ namespace TwitchBot.Commands
                 _libVLCSharpPlayer.Skip();
 
                 PlaylistItem playlistItem = _libVLCSharpPlayer.CurrentSongRequestPlaylistItem;
-                Video video = await _youTubeClientInstance.GetVideoById(playlistItem.ContentDetails.VideoId);
 
-                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem, video);
+                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem);
 
                 if (!string.IsNullOrEmpty(songRequest))
                     _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest}");

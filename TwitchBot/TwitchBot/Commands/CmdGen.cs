@@ -24,7 +24,6 @@ using TwitchBot.Services;
 using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
-using TwitchBotDb.Temp;
 
 using TwitchBotUtil.Extensions;
 
@@ -1692,9 +1691,8 @@ namespace TwitchBot.Commands
                 }
 
                 PlaylistItem playlistItem = _libVLCSharpPlayer.CurrentSongRequestPlaylistItem;
-                Video video = await _youTubeClientInstance.GetVideoById(playlistItem.ContentDetails.VideoId);
 
-                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem, video);
+                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem);
 
                 if (!string.IsNullOrEmpty(songRequest))
                     _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest}");

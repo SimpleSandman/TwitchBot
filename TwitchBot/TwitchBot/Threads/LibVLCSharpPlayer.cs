@@ -174,6 +174,11 @@ namespace TwitchBot.Threads
             return _mediaPlayer.Volume;
         }
 
+        public void ResetSongRequestQueue()
+        {
+            _songRequestPlaylistVideoIds = new Queue<PlaylistItem>();
+        }
+
         public string SetAudioOutputDevice(string audioOutputDeviceName)
         {
             if (_mediaPlayer != null)

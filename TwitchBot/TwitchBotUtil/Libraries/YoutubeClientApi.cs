@@ -337,35 +337,19 @@ namespace TwitchBotUtil.Libraries
         /// Using content details and snippet parts, display the song request currently being played
         /// </summary>
         /// <param name="playlistItem"></param>
-        /// <param name="video"></param>
         /// <returns></returns>
-        public virtual string ShowPlayingSongRequest(PlaylistItem playlistItem, Video video)
+        public virtual string ShowPlayingSongRequest(PlaylistItem playlistItem)
         {
             string songRequest = "";
 
-            if (video.ContentDetails != null && video.Snippet != null)
+            if (playlistItem?.ContentDetails != null && playlistItem?.Snippet != null)
             {
-                string videoDuration = video.ContentDetails.Duration;
-                int timeIndex = videoDuration.IndexOf("T") + 1;
-                string parsedDuration = videoDuration.Substring(timeIndex);
-                int minIndex = parsedDuration.IndexOf("M");
-
-                string videoMin = "0";
-                string videoSec = "0";
-
-                if (minIndex > 0)
-                    videoMin = parsedDuration.Substring(0, minIndex);
-
-                if (parsedDuration.IndexOf("S") > 0)
-                    videoSec = parsedDuration.Substring(minIndex + 1).TrimEnd('S');
-
-                songRequest = $"\"{video.Snippet.Title}\" by " +
-                    $"{video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S)";
+                songRequest = $"\"{playlistItem.Snippet.Title}\" ";
 
                 if (!string.IsNullOrEmpty(playlistItem.ContentDetails.Note))
                     songRequest += $" and requested by {playlistItem.ContentDetails.Note}";
 
-                songRequest += " https://youtu.be/" + video.Id;
+                songRequest += " https://youtu.be/" + playlistItem.ContentDetails.VideoId;
             }
 
             return songRequest;

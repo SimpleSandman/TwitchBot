@@ -20,7 +20,6 @@ using TwitchBot.Services;
 using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
-using TwitchBotDb.Temp;
 
 namespace TwitchBot
 {
@@ -267,12 +266,8 @@ namespace TwitchBot
                             );
                         }
 
-                        _libVLCSharpPlayer.SetAudioOutputDevice("CABLE Input (VB-Audio Virtual Cable)"); // ToDo: store in _botConfig
+                        _libVLCSharpPlayer.SetAudioOutputDevice(_botConfig.LibVLCAudioOutputDevice);
                         _libVLCSharpPlayer.Start();
-
-                        // Save credentials into JSON file for WPF app to reference
-                        YoutubePlaylistInfo.Save(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret, 
-                            _botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
                     }
                 }
                 catch (Exception ex)
@@ -711,6 +706,7 @@ namespace TwitchBot
                                         break;
                                     case "!song": // Display current song that's being played from WPF app
                                     case "!currentsong":
+                                    case "!srsong":
                                         await _cmdGen.CmdYouTubeCurrentSong(hasYouTubeAuth, chatter);
                                         break;
                                     case "!ign": // Display the broadcaster's in-game (user) name based on what they're streaming
