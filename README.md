@@ -21,6 +21,7 @@ For a development environment (testing), create an `AppConfigSecrets.config` in 
     discordLink="[DiscordLink]"
     enableDisplaySong="false"
     enableTweets="false"    
+    libVLCAudioOutputDevice="[WindowsAudioOutputDevice]"
     manualSongRequestLink="[ManualSongRequestLink]"
     regularFollowerHours="[RegularFollowerHours]"
     spotifyClientId="[SpotifyClientId]"
@@ -38,8 +39,7 @@ For a development environment (testing), create an `AppConfigSecrets.config` in 
     youTubeClientId="[YouTubeClientId]" 
     youTubeClientSecret="[YouTubeClientSecret]" 
     youTubeBroadcasterPlaylistId="[YouTubeBroadcasterPlaylistId]"
-    youTubeBroadcasterPlaylistName="[YouTubeBroadcasterPlaylistName]"
-    libVLCAudioOutputDevice="[WindowsAudioOutputDevice]" />
+    youTubeBroadcasterPlaylistName="[YouTubeBroadcasterPlaylistName]" />
 ```
 
 Set file to `copy-if-newer` so it's included in the compilation. For production, this file is not needed and the bot will ask for configuration on first run
