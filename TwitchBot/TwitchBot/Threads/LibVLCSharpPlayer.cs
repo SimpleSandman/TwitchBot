@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -169,7 +170,7 @@ namespace TwitchBot.Threads
             return false;
         }
 
-        public int DisplayVolume()
+        public int GetVolume()
         {
             return _mediaPlayer.Volume;
         }
@@ -218,6 +219,55 @@ namespace TwitchBot.Threads
         public bool MediaPlayerStatus()
         {
             return _mediaPlayer?.State == VLCState.Playing ? true : false;
+        }
+
+        public bool SetVideoTime(int timeInSec)
+        {
+            if (_mediaPlayer != null && _mediaPlayer.Time > -1 
+                && timeInSec > -1 && timeInSec * 1000 < _mediaPlayer.Length)
+            {
+                _mediaPlayer.Time = timeInSec * 1000;
+                return true;
+            }
+
+            return false;
+        }
+
+        public string GetVideoTime()
+        {
+            if (_mediaPlayer != null && _mediaPlayer.Time > -1)
+            {
+                TimeSpan currentTimeSpan = new TimeSpan(0, 0, 0, 0, (int)_mediaPlayer.Time);
+                TimeSpan durationTimeSpan = new TimeSpan(0, 0, 0, 0, (int)_mediaPlayer.Length);
+
+                return $"Currently {_mediaPlayer.Media.State.ToString().ToLower()}" + 
+                    $" at {ReformatTimeSpan(currentTimeSpan)} of {ReformatTimeSpan(durationTimeSpan)}";
+            }
+
+            return "A YouTube video hasn't been loaded yet";
+        }
+
+        private string ReformatTimeSpan(TimeSpan ts)
+        {
+            string response = "";
+
+            // format minutes
+            if (ts.Minutes < 1)
+                response += $"[00:";
+            else if (ts.Minutes > 0 && ts.Minutes < 10)
+                response += $"[0{ts.Minutes}:";
+            else
+                response += $"[{ts.Minutes}:";
+
+            // format seconds
+            if (ts.Seconds < 1)
+                response += $"00]";
+            else if (ts.Seconds > 0 && ts.Seconds < 10)
+                response += $"0{ts.Seconds}]";
+            else
+                response += $"{ts.Seconds}]";
+
+            return response;
         }
     }
 }

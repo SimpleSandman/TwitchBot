@@ -587,6 +587,10 @@ namespace TwitchBot
                                             else if (message.StartsWith("!srvolume "))
                                                 _cmdMod.CmdLibVLCSharpPlayerVolume(chatter);
 
+                                            /* Set the song request volume */
+                                            else if (message.StartsWith("!srtime "))
+                                                _cmdMod.CmdLibVLCSharpPlayerSetTime(chatter);
+
                                             /* insert moderator commands here */
                                             break;
                                     }
@@ -719,6 +723,9 @@ namespace TwitchBot
                                         break;
                                     case "!srvolume":
                                         _cmdGen.CmdLibVLCSharpPlayerShowVolume(chatter);
+                                        break;
+                                    case "!srtime":
+                                        _cmdGen.CmdLibVLCSharpPlayerShowTime(chatter);
                                         break;
                                     case "!pika": // Proof of concept for sound commands
                                         // ToDo: Make sound commands dynamic (both sound and role access to command)

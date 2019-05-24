@@ -953,7 +953,7 @@ namespace TwitchBot.Commands
                             if (position == 1)
                                 response += " and will be playing next!";
                             else
-                                response += $" at #{position}!";
+                                response += $" at position #{position}!";
 
                             response += " https://youtu.be/" + video.Id;
 
@@ -1745,11 +1745,23 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.SendPublicChatMessage($"Song request volume is currently at {_libVLCSharpPlayer.DisplayVolume()}% @{chatter.DisplayName}");
+                _irc.SendPublicChatMessage($"Song request volume is currently at {_libVLCSharpPlayer.GetVolume()}% @{chatter.DisplayName}");
             }
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLibVLCSharpPlayerShowVolume(TwitchChatter)", false, "!srvolume");
+            }
+        }
+
+        public async void CmdLibVLCSharpPlayerShowTime(TwitchChatter chatter)
+        {
+            try
+            {
+                _irc.SendPublicChatMessage($"{_libVLCSharpPlayer.GetVideoTime()} @{chatter.DisplayName}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLibVLCSharpPlayerShowTime(TwitchChatter)", false, "!srtime");
             }
         }
 

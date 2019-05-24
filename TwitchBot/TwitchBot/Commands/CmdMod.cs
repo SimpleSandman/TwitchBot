@@ -587,7 +587,7 @@ namespace TwitchBot.Commands
                 }
                 else
                 {
-                    _irc.SendPublicChatMessage($"Volume value not valid. Please use a value for the song request volume from 1-100 @{chatter.DisplayName}");
+                    _irc.SendPublicChatMessage($"Requested volume not valid. Please set the song request volume from 1-100 @{chatter.DisplayName}");
                 }
             }
             catch (Exception ex)
@@ -614,6 +614,23 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdMod", "CmdLibVLCSharpPlayerSkip(TwitchChatter)", false, "!srskip");
+            }
+        }
+
+        public async void CmdLibVLCSharpPlayerSetTime(TwitchChatter chatter)
+        {
+            try
+            {
+                bool validMessage = int.TryParse(chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1), out int seekVideoTime);
+
+                if (validMessage && _libVLCSharpPlayer.SetVideoTime(seekVideoTime))
+                    _irc.SendPublicChatMessage($"Video seek time set to {seekVideoTime} second(s) @{chatter.DisplayName}");
+                else
+                    _irc.SendPublicChatMessage($"Time not valid. Please set the time (in seconds) between 0 and the length of the video @{chatter.DisplayName}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdLibVLCSharpPlayerSeek(TwitchChatter)", false, "!srtime", chatter.Message);
             }
         }
     }
