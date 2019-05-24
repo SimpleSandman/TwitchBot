@@ -484,10 +484,10 @@ namespace TwitchBot
                                         _cmdBrdCstr.CmdLibVLCSharpPlayerPause();
                                         break;
                                     case "!srshuffle on":
-                                        _libVLCSharpPlayer.IsPersonalPlaylistShuffle = true;
+                                        _cmdBrdCstr.CmdLibVLCSharpPlayerPersonalPlaylistShuffle(true);
                                         break;
                                     case "!srshuffle off":
-                                        _libVLCSharpPlayer.IsPersonalPlaylistShuffle = false;
+                                        _cmdBrdCstr.CmdLibVLCSharpPlayerPersonalPlaylistShuffle(false);
                                         break;
                                     default: // Check commands that depend on special cases
                                         /* Sends a manual tweet (if credentials have been provided) */

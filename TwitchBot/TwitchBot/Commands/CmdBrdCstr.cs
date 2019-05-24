@@ -883,5 +883,28 @@ namespace TwitchBot.Commands
                 await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLibVLCSharpPlayerSetAudioOutputDevice(string)", false, "!sraod");
             }
         }
+
+        public async void CmdLibVLCSharpPlayerPersonalPlaylistShuffle(bool shuffle)
+        {
+            try
+            {
+                await _libVLCSharpPlayer.RefreshPersonalPlaylist(shuffle);
+
+                if (shuffle)
+                {
+                    _irc.SendPublicChatMessage("Your personal playlist queue has been reshuffled. "
+                        + $"Don't worry, I didn't touch your actual YouTube playlist @{_botConfig.Broadcaster}");
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage("Your personal playlist queue has been unshuffled. "
+                        + $"Don't worry, I didn't touch your actual YouTube playlist @{_botConfig.Broadcaster}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLibVLCSharpPlayerPersonalPlaylistShuffle(bool)", false, "!srshuffle");
+            }
+        }
     }
 }
