@@ -888,17 +888,37 @@ namespace TwitchBot.Commands
         {
             try
             {
-                await _libVLCSharpPlayer.RefreshPersonalPlaylist(shuffle);
-
-                if (shuffle)
+                if (_botConfig.EnablePersonalPlaylistShuffle == shuffle)
                 {
-                    _irc.SendPublicChatMessage("Your personal playlist queue has been reshuffled. "
-                        + $"Don't worry, I didn't touch your actual YouTube playlist @{_botConfig.Broadcaster}");
+                    if (shuffle)
+                        _irc.SendPublicChatMessage($"Your personal playlist has already been shuffled @{_botConfig.Broadcaster}");
+                    else
+                        _irc.SendPublicChatMessage($"Your personal playlist is already in order @{_botConfig.Broadcaster}");
                 }
                 else
                 {
-                    _irc.SendPublicChatMessage("Your personal playlist queue has been unshuffled. "
-                        + $"Don't worry, I didn't touch your actual YouTube playlist @{_botConfig.Broadcaster}");
+                    await _libVLCSharpPlayer.SetPersonalPlaylistShuffle(shuffle);
+
+                    _botConfig.EnablePersonalPlaylistShuffle = shuffle;
+                    _appConfig.AppSettings.Settings.Remove("enablePersonalPlaylistShuffle");
+
+                    if (shuffle)
+                    {
+                        _appConfig.AppSettings.Settings.Add("enablePersonalPlaylistShuffle", "true");
+
+                        _irc.SendPublicChatMessage("Your personal playlist queue has been shuffled. "
+                            + $"Don't worry, I didn't touch your actual YouTube playlist @{_botConfig.Broadcaster} ;)");
+                    }
+                    else
+                    {
+                        _appConfig.AppSettings.Settings.Add("enablePersonalPlaylistShuffle", "false");
+
+                        _irc.SendPublicChatMessage("Your personal playlist queue has been reset to its proper order continuing on from this video. "
+                            + $"Don't worry, I didn't touch your actual YouTube playlist @{_botConfig.Broadcaster} ;)");
+                    }
+
+                    _appConfig.Save(ConfigurationSaveMode.Modified);
+                    ConfigurationManager.RefreshSection("TwitchBotConfiguration");
                 }
             }
             catch (Exception ex)

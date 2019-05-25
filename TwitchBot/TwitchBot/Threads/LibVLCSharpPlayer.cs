@@ -24,7 +24,6 @@ namespace TwitchBot.Threads
         private MediaPlayer _mediaPlayer;
         private Queue<PlaylistItem> _songRequestPlaylistVideoIds;
         private Queue<PlaylistItem> _personalYoutubePlaylistVideoIds;
-        private bool _isPersonalPlaylistShuffle;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
         public LibVLCSharpPlayer() { }
@@ -39,8 +38,6 @@ namespace TwitchBot.Threads
 
             _vlcPlayerThread = new Thread(new ThreadStart(this.Run));
         }
-
-        
 
         public PlaylistItem CurrentSongRequestPlaylistItem { get; private set; }
 
@@ -68,7 +65,7 @@ namespace TwitchBot.Threads
         {
             _songRequestPlaylistVideoIds = new Queue<PlaylistItem>(await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubeBroadcasterPlaylistId));
 
-            if (_isPersonalPlaylistShuffle)
+            if (_botConfig.EnablePersonalPlaylistShuffle)
             {
                 List<PlaylistItem> shuffledList = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
                 shuffledList.Shuffle();
@@ -249,31 +246,28 @@ namespace TwitchBot.Threads
             return "A YouTube video hasn't been loaded yet";
         }
 
-        public async Task RefreshPersonalPlaylist(bool shuffle)
+        public async Task SetPersonalPlaylistShuffle(bool shuffle)
         {
-            PlaylistItem personalPlaylistItem = _personalYoutubePlaylistVideoIds.FirstOrDefault();
-
-            if (personalPlaylistItem != null)
+            if (CurrentSongRequestPlaylistItem != null)
             {
-                long? lastPositionInQueue = personalPlaylistItem.Snippet.Position;
                 List<PlaylistItem> personalPlaylist = null;
 
-                if (lastPositionInQueue != null && !shuffle)
+                if (!shuffle)
                 {
                     personalPlaylist = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
-                    personalPlaylist.RemoveRange(0, (int)lastPositionInQueue);
-                }
+                    int lastPlayedItemIndex = personalPlaylist.FindIndex(p => p.Id == CurrentSongRequestPlaylistItem.Id);
 
-                if (shuffle)
-                {
+                    if (lastPlayedItemIndex > -1)
+                        personalPlaylist.RemoveRange(0, lastPlayedItemIndex + 1);
+                }
+                else
+                { 
                     personalPlaylist = _personalYoutubePlaylistVideoIds.ToList();
                     personalPlaylist.Shuffle();
                 }
 
                 _personalYoutubePlaylistVideoIds = new Queue<PlaylistItem>(personalPlaylist);
             }
-
-            _isPersonalPlaylistShuffle = shuffle;
         }
 
         private string ReformatTimeSpan(TimeSpan ts)

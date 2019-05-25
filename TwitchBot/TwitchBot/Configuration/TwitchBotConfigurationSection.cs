@@ -88,6 +88,9 @@ namespace TwitchBot.Configuration
         private static readonly ConfigurationProperty _libVLCAudioOutputDevice =
             new ConfigurationProperty("libVLCAudioOutputDevice", typeof(string), "", ConfigurationPropertyOptions.None);
 
+        private static readonly ConfigurationProperty _enablePersonalPlaylistShuffle =
+            new ConfigurationProperty("enablePersonalPlaylistShuffle", typeof(bool), false, ConfigurationPropertyOptions.None);
+
         public TwitchBotConfigurationSection()
         {
             _properties = new ConfigurationPropertyCollection
@@ -118,7 +121,8 @@ namespace TwitchBot.Configuration
                 _spotifyClientId,
                 _spotifyRedirectUri,
                 _spotifyServerUri,
-                _libVLCAudioOutputDevice
+                _libVLCAudioOutputDevice,
+                _enablePersonalPlaylistShuffle
             };
         }
 
@@ -430,6 +434,16 @@ namespace TwitchBot.Configuration
             {
                 ThrowIfReadOnly("LibVLCAudioOutputDevice");
                 this["libVLCAudioOutputDevice"] = value;
+            }
+        }
+
+        public bool EnablePersonalPlaylistShuffle
+        {
+            get { return (bool)this["enablePersonalPlaylistShuffle"]; }
+            set
+            {
+                ThrowIfReadOnly("EnablePersonalPlaylistShuffle");
+                this["enablePersonalPlaylistShuffle"] = value;
             }
         }
     }
