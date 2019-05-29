@@ -25,17 +25,13 @@ namespace TwitchBot.Threads
         private Queue<PlaylistItem> _songRequestPlaylistVideoIds;
         private Queue<PlaylistItem> _personalYoutubePlaylistVideoIds;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
+        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public LibVLCSharpPlayer() { }
 
         public LibVLCSharpPlayer(TwitchBotConfigurationSection botConfig)
         {
             _botConfig = botConfig;
-
-            Core.Initialize();
-            _libVLC = new LibVLC(_commandLineOptions);
-            _mediaPlayer = new MediaPlayer(_libVLC);
-
             _vlcPlayerThread = new Thread(new ThreadStart(this.Run));
         }
 
@@ -55,123 +51,196 @@ namespace TwitchBot.Threads
                 "--compressor-makeup-gain=17.00"
         };
 
-        public void Start()
+        public async Task Start()
         {
-            _vlcPlayerThread.IsBackground = true;
-            _vlcPlayerThread.Start();
+            try
+            {
+                if (_libVLC == null)
+                {
+                    Core.Initialize();
+                    _libVLC = new LibVLC(_commandLineOptions);
+                    _mediaPlayer = new MediaPlayer(_libVLC);
+
+                    await SetAudioOutputDevice(_botConfig.LibVLCAudioOutputDevice);
+
+                    _vlcPlayerThread.IsBackground = true;
+                    _vlcPlayerThread.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Start()", false);
+            }
         }
 
         private async void Run()
         {
-            _songRequestPlaylistVideoIds = new Queue<PlaylistItem>(await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubeBroadcasterPlaylistId));
-
-            if (_botConfig.EnablePersonalPlaylistShuffle)
+            try
             {
-                List<PlaylistItem> shuffledList = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
-                shuffledList.Shuffle();
+                _songRequestPlaylistVideoIds = new Queue<PlaylistItem>(await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubeBroadcasterPlaylistId));
 
-                _personalYoutubePlaylistVideoIds = new Queue<PlaylistItem>(shuffledList);
-            }
-            else
-            {
-                _personalYoutubePlaylistVideoIds = new Queue<PlaylistItem>(await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId));
-            }
-
-            SetNextVideoId();
-
-            if (CurrentSongRequestPlaylistItem == null)
-            {
-                return; // don't try to start the VLC video player until there is something to play
-            }
-
-            while (true)
-            {
-                if (CurrentSongRequestPlaylistItem != null)
+                if (_botConfig.EnablePersonalPlaylistShuffle)
                 {
-                    PlayMedia();
-                }
+                    List<PlaylistItem> shuffledList = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
+                    shuffledList.Shuffle();
 
-                while (_mediaPlayer?.Media?.State != VLCState.Ended)
-                {
-                    // wait
-                }
-
-                SetNextVideoId();
-            }
-        }
-
-        private void SetNextVideoId()
-        {
-            if (_songRequestPlaylistVideoIds.Count > 0)
-                CurrentSongRequestPlaylistItem = _songRequestPlaylistVideoIds.Dequeue();
-            else if (_personalYoutubePlaylistVideoIds.Count > 0)
-                CurrentSongRequestPlaylistItem = _personalYoutubePlaylistVideoIds.Dequeue();
-            else
-                CurrentSongRequestPlaylistItem = null;
-        }
-
-        private void PlayMedia()
-        {
-            if (CurrentSongRequestPlaylistItem?.ContentDetails?.VideoId != null)
-            {
-                if (_mediaPlayer.State == VLCState.Stopped || _mediaPlayer.State == VLCState.Paused)
-                {
-                    _mediaPlayer.Play();
+                    _personalYoutubePlaylistVideoIds = new Queue<PlaylistItem>(shuffledList);
                 }
                 else
                 {
-                    Media media = new Media(_libVLC, "https://youtu.be/" + CurrentSongRequestPlaylistItem.ContentDetails.VideoId, FromType.FromLocation);
-                    media.Parse(MediaParseOptions.ParseNetwork).Wait();
-                    _mediaPlayer.Media = media.SubItems.First();
-                    _mediaPlayer.Play();
+                    _personalYoutubePlaylistVideoIds = new Queue<PlaylistItem>(await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId));
+                }
 
-                    media.Dispose();
+                SetNextVideoId();
+
+                if (CurrentSongRequestPlaylistItem == null)
+                {
+                    return; // don't try to start the VLC video player until there is something to play
+                }
+
+                while (true)
+                {
+                    if (CurrentSongRequestPlaylistItem != null)
+                    {
+                        PlayMedia();
+                    }
+
+                    while (_mediaPlayer?.Media?.State != VLCState.Ended)
+                    {
+                        // wait
+                    }
+
+                    SetNextVideoId();
                 }
             }
-        }
-
-        public void Play()
-        {
-            if (_mediaPlayer != null)
+            catch (Exception ex)
             {
-                PlayMedia();
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Run()", false);
             }
         }
 
-        public bool Pause()
+        private async void SetNextVideoId()
         {
-            if (_mediaPlayer != null)
+            try
             {
-                _mediaPlayer.Pause();
-                return true;
+                if (_songRequestPlaylistVideoIds.Count > 0)
+                    CurrentSongRequestPlaylistItem = _songRequestPlaylistVideoIds.Dequeue();
+                else if (_personalYoutubePlaylistVideoIds.Count > 0)
+                    CurrentSongRequestPlaylistItem = _personalYoutubePlaylistVideoIds.Dequeue();
+                else
+                    CurrentSongRequestPlaylistItem = null;
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "SetNextVideoId()", false);
+            }
+        }
+
+        private async void PlayMedia()
+        {
+            try
+            {
+                if (CurrentSongRequestPlaylistItem?.ContentDetails?.VideoId != null)
+                {
+                    if (_mediaPlayer.State == VLCState.Stopped || _mediaPlayer.State == VLCState.Paused)
+                    {
+                        _mediaPlayer.Play();
+                    }
+                    else
+                    {
+                        Media media = new Media(_libVLC, "https://youtu.be/" + CurrentSongRequestPlaylistItem.ContentDetails.VideoId, FromType.FromLocation);
+                        media.Parse(MediaParseOptions.ParseNetwork).Wait();
+                        _mediaPlayer.Media = media.SubItems.First();
+                        _mediaPlayer.Play();
+
+                        media.Dispose();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "PlayMedia()", false);
+            }
+        }
+
+        public async void Play()
+        {
+            try
+            {
+                if (_mediaPlayer != null)
+                {
+                    PlayMedia();
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Play()", false);
+            }
+        }
+
+        public async void Pause()
+        {
+            try
+            {
+                if (_mediaPlayer != null)
+                {
+                    _mediaPlayer.Pause();
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Pause()", false);
+            }
+        }
+
+        public async void Skip()
+        {
+            try
+            {
+                if (_mediaPlayer != null)
+                {
+                    SetNextVideoId();
+                    PlayMedia();
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Skip()", false);
+            }
+        }
+
+        public async Task<bool> SetVolume(int volumePercentage)
+        {
+            try
+            {
+                if (_mediaPlayer != null && volumePercentage > 0 && volumePercentage <= 100)
+                {
+                    _mediaPlayer.Volume = volumePercentage;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "SetVolume(int)", false);
             }
 
             return false;
         }
 
-        public void Skip()
+        public async Task<int> GetVolume()
         {
-            if (_mediaPlayer != null)
+            try
             {
-                SetNextVideoId();
-                PlayMedia();
+                if (_mediaPlayer != null)
+                {
+                    return _mediaPlayer.Volume;
+                }
             }
-        }
-
-        public bool SetVolume(int volumePercentage)
-        {
-            if (_mediaPlayer != null && volumePercentage > 0 && volumePercentage <= 100)
+            catch (Exception ex)
             {
-                _mediaPlayer.Volume = volumePercentage;
-                return true;
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "GetVolume()", false);
             }
 
-            return false;
-        }
-
-        public int GetVolume()
-        {
-            return _mediaPlayer.Volume;
+            return 0;
         }
 
         public void ResetSongRequestQueue()
@@ -179,68 +248,101 @@ namespace TwitchBot.Threads
             _songRequestPlaylistVideoIds = new Queue<PlaylistItem>();
         }
 
-        public string SetAudioOutputDevice(string audioOutputDeviceName)
+        public async Task<string> SetAudioOutputDevice(string audioOutputDeviceName)
         {
-            if (_mediaPlayer != null)
+            try
             {
-                AudioOutputDevice defaultAudioOutputDevice = _mediaPlayer.AudioOutputDeviceEnum.FirstOrDefault(a => a.Description == "Default");
-
-                if (audioOutputDeviceName.ToLower() == "default")
+                if (_mediaPlayer != null)
                 {
-                    _mediaPlayer.SetOutputDevice(defaultAudioOutputDevice.DeviceIdentifier);
-                    return $"Successfully defaulted the song request media player's audio output device";
-                }
+                    AudioOutputDevice defaultAudioOutputDevice = _mediaPlayer.AudioOutputDeviceEnum.FirstOrDefault(a => a.Description == "Default");
 
-                AudioOutputDevice audioOutputDevice = _mediaPlayer.AudioOutputDeviceEnum.FirstOrDefault(a => a.Description == audioOutputDeviceName);
+                    if (audioOutputDeviceName.ToLower() == "default")
+                    {
+                        _mediaPlayer.SetOutputDevice(defaultAudioOutputDevice.DeviceIdentifier);
+                        return $"Successfully defaulted the song request media player's audio output device";
+                    }
 
-                if (audioOutputDevice.Description != audioOutputDeviceName)
-                {
-                    _mediaPlayer.SetOutputDevice(defaultAudioOutputDevice.DeviceIdentifier);
-                    return "Cannot set the requested audio output device for the song request media player. " 
-                        + $"Setting it to \"{defaultAudioOutputDevice.Description}\"";
+                    AudioOutputDevice audioOutputDevice = _mediaPlayer.AudioOutputDeviceEnum.FirstOrDefault(a => a.Description == audioOutputDeviceName);
+
+                    if (audioOutputDevice.Description != audioOutputDeviceName)
+                    {
+                        _mediaPlayer.SetOutputDevice(defaultAudioOutputDevice.DeviceIdentifier);
+                        return "Cannot set the requested audio output device for the song request media player. "
+                            + $"Setting it to \"{defaultAudioOutputDevice.Description}\"";
+                    }
+                    else
+                    {
+                        _mediaPlayer.SetOutputDevice(audioOutputDevice.DeviceIdentifier);
+                        return $"Successfully set the song request media player's audio output device to \"{audioOutputDeviceName}\"";
+                    }
                 }
-                else
-                {
-                    _mediaPlayer.SetOutputDevice(audioOutputDevice.DeviceIdentifier);
-                    return $"Successfully set the song request media player's audio output device to \"{audioOutputDeviceName}\"";
-                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "SetAudioOutputDevice(string)", false);
             }
 
             return "I cannot find the song request media player";
         }
 
-        public int AddSongRequest(PlaylistItem playlistItem)
+        public async Task<int> AddSongRequest(PlaylistItem playlistItem)
         {
-            _songRequestPlaylistVideoIds.Enqueue(playlistItem);
-            return _songRequestPlaylistVideoIds.Count;
-        }
-
-        public bool MediaPlayerStatus()
-        {
-            return _mediaPlayer?.State == VLCState.Playing ? true : false;
-        }
-
-        public bool SetVideoTime(int timeInSec)
-        {
-            if (_mediaPlayer != null && _mediaPlayer.Time > -1 
-                && timeInSec > -1 && timeInSec * 1000 < _mediaPlayer.Length)
+            try
             {
-                _mediaPlayer.Time = timeInSec * 1000;
-                return true;
+                if (_songRequestPlaylistVideoIds != null)
+                {
+                    _songRequestPlaylistVideoIds.Enqueue(playlistItem);
+                    return _songRequestPlaylistVideoIds.Count;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "AddSongRequest(PlaylistItem)", false);
+            }
+
+            return 0;
+        }
+
+        public VLCState MediaPlayerStatus()
+        {
+            return _mediaPlayer != null ? _mediaPlayer.State : VLCState.Error;
+        }
+
+        public async Task<bool> SetVideoTime(int timeInSec)
+        {
+            try
+            {
+                if (_mediaPlayer != null && _mediaPlayer.Time > -1
+                    && timeInSec > -1 && timeInSec * 1000 < _mediaPlayer.Length)
+                {
+                    _mediaPlayer.Time = timeInSec * 1000;
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "SetVideoTime(int)", false);
             }
 
             return false;
         }
 
-        public string GetVideoTime()
+        public async Task<string> GetVideoTime()
         {
-            if (_mediaPlayer != null && _mediaPlayer.Time > -1)
+            try
             {
-                TimeSpan currentTimeSpan = new TimeSpan(0, 0, 0, 0, (int)_mediaPlayer.Time);
-                TimeSpan durationTimeSpan = new TimeSpan(0, 0, 0, 0, (int)_mediaPlayer.Length);
+                if (_mediaPlayer != null && _mediaPlayer.Time > -1)
+                {
+                    TimeSpan currentTimeSpan = new TimeSpan(0, 0, 0, 0, (int)_mediaPlayer.Time);
+                    TimeSpan durationTimeSpan = new TimeSpan(0, 0, 0, 0, (int)_mediaPlayer.Length);
 
-                return $"Currently {_mediaPlayer.Media.State.ToString().ToLower()}" + 
-                    $" at {ReformatTimeSpan(currentTimeSpan)} of {ReformatTimeSpan(durationTimeSpan)}";
+                    return $"{_mediaPlayer.Media.State.ToString().ToLower()}" +
+                        $" at {ReformatTimeSpan(currentTimeSpan)} of {ReformatTimeSpan(durationTimeSpan)}";
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "GetVideoTime()", false);
             }
 
             return "A YouTube video hasn't been loaded yet";
@@ -248,25 +350,32 @@ namespace TwitchBot.Threads
 
         public async Task SetPersonalPlaylistShuffle(bool shuffle)
         {
-            if (CurrentSongRequestPlaylistItem != null)
+            try
             {
-                List<PlaylistItem> personalPlaylist = null;
-
-                if (!shuffle)
+                if (CurrentSongRequestPlaylistItem != null)
                 {
-                    personalPlaylist = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
-                    int lastPlayedItemIndex = personalPlaylist.FindIndex(p => p.Id == CurrentSongRequestPlaylistItem.Id);
+                    List<PlaylistItem> personalPlaylist = null;
 
-                    if (lastPlayedItemIndex > -1)
-                        personalPlaylist.RemoveRange(0, lastPlayedItemIndex + 1);
-                }
-                else
-                { 
-                    personalPlaylist = _personalYoutubePlaylistVideoIds.ToList();
-                    personalPlaylist.Shuffle();
-                }
+                    if (!shuffle)
+                    {
+                        personalPlaylist = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
+                        int lastPlayedItemIndex = personalPlaylist.FindIndex(p => p.Id == CurrentSongRequestPlaylistItem.Id);
 
-                _personalYoutubePlaylistVideoIds = new Queue<PlaylistItem>(personalPlaylist);
+                        if (lastPlayedItemIndex > -1)
+                            personalPlaylist.RemoveRange(0, lastPlayedItemIndex + 1);
+                    }
+                    else
+                    {
+                        personalPlaylist = _personalYoutubePlaylistVideoIds.ToList();
+                        personalPlaylist.Shuffle();
+                    }
+
+                    _personalYoutubePlaylistVideoIds = new Queue<PlaylistItem>(personalPlaylist);
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "GetVideoTime()", false);
             }
         }
 

@@ -266,8 +266,8 @@ namespace TwitchBot
                             );
                         }
 
-                        _libVLCSharpPlayer.SetAudioOutputDevice(_botConfig.LibVLCAudioOutputDevice);
-                        _libVLCSharpPlayer.Start();
+                        // ToDo: Add bot config option to allow auto-start
+                        await _libVLCSharpPlayer.Start();
                     }
                 }
                 catch (Exception ex)
@@ -477,6 +477,9 @@ namespace TwitchBot
                                     case "!deleteign":
                                         await _cmdBrdCstr.CmdDeleteIgn();
                                         break;
+                                    case "!srstart":
+                                        await _cmdBrdCstr.CmdLibVLCSharpPlayerStart();
+                                        break;
                                     case "!srplay":
                                         await _cmdBrdCstr.CmdLibVLCSharpPlayerPlay();
                                         break;
@@ -585,11 +588,11 @@ namespace TwitchBot
 
                                             /* Set the song request volume */
                                             else if (message.StartsWith("!srvolume "))
-                                                _cmdMod.CmdLibVLCSharpPlayerVolume(chatter);
+                                                await _cmdMod.CmdLibVLCSharpPlayerVolume(chatter);
 
                                             /* Set the song request volume */
                                             else if (message.StartsWith("!srtime "))
-                                                _cmdMod.CmdLibVLCSharpPlayerSetTime(chatter);
+                                                await _cmdMod.CmdLibVLCSharpPlayerSetTime(chatter);
 
                                             /* insert moderator commands here */
                                             break;
@@ -808,7 +811,7 @@ namespace TwitchBot
                                             await _cmdGen.CmdPartyUp(chatter);
 
                                         /* Check user's account balance */
-                                        else if (message.Equals($"!{_botConfig.CurrencyType.ToLower()}"))
+                                        else if (message == $"!{_botConfig.CurrencyType.ToLower()}" && message == "!points")
                                             await _cmdGen.CmdCheckFunds(chatter);
 
                                         /* Gamble money away */
@@ -828,7 +831,7 @@ namespace TwitchBot
                                         }
 
                                         /* Display random broadcaster quote */
-                                        else if (message.Equals("!quote") && !IsUserOnCooldown(chatter, "!quote"))
+                                        else if (message == "!quote" && !IsUserOnCooldown(chatter, "!quote"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdQuote();
                                             if (cooldown > DateTime.Now)
@@ -876,11 +879,11 @@ namespace TwitchBot
                                         }
 
                                         /* Disply the top 3 richest users */
-                                        else if (message.Equals($"!{_botConfig.CurrencyType.ToLower()}top3"))
+                                        else if (message == $"!{_botConfig.CurrencyType.ToLower()}top3")
                                             await _cmdGen.CmdLeaderboardCurrency(chatter);
 
                                         /* Play russian roulette */
-                                        else if (message.Equals("!roulette") && !IsUserOnCooldown(chatter, "!roulette"))
+                                        else if (message == "!roulette" && !IsUserOnCooldown(chatter, "!roulette"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdRussianRoulette(chatter);
                                             if (cooldown > DateTime.Now)
@@ -900,7 +903,7 @@ namespace TwitchBot
                                             await _cmdGen.CmdBankHeist(chatter);
 
                                         /* Tell the broadcaster a user is lurking */
-                                        else if (message.Equals("!lurk") && !IsUserOnCooldown(chatter, "!lurk"))
+                                        else if (message == "!lurk" && !IsUserOnCooldown(chatter, "!lurk"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdLurk(chatter);
                                             if (cooldown > DateTime.Now)
@@ -916,7 +919,7 @@ namespace TwitchBot
                                         }
 
                                         /* Tell the broadcaster a user is no longer lurking */
-                                        else if (message.Equals("!unlurk") && !IsUserOnCooldown(chatter, "!unlurk"))
+                                        else if (message == "!unlurk" && !IsUserOnCooldown(chatter, "!unlurk"))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdUnlurk(chatter);
                                             if (cooldown > DateTime.Now)
@@ -999,7 +1002,7 @@ namespace TwitchBot
                 user.HasBeenWarned = true; // prevent spamming timeout message
                 string timeout = await _timeout.GetUserTimeout(chatter.Username, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
 
-                if (timeout.Equals("0 seconds"))
+                if (timeout == "0 seconds")
                     return false;
                 else
                     _irc.SendPublicChatMessage("FYI: I am not allowed to talk to you for " + timeout);
@@ -1119,7 +1122,7 @@ namespace TwitchBot
         {
             try
             {
-                if (!_greetedUsers.Any(u => u == chatter.Username) && !chatter.Username.Equals(_botConfig.Broadcaster.ToLower()) && chatter.Message.Length > 1)
+                if (!_greetedUsers.Any(u => u == chatter.Username) && chatter.Username != _botConfig.Broadcaster.ToLower() && chatter.Message.Length > 1)
                 {
                     // check if user has a stream currency account
                     int funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);

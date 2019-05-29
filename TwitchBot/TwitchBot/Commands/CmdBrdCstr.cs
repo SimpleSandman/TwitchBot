@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 using Google.Apis.YouTube.v3.Data;
 
+using LibVLCSharp.Shared;
+
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
@@ -836,10 +838,28 @@ namespace TwitchBot.Commands
             }
         }
 
+        public async Task CmdLibVLCSharpPlayerStart()
+        {
+            try
+            {
+                await _libVLCSharpPlayer.Start();
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLibVLCSharpPlayerStart()", false, "!srstart");
+            }
+        }
+
         public async Task CmdLibVLCSharpPlayerPlay()
         {
             try
             {
+                if (_libVLCSharpPlayer.MediaPlayerStatus() == VLCState.Playing)
+                {
+                    _irc.SendPublicChatMessage($"This media player is already {_libVLCSharpPlayer.GetVideoTime().ToString().ToLower()} @{_botConfig.Broadcaster}");
+                    return;
+                }
+
                 _libVLCSharpPlayer.Play();
 
                 PlaylistItem playlistItem = _libVLCSharpPlayer.CurrentSongRequestPlaylistItem;
@@ -847,7 +867,7 @@ namespace TwitchBot.Commands
                 string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem);
 
                 if (!string.IsNullOrEmpty(songRequest))
-                    _irc.SendPublicChatMessage($"@{_botConfig.Broadcaster} <-- Now playing: {songRequest}");
+                    _irc.SendPublicChatMessage($"@{_botConfig.Broadcaster} <-- Now playing: {songRequest} Currently {_libVLCSharpPlayer.GetVideoTime()}");
                 else
                     _irc.SendPublicChatMessage($"Unable to display the current song @{_botConfig.Broadcaster}");
             }
@@ -861,6 +881,12 @@ namespace TwitchBot.Commands
         {
             try
             {
+                if (_libVLCSharpPlayer.MediaPlayerStatus() == VLCState.Paused && _libVLCSharpPlayer.MediaPlayerStatus() == VLCState.Stopped)
+                {
+                    _irc.SendPublicChatMessage($"This media player is already {_libVLCSharpPlayer.GetVideoTime().ToString().ToLower()} @{_botConfig.Broadcaster}");
+                    return;
+                }
+
                 _libVLCSharpPlayer.Pause();
                 _irc.SendPublicChatMessage($"Paused current song request @{_botConfig.Broadcaster}");
             }

@@ -572,7 +572,7 @@ namespace TwitchBot.Commands
             return gameQueueUsers;
         }
 
-        public async void CmdLibVLCSharpPlayerVolume(TwitchChatter chatter)
+        public async Task CmdLibVLCSharpPlayerVolume(TwitchChatter chatter)
         {
             try
             {
@@ -580,7 +580,7 @@ namespace TwitchBot.Commands
 
                 if (validMessage)
                 {
-                    if (_libVLCSharpPlayer.SetVolume(volumePercentage))
+                    if (await _libVLCSharpPlayer.SetVolume(volumePercentage))
                         _irc.SendPublicChatMessage($"Song request volume set to {volumePercentage}% @{chatter.DisplayName}");
                     else if (volumePercentage < 1 || volumePercentage > 100)
                         _irc.SendPublicChatMessage($"Please use a value for the song request volume from 1-100 @{chatter.DisplayName}");
@@ -617,13 +617,13 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async void CmdLibVLCSharpPlayerSetTime(TwitchChatter chatter)
+        public async Task CmdLibVLCSharpPlayerSetTime(TwitchChatter chatter)
         {
             try
             {
                 bool validMessage = int.TryParse(chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1), out int seekVideoTime);
 
-                if (validMessage && _libVLCSharpPlayer.SetVideoTime(seekVideoTime))
+                if (validMessage && await _libVLCSharpPlayer.SetVideoTime(seekVideoTime))
                     _irc.SendPublicChatMessage($"Video seek time set to {seekVideoTime} second(s) @{chatter.DisplayName}");
                 else
                     _irc.SendPublicChatMessage($"Time not valid. Please set the time (in seconds) between 0 and the length of the video @{chatter.DisplayName}");

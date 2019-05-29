@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media;
 
 using Google.Apis.YouTube.v3.Data;
+
+using LibVLCSharp.Shared;
 
 using Newtonsoft.Json;
 
@@ -944,7 +944,7 @@ namespace TwitchBot.Commands
                         {
                             PlaylistItem playlistItem = await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.DisplayName);
                             await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - cost);
-                            int position = _libVLCSharpPlayer.AddSongRequest(playlistItem);
+                            int position = await _libVLCSharpPlayer.AddSongRequest(playlistItem);
 
                             string response = $"@{chatter.DisplayName} spent {cost} {_botConfig.CurrencyType} "
                                 + $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) "
@@ -1693,7 +1693,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                if (!_libVLCSharpPlayer.MediaPlayerStatus())
+                if (_libVLCSharpPlayer.MediaPlayerStatus() != VLCState.Playing)
                 {
                     _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.DisplayName}");
                     return;
@@ -1704,7 +1704,7 @@ namespace TwitchBot.Commands
                 string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem);
 
                 if (!string.IsNullOrEmpty(songRequest))
-                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest}");
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest} Currently {_libVLCSharpPlayer.GetVideoTime()}");
                 else
                     _irc.SendPublicChatMessage($"Unable to display the current song @{chatter.DisplayName}");
             }
@@ -1757,7 +1757,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _irc.SendPublicChatMessage($"{_libVLCSharpPlayer.GetVideoTime()} @{chatter.DisplayName}");
+                _irc.SendPublicChatMessage($"Currently {_libVLCSharpPlayer.GetVideoTime()} @{chatter.DisplayName}");
             }
             catch (Exception ex)
             {
@@ -1890,7 +1890,7 @@ namespace TwitchBot.Commands
 
         public void PlayCommandSound(string filepath, int volume)
         {
-            MediaPlayer mediaPlayer = new MediaPlayer { Volume = volume / 100.0f };
+            System.Windows.Media.MediaPlayer mediaPlayer = new System.Windows.Media.MediaPlayer { Volume = volume / 100.0f };
             mediaPlayer.Open(new Uri(filepath));
             mediaPlayer.Play();
         }
