@@ -66,7 +66,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopManualSr()", false, "!poprbsr");
+                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPopManualSr()", false, "!poprbsr");
             }
         }
 
@@ -96,7 +96,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopPartyUpRequest()", false, "!poppartyuprequest");
+                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPopPartyUpRequest()", false, "!poppartyuprequest");
             }
         }
 
@@ -116,7 +116,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddQuote(string, string)", false, "!addquote");
+                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdAddQuote(TwitchChatter)", false, "!addquote");
             }
         }
 
@@ -205,7 +205,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdAddMultiStreamUser(string, string, ref List<string>)", false, "!addmsl", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdAddMultiStreamUser(TwitchChatter, ref List<string>)", false, "!addmsl", chatter.Message);
             }
 
             return new List<string>();
@@ -234,7 +234,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetMultiStream(string, ref List<string>)", false, "!resetmsl");
+                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdResetMultiStream(string, List<string>)", false, "!resetmsl");
             }
 
             return new List<string>();
@@ -254,7 +254,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdPopJoin(TwitchChatter, Queue<string>)", false, "!popjoin");
+                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPopJoin(TwitchChatter, Queue<string>)", false, "!popjoin");
             }
 
             return gameQueueUsers;
@@ -296,7 +296,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetGotNextGame(TwitchChatter)", false, "!streamer");
+                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPromoteStreamer(TwitchChatter)", false, "!streamer");
             }
         }
     }

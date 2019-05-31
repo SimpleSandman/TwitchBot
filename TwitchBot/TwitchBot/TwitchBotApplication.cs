@@ -484,7 +484,7 @@ namespace TwitchBot
                                         await _cmdBrdCstr.CmdLibVLCSharpPlayerPlay();
                                         break;
                                     case "!srpause":
-                                        _cmdBrdCstr.CmdLibVLCSharpPlayerPause();
+                                        await _cmdBrdCstr.CmdLibVLCSharpPlayerPause();
                                         break;
                                     case "!srshuffle on":
                                         _cmdBrdCstr.CmdLibVLCSharpPlayerPersonalPlaylistShuffle(true);
@@ -725,10 +725,10 @@ namespace TwitchBot
                                         await _cmdGen.CmdInGameUsername(chatter);
                                         break;
                                     case "!srvolume":
-                                        _cmdGen.CmdLibVLCSharpPlayerShowVolume(chatter);
+                                        await _cmdGen.CmdLibVLCSharpPlayerShowVolume(chatter);
                                         break;
                                     case "!srtime":
-                                        _cmdGen.CmdLibVLCSharpPlayerShowTime(chatter);
+                                        await _cmdGen.CmdLibVLCSharpPlayerShowTime(chatter);
                                         break;
                                     case "!pika": // Proof of concept for sound commands
                                         // ToDo: Make sound commands dynamic (both sound and role access to command)
@@ -811,7 +811,7 @@ namespace TwitchBot
                                             await _cmdGen.CmdPartyUp(chatter);
 
                                         /* Check user's account balance */
-                                        else if (message == $"!{_botConfig.CurrencyType.ToLower()}" && message == "!points")
+                                        else if (message == $"!{_botConfig.CurrencyType.ToLower()}" || message == "!points")
                                             await _cmdGen.CmdCheckFunds(chatter);
 
                                         /* Gamble money away */
@@ -945,6 +945,22 @@ namespace TwitchBot
                                                     Username = chatter.Username,
                                                     Cooldown = cooldown,
                                                     Command = "!give",
+                                                    Warned = false
+                                                });
+                                            }
+                                        }
+
+                                        /* Remove the wrong song the user requested */
+                                        else if (message == "!wrongsong" && !IsUserOnCooldown(chatter, "!wrongsong"))
+                                        {
+                                            DateTime cooldown = await _cmdGen.CmdRemoveWrongSong(chatter);
+                                            if (cooldown > DateTime.Now)
+                                            {
+                                                _cooldownUsers.Add(new CooldownUser
+                                                {
+                                                    Username = chatter.Username,
+                                                    Cooldown = cooldown,
+                                                    Command = "!wrongsong",
                                                     Warned = false
                                                 });
                                             }

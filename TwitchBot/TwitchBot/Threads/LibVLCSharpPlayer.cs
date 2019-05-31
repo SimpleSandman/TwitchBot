@@ -22,8 +22,8 @@ namespace TwitchBot.Threads
         private Thread _vlcPlayerThread;
         private TwitchBotConfigurationSection _botConfig;
         private MediaPlayer _mediaPlayer;
-        private Queue<PlaylistItem> _songRequestPlaylistVideoIds;
-        private Queue<PlaylistItem> _personalYoutubePlaylistVideoIds;
+        private List<PlaylistItem> _songRequestPlaylistVideoIds;
+        private List<PlaylistItem> _personalYoutubePlaylistVideoIds;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
@@ -77,18 +77,18 @@ namespace TwitchBot.Threads
         {
             try
             {
-                _songRequestPlaylistVideoIds = new Queue<PlaylistItem>(await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubeBroadcasterPlaylistId));
+                _songRequestPlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubeBroadcasterPlaylistId);
 
                 if (_botConfig.EnablePersonalPlaylistShuffle)
                 {
                     List<PlaylistItem> shuffledList = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
                     shuffledList.Shuffle();
 
-                    _personalYoutubePlaylistVideoIds = new Queue<PlaylistItem>(shuffledList);
+                    _personalYoutubePlaylistVideoIds = shuffledList;
                 }
                 else
                 {
-                    _personalYoutubePlaylistVideoIds = new Queue<PlaylistItem>(await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId));
+                    _personalYoutubePlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
                 }
 
                 SetNextVideoId();
@@ -124,11 +124,19 @@ namespace TwitchBot.Threads
             try
             {
                 if (_songRequestPlaylistVideoIds.Count > 0)
-                    CurrentSongRequestPlaylistItem = _songRequestPlaylistVideoIds.Dequeue();
+                {
+                    CurrentSongRequestPlaylistItem = _songRequestPlaylistVideoIds.First();
+                    _songRequestPlaylistVideoIds.RemoveAt(0);
+                }
                 else if (_personalYoutubePlaylistVideoIds.Count > 0)
-                    CurrentSongRequestPlaylistItem = _personalYoutubePlaylistVideoIds.Dequeue();
+                {
+                    CurrentSongRequestPlaylistItem = _personalYoutubePlaylistVideoIds.First();
+                    _personalYoutubePlaylistVideoIds.RemoveAt(0);
+                }
                 else
+                {
                     CurrentSongRequestPlaylistItem = null;
+                }
             }
             catch (Exception ex)
             {
@@ -216,6 +224,7 @@ namespace TwitchBot.Threads
                 if (_mediaPlayer != null && volumePercentage > 0 && volumePercentage <= 100)
                 {
                     _mediaPlayer.Volume = volumePercentage;
+                    return true;
                 }
             }
             catch (Exception ex)
@@ -245,7 +254,7 @@ namespace TwitchBot.Threads
 
         public void ResetSongRequestQueue()
         {
-            _songRequestPlaylistVideoIds = new Queue<PlaylistItem>();
+            _songRequestPlaylistVideoIds = new List<PlaylistItem>();
         }
 
         public async Task<string> SetAudioOutputDevice(string audioOutputDeviceName)
@@ -291,7 +300,7 @@ namespace TwitchBot.Threads
             {
                 if (_songRequestPlaylistVideoIds != null)
                 {
-                    _songRequestPlaylistVideoIds.Enqueue(playlistItem);
+                    _songRequestPlaylistVideoIds = _songRequestPlaylistVideoIds.Append(playlistItem).ToList();
                     return _songRequestPlaylistVideoIds.Count;
                 }
             }
@@ -370,13 +379,32 @@ namespace TwitchBot.Threads
                         personalPlaylist.Shuffle();
                     }
 
-                    _personalYoutubePlaylistVideoIds = new Queue<PlaylistItem>(personalPlaylist);
+                    _personalYoutubePlaylistVideoIds = new List<PlaylistItem>(personalPlaylist);
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "GetVideoTime()", false);
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "SetPersonalPlaylistShuffle(bool)", false);
             }
+        }
+
+        public async Task<PlaylistItem> RemoveWrongSong(string username)
+        {
+            try
+            {
+                PlaylistItem removedWrongSong = _songRequestPlaylistVideoIds.LastOrDefault(p => p.ContentDetails.Note.Contains(username));
+
+                if (removedWrongSong != null && _songRequestPlaylistVideoIds.Remove(removedWrongSong))
+                {
+                    return removedWrongSong;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "RemoveWrongSong(string)", false);
+            }
+
+            return null;
         }
 
         private string ReformatTimeSpan(TimeSpan ts)

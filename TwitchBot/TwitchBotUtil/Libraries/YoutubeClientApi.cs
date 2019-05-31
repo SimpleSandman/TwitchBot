@@ -49,6 +49,11 @@ namespace TwitchBotUtil.Libraries
             return newPlaylistItem;
         }
 
+        public virtual async Task<string> DeleteVideoFromPlaylist(string playlistItemId)
+        {
+            return await YouTubeService.PlaylistItems.Delete(playlistItemId).ExecuteAsync();
+        }
+
         /// <summary>
         /// Get video ID by requested keywords
         /// </summary>

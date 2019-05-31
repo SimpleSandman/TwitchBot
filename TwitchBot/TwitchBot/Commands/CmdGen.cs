@@ -1704,7 +1704,7 @@ namespace TwitchBot.Commands
                 string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem);
 
                 if (!string.IsNullOrEmpty(songRequest))
-                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest} Currently {_libVLCSharpPlayer.GetVideoTime()}");
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest} Currently {await _libVLCSharpPlayer.GetVideoTime()}");
                 else
                     _irc.SendPublicChatMessage($"Unable to display the current song @{chatter.DisplayName}");
             }
@@ -1741,11 +1741,11 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async void CmdLibVLCSharpPlayerShowVolume(TwitchChatter chatter)
+        public async Task CmdLibVLCSharpPlayerShowVolume(TwitchChatter chatter)
         {
             try
             {
-                _irc.SendPublicChatMessage($"Song request volume is currently at {_libVLCSharpPlayer.GetVolume()}% @{chatter.DisplayName}");
+                _irc.SendPublicChatMessage($"Song request volume is currently at {await _libVLCSharpPlayer.GetVolume()}% @{chatter.DisplayName}");
             }
             catch (Exception ex)
             {
@@ -1753,16 +1753,41 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async void CmdLibVLCSharpPlayerShowTime(TwitchChatter chatter)
+        public async Task CmdLibVLCSharpPlayerShowTime(TwitchChatter chatter)
         {
             try
             {
-                _irc.SendPublicChatMessage($"Currently {_libVLCSharpPlayer.GetVideoTime()} @{chatter.DisplayName}");
+                _irc.SendPublicChatMessage($"Currently {await _libVLCSharpPlayer.GetVideoTime()} @{chatter.DisplayName}");
             }
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLibVLCSharpPlayerShowTime(TwitchChatter)", false, "!srtime");
             }
+        }
+
+        public async Task<DateTime> CmdRemoveWrongSong(TwitchChatter chatter)
+        {
+            try
+            {
+                PlaylistItem removedWrongSong = await _libVLCSharpPlayer.RemoveWrongSong(chatter.DisplayName);
+
+                if (removedWrongSong == null)
+                {
+                    _irc.SendPublicChatMessage($"It doesn't appear that you've requested a song for me to remove @{chatter.DisplayName}");
+                    return DateTime.Now;
+                }
+
+                await _youTubeClientInstance.DeleteVideoFromPlaylist(removedWrongSong.Id);
+                _irc.SendPublicChatMessage($"Successfully removed the wrong song request \"{removedWrongSong.Snippet.Title}\" @{chatter.DisplayName}");
+
+                return DateTime.Now.AddMinutes(10);
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdRemoveWrongSong(TwitchChatter)", false, "!wrongsong");
+            }
+
+            return DateTime.Now;
         }
 
         private async Task<bool> IsMultiplayerGame(string username)
