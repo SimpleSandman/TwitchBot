@@ -600,7 +600,12 @@ namespace TwitchBot.Commands
         {
             try
             {
-                _libVLCSharpPlayer.Skip();
+                bool validMessage = int.TryParse(chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1), out int songSkipCount);
+
+                if (!validMessage)
+                    _libVLCSharpPlayer.Skip();
+                else
+                    _libVLCSharpPlayer.Skip(songSkipCount);
 
                 PlaylistItem playlistItem = _libVLCSharpPlayer.CurrentSongRequestPlaylistItem;
 

@@ -27,16 +27,6 @@ namespace TwitchBot.Threads
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public LibVLCSharpPlayer() { }
-
-        public LibVLCSharpPlayer(TwitchBotConfigurationSection botConfig)
-        {
-            _botConfig = botConfig;
-            _vlcPlayerThread = new Thread(new ThreadStart(this.Run));
-        }
-
-        public PlaylistItem CurrentSongRequestPlaylistItem { get; private set; }
-
         // Reference (LibVLC YouTube playback): https://forum.videolan.org/viewtopic.php?t=148637#p488319
         // Reference (VLC command line): https://wiki.videolan.org/VLC_command-line_help
         private readonly string[] _commandLineOptions =
@@ -50,6 +40,16 @@ namespace TwitchBot.Threads
                 "--compressor-knee=4.50",
                 "--compressor-makeup-gain=17.00"
         };
+
+        public LibVLCSharpPlayer() { }
+
+        public LibVLCSharpPlayer(TwitchBotConfigurationSection botConfig)
+        {
+            _botConfig = botConfig;
+            _vlcPlayerThread = new Thread(new ThreadStart(this.Run));
+        }
+
+        public PlaylistItem CurrentSongRequestPlaylistItem { get; private set; }
 
         public async Task Start()
         {
@@ -201,12 +201,16 @@ namespace TwitchBot.Threads
             }
         }
 
-        public async void Skip()
+        public async void Skip(int songSkipCount = 0)
         {
             try
             {
                 if (_mediaPlayer != null)
                 {
+                    // skip songs if skip count was specified
+                    SkipSongRequestPlaylistVideoIds(ref songSkipCount);
+                    SkipPersonalPlaylistVideoIds(ref songSkipCount);
+
                     SetNextVideoId();
                     PlayMedia();
                 }
@@ -405,6 +409,38 @@ namespace TwitchBot.Threads
             }
 
             return null;
+        }
+
+        public void SkipSongRequestPlaylistVideoIds(ref int songSkipCount)
+        {
+            if (_songRequestPlaylistVideoIds.Count > 0 && songSkipCount > 0)
+            {
+                if (_songRequestPlaylistVideoIds.Count < songSkipCount)
+                {
+                    songSkipCount -= _songRequestPlaylistVideoIds.Count + 1; // use "+1" to include currently playing song
+                    _songRequestPlaylistVideoIds.Clear();
+                }
+                else
+                {
+                    _songRequestPlaylistVideoIds.RemoveRange(0, songSkipCount - 1); // use "-1" to include currently playing song
+                    songSkipCount = 0;
+                }
+            }
+        }
+
+        private void SkipPersonalPlaylistVideoIds(ref int songSkipCount)
+        {
+            if (_personalYoutubePlaylistVideoIds.Count > 0 && songSkipCount > 0)
+            {
+                if (_personalYoutubePlaylistVideoIds.Count < songSkipCount)
+                {
+                    _personalYoutubePlaylistVideoIds.Clear();
+                }
+                else
+                {
+                    _personalYoutubePlaylistVideoIds.RemoveRange(0, songSkipCount - 1); // use "-1" to include currently playing song
+                }
+            }
         }
 
         private string ReformatTimeSpan(TimeSpan ts)

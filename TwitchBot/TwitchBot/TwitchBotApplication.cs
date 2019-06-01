@@ -546,9 +546,6 @@ namespace TwitchBot
                                         case "!resetjoin": // Resets game queue of users that want to play with the broadcaster
                                             _gameQueueUsers = await _cmdMod.CmdResetJoin(chatter, _gameQueueUsers);
                                             break;
-                                        case "!srskip": // Skip the current song request
-                                            _cmdMod.CmdLibVLCSharpPlayerSkip(chatter);
-                                            break;
                                         default: // Check commands that depend on special cases
                                             /* Takes money away from a user */
                                             if (message.StartsWith("!charge ") && message.Contains("@"))
@@ -593,6 +590,10 @@ namespace TwitchBot
                                             /* Set the song request volume */
                                             else if (message.StartsWith("!srtime "))
                                                 await _cmdMod.CmdLibVLCSharpPlayerSetTime(chatter);
+
+                                            /* Skip the current/number of song request */
+                                            else if (message.StartsWith("!srskip"))
+                                                _cmdMod.CmdLibVLCSharpPlayerSkip(chatter);
 
                                             /* insert moderator commands here */
                                             break;
