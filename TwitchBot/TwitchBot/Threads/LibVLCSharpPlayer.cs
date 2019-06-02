@@ -41,8 +41,6 @@ namespace TwitchBot.Threads
                 "--compressor-makeup-gain=17.00"
         };
 
-        public LibVLCSharpPlayer() { }
-
         public LibVLCSharpPlayer(TwitchBotConfigurationSection botConfig)
         {
             _botConfig = botConfig;
@@ -411,7 +409,7 @@ namespace TwitchBot.Threads
             return null;
         }
 
-        public void SkipSongRequestPlaylistVideoIds(ref int songSkipCount)
+        private void SkipSongRequestPlaylistVideoIds(ref int songSkipCount)
         {
             if (_songRequestPlaylistVideoIds.Count > 0 && songSkipCount > 0)
             {
