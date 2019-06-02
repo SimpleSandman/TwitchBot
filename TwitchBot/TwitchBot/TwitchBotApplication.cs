@@ -477,6 +477,9 @@ namespace TwitchBot
                                     case "!srstart":
                                         await _cmdBrdCstr.CmdLibVLCSharpPlayerStart();
                                         break;
+                                    case "!srstop":
+                                        _cmdBrdCstr.CmdLibVLCSharpPlayerStop();
+                                        break;
                                     case "!srplay":
                                         await _cmdBrdCstr.CmdLibVLCSharpPlayerPlay();
                                         break;

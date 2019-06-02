@@ -24,6 +24,7 @@ namespace TwitchBot.Threads
         private MediaPlayer _mediaPlayer;
         private List<PlaylistItem> _songRequestPlaylistVideoIds;
         private List<PlaylistItem> _personalYoutubePlaylistVideoIds;
+        private bool _playerStatus;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
@@ -46,7 +47,6 @@ namespace TwitchBot.Threads
         public LibVLCSharpPlayer(TwitchBotConfigurationSection botConfig)
         {
             _botConfig = botConfig;
-            _vlcPlayerThread = new Thread(new ThreadStart(this.Run));
         }
 
         public PlaylistItem CurrentSongRequestPlaylistItem { get; private set; }
@@ -57,11 +57,15 @@ namespace TwitchBot.Threads
             {
                 if (_libVLC == null)
                 {
+                    _vlcPlayerThread = new Thread(new ThreadStart(this.Run));
+
                     Core.Initialize();
                     _libVLC = new LibVLC(_commandLineOptions);
                     _mediaPlayer = new MediaPlayer(_libVLC);
+                    _mediaPlayer.AspectRatio = "16:9";
 
                     await SetAudioOutputDevice(_botConfig.LibVLCAudioOutputDevice);
+                    _playerStatus = true;
 
                     _vlcPlayerThread.IsBackground = true;
                     _vlcPlayerThread.Start();
@@ -70,6 +74,21 @@ namespace TwitchBot.Threads
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Start()", false);
+            }
+        }
+
+        public async void Stop()
+        {
+            try
+            {
+                if (_libVLC != null)
+                {
+                    _playerStatus = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Stop()", false);
             }
         }
 
@@ -95,6 +114,7 @@ namespace TwitchBot.Threads
 
                 if (CurrentSongRequestPlaylistItem == null)
                 {
+                    _playerStatus = false;
                     return; // don't try to start the VLC video player until there is something to play
                 }
 
@@ -105,13 +125,23 @@ namespace TwitchBot.Threads
                         PlayMedia();
                     }
 
-                    while (_mediaPlayer?.Media?.State != VLCState.Ended)
+                    while (_mediaPlayer?.Media?.State != VLCState.Ended && _playerStatus)
                     {
                         // wait
                     }
 
-                    SetNextVideoId();
+                    if (_playerStatus)
+                        SetNextVideoId();
+                    else
+                        break;
                 }
+
+                // Clean up
+                _mediaPlayer.Stop();
+                _mediaPlayer.Dispose();
+                _mediaPlayer = null;
+                _libVLC.Dispose();
+                _libVLC = null;
             }
             catch (Exception ex)
             {

@@ -850,6 +850,18 @@ namespace TwitchBot.Commands
             }
         }
 
+        public async void CmdLibVLCSharpPlayerStop()
+        {
+            try
+            {
+                _libVLCSharpPlayer.Stop();
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLibVLCSharpPlayerStop()", false, "!srstart");
+            }
+        }
+
         public async Task CmdLibVLCSharpPlayerPlay()
         {
             try
