@@ -265,9 +265,6 @@ namespace TwitchBot
                                 _broadcasterInstance.DatabaseId
                             );
                         }
-
-                        // ToDo: Add bot config option to allow auto-start
-                        await _libVLCSharpPlayer.Start();
                     }
                 }
                 catch (Exception ex)
@@ -587,7 +584,7 @@ namespace TwitchBot
                                             else if (message.StartsWith("!srvolume "))
                                                 await _cmdMod.CmdLibVLCSharpPlayerVolume(chatter);
 
-                                            /* Set the song request volume */
+                                            /* Set the song request time */
                                             else if (message.StartsWith("!srtime "))
                                                 await _cmdMod.CmdLibVLCSharpPlayerSetTime(chatter);
 

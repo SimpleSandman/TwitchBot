@@ -41,6 +41,8 @@ namespace TwitchBot.Threads
                 "--compressor-makeup-gain=17.00"
         };
 
+        public LibVLCSharpPlayer() { }
+
         public LibVLCSharpPlayer(TwitchBotConfigurationSection botConfig)
         {
             _botConfig = botConfig;
