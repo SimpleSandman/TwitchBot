@@ -954,7 +954,7 @@ namespace TwitchBot
                                         /* Remove the wrong song the user requested */
                                         else if (message == "!wrongsong" && !IsUserOnCooldown(chatter, "!wrongsong"))
                                         {
-                                            DateTime cooldown = await _cmdGen.CmdRemoveWrongSong(chatter);
+                                            DateTime cooldown = await _cmdGen.CmdYoutubeRemoveWrongSong(chatter);
                                             if (cooldown > DateTime.Now)
                                             {
                                                 _cooldownUsers.Add(new CooldownUser
@@ -964,6 +964,15 @@ namespace TwitchBot
                                                     Command = "!wrongsong",
                                                     Warned = false
                                                 });
+                                            }
+
+                                            // Allow the user to request another song in case if cooldown exists
+                                            CooldownUser songRequestCooldown = 
+                                                _cooldownUsers.FirstOrDefault(u => u.Username == chatter.Username && u.Command == "!ytsr");
+
+                                            if (songRequestCooldown != null)
+                                            {
+                                                _cooldownUsers.Remove(songRequestCooldown);
                                             }
                                         }
 

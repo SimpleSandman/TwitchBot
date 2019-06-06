@@ -820,8 +820,20 @@ namespace TwitchBot.Commands
                     return DateTime.Now;
                 }
 
-                int funds = await _bank.CheckBalance(chatter.Username, _broadcasterId);
                 int cost = 250; // ToDo: Set YTSR currency cost into settings
+                int funds = 0; // Set to minimum amount needed for song requests.
+                               // This will allow chatters with VIP, moderator, or the broadcaster 
+                               // to be exempt from paying the virtual currency
+
+                // Force chatters that don't have a VIP, moderator, or broadcaster badge to use their virtul currency
+                if (IsPrivilegdChatter(chatter))
+                {
+                    cost = 0;
+                }
+                else // Make the song request free for the mentioned chatter types above
+                {
+                    funds = await _bank.CheckBalance(chatter.Username, _broadcasterId);
+                }
 
                 if (funds < cost)
                 {
@@ -943,7 +955,12 @@ namespace TwitchBot.Commands
                         else
                         {
                             PlaylistItem playlistItem = await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.DisplayName);
-                            await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - cost);
+
+                            if (cost > 0)
+                            {
+                                await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - cost);
+                            }
+
                             int position = await _libVLCSharpPlayer.AddSongRequest(playlistItem);
 
                             string response = $"@{chatter.DisplayName} spent {cost} {_botConfig.CurrencyType} "
@@ -952,7 +969,7 @@ namespace TwitchBot.Commands
 
                             if (position == 1)
                                 response += " and will be playing next!";
-                            else
+                            else if (position > 1)
                                 response += $" at position #{position}!";
 
                             response += " https://youtu.be/" + video.Id;
@@ -961,9 +978,13 @@ namespace TwitchBot.Commands
 
                             // Return cooldown time by using one-third of the length of the video duration
                             TimeSpan totalTimeSpan = new TimeSpan(0, Convert.ToInt32(videoMin), Convert.ToInt32(videoSec));
-                            TimeSpan oneThirdTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 3);
+                            TimeSpan cooldownTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 3);
 
-                            return DateTime.Now.AddSeconds(oneThirdTimeSpan.TotalSeconds);
+                            // Reduce the cooldown for privileged chatters
+                            if (IsPrivilegdChatter(chatter))
+                                cooldownTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 4);
+
+                            return DateTime.Now.AddSeconds(cooldownTimeSpan.TotalSeconds);
                         }
                     }
                 }
@@ -1765,7 +1786,7 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async Task<DateTime> CmdRemoveWrongSong(TwitchChatter chatter)
+        public async Task<DateTime> CmdYoutubeRemoveWrongSong(TwitchChatter chatter)
         {
             try
             {
@@ -1784,7 +1805,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdRemoveWrongSong(TwitchChatter)", false, "!wrongsong");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYoutubeRemoveWrongSong(TwitchChatter)", false, "!wrongsong");
             }
 
             return DateTime.Now;
@@ -1911,6 +1932,16 @@ namespace TwitchBot.Commands
             }
 
             return "";
+        }
+
+        /// <summary>
+        /// Check if chatter is a VIP, moderator, or the broadcaster
+        /// </summary>
+        /// <param name="chatter">User that sent the message</param>
+        /// <returns></returns>
+        private bool IsPrivilegdChatter(TwitchChatter chatter)
+        {
+            return chatter.Badges.Contains("vip") || chatter.Badges.Contains("moderator") || chatter.Badges.Contains("broadcaster") ? true : false;
         }
 
         public void PlayCommandSound(string filepath, int volume)
