@@ -161,7 +161,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableManualSrMode()", false, "!rbsrmode on");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableManualSrMode()", false, "!rsrmode on");
             }
 
             return isManualSongRequestAvail;
@@ -179,7 +179,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableSRMode()", false, "!rbsrmode off");
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableSRMode()", false, "!rsrmode off");
             }
 
             return isManualSongRequestAvail;
@@ -872,7 +872,7 @@ namespace TwitchBot.Commands
                     return;
                 }
 
-                _libVLCSharpPlayer.Play();
+                await _libVLCSharpPlayer.Play();
 
                 PlaylistItem playlistItem = _libVLCSharpPlayer.CurrentSongRequestPlaylistItem;
 

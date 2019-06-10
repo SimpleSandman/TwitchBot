@@ -6,6 +6,10 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
+using Google.Apis.YouTube.v3.Data;
+
+using LibVLCSharp.Shared;
+
 using RestSharp;
 
 using TwitchBot.Configuration;
@@ -13,14 +17,12 @@ using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Services;
 using TwitchBot.Models;
-using TwitchBot.Models.JSON;
 using TwitchBot.Threads;
 
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
 using TwitchBotUtil.Extensions;
-using Google.Apis.YouTube.v3.Data;
 
 namespace TwitchBot.Commands
 {
@@ -310,7 +312,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetManualSr()", false, "!resetrbsr");
+                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdResetManualSr()", false, "!resetrsr");
             }
         }
 
@@ -596,20 +598,18 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async void CmdLibVLCSharpPlayerSkip(TwitchChatter chatter)
+        public async Task CmdLibVLCSharpPlayerSkip(TwitchChatter chatter)
         {
             try
             {
                 bool validMessage = int.TryParse(chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1), out int songSkipCount);
 
                 if (!validMessage)
-                    _libVLCSharpPlayer.Skip();
+                    await _libVLCSharpPlayer.Skip();
                 else
-                    _libVLCSharpPlayer.Skip(songSkipCount);
+                    await _libVLCSharpPlayer.Skip(songSkipCount);
 
-                PlaylistItem playlistItem = _libVLCSharpPlayer.CurrentSongRequestPlaylistItem;
-
-                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem);
+                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(_libVLCSharpPlayer.CurrentSongRequestPlaylistItem);
 
                 if (!string.IsNullOrEmpty(songRequest))
                     _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest}");

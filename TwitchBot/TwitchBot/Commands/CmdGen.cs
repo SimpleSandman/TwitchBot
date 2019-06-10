@@ -170,7 +170,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList(bool, TwitchChatter)", false, "!rbsrl");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList(bool, TwitchChatter)", false, "!rsrl");
             }
         }
 
@@ -190,7 +190,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrLink(bool, TwitchChatter)", false, "!rbsl");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrLink(bool, TwitchChatter)", false, "!rsl");
             }
         }
 
@@ -229,7 +229,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSr(bool, TwitchChatter)", false, "!rbsr", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSr(bool, TwitchChatter)", false, "!rsr", chatter.Message);
             }
         }
 

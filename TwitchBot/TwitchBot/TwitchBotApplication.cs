@@ -429,10 +429,10 @@ namespace TwitchBot
                                     case "!sendtweet off": // Disables tweets from being sent out from this bot
                                         _cmdBrdCstr.CmdDisableTweet(hasTwitterInfo);
                                         break;
-                                    case "!rbsrmode on": // Enables viewers to request songs (default off)
+                                    case "!rsrmode on": // Enables viewers to request songs (default off)
                                         isManualSongRequestAvail = await _cmdBrdCstr.CmdEnableManualSrMode(isManualSongRequestAvail);
                                         break;
-                                    case "!rbsrmode off": // Disables viewers to request songs (default off)
+                                    case "!rsrmode off": // Disables viewers to request songs (default off)
                                         isManualSongRequestAvail = await _cmdBrdCstr.CmdDisableManualSrMode(isManualSongRequestAvail);
                                         break;
                                     case "!ytsrmode on": // Enables viewers to request songs (default off)
@@ -534,7 +534,7 @@ namespace TwitchBot
                                 {
                                     switch (message)
                                     {                                        
-                                        case "!resetrbsr": // Resets the song request queue
+                                        case "!resetrsr": // Resets the song request queue
                                             await _cmdMod.CmdResetManualSr();
                                             break;
                                         case "!modafk": // Tell the stream the specified moderator will be AFK
@@ -593,7 +593,7 @@ namespace TwitchBot
 
                                             /* Skip the current/number of song request */
                                             else if (message.StartsWith("!srskip"))
-                                                _cmdMod.CmdLibVLCSharpPlayerSkip(chatter);
+                                                await _cmdMod.CmdLibVLCSharpPlayerSkip(chatter);
 
                                             /* insert moderator commands here */
                                             break;
@@ -613,7 +613,7 @@ namespace TwitchBot
                                         case "!popjoin": // Pops user from the queue of users that want to play with the broadcaster
                                             _gameQueueUsers = await _cmdVip.CmdPopJoin(chatter, _gameQueueUsers);
                                             break;
-                                        case "!poprbsr": // Removes the first song in the queue of song requests
+                                        case "!poprsr": // Removes the first song in the queue of song requests
                                             await _cmdVip.CmdPopManualSr();
                                             break;
                                         case "!poppartyuprequest": // Removes first party memeber in queue of party up requests
@@ -661,10 +661,10 @@ namespace TwitchBot
                                     case "!uptime": // Shows how long the broadcaster has been streaming
                                         await _cmdGen.CmdUptime();
                                         break;
-                                    case "!rbsrl": // Display list of requested songs
+                                    case "!rsrl": // Display list of requested songs
                                         await _cmdGen.CmdManualSrList(isManualSongRequestAvail, chatter);
                                         break;
-                                    case "!rbsl": // Display link of list of songs to request
+                                    case "!rsl": // Display link of list of songs to request
                                         _cmdGen.CmdManualSrLink(isManualSongRequestAvail, chatter);
                                         break;
                                     case "!spotifysong": // Displays the current song being played from Spotify
@@ -740,7 +740,7 @@ namespace TwitchBot
                                         break;
                                     default: // Check commands that depend on special cases
                                         /* Request a song for the host to play */
-                                        if (message.StartsWith("!rbsr "))
+                                        if (message.StartsWith("!rsr "))
                                             await _cmdGen.CmdManualSr(isManualSongRequestAvail, chatter);
 
                                         /* Slaps a user and rates its effectiveness */

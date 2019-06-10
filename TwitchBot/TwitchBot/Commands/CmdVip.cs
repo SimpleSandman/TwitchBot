@@ -66,7 +66,7 @@ namespace TwitchBot.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPopManualSr()", false, "!poprbsr");
+                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPopManualSr()", false, "!poprsr");
             }
         }
 

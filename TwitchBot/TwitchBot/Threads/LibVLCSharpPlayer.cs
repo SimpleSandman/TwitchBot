@@ -25,6 +25,7 @@ namespace TwitchBot.Threads
         private List<PlaylistItem> _songRequestPlaylistVideoIds;
         private List<PlaylistItem> _personalYoutubePlaylistVideoIds;
         private bool _playerStatus;
+        private bool _songSkipping;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
@@ -32,14 +33,15 @@ namespace TwitchBot.Threads
         // Reference (VLC command line): https://wiki.videolan.org/VLC_command-line_help
         private readonly string[] _commandLineOptions =
         {
-                "--audio-filter=compressor",
-                "--compressor-rms-peak=0.00",
-                "--compressor-attack=24.00",
-                "--compressor-release=250.00",
-                "--compressor-threshold=-25.00",
-                "--compressor-ratio=2.00",
-                "--compressor-knee=4.50",
-                "--compressor-makeup-gain=17.00"
+            //"--verbose=2",
+            "--audio-filter=compressor",
+            "--compressor-rms-peak=0.00",
+            "--compressor-attack=24.00",
+            "--compressor-release=250.00",
+            "--compressor-threshold=-25.00",
+            "--compressor-ratio=2.00",
+            "--compressor-knee=4.50",
+            "--compressor-makeup-gain=17.00"
         };
 
         public LibVLCSharpPlayer() { }
@@ -61,8 +63,10 @@ namespace TwitchBot.Threads
 
                     Core.Initialize();
                     _libVLC = new LibVLC(_commandLineOptions);
-                    _mediaPlayer = new MediaPlayer(_libVLC);
-                    _mediaPlayer.AspectRatio = "16:9";
+                    _mediaPlayer = new MediaPlayer(_libVLC)
+                    {
+                        AspectRatio = "16:9"
+                    };
 
                     await SetAudioOutputDevice(_botConfig.LibVLCAudioOutputDevice);
                     _playerStatus = true;
@@ -122,10 +126,15 @@ namespace TwitchBot.Threads
                 {
                     if (CurrentSongRequestPlaylistItem != null)
                     {
-                        PlayMedia();
+                        await PlayMedia();
+
+                        if (_mediaPlayer?.Media?.State != VLCState.Ended)
+                        {
+                            _songSkipping = false;
+                        }
                     }
 
-                    while (_mediaPlayer?.Media?.State != VLCState.Ended && _playerStatus)
+                    while (_mediaPlayer?.Media?.State != VLCState.Ended && _playerStatus && !_songSkipping)
                     {
                         // wait
                     }
@@ -174,7 +183,7 @@ namespace TwitchBot.Threads
             }
         }
 
-        private async void PlayMedia()
+        private async Task PlayMedia(int recursiveCount = 0)
         {
             try
             {
@@ -191,23 +200,39 @@ namespace TwitchBot.Threads
                         _mediaPlayer.Media = media.SubItems.First();
                         _mediaPlayer.Play();
 
+                        await Task.Delay(2500);
+
+                        if (_mediaPlayer.State == VLCState.Ended)
+                        {
+                            Console.WriteLine($"\nError: The song \"{CurrentSongRequestPlaylistItem.Snippet.Title}\" was unable to be loaded at this time\n");
+
+                            if (recursiveCount < 2)
+                            {
+                                await PlayMedia(++recursiveCount);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"\nSorry, but I've swung my bat for \"{CurrentSongRequestPlaylistItem.Snippet.Title}\" three times...I guess I'm out\n");
+                            }
+                        }
+
                         media.Dispose();
                     }
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "PlayMedia()", false);
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "PlayMedia(int)", false);
             }
         }
 
-        public async void Play()
+        public async Task Play()
         {
             try
             {
                 if (_mediaPlayer != null)
                 {
-                    PlayMedia();
+                    await PlayMedia();
                 }
             }
             catch (Exception ex)
@@ -231,7 +256,7 @@ namespace TwitchBot.Threads
             }
         }
 
-        public async void Skip(int songSkipCount = 0)
+        public async Task Skip(int songSkipCount = 0)
         {
             try
             {
@@ -241,13 +266,17 @@ namespace TwitchBot.Threads
                     SkipSongRequestPlaylistVideoIds(ref songSkipCount);
                     SkipPersonalPlaylistVideoIds(ref songSkipCount);
 
-                    SetNextVideoId();
-                    PlayMedia();
+                    _songSkipping = true;
+
+                    do
+                    {
+                        await Task.Delay(500); // wait
+                    } while (_songSkipping);
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Skip()", false);
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Skip(int)", false);
             }
         }
 
