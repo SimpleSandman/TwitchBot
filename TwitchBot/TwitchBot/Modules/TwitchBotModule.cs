@@ -1,6 +1,7 @@
 ﻿using Autofac;
 
 using TwitchBot.Configuration;
+using TwitchBot.Libraries;
 using TwitchBot.Repositories;
 using TwitchBot.Services;
 using TwitchBot.Threads;
@@ -12,12 +13,14 @@ namespace TwitchBot.Modules
         public System.Configuration.Configuration AppConfig { get; set; }
         public Autofac.Core.Parameter TwitchBotApiLink { get; set; }
         public TwitchBotConfigurationSection TwitchBotConfigurationSection { get; set; }
+        public IrcClient Irc { get; set; }
 
         protected override void Load(ContainerBuilder builder)
         {
             // configuration
             builder.RegisterInstance(AppConfig);
             builder.RegisterInstance(TwitchBotConfigurationSection);
+            builder.RegisterInstance(Irc);
 
             // main app
             builder.RegisterType<TwitchBotApplication>();

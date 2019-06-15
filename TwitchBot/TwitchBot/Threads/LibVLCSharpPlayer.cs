@@ -21,6 +21,7 @@ namespace TwitchBot.Threads
         private LibVLC _libVLC;
         private Thread _vlcPlayerThread;
         private TwitchBotConfigurationSection _botConfig;
+        private IrcClient _irc;
         private MediaPlayer _mediaPlayer;
         private List<PlaylistItem> _songRequestPlaylistVideoIds;
         private List<PlaylistItem> _personalYoutubePlaylistVideoIds;
@@ -46,9 +47,10 @@ namespace TwitchBot.Threads
 
         public LibVLCSharpPlayer() { }
 
-        public LibVLCSharpPlayer(TwitchBotConfigurationSection botConfig)
+        public LibVLCSharpPlayer(TwitchBotConfigurationSection botConfig, IrcClient irc)
         {
             _botConfig = botConfig;
+            _irc = irc;
         }
 
         public PlaylistItem CurrentSongRequestPlaylistItem { get; private set; }
@@ -196,15 +198,15 @@ namespace TwitchBot.Threads
                     else
                     {
                         Media media = new Media(_libVLC, "https://youtu.be/" + CurrentSongRequestPlaylistItem.ContentDetails.VideoId, FromType.FromLocation);
-                        media.Parse(MediaParseOptions.ParseNetwork).Wait();
+                        await media.Parse(MediaParseOptions.ParseNetwork);
                         _mediaPlayer.Media = media.SubItems.First();
                         _mediaPlayer.Play();
 
-                        await Task.Delay(2500);
+                        await Task.Delay(2000);
 
                         if (_mediaPlayer.State == VLCState.Ended)
                         {
-                            Console.WriteLine($"\nError: The song \"{CurrentSongRequestPlaylistItem.Snippet.Title}\" was unable to be loaded at this time\n");
+                            Console.WriteLine($"\nError: The song \"{CurrentSongRequestPlaylistItem.Snippet.Title}\" was unable to load at this time\n");
 
                             if (recursiveCount < 2)
                             {
@@ -212,11 +214,20 @@ namespace TwitchBot.Threads
                             }
                             else
                             {
-                                Console.WriteLine($"\nSorry, but I've swung my bat for \"{CurrentSongRequestPlaylistItem.Snippet.Title}\" three times...I guess I'm out\n");
+                                // ToDo: Evaluate pros and cons of deleting videos from the playlist when a video isn't able to be loaded
+                                //await _youTubeClientInstance.DeleteVideoFromPlaylist(CurrentSongRequestPlaylistItem.Id);
+
+                                _irc.SendPublicChatMessage($"I'm sorry @{CurrentSongRequestPlaylistItem.ContentDetails.Note} "
+                                    + $"I wasn't able to load your song \"{CurrentSongRequestPlaylistItem.Snippet.Title}\" even after 3 attempts. "
+                                    + "https://youtu.be/" + CurrentSongRequestPlaylistItem.ContentDetails.VideoId);
+                                    //+ "I deleted the video from the playlist so it can be requested again. :(");
                             }
                         }
 
-                        media.Dispose();
+                        if (media != null)
+                        {
+                            media.Dispose();
+                        }
                     }
                 }
             }

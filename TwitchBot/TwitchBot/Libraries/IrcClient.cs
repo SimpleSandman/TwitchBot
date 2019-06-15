@@ -19,30 +19,23 @@ namespace TwitchBot.Libraries
 
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public async void Connect(string username, string password, string channel)
+        public IrcClient(string username, string password, string channel)
         {
-            try
-            {
-                this.username = username;
-                this.channel = channel;
+            this.username = username;
+            this.channel = channel;
 
-                tcpClient = new TcpClient("irc.chat.twitch.tv", 6667);
-                inputStream = new StreamReader(tcpClient.GetStream());
-                outputStream = new StreamWriter(tcpClient.GetStream());
+            tcpClient = new TcpClient("irc.chat.twitch.tv", 6667);
+            inputStream = new StreamReader(tcpClient.GetStream());
+            outputStream = new StreamWriter(tcpClient.GetStream());
 
-                outputStream.WriteLine("CAP REQ :twitch.tv/tags"); // Reference: https://dev.twitch.tv/docs/irc/tags/
-                outputStream.WriteLine("CAP REQ :twitch.tv/commands"); // Reference: https://dev.twitch.tv/docs/irc/commands/
-                outputStream.WriteLine("CAP REQ :twitch.tv/membership"); // Reference: https://dev.twitch.tv/docs/irc/membership/
-                outputStream.WriteLine("PASS " + password);
-                outputStream.WriteLine("NICK " + username);
-                outputStream.WriteLine("USER " + username + " 8 * :" + username);
-                outputStream.WriteLine("JOIN #" + channel);
-                outputStream.Flush();
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "IrcClient", "Connect(string, string, string)", true);
-            }
+            outputStream.WriteLine("CAP REQ :twitch.tv/tags"); // Reference: https://dev.twitch.tv/docs/irc/tags/
+            outputStream.WriteLine("CAP REQ :twitch.tv/commands"); // Reference: https://dev.twitch.tv/docs/irc/commands/
+            outputStream.WriteLine("CAP REQ :twitch.tv/membership"); // Reference: https://dev.twitch.tv/docs/irc/membership/
+            outputStream.WriteLine("PASS " + password);
+            outputStream.WriteLine("NICK " + username);
+            outputStream.WriteLine("USER " + username + " 8 * :" + username);
+            outputStream.WriteLine("JOIN #" + channel);
+            outputStream.Flush();
         }
 
         public async void SendIrcMessage(string message)

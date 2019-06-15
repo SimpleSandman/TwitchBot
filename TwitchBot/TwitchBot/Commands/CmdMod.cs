@@ -6,10 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-using Google.Apis.YouTube.v3.Data;
-
-using LibVLCSharp.Shared;
-
 using RestSharp;
 
 using TwitchBot.Configuration;

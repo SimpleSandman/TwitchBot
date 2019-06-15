@@ -66,12 +66,11 @@ namespace TwitchBot
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
-            GameDirectoryService gameDirectory, QuoteService quote, BankHeist bankHeist, TwitchChatterListener twitchChatterListener,
+            GameDirectoryService gameDirectory, QuoteService quote, BankHeist bankHeist, TwitchChatterListener twitchChatterListener, IrcClient irc,
             BossFight bossFight, SongRequestSettingService songRequestSetting, InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer)
         {
             _appConfig = appConfig;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
-            _irc = new IrcClient();
             _isManualSongRequestAvail = false;
             _isYouTubeSongRequestAvail = false;
             _hasTwitterInfo = false;
@@ -96,6 +95,7 @@ namespace TwitchBot
             _songRequestSetting = songRequestSetting;
             _ign = ign;
             _libVLCSharpPlayer = libVLCSharpPlayer;
+            _irc = irc;
         }
 
         public async Task RunAsync()
@@ -140,12 +140,8 @@ namespace TwitchBot
                 /* Connect to local Spotify client */
                 _spotify = new SpotifyWebClient(_botConfig);
                 await _spotify.Connect();
-
-                // Password from www.twitchapps.com/tmi/
-                // include the "oauth:" portion
-                // Use chat bot's oauth
-                /* main server: irc.chat.twitch.tv, 6667 */
-                _irc.Connect(_botConfig.BotName.ToLower(), _botConfig.TwitchOAuth, _botConfig.Broadcaster.ToLower());
+                
+                /* Load command classes */
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,

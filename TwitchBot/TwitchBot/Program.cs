@@ -10,6 +10,7 @@ using Autofac;
 using TwitchBot.Configuration;
 using TwitchBot.Modules;
 using TwitchBot.Models;
+using TwitchBot.Libraries;
 
 namespace TwitchBot
 {
@@ -24,18 +25,18 @@ namespace TwitchBot
             try
             {
                 var appConfig = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                var twitchBotConfigurationSection = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
+                var botConfigSection = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
 
-                if (twitchBotConfigurationSection == null)
+                if (botConfigSection == null)
                 {
                     //section not in app.config create a default, add it to the config, and save
-                    twitchBotConfigurationSection = new TwitchBotConfigurationSection();
-                    appConfig.Sections.Add("TwitchBotConfiguration", twitchBotConfigurationSection);
+                    botConfigSection = new TwitchBotConfigurationSection();
+                    appConfig.Sections.Add("TwitchBotConfiguration", botConfigSection);
                     appConfig.Save(ConfigurationSaveMode.Full);
                     ConfigurationManager.RefreshSection("TwitchBotConfiguration");
 
                     //Since not previously configured, configure bot and save changes using configuration wizard
-                    TwitchBotConfigurator.ConfigureBot(twitchBotConfigurationSection);
+                    TwitchBotConfigurator.ConfigureBot(botConfigSection);
                     appConfig.Save(ConfigurationSaveMode.Full);
                     ConfigurationManager.RefreshSection("TwitchBotConfiguration");
                 }
@@ -43,11 +44,16 @@ namespace TwitchBot
                 //Create a container builder and register all classes that will be composed for the application
                 var builder = new ContainerBuilder();
 
+                // Password from www.twitchapps.com/tmi/
+                // include the "oauth:" portion
+                // Use chat bot's oauth
+                /* main server: irc.chat.twitch.tv, 6667 */
                 builder.RegisterModule(new TwitchBotModule()
                 {
                     AppConfig = appConfig,
-                    TwitchBotApiLink = new NamedParameter("twitchBotApiLink", twitchBotConfigurationSection.TwitchBotApiLink),
-                    TwitchBotConfigurationSection = twitchBotConfigurationSection
+                    TwitchBotApiLink = new NamedParameter("twitchBotApiLink", botConfigSection.TwitchBotApiLink),
+                    TwitchBotConfigurationSection = botConfigSection,
+                    Irc = new IrcClient(botConfigSection.BotName.ToLower(), botConfigSection.TwitchOAuth, botConfigSection.Broadcaster.ToLower())
                 });
 
                 var container = builder.Build();
