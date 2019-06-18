@@ -394,7 +394,7 @@ namespace TwitchBot
                                 continue;
                             }
 
-                            await GreetNewUser(chatter);
+                            await GreetUser(chatter);
 
                             #region Broadcaster Commands
                             if (username == _botConfig.Broadcaster.ToLower())
@@ -1143,10 +1143,10 @@ namespace TwitchBot
         }
 
         /// <summary>
-        /// Greet a new user with a welcome message and a "thank-you" deposit of stream currency
+        /// Greet a user (new or returning) with a welcome message and a "thank-you" deposit of stream currency
         /// </summary>
         ///<param name="chatter"></param>
-        private async Task GreetNewUser(TwitchChatter chatter)
+        private async Task GreetUser(TwitchChatter chatter)
         {
             try
             {
@@ -1156,23 +1156,38 @@ namespace TwitchBot
                     int funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
                     int greetedDeposit = 500; // ToDo: Make greeted deposit config setting
 
-                    if (funds > -1)
+                    if (funds > -1 || chatter.Badges.Contains("moderator") || chatter.Badges.Contains("vip") || chatter.Badges.Contains("bits"))
                     {
-                        funds += greetedDeposit; // deposit 500 stream currency
+                        int currentExp = await _follower.CurrentExp(chatter.Username, _broadcasterInstance.DatabaseId);
+                        IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterInstance.DatabaseId);
+                        Rank rank = _follower.GetCurrentRank(rankList, currentExp);
+
+                        string rankName = "";
+                        if (rank != null)
+                        {
+                            rankName = rank.Name;
+                        }
+
+                        funds += greetedDeposit; // deposit stream currency
                         await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds);
+
+                        _irc.SendPublicChatMessage($"Welcome back {rankName} @{chatter.DisplayName} ! " 
+                            + $"Let me reward your return with {greetedDeposit} {_botConfig.CurrencyType}");
                     }
                     else
+                    {
                         await _bank.CreateAccount(chatter.Username, _broadcasterInstance.DatabaseId, greetedDeposit);
 
-                    _greetedUsers.Add(chatter.Username);
+                        _irc.SendPublicChatMessage($"Welcome to the channel @{chatter.DisplayName} ! Thanks for saying something! "
+                            + $"Let me show you my appreciation with {greetedDeposit} {_botConfig.CurrencyType}");
+                    }
 
-                    _irc.SendPublicChatMessage($"Welcome to the channel @{chatter.DisplayName}! Thanks for saying something! "
-                        + $"Let me show you my appreciation with {greetedDeposit} {_botConfig.CurrencyType}");
+                    _greetedUsers.Add(chatter.Username); // make sure user doesn't get greeted again as long as this bot is alive
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GreetNewUser(string, string)", false);
+                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GreetUser(TwitchChatter)", false);
             }
         }
 

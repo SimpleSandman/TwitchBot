@@ -43,7 +43,7 @@ namespace TwitchBot.Services
             return await _followerDb.CreateDefaultRanks(broadcasterId);
         }
 
-        public Rank GetCurrentRank(IEnumerable<Rank> rankList, int currExp)
+        public Rank GetCurrentRank(IEnumerable<Rank> rankList, int currentExp)
         {
             Rank currentRank = new Rank();
 
@@ -51,7 +51,7 @@ namespace TwitchBot.Services
             foreach (Rank rank in rankList.OrderBy(r => r.ExpCap))
             {
                 // search until current experience < experience cap
-                if (currExp >= rank.ExpCap)
+                if (currentExp >= rank.ExpCap)
                 {
                     continue;
                 }
@@ -66,9 +66,9 @@ namespace TwitchBot.Services
             return currentRank;
         }
 
-        public decimal GetHoursWatched(int currExp)
+        public decimal GetHoursWatched(int currentExp)
         {
-            return Math.Round(Convert.ToDecimal(currExp) / (decimal)60.0, 2);
+            return Math.Round(Convert.ToDecimal(currentExp) / (decimal)60.0, 2);
         }
 
         public async Task<IEnumerable<RankFollower>> GetFollowersLeaderboard(string broadcasterName, int broadcasterId, string botName)
