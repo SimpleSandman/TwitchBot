@@ -18,7 +18,6 @@ namespace TwitchBot.Threads
 {
     public class LibVLCSharpPlayer
     {
-        private LibVLC _libVLC;
         private Thread _vlcPlayerThread;
         private TwitchBotConfigurationSection _botConfig;
         private IrcClient _irc;
@@ -55,17 +54,19 @@ namespace TwitchBot.Threads
 
         public PlaylistItem CurrentSongRequestPlaylistItem { get; private set; }
 
+        public LibVLC LibVlc { get; private set; }
+
         public async Task Start()
         {
             try
             {
-                if (_libVLC == null)
+                if (LibVlc == null)
                 {
                     _vlcPlayerThread = new Thread(new ThreadStart(this.Run));
 
                     Core.Initialize();
-                    _libVLC = new LibVLC(_commandLineOptions);
-                    _mediaPlayer = new MediaPlayer(_libVLC)
+                    LibVlc = new LibVLC(_commandLineOptions);
+                    _mediaPlayer = new MediaPlayer(LibVlc)
                     {
                         AspectRatio = "16:9"
                     };
@@ -87,7 +88,7 @@ namespace TwitchBot.Threads
         {
             try
             {
-                if (_libVLC != null)
+                if (LibVlc != null)
                 {
                     _playerStatus = false;
                 }
@@ -151,8 +152,8 @@ namespace TwitchBot.Threads
                 _mediaPlayer.Stop();
                 _mediaPlayer.Dispose();
                 _mediaPlayer = null;
-                _libVLC.Dispose();
-                _libVLC = null;
+                LibVlc.Dispose();
+                LibVlc = null;
             }
             catch (Exception ex)
             {
@@ -197,7 +198,7 @@ namespace TwitchBot.Threads
                     }
                     else
                     {
-                        Media media = new Media(_libVLC, "https://youtu.be/" + CurrentSongRequestPlaylistItem.ContentDetails.VideoId, FromType.FromLocation);
+                        Media media = new Media(LibVlc, "https://youtu.be/" + CurrentSongRequestPlaylistItem.ContentDetails.VideoId, FromType.FromLocation);
                         await media.Parse(MediaParseOptions.ParseNetwork);
                         _mediaPlayer.Media = media.SubItems.First();
                         _mediaPlayer.Play();
@@ -214,13 +215,9 @@ namespace TwitchBot.Threads
                             }
                             else
                             {
-                                // ToDo: Evaluate pros and cons of deleting videos from the playlist when a video isn't able to be loaded
-                                //await _youTubeClientInstance.DeleteVideoFromPlaylist(CurrentSongRequestPlaylistItem.Id);
-
                                 _irc.SendPublicChatMessage($"I'm sorry @{CurrentSongRequestPlaylistItem.ContentDetails.Note} "
                                     + $"I wasn't able to load your song \"{CurrentSongRequestPlaylistItem.Snippet.Title}\" even after 3 attempts. "
                                     + "https://youtu.be/" + CurrentSongRequestPlaylistItem.ContentDetails.VideoId);
-                                    //+ "I deleted the video from the playlist so it can be requested again. :(");
                             }
                         }
 

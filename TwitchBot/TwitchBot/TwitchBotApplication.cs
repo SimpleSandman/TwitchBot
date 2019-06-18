@@ -20,6 +20,7 @@ using TwitchBot.Services;
 using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
+using TwitchBotDb.Temp;
 
 namespace TwitchBot
 {
@@ -261,6 +262,10 @@ namespace TwitchBot
                                 _broadcasterInstance.DatabaseId
                             );
                         }
+
+                        // Save credentials into JSON file for WPF app to reference
+                        YoutubePlaylistInfo.Save(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret,
+                            _botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
                     }
                 }
                 catch (Exception ex)
@@ -706,6 +711,7 @@ namespace TwitchBot
                                         _cmdGen.CmdTwitterLink(hasTwitterInfo, User.GetAuthenticatedUser()?.UserIdentifier?.ScreenName);
                                         break;
                                     case "!support": // Display this project and creator's info
+                                    case "!bot":
                                         _cmdGen.CmdSupport();
                                         break;
                                     case "!song": // Display current song that's being played from WPF app

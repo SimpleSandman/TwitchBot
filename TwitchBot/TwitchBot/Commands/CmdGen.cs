@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
@@ -24,6 +25,7 @@ using TwitchBot.Services;
 using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
+using TwitchBotDb.Temp;
 
 using TwitchBotUtil.Extensions;
 
@@ -1714,6 +1716,18 @@ namespace TwitchBot.Commands
         {
             try
             {
+                if (!hasYouTubeAuth)
+                {
+                    _irc.SendPublicChatMessage("YouTube song requests have not been set up");
+                    return;
+                }
+
+                if (_libVLCSharpPlayer.LibVlc == null)
+                {
+                    CheckTwitchWpfTitle(chatter);
+                    return;
+                }
+
                 if (_libVLCSharpPlayer.MediaPlayerStatus() != VLCState.Playing)
                 {
                     _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.DisplayName}");
@@ -1810,6 +1824,73 @@ namespace TwitchBot.Commands
 
             return DateTime.Now;
         }
+
+        /// <summary>
+        /// Check if the WPF app exists so we can see its song status
+        /// </summary>
+        /// <param name="chatter"></param>
+        private async void CheckTwitchWpfTitle(TwitchChatter chatter)
+        {
+            try
+            {
+                string wpfTitle = "";
+
+                Process[] processes = Process.GetProcessesByName("TwitchBotWpf");
+                foreach (Process process in processes)
+                {
+                    wpfTitle = process.MainWindowTitle;
+                    break;
+                }
+
+                if (wpfTitle.Contains("<<Playing>>"))
+                {
+                    CefSharpCache csCache = CefSharpCache.Load();
+
+                    // Only get the title of the video
+                    wpfTitle = wpfTitle.Replace("<<Playing>>", "");
+                    wpfTitle = wpfTitle.Replace("==Bot DJ Mode ON==", "");
+                    wpfTitle = wpfTitle.Replace("==Bot DJ Mode OFF==", "");
+
+                    string playingMessage = $"Now Playing: \"{wpfTitle}\"";
+                    string videoId = _youTubeClientInstance.ParseYouTubeVideoId(csCache.Url);
+
+                    if (!string.IsNullOrEmpty(videoId))
+                    {
+                        Video video = await _youTubeClientInstance.GetVideoById(videoId);
+
+                        if (video.ContentDetails != null && video.Snippet != null)
+                        {
+                            string videoDuration = video.ContentDetails.Duration;
+                            int timeIndex = videoDuration.IndexOf("T") + 1;
+                            string parsedDuration = videoDuration.Substring(timeIndex);
+                            int minIndex = parsedDuration.IndexOf("M");
+
+                            string videoMin = "0";
+                            string videoSec = "0";
+
+                            if (minIndex > 0)
+                                videoMin = parsedDuration.Substring(0, minIndex);
+
+                            if (parsedDuration.IndexOf("S") > 0)
+                                videoSec = parsedDuration.Substring(minIndex + 1).TrimEnd('S');
+
+                            playingMessage = $"Now Playing: \"{video.Snippet.Title}\" by " +
+                                $"{video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S)";
+                        }
+                    }
+
+                    _irc.SendPublicChatMessage(playingMessage);
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.Username}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CheckWpfTitle(TwitchChatter)", false);
+    }
+}
 
         private async Task<bool> IsMultiplayerGame(string username)
         {

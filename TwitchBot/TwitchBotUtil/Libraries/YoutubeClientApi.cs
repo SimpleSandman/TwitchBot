@@ -352,7 +352,7 @@ namespace TwitchBotUtil.Libraries
                 songRequest = $"\"{playlistItem.Snippet.Title}\" ";
 
                 if (!string.IsNullOrEmpty(playlistItem.ContentDetails.Note))
-                    songRequest += $" and was requested by {playlistItem.ContentDetails.Note}";
+                    songRequest += $" and was requested by @{playlistItem.ContentDetails.Note}";
 
                 songRequest += " https://youtu.be/" + playlistItem.ContentDetails.VideoId;
             }
