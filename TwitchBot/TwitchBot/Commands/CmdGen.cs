@@ -751,9 +751,9 @@ namespace TwitchBot.Commands
                     return;
                 }
 
-                chatter.CreatedAt = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username == chatter.Username).CreatedAt;
+                DateTime? createdAt = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username == chatter.Username)?.CreatedAt ?? null;
 
-                if (chatter.CreatedAt == null)
+                if (createdAt == null)
                 {
                     using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(chatter.TwitchId))
                     {
@@ -762,12 +762,12 @@ namespace TwitchBot.Commands
 
                         if (!string.IsNullOrEmpty(response.CreatedAt))
                         {
-                            chatter.CreatedAt = Convert.ToDateTime(response.CreatedAt);
+                            createdAt = Convert.ToDateTime(response.CreatedAt);
                         }
                     }
                 }
 
-                if (chatter.CreatedAt != null)
+                if (createdAt != null)
                 {
                     int currExp = await _follower.CurrentExp(chatter.Username, _broadcasterId);
 
