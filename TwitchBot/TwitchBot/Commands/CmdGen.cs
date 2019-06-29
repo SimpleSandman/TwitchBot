@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Media;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -2025,11 +2026,12 @@ namespace TwitchBot.Commands
             return chatter.Badges.Contains("vip") || chatter.Badges.Contains("moderator") || chatter.Badges.Contains("broadcaster") ? true : false;
         }
 
-        public void PlayCommandSound(string filepath, int volume)
+        public void PlayCommandSound(string filepath)
         {
-            System.Windows.Media.MediaPlayer mediaPlayer = new System.Windows.Media.MediaPlayer { Volume = volume / 100.0f };
-            mediaPlayer.Open(new Uri(filepath));
-            mediaPlayer.Play();
+            using (SoundPlayer player = new SoundPlayer(filepath))
+            {
+                player.Play();
+            }
         }
     }
 }

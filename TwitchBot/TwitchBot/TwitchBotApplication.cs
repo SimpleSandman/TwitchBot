@@ -743,10 +743,11 @@ namespace TwitchBot
                                         await _cmdGen.CmdLibVLCSharpPlayerShowTime(chatter);
                                         break;
                                     case "!pika": // Proof of concept for sound commands
+                                        // Note: If volume adjustments are needed, use something like Audacity's "Noise Reduction" effect
                                         // ToDo: Make sound commands dynamic (both sound and role access to command)
                                         if (chatter.DisplayName == "Teimoli" || chatter.DisplayName == "Simple_Sandman")
                                         {
-                                            _cmdGen.PlayCommandSound(@"C:/temp/smashbros_pikachu.wav", 40);
+                                            _cmdGen.PlayCommandSound(@"C:/temp/smashbros_pikachu.wav");
                                         }
                                         break;
                                     default: // Check commands that depend on special cases
