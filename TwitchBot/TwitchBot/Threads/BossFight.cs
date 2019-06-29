@@ -155,8 +155,10 @@ namespace TwitchBot.Threads
                 decimal earnings = Math.Ceiling(boss.Loot / (decimal)numSurvivors);
 
                 // give last attack bonus to specified fighter
-                if (champion.Username.Equals(lastAttackFighter)) 
+                if (champion.Username == lastAttackFighter)
+                {
                     earnings += boss.LastAttackBonus;
+                }
 
                 await _bank.UpdateFunds(champion.Username.ToLower(), _broadcasterId, (int)earnings + funds);
 

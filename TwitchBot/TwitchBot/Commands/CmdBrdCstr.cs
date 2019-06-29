@@ -301,7 +301,7 @@ namespace TwitchBot.Commands
                 string request = message.Substring(requestIndex + 1);
 
                 // Check if request is based on an artist or just a song by an artist
-                if (requestType.Equals("1")) // blackout any song by this artist
+                if (requestType == "1") // blackout any song by this artist
                 {
                     // check if song-specific request is being used for artist blackout
                     if (request.Count(c => c == '"') == 2
@@ -326,7 +326,7 @@ namespace TwitchBot.Commands
                     else
                         _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this artist/video to the blacklist at this time @{_botConfig.Broadcaster}");
                 }
-                else if (requestType.Equals("2")) // blackout a song by an artist
+                else if (requestType == "2") // blackout a song by an artist
                 {
                     if (request.Count(c => c == '"') < 2 
                         || request.Count(c => c == '<') != 1 
@@ -393,7 +393,7 @@ namespace TwitchBot.Commands
                 string request = message.Substring(requestIndex + 1);
 
                 // Check if request is based on an artist or just a song by an artist
-                if (requestType.Equals("1")) // remove blackout for any song by this artist
+                if (requestType == "1") // remove blackout for any song by this artist
                 {
                     // remove artist from db
                     List<SongRequestIgnore> response = await _songRequest.AllowArtist(request, _broadcasterId);
@@ -403,7 +403,7 @@ namespace TwitchBot.Commands
                     else
                         _irc.SendPublicChatMessage($"Couldn't find the requested artist for blacklist-removal @{_botConfig.Broadcaster}");
                 }
-                else if (requestType.Equals("2")) // remove blackout for a song by an artist
+                else if (requestType == "2") // remove blackout for a song by an artist
                 {
                     if (request.Count(c => c == '"') < 2
                         || request.Count(c => c == '<') != 1

@@ -89,7 +89,7 @@ namespace TwitchBotUtil.Libraries
 
             foreach (Video video in videoListResponse.Items)
             {
-                if (video.Id.Equals(videoId))
+                if (video.Id == videoId)
                 {
                     return video;
                 }
@@ -116,7 +116,7 @@ namespace TwitchBotUtil.Libraries
 
                 foreach (Playlist playlist in userPlaylistResponse.Items)
                 {
-                    if (playlist.Snippet.Title.Equals(playlistTitle))
+                    if (playlist.Snippet.Title == playlistTitle)
                     {
                         return playlist;
                     }
@@ -148,7 +148,7 @@ namespace TwitchBotUtil.Libraries
 
                 foreach (Playlist playlist in userPlaylistResponse.Items)
                 {
-                    if (playlist.Id.Equals(playlistId))
+                    if (playlist.Id == playlistId)
                     {
                         return playlist;
                     }
@@ -174,7 +174,7 @@ namespace TwitchBotUtil.Libraries
 
             foreach (Playlist playlist in userPlaylistResponse.Items)
             {
-                if (playlist.Id.Equals(playlistId))
+                if (playlist.Id == playlistId)
                 {
                     return playlist;
                 }
@@ -203,7 +203,7 @@ namespace TwitchBotUtil.Libraries
 
                 foreach (PlaylistItem playlistItem in userPlaylistItemListResponse.Items)
                 {
-                    if (playlistItem.Snippet.ResourceId.VideoId.Equals(playlistItemVideoId))
+                    if (playlistItem.Snippet.ResourceId.VideoId == playlistItemVideoId)
                     {
                         return true;
                     }

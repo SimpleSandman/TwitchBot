@@ -278,7 +278,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
+                string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
                 ReactionCmd(chatter.DisplayName, recipient, "Stop smacking yourself", "slaps", Effectiveness());
                 return DateTime.Now.AddSeconds(20);
             }
@@ -298,7 +298,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
+                string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
                 ReactionCmd(chatter.DisplayName, recipient, "Stop stabbing yourself! You'll bleed out", "stabs", Effectiveness());
                 return DateTime.Now.AddSeconds(20);
             }
@@ -351,14 +351,14 @@ namespace TwitchBot.Commands
                         break;
                 }
 
-                if (bodyPart.Equals(" but missed"))
+                if (bodyPart == " but missed")
                 {
                     _irc.SendPublicChatMessage($"Ha! You missed @{chatter.DisplayName}");
                 }
                 else
                 {
                     // bot makes a special response if shot at
-                    if (recipient.Equals(_botConfig.BotName.ToLower()))
+                    if (recipient == _botConfig.BotName.ToLower())
                     {
                         _irc.SendPublicChatMessage($"You think shooting me in the {bodyPart.Replace("'s ", "")} would hurt me? I am a bot!");
                     }
@@ -1439,7 +1439,7 @@ namespace TwitchBot.Commands
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string broadcasterType = json.BroadcasterType;
 
-                if (broadcasterType.Equals("partner") || broadcasterType.Equals("affiliate"))
+                if (broadcasterType == "partner" || broadcasterType == "affiliate")
                 {
                     _irc.SendPublicChatMessage("Subscribe here! https://www.twitch.tv/subs/" + _botConfig.Broadcaster);
                 }
@@ -1930,14 +1930,14 @@ namespace TwitchBot.Commands
         private bool ReactionCmd(string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
         {
             // check if user is trying to use a command on themselves
-            if (origUser.Equals(recipient))
+            if (origUser.ToLower() == recipient.ToLower())
             {
                 _irc.SendPublicChatMessage(msgToSelf + " @" + origUser);
                 return true;
             }
 
             // check if recipient is the broadcaster before checking the viewer channel
-            if (ChatterValid(origUser, recipient))
+            if (ChatterValid(origUser.ToLower(), recipient.ToLower()))
             {
                 _irc.SendPublicChatMessage(origUser + " " + action + " @" + recipient + " " + addlMsg);
                 return true;
@@ -1949,7 +1949,7 @@ namespace TwitchBot.Commands
         private bool ChatterValid(string origUser, string recipient)
         {
             // Check if the requested user is this bot
-            if (recipient.Equals(_botConfig.BotName.ToLower()) || recipient.Equals(_botConfig.Broadcaster.ToLower()))
+            if (recipient == _botConfig.BotName.ToLower() || recipient == _botConfig.Broadcaster.ToLower())
                 return true;
 
             DateTime timeToGetOut = DateTime.Now.AddSeconds(3);
@@ -1967,7 +1967,7 @@ namespace TwitchBot.Commands
                 // Search for user
                 foreach (string chatter in chatterList)
                 {
-                    if (chatter.Equals(recipient.ToLower()))
+                    if (chatter == recipient.ToLower())
                         return true;
                 }
             }
@@ -1983,12 +1983,12 @@ namespace TwitchBot.Commands
             int effectiveLvl = rnd.Next(3); // between 0 and 2
             string effectiveness = "";
 
-            switch(effectiveLvl.ToString())
+            switch (effectiveLvl)
             {
-                case "0":
+                case 0:
                     effectiveness = "It's super effective!";
                     break;
-                case "1":
+                case 1:
                     effectiveness = "It wasn't very effective";
                     break;
                 default:

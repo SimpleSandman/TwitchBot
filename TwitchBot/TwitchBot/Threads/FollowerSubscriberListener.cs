@@ -76,7 +76,7 @@ namespace TwitchBot.Threads
                 ChannelJSON channelJson = await _twitchInfo.GetBroadcasterChannelById();
                 string broadcasterType = channelJson.BroadcasterType;
 
-                if (broadcasterType.Equals("partner") || broadcasterType.Equals("affiliate"))
+                if (broadcasterType == "partner" || broadcasterType == "affiliate")
                 {
                     // Check for new subscribers
                     RootSubscriptionJSON rootSubscriptionJson = await _twitchInfo.GetSubscribersByChannel();
@@ -252,7 +252,7 @@ namespace TwitchBot.Threads
                     {
                         funds += 15;
 
-                        if (!_twitchChatterListInstance.TwitchRegularFollowers.Any(c => c.Username.Equals(chatter)))
+                        if (!_twitchChatterListInstance.TwitchRegularFollowers.Any(c => c.Username == chatter))
                             _twitchChatterListInstance.TwitchRegularFollowers.Add(follower);
                     }
                     else
@@ -344,8 +344,8 @@ namespace TwitchBot.Threads
                     if (!message.IsSuccessStatusCode)
                     {
                         // check if user was a subscriber but isn't anymore
-                        if (_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Equals(chatter)))
-                            _twitchChatterListInstance.TwitchSubscribers.RemoveAll(c => c.Username.Equals(chatter));
+                        if (_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Username == chatter))
+                            _twitchChatterListInstance.TwitchSubscribers.RemoveAll(c => c.Username == chatter);
 
                         return null;
                     }
@@ -357,7 +357,7 @@ namespace TwitchBot.Threads
                     subscriber = new TwitchChatter { Username = chatter, CreatedAt = startedSubscribing, TwitchId = userTwitchId };
 
                     // add subscriber to global instance
-                    if (!_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Equals(chatter)))
+                    if (!_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Username == chatter))
                     {
                         _twitchChatterListInstance.TwitchSubscribers.Add(subscriber);
                     }

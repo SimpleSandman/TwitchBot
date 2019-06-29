@@ -194,7 +194,7 @@ namespace TwitchBot.Commands
 
                         string resultMsg = $"{setMultiStreamUsers} {verbUsage} been set up for the MultiStream link @{chatter.DisplayName}";
 
-                        if (chatter.Username.ToLower().Equals(_botConfig.Broadcaster.ToLower()))
+                        if (chatter.Username.ToLower() == _botConfig.Broadcaster.ToLower())
                             _irc.SendPublicChatMessage(resultMsg);
                         else
                             _irc.SendPublicChatMessage($"{resultMsg} @{_botConfig.Broadcaster.ToLower()}");
