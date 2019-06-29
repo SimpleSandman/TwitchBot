@@ -64,6 +64,7 @@ namespace TwitchBot
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private BankHeistSingleton _bankHeistInstance = BankHeistSingleton.Instance;
         private BossFightSingleton _bossFightInstance = BossFightSingleton.Instance;
+        private BotModeratorSingleton _botModeratorInstance = BotModeratorSingleton.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
@@ -319,6 +320,9 @@ namespace TwitchBot
                 ChatReminder chatReminder = new ChatReminder(_irc, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink, _twitchInfo, _gameDirectory);
                 chatReminder.Start();
 
+                /* Load in Twitch users that have bot moderation privileges (separate from channel moderators) */
+                await _botModeratorInstance.LoadExistingModerators(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
+
                 /* Authenticate to Twitter if possible */
                 GetTwitterAuth();
 
@@ -531,7 +535,9 @@ namespace TwitchBot
                             if (!await IsUserTimedout(chatter))
                             {
                                 #region Moderator Commands
-                                if (username == _botConfig.Broadcaster.ToLower() || chatter.Badges.Contains("moderator"))
+                                if (username == _botConfig.Broadcaster.ToLower() 
+                                    || chatter.Badges.Contains("moderator") 
+                                    || _botModeratorInstance.IsBotModerator(chatter.TwitchId))
                                 {
                                     switch (message)
                                     {                                        
@@ -604,7 +610,10 @@ namespace TwitchBot
                                 #endregion Moderator Commands
 
                                 #region VIP Commands
-                                if (username == _botConfig.Broadcaster.ToLower() || chatter.Badges.Contains("moderator") || chatter.Badges.Contains("vip"))
+                                if (username == _botConfig.Broadcaster.ToLower() 
+                                    || chatter.Badges.Contains("moderator") 
+                                    || chatter.Badges.Contains("vip") 
+                                    || _botModeratorInstance.IsBotModerator(chatter.TwitchId))
                                 {
                                     switch (message)
                                     {
@@ -630,7 +639,7 @@ namespace TwitchBot
                                                 await _cmdVip.CmdAddQuote(chatter);
 
                                             /* Display the streamer's channel and game status */
-                                            else if (message.StartsWith("!streamer @") || message.StartsWith("!so @"))
+                                            else if (message.StartsWith("!streamer @") || message.StartsWith("!so @") || message.StartsWith("!caster @"))
                                                 await _cmdVip.CmdPromoteStreamer(chatter);
 
                                             /* insert vip commands here */

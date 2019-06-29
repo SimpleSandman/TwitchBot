@@ -238,23 +238,23 @@ namespace TwitchBot.Threads
                     await _follower.UpdateExp(chatter, _broadcasterId, ++currentExp);
 
                     // check if user has been promoted
-                    Rank capRank = _rankList.FirstOrDefault(r => r.ExpCap == currentExp);
-                    hoursWatched = _follower.GetHoursWatched(currentExp);
+                    //Rank capRank = _rankList.FirstOrDefault(r => r.ExpCap == currentExp);
+                    //hoursWatched = _follower.GetHoursWatched(currentExp);
 
-                    if (hoursWatched == _botConfig.RegularFollowerHours)
-                    {
-                        Rank currentRank = _follower.GetCurrentRank(_rankList, currentExp);
+                    //if (hoursWatched == _botConfig.RegularFollowerHours)
+                    //{
+                    //    Rank currentRank = _follower.GetCurrentRank(_rankList, currentExp);
 
-                        _irc.SendPublicChatMessage($"{currentRank.Name} {chatter} has achieved the salty equlibrium "
-                            + "needed to become a regular soldier in the salt army");
-                    }
-                    else if (capRank != null)
-                    {
-                        Rank currentRank = _follower.GetCurrentRank(_rankList, currentExp);
+                    //    _irc.SendPublicChatMessage($"{currentRank.Name} {chatter} has achieved the salty equlibrium "
+                    //        + "needed to become a regular soldier in the salt army");
+                    //}
+                    //else if (capRank != null)
+                    //{
+                    //    Rank currentRank = _follower.GetCurrentRank(_rankList, currentExp);
 
-                        _irc.SendPublicChatMessage($"@{chatter} has been promoted to \"{currentRank.Name}\" "
-                            + $"with {currentExp}/{currentRank.ExpCap} EXP ({hoursWatched} hours watched)");
-                    }
+                    //    _irc.SendPublicChatMessage($"@{chatter} has been promoted to \"{currentRank.Name}\" "
+                    //        + $"with {currentExp}/{currentRank.ExpCap} EXP ({hoursWatched} hours watched)");
+                    //}
                 }
                 else
                 {

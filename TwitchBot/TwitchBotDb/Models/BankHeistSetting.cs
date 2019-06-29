@@ -48,6 +48,6 @@ namespace TwitchBotDb.Models
         public decimal PayoutSuccessRate5 { get; set; }
         public decimal PayoutMultiplier5 { get; set; }
 
-        public Broadcaster Broadcaster { get; set; }
+        public virtual Broadcaster Broadcaster { get; set; }
     }
 }

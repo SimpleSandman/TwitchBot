@@ -10,6 +10,7 @@ namespace TwitchBotDb.Models
             Bank = new HashSet<Bank>();
             BankHeistSetting = new HashSet<BankHeistSetting>();
             BossFightSetting = new HashSet<BossFightSetting>();
+            BotModerator = new HashSet<BotModerator>();
             BotTimeout = new HashSet<BotTimeout>();
             ErrorLog = new HashSet<ErrorLog>();
             InGameUsername = new HashSet<InGameUsername>();
@@ -28,19 +29,20 @@ namespace TwitchBotDb.Models
         public int TwitchId { get; set; }
         public DateTime LastUpdated { get; set; }
 
-        public ICollection<Bank> Bank { get; set; }
-        public ICollection<BankHeistSetting> BankHeistSetting { get; set; }
-        public ICollection<BossFightSetting> BossFightSetting { get; set; }
-        public ICollection<BotTimeout> BotTimeout { get; set; }
-        public ICollection<ErrorLog> ErrorLog { get; set; }
-        public ICollection<InGameUsername> InGameUsername { get; set; }
-        public ICollection<PartyUp> PartyUp { get; set; }
-        public ICollection<Quote> Quote { get; set; }
-        public ICollection<Rank> Rank { get; set; }
-        public ICollection<RankFollower> RankFollower { get; set; }
-        public ICollection<Reminder> Reminder { get; set; }
-        public ICollection<SongRequest> SongRequest { get; set; }
-        public ICollection<SongRequestIgnore> SongRequestIgnore { get; set; }
-        public ICollection<SongRequestSetting> SongRequestSetting { get; set; }
+        public virtual ICollection<Bank> Bank { get; set; }
+        public virtual ICollection<BankHeistSetting> BankHeistSetting { get; set; }
+        public virtual ICollection<BossFightSetting> BossFightSetting { get; set; }
+        public virtual ICollection<BotModerator> BotModerator { get; set; }
+        public virtual ICollection<BotTimeout> BotTimeout { get; set; }
+        public virtual ICollection<ErrorLog> ErrorLog { get; set; }
+        public virtual ICollection<InGameUsername> InGameUsername { get; set; }
+        public virtual ICollection<PartyUp> PartyUp { get; set; }
+        public virtual ICollection<Quote> Quote { get; set; }
+        public virtual ICollection<Rank> Rank { get; set; }
+        public virtual ICollection<RankFollower> RankFollower { get; set; }
+        public virtual ICollection<Reminder> Reminder { get; set; }
+        public virtual ICollection<SongRequest> SongRequest { get; set; }
+        public virtual ICollection<SongRequestIgnore> SongRequestIgnore { get; set; }
+        public virtual ICollection<SongRequestSetting> SongRequestSetting { get; set; }
     }
 }

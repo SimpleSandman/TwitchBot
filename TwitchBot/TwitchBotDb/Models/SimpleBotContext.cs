@@ -20,6 +20,7 @@ namespace TwitchBotDb.Models
         public virtual DbSet<BossFightBossStats> BossFightBossStats { get; set; }
         public virtual DbSet<BossFightClassStats> BossFightClassStats { get; set; }
         public virtual DbSet<BossFightSetting> BossFightSetting { get; set; }
+        public virtual DbSet<BotModerator> BotModerator { get; set; }
         public virtual DbSet<BotTimeout> BotTimeout { get; set; }
         public virtual DbSet<Broadcaster> Broadcaster { get; set; }
         public virtual DbSet<ErrorLog> ErrorLog { get; set; }
@@ -524,6 +525,20 @@ namespace TwitchBotDb.Models
                     .HasConstraintName("FK_BossFightSetting_Broadcaster");
             });
 
+            modelBuilder.Entity<BotModerator>(entity =>
+            {
+                entity.Property(e => e.Username)
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Broadcaster)
+                    .WithMany(p => p.BotModerator)
+                    .HasForeignKey(d => d.BroadcasterId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_BotModerator_Broadcaster");
+            });
+
             modelBuilder.Entity<BotTimeout>(entity =>
             {
                 entity.Property(e => e.TimeAdded)
@@ -720,13 +735,13 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<SongRequest>(entity =>
             {
-                entity.Property(e => e.Chatter)
-                    .HasMaxLength(30)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.Requests)
+                entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Username)
+                    .HasMaxLength(30)
                     .IsUnicode(false);
 
                 entity.HasOne(d => d.Broadcaster)

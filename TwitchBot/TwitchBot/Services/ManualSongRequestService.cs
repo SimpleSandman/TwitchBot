@@ -34,7 +34,7 @@ namespace TwitchBot.Services
 
             foreach (SongRequest member in songRequests)
             {
-                message += $"\"{member.Requests}\" ({member.Chatter}) >< ";
+                message += $"\"{member.Name}\" ({member.Username}) >< ";
             }
 
             return message.ReplaceLastOccurrence(" >< ", "");

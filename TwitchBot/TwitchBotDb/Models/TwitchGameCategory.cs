@@ -17,9 +17,9 @@ namespace TwitchBotDb.Models
         public string Title { get; set; }
         public bool Multiplayer { get; set; }
 
-        public ICollection<BossFightBossStats> BossFightBossStats { get; set; }
-        public ICollection<InGameUsername> InGameUsername { get; set; }
-        public ICollection<PartyUp> PartyUp { get; set; }
-        public ICollection<Reminder> Reminder { get; set; }
+        public virtual ICollection<BossFightBossStats> BossFightBossStats { get; set; }
+        public virtual ICollection<InGameUsername> InGameUsername { get; set; }
+        public virtual ICollection<PartyUp> PartyUp { get; set; }
+        public virtual ICollection<Reminder> Reminder { get; set; }
     }
 }

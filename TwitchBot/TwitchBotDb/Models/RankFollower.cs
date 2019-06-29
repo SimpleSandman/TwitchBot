@@ -11,6 +11,6 @@ namespace TwitchBotDb.Models
         public int Experience { get; set; }
         public int BroadcasterId { get; set; }
 
-        public Broadcaster Broadcaster { get; set; }
+        public virtual Broadcaster Broadcaster { get; set; }
     }
 }

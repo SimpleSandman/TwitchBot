@@ -28,6 +28,6 @@ namespace TwitchBotDb.Models
         public int SubscriberEvasion { get; set; }
         public int SubscriberHealth { get; set; }
 
-        public BossFightSetting Settings { get; set; }
+        public virtual BossFightSetting Settings { get; set; }
     }
 }

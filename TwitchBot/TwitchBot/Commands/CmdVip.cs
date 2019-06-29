@@ -60,7 +60,7 @@ namespace TwitchBot.Commands
                 SongRequest removedSong = await _manualSongRequest.PopSongRequest(_broadcasterId);
 
                 if (removedSong != null)
-                    _irc.SendPublicChatMessage($"The first song in the queue, \"{removedSong.Requests}\" ({removedSong.Chatter}), has been removed");
+                    _irc.SendPublicChatMessage($"The first song in the queue, \"{removedSong.Name}\" ({removedSong.Username}), has been removed");
                 else
                     _irc.SendPublicChatMessage("There are no songs that can be removed from the song request list");
             }

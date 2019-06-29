@@ -32,8 +32,8 @@ namespace TwitchBotDb.Models
         public string Success0 { get; set; }
         public int BroadcasterId { get; set; }
 
-        public Broadcaster Broadcaster { get; set; }
-        public ICollection<BossFightBossStats> BossFightBossStats { get; set; }
-        public ICollection<BossFightClassStats> BossFightClassStats { get; set; }
+        public virtual Broadcaster Broadcaster { get; set; }
+        public virtual ICollection<BossFightBossStats> BossFightBossStats { get; set; }
+        public virtual ICollection<BossFightClassStats> BossFightClassStats { get; set; }
     }
 }

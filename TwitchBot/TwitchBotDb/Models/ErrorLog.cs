@@ -15,6 +15,6 @@ namespace TwitchBotDb.Models
         public string Command { get; set; }
         public string UserMsg { get; set; }
 
-        public Broadcaster Broadcaster { get; set; }
+        public virtual Broadcaster Broadcaster { get; set; }
     }
 }

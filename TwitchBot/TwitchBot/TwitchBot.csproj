@@ -322,6 +322,7 @@
   <ItemGroup>
     <Compile Include="Commands\CmdVip.cs" />
     <Compile Include="Enums\ChatterType.cs" />
+    <Compile Include="Libraries\BotModeratorSingleton.cs" />
     <Compile Include="Libraries\TwitchChatterList.cs" />
     <Compile Include="Models\JSON\ClipJSON.cs" />
     <Compile Include="Models\JSON\SubscriptionJSON.cs" />

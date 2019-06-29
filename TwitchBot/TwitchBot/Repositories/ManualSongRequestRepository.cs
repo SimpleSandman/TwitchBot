@@ -20,8 +20,8 @@ namespace TwitchBot.Repositories
         {
             SongRequest songRequest = new SongRequest
             {
-                Requests = songRequestName,
-                Chatter = username,
+                Name = songRequestName,
+                Username = username,
                 BroadcasterId = broadcasterId
             };
 
