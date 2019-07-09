@@ -28,7 +28,6 @@ namespace TwitchBot.Commands
         private IrcClient _irc;
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
-        private int _broadcasterId;
         private SongRequestBlacklistService _songRequest;
         private TwitchInfoService _twitchInfo;
         private GameDirectoryService _gameDirectory;
@@ -40,15 +39,14 @@ namespace TwitchBot.Commands
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private BossFightSingleton _bossFightSettingsInstance = BossFightSingleton.Instance;
+        private CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
 
-        public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, int broadcasterId, 
-            System.Configuration.Configuration appConfig, SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo, 
-            GameDirectoryService gameDirectory, SongRequestSettingService songRequestSetting, InGameUsernameService ign,
-            LibVLCSharpPlayer libVLCSharpPlayer)
+        public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig, 
+            SongRequestBlacklistService songRequest, TwitchInfoService twitchInfo, GameDirectoryService gameDirectory, 
+            SongRequestSettingService songRequestSetting, InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer)
         {
             _irc = irc;
             _botConfig = botConfig;
-            _broadcasterId = broadcasterId;
             _appConfig = appConfig;
             _songRequest = songRequest;
             _twitchInfo = twitchInfo;
@@ -312,14 +310,14 @@ namespace TwitchBot.Commands
                         return;
                     }
 
-                    List<SongRequestIgnore> blacklist = await _songRequest.GetSongRequestIgnore(_broadcasterId);
+                    List<SongRequestIgnore> blacklist = await _songRequest.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
                     if (blacklist.Count > 0 && blacklist.Exists(b => b.Artist.Equals(request, StringComparison.CurrentCultureIgnoreCase)))
                     {
                         _irc.SendPublicChatMessage($"This artist/video is already on the blacklist @{_botConfig.Broadcaster}");
                         return;
                     }
 
-                    SongRequestIgnore response = await _songRequest.IgnoreArtist(request, _broadcasterId);
+                    SongRequestIgnore response = await _songRequest.IgnoreArtist(request, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
                         _irc.SendPublicChatMessage($"The artist/video \"{response.Artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
@@ -346,7 +344,7 @@ namespace TwitchBot.Commands
                     string artist = message.Substring(artistStartIndex + 1, artistEndIndex - artistStartIndex - 1);
 
                     // check if the request's exact song or artist-wide blackout-restriction has already been added
-                    List<SongRequestIgnore> blacklist = await _songRequest.GetSongRequestIgnore(_broadcasterId);
+                    List<SongRequestIgnore> blacklist = await _songRequest.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
 
                     if (blacklist.Count > 0)
                     { 
@@ -358,7 +356,7 @@ namespace TwitchBot.Commands
                         }
                     }
 
-                    SongRequestIgnore response = await _songRequest.IgnoreSong(songTitle, artist, _broadcasterId);
+                    SongRequestIgnore response = await _songRequest.IgnoreSong(songTitle, artist, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
                         _irc.SendPublicChatMessage($"The song \"{response.Title}\" by \"{response.Artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
@@ -396,7 +394,7 @@ namespace TwitchBot.Commands
                 if (requestType == "1") // remove blackout for any song by this artist
                 {
                     // remove artist from db
-                    List<SongRequestIgnore> response = await _songRequest.AllowArtist(request, _broadcasterId);
+                    List<SongRequestIgnore> response = await _songRequest.AllowArtist(request, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
                         _irc.SendPublicChatMessage($"The artist \"{request}\" can now be requested @{_botConfig.Broadcaster}");
@@ -423,7 +421,7 @@ namespace TwitchBot.Commands
                     string artist = message.Substring(artistStartIndex + 1, artistEndIndex - artistStartIndex - 1);
 
                     // remove artist from db
-                    SongRequestIgnore response = await _songRequest.AllowSong(songTitle, artist, _broadcasterId);
+                    SongRequestIgnore response = await _songRequest.AllowSong(songTitle, artist, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
                         _irc.SendPublicChatMessage($"The song \"{response.Title} by {response.Artist}\" can now requested @{_botConfig.Broadcaster}");
@@ -446,7 +444,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                List<SongRequestIgnore> response = await _songRequest.ResetIgnoreList(_broadcasterId);
+                List<SongRequestIgnore> response = await _songRequest.ResetIgnoreList(_broadcasterInstance.DatabaseId);
 
                 if (response?.Count > 0)
                     _irc.SendPublicChatMessage($"Song Request Blacklist has been reset @{_botConfig.Broadcaster}");
@@ -463,7 +461,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                List<SongRequestIgnore> blacklist = await _songRequest.GetSongRequestIgnore(_broadcasterId);
+                List<SongRequestIgnore> blacklist = await _songRequest.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
 
                 if (blacklist.Count == 0)
                 {
@@ -549,7 +547,7 @@ namespace TwitchBot.Commands
 
                 // During refresh, make sure no fighters can join
                 _bossFightSettingsInstance.RefreshBossFight = true;
-                await _bossFightSettingsInstance.LoadSettings(_broadcasterId, game?.Id, _botConfig.TwitchBotApiLink);
+                await _bossFightSettingsInstance.LoadSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
                 _bossFightSettingsInstance.RefreshBossFight = false;
 
                 _irc.SendPublicChatMessage($"Boss fight settings refreshed @{_botConfig.Broadcaster}");
@@ -756,18 +754,18 @@ namespace TwitchBot.Commands
                 string gameTitle = json.Game;
 
                 TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
-                InGameUsername ign = await _ign.GetInGameUsername(_broadcasterId, game);
+                InGameUsername ign = await _ign.GetInGameUsername(_broadcasterInstance.DatabaseId, game);
 
                 if (ign == null || (ign != null && ign.GameId == null))
                 {
-                    await _ign.CreateInGameUsername(game.Id, _broadcasterId, gameIgn);
+                    await _ign.CreateInGameUsername(game.Id, _broadcasterInstance.DatabaseId, gameIgn);
 
                     _irc.SendPublicChatMessage($"Yay! You've set your IGN for {gameTitle} to \"{gameIgn}\"");
                 }
                 else
                 {
                     ign.Message = gameIgn;
-                    await _ign.UpdateInGameUsername(ign.Id, _broadcasterId, ign);
+                    await _ign.UpdateInGameUsername(ign.Id, _broadcasterInstance.DatabaseId, ign);
 
                     _irc.SendPublicChatMessage($"Yay! You've updated your IGN for {gameTitle} to \"{gameIgn}\"");
                 }
@@ -788,18 +786,18 @@ namespace TwitchBot.Commands
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
                 string gameTitle = json.Game;
 
-                InGameUsername ign = await _ign.GetInGameUsername(_broadcasterId);
+                InGameUsername ign = await _ign.GetInGameUsername(_broadcasterInstance.DatabaseId);
 
                 if (ign == null)
                 {
-                    await _ign.CreateInGameUsername(null, _broadcasterId, gameIgn);
+                    await _ign.CreateInGameUsername(null, _broadcasterInstance.DatabaseId, gameIgn);
 
                     _irc.SendPublicChatMessage($"Yay! You've set your generic IGN to \"{gameIgn}\"");
                 }
                 else
                 {
                     ign.Message = gameIgn;
-                    await _ign.UpdateInGameUsername(ign.Id, _broadcasterId, ign);
+                    await _ign.UpdateInGameUsername(ign.Id, _broadcasterInstance.DatabaseId, ign);
 
                     _irc.SendPublicChatMessage($"Yay! You've updated your generic IGN to \"{gameIgn}\"");
                 }                
@@ -819,11 +817,11 @@ namespace TwitchBot.Commands
                 string gameTitle = json.Game;
 
                 TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
-                InGameUsername ign = await _ign.GetInGameUsername(_broadcasterId, game);
+                InGameUsername ign = await _ign.GetInGameUsername(_broadcasterInstance.DatabaseId, game);
 
                 if (ign != null && ign.GameId != null)
                 {
-                    await _ign.DeleteInGameUsername(ign.Id, _broadcasterId);
+                    await _ign.DeleteInGameUsername(ign.Id, _broadcasterInstance.DatabaseId);
 
                     _irc.SendPublicChatMessage($"Successfully deleted IGN set for the category \"{game.Title}\"");
                 }
@@ -962,6 +960,20 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLibVLCSharpPlayerPersonalPlaylistShuffle(bool)", false, "!srshuffle");
+            }
+        }
+
+        public async Task CmdRefreshCommands()
+        {
+            try
+            {
+                await _customCommandInstance.LoadCustomCommands(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
+
+                _irc.SendPublicChatMessage($"Your commands have been refreshed @{_botConfig.Broadcaster}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdRefreshCommands()", false, "!refreshcommands");
             }
         }
     }

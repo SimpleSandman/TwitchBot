@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
+using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -65,6 +66,7 @@ namespace TwitchBot
         private BankHeistSingleton _bankHeistInstance = BankHeistSingleton.Instance;
         private BossFightSingleton _bossFightInstance = BossFightSingleton.Instance;
         private BotModeratorSingleton _botModeratorInstance = BotModeratorSingleton.Instance;
+        private CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
@@ -144,13 +146,13 @@ namespace TwitchBot
                 await _spotify.Connect();
                 
                 /* Load command classes */
-                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _broadcasterInstance.DatabaseId, _twitchInfo, _bank, _follower,
+                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer);
-                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _songRequestBlacklist,
+                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _appConfig, _songRequestBlacklist,
                     _twitchInfo, _gameDirectory, _songRequestSetting, _ign, _libVLCSharpPlayer);
-                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
+                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _bank, _twitchInfo,
                     _manualSongRequest, _quote, _partyUp, _gameDirectory, _libVLCSharpPlayer);
-                _cmdVip = new CmdVip(_irc, _timeout, _botConfig, _broadcasterInstance.DatabaseId, _appConfig, _bank, _twitchInfo,
+                _cmdVip = new CmdVip(_irc, _timeout, _botConfig, _appConfig, _bank, _twitchInfo,
                     _manualSongRequest, _quote, _partyUp, _gameDirectory);
 
                 /* Whisper broadcaster bot settings */
@@ -323,6 +325,9 @@ namespace TwitchBot
                 /* Load in Twitch users that have bot moderation privileges (separate from channel moderators) */
                 await _botModeratorInstance.LoadExistingModerators(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
 
+                /* Load in custom commands */
+                await _customCommandInstance.LoadCustomCommands(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
+
                 /* Authenticate to Twitter if possible */
                 GetTwitterAuth();
 
@@ -466,6 +471,9 @@ namespace TwitchBot
                                         break;
                                     case "!refreshbossfight": // Manually refresh boss fight
                                         await _cmdBrdCstr.CmdRefreshBossFight();
+                                        break;
+                                    case "!refreshcommands": // Manually refresh boss fight
+                                        await _cmdBrdCstr.CmdRefreshCommands();
                                         break;
                                     case "!resetytsr": // Reset the YouTube song request playlist
                                         await _cmdBrdCstr.CmdResetYoutubeSongRequestList(hasYouTubeAuth);
@@ -742,21 +750,13 @@ namespace TwitchBot
                                     case "!srtime":
                                         await _cmdGen.CmdLibVLCSharpPlayerShowTime(chatter);
                                         break;
-                                    case "!pika": // Proof of concept for sound commands
-                                        // Note: If volume adjustments are needed, use something like Audacity's "Noise Reduction" effect
-                                        // ToDo: Make sound commands dynamic (both sound and role access to command)
-                                        if (chatter.DisplayName == "Teimoli" || chatter.DisplayName == "Simple_Sandman")
-                                        {
-                                            _cmdGen.PlayCommandSound(@"C:/temp/smashbros_pikachu.wav");
-                                        }
-                                        break;
                                     default: // Check commands that depend on special cases
                                         /* Request a song for the host to play */
                                         if (message.StartsWith("!rsr "))
                                             await _cmdGen.CmdManualSr(isManualSongRequestAvail, chatter);
 
                                         /* Slaps a user and rates its effectiveness */
-                                        else if (message.StartsWith("!slap @") && !IsUserOnCooldown(chatter, "!slap"))
+                                        else if (message.StartsWith("!slap @") && !IsCommandOnCooldown("!slap", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdSlap(chatter);
                                             if (cooldown > DateTime.Now)
@@ -772,7 +772,7 @@ namespace TwitchBot
                                         }
 
                                         /* Stabs a user and rates its effectiveness */
-                                        else if (message.StartsWith("!stab @") && !IsUserOnCooldown(chatter, "!stab"))
+                                        else if (message.StartsWith("!stab @") && !IsCommandOnCooldown("!stab", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdStab(chatter);
                                             if (cooldown > DateTime.Now)
@@ -788,7 +788,7 @@ namespace TwitchBot
                                         }
 
                                         /* Shoots a viewer's random body part */
-                                        else if (message.StartsWith("!shoot @") && !IsUserOnCooldown(chatter, "!shoot"))
+                                        else if (message.StartsWith("!shoot @") && !IsCommandOnCooldown("!shoot", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdShoot(chatter);
                                             if (cooldown > DateTime.Now)
@@ -804,7 +804,7 @@ namespace TwitchBot
                                         }
 
                                         /* Throws an item at a viewer and rates its effectiveness against the victim */
-                                        else if (message.StartsWith("!throw ") && message.Contains("@") && !IsUserOnCooldown(chatter, "!throw"))
+                                        else if (message.StartsWith("!throw ") && message.Contains("@") && !IsCommandOnCooldown("!throw", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdThrow(chatter);
                                             if (cooldown > DateTime.Now)
@@ -828,7 +828,7 @@ namespace TwitchBot
                                             await _cmdGen.CmdCheckFunds(chatter);
 
                                         /* Gamble money away */
-                                        else if (message.StartsWith("!gamble ") && !IsUserOnCooldown(chatter, "!gamble"))
+                                        else if (message.StartsWith("!gamble ") && !IsCommandOnCooldown("!gamble", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdGamble(chatter);
                                             if (cooldown > DateTime.Now)
@@ -844,7 +844,7 @@ namespace TwitchBot
                                         }
 
                                         /* Display random broadcaster quote */
-                                        else if (message == "!quote" && !IsUserOnCooldown(chatter, "!quote"))
+                                        else if (message == "!quote" && !IsCommandOnCooldown("!quote", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdQuote();
                                             if (cooldown > DateTime.Now)
@@ -860,7 +860,7 @@ namespace TwitchBot
                                         }
 
                                         /* Add song request to YouTube playlist */
-                                        else if ((message.StartsWith("!ytsr ") || message.StartsWith("!sr ") || message.StartsWith("!songrequest ")) && !IsUserOnCooldown(chatter, "!ytsr"))
+                                        else if ((message.StartsWith("!ytsr ") || message.StartsWith("!sr ") || message.StartsWith("!songrequest ")) && !IsCommandOnCooldown("!ytsr", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdYouTubeSongRequest(chatter, hasYouTubeAuth, isYouTubeSongRequestAvail);
                                             if (cooldown > DateTime.Now)
@@ -876,7 +876,7 @@ namespace TwitchBot
                                         }
 
                                         /* Display Magic 8-ball response */
-                                        else if (message.StartsWith("!8ball ") && !IsUserOnCooldown(chatter, "!8ball"))
+                                        else if (message.StartsWith("!8ball ") && !IsCommandOnCooldown("!8ball", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdMagic8Ball(chatter);
                                             if (cooldown > DateTime.Now)
@@ -896,7 +896,7 @@ namespace TwitchBot
                                             await _cmdGen.CmdLeaderboardCurrency(chatter);
 
                                         /* Play russian roulette */
-                                        else if (message == "!roulette" && !IsUserOnCooldown(chatter, "!roulette"))
+                                        else if (message == "!roulette" && !IsCommandOnCooldown("!roulette", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdRussianRoulette(chatter);
                                             if (cooldown > DateTime.Now)
@@ -916,7 +916,7 @@ namespace TwitchBot
                                             await _cmdGen.CmdBankHeist(chatter);
 
                                         /* Tell the broadcaster a user is lurking */
-                                        else if (message == "!lurk" && !IsUserOnCooldown(chatter, "!lurk"))
+                                        else if (message == "!lurk" && !IsCommandOnCooldown("!lurk", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdLurk(chatter);
                                             if (cooldown > DateTime.Now)
@@ -932,7 +932,7 @@ namespace TwitchBot
                                         }
 
                                         /* Tell the broadcaster a user is no longer lurking */
-                                        else if (message == "!unlurk" && !IsUserOnCooldown(chatter, "!unlurk"))
+                                        else if (message == "!unlurk" && !IsCommandOnCooldown("!unlurk", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdUnlurk(chatter);
                                             if (cooldown > DateTime.Now)
@@ -948,7 +948,7 @@ namespace TwitchBot
                                         }
 
                                         /* Give funds to another chatter */
-                                        else if (message.StartsWith("!give ") && !IsUserOnCooldown(chatter, "!give"))
+                                        else if (message.StartsWith("!give ") && !IsCommandOnCooldown("!give", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdGiveFunds(chatter);
                                             if (cooldown > DateTime.Now)
@@ -964,7 +964,7 @@ namespace TwitchBot
                                         }
 
                                         /* Remove the wrong song the user requested */
-                                        else if (message == "!wrongsong" && !IsUserOnCooldown(chatter, "!wrongsong"))
+                                        else if (message == "!wrongsong" && !IsCommandOnCooldown("!wrongsong", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdYoutubeRemoveWrongSong(chatter);
                                             if (cooldown > DateTime.Now)
@@ -987,6 +987,8 @@ namespace TwitchBot
                                                 _cooldownUsers.Remove(songRequestCooldown);
                                             }
                                         }
+
+                                        FindCustomCommand(chatter);
 
                                         /* add more general commands here */
                                         break;
@@ -1050,27 +1052,44 @@ namespace TwitchBot
         }
 
         /// <summary>
-        /// Checks if a user is on a cooldown from a particular command
+        /// Checks if a user/command is on a cooldown from a particular command
         /// </summary>
-        /// <param name="username"></param>
         /// <param name="command"></param>
+        /// <param name="chatter"></param>
         /// <returns></returns>
-        private bool IsUserOnCooldown(TwitchChatter chatter, string command)
+        private bool IsCommandOnCooldown(string command, TwitchChatter chatter, bool hasGlobalCooldown = false)
         {
-            CooldownUser user = _cooldownUsers.FirstOrDefault(u => u.Username == chatter.Username && u.Command == command);
+            CooldownUser cooldown = null;
 
-            if (user == null) return false;
-            else if (user.Cooldown < DateTime.Now)
+            if (!hasGlobalCooldown)
+                cooldown = _cooldownUsers.FirstOrDefault(u => u.Username == chatter.Username && u.Command == command);
+            else
+                cooldown = _cooldownUsers.FirstOrDefault(u => u.Command == command);
+
+            if (cooldown == null) return false;
+            else if (cooldown.Cooldown < DateTime.Now)
             {
-                _cooldownUsers.Remove(user);
+                _cooldownUsers.Remove(cooldown);
                 return false;
             }
 
-            if (!user.Warned)
+            if (!cooldown.Warned)
             {
-                user.Warned = true; // prevent spamming cooldown message
+                string specialCooldownMessage = "";
+
+                // ToDo: Find more graceful way to prevent spam of commands with a global cooldown
+                if (!hasGlobalCooldown)
+                {
+                    cooldown.Warned = true; // prevent spamming cooldown message per personal cooldown
+                    specialCooldownMessage = "a PERSONAL";
+                }
+                else
+                {
+                    specialCooldownMessage = "a GLOBAL";
+                }
+
                 string timespanMessage = "";
-                TimeSpan timespan = user.Cooldown - DateTime.Now;
+                TimeSpan timespan = cooldown.Cooldown - DateTime.Now;
 
                 if (timespan.Minutes > 0)
                     timespanMessage = $"{timespan.Minutes} minute(s) and {timespan.Seconds} second(s)";
@@ -1079,7 +1098,7 @@ namespace TwitchBot
                 else
                     timespanMessage = $"{timespan.Seconds} second(s)";
 
-                _irc.SendPublicChatMessage($"The {command} command is currently on cooldown @{chatter.DisplayName} for {timespanMessage}");
+                _irc.SendPublicChatMessage($"The {command} command is currently on {specialCooldownMessage} cooldown @{chatter.DisplayName} for {timespanMessage}");
             }
 
             return true;
@@ -1404,6 +1423,47 @@ namespace TwitchBot
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Load a custom command made by the broadcaster
+        /// </summary>
+        /// <param name="chatter"></param>
+        private async void FindCustomCommand(TwitchChatter chatter)
+        {
+            try
+            {
+                CustomCommand customCommand = _customCommandInstance.FindCustomCommand(chatter.Message.ToLower());
+
+                if (customCommand == null)
+                {
+                    return; // couldn't find the requested command
+                }
+
+                if (customCommand.IsSound && !IsCommandOnCooldown(customCommand.Name, chatter, customCommand.IsGlobalCooldown))
+                {
+                    using (SoundPlayer player = new SoundPlayer(customCommand.Message))
+                    {
+                        player.Play();
+                    }
+
+                    _cooldownUsers.Add(new CooldownUser
+                    {
+                        Username = chatter.Username,
+                        Cooldown = DateTime.Now.AddSeconds(customCommand.CooldownSec),
+                        Command = customCommand.Name,
+                        Warned = false
+                    });
+                }
+                else if (!customCommand.IsSound)
+                {
+                    _irc.SendPublicChatMessage(customCommand.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "FindCustomCommand(TwitchChatter)", false, "N/A", chatter.Message);
+            }
         }
     }
 }

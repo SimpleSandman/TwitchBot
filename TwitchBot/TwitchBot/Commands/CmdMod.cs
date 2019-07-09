@@ -28,7 +28,6 @@ namespace TwitchBot.Commands
         private TimeoutCmd _timeout;
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
-        private int _broadcasterId;
         private BankService _bank;
         private TwitchInfoService _twitchInfo;
         private ManualSongRequestService _manualSongRequest;
@@ -42,14 +41,13 @@ namespace TwitchBot.Commands
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
 
-        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, int broadcasterId, 
+        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, 
             System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo, ManualSongRequestService manualSongRequest,
             QuoteService quote, PartyUpService partyUp, GameDirectoryService gameDirectory, LibVLCSharpPlayer libVLCSharpPlayer)
         {
             _irc = irc;
             _timeout = timeout;
             _botConfig = botConfig;
-            _broadcasterId = broadcasterId;
             _appConfig = appConfig;
             _bank = bank;
             _twitchInfo = twitchInfo;
@@ -94,7 +92,7 @@ namespace TwitchBot.Commands
                     int fee = -1;
                     bool isValidFee = int.TryParse(chatter.Message.Substring(indexAction, chatter.Message.IndexOf("@") - indexAction - 1), out fee);
                     string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
-                    int wallet = await _bank.CheckBalance(recipient, _broadcasterId);
+                    int wallet = await _bank.CheckBalance(recipient, _broadcasterInstance.DatabaseId);
 
                     // Check user's bank account exist or has currency
                     if (wallet == -1)
@@ -117,7 +115,7 @@ namespace TwitchBot.Commands
                         if (wallet < 0)
                             wallet = 0;
 
-                        await _bank.UpdateFunds(recipient, _broadcasterId, wallet);
+                        await _bank.UpdateFunds(recipient, _broadcasterInstance.DatabaseId, wallet);
 
                         // Prompt user's balance
                         if (wallet == 0)
@@ -189,7 +187,7 @@ namespace TwitchBot.Commands
                     {
                         if (userList.Count > 0)
                         {
-                            List<BalanceResult> balResultList = await _bank.UpdateCreateBalance(userList, _broadcasterId, deposit, true);
+                            List<BalanceResult> balResultList = await _bank.UpdateCreateBalance(userList, _broadcasterInstance.DatabaseId, deposit, true);
 
                             string responseMsg = $"Gave {deposit.ToString()} {_botConfig.CurrencyType} to ";
 
@@ -274,7 +272,7 @@ namespace TwitchBot.Commands
 
                         if (chatterList != null && chatterList.Count > 0)
                         {
-                            await _bank.UpdateCreateBalance(chatterList, _broadcasterId, deposit);
+                            await _bank.UpdateCreateBalance(chatterList, _broadcasterInstance.DatabaseId, deposit);
 
                             _irc.SendPublicChatMessage($"{deposit.ToString()} {_botConfig.CurrencyType} for everyone! "
                                 + $"Check your stream bank account with !{_botConfig.CurrencyType.ToLower()}");
@@ -299,7 +297,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                List<SongRequest> removedSong = await _manualSongRequest.ResetSongRequests(_broadcasterId);
+                List<SongRequest> removedSong = await _manualSongRequest.ResetSongRequests(_broadcasterInstance.DatabaseId);
 
                 if (removedSong != null && removedSong.Count > 0)
                     _irc.SendPublicChatMessage($"The song request queue has been reset @{_botConfig.Broadcaster}");
@@ -339,7 +337,7 @@ namespace TwitchBot.Commands
                         _irc.SendPublicChatMessage("The duration needs to be at least 15 seconds long. Please try again");
                     else
                     {
-                        DateTime timeoutExpiration = await _timeout.AddTimeout(recipient, _broadcasterId, seconds, _botConfig.TwitchBotApiLink);
+                        DateTime timeoutExpiration = await _timeout.AddTimeout(recipient, _broadcasterInstance.DatabaseId, seconds, _botConfig.TwitchBotApiLink);
 
                         string response = $"I'm told not to talk to you until {timeoutExpiration.ToLocalTime()} ";
 
@@ -368,7 +366,7 @@ namespace TwitchBot.Commands
             {
                 string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
 
-                recipient = await _timeout.DeleteUserTimeout(recipient, _broadcasterId, _botConfig.TwitchBotApiLink);
+                recipient = await _timeout.DeleteUserTimeout(recipient, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
 
                 if (!string.IsNullOrEmpty(recipient))
                     _irc.SendPublicChatMessage($"{recipient} can now interact with me again because of @{chatter.DisplayName} @{_botConfig.Broadcaster}");

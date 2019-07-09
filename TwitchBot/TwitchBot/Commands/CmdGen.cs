@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Media;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -37,7 +36,6 @@ namespace TwitchBot.Commands
         private IrcClient _irc;
         private SpotifyWebClient _spotify;
         private TwitchBotConfigurationSection _botConfig;
-        private int _broadcasterId;
         private TwitchInfoService _twitchInfo;
         private BankService _bank;
         private FollowerService _follower;
@@ -53,8 +51,9 @@ namespace TwitchBot.Commands
         private BankHeistSingleton _heistSettingsInstance = BankHeistSingleton.Instance;
         private BossFightSingleton _bossSettingsInstance = BossFightSingleton.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
+        private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
 
-        public CmdGen(IrcClient irc, SpotifyWebClient spotify, TwitchBotConfigurationSection botConfig, int broadcasterId,
+        public CmdGen(IrcClient irc, SpotifyWebClient spotify, TwitchBotConfigurationSection botConfig, 
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
             ManualSongRequestService manualSongRequest, PartyUpService partyUp, GameDirectoryService gameDirectory, QuoteService quote,
             InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer)
@@ -62,7 +61,6 @@ namespace TwitchBot.Commands
             _irc = irc;
             _spotify = spotify;
             _botConfig = botConfig;
-            _broadcasterId = broadcasterId;
             _twitchInfo = twitchInfo;
             _bank = bank;
             _follower = follower;
@@ -169,7 +167,7 @@ namespace TwitchBot.Commands
                 if (!isManualSongRequestAvail)
                     _irc.SendPublicChatMessage($"Song requests are not available at this time @{chatter.DisplayName}");
                 else
-                    _irc.SendPublicChatMessage(await _manualSongRequest.ListSongRequests(_broadcasterId));
+                    _irc.SendPublicChatMessage(await _manualSongRequest.ListSongRequests(_broadcasterInstance.DatabaseId));
             }
             catch (Exception ex)
             {
@@ -222,7 +220,7 @@ namespace TwitchBot.Commands
                     }
                     else
                     {
-                        await _manualSongRequest.AddSongRequest(songRequest, chatter.DisplayName, _broadcasterId);
+                        await _manualSongRequest.AddSongRequest(songRequest, chatter.DisplayName, _broadcasterInstance.DatabaseId);
 
                         _irc.SendPublicChatMessage($"The song \"{songRequest}\" has been successfully requested @{chatter.DisplayName}");
                     }
@@ -444,7 +442,7 @@ namespace TwitchBot.Commands
                     return;
                 }
 
-                PartyUp partyMember = await _partyUp.GetPartyMember(partyMemberName, game.Id, _broadcasterId);
+                PartyUp partyMember = await _partyUp.GetPartyMember(partyMemberName, game.Id, _broadcasterInstance.DatabaseId);
 
                 if (partyMember == null)
                 {
@@ -453,7 +451,7 @@ namespace TwitchBot.Commands
                     return;
                 }
 
-                if (await _partyUp.HasUserAlreadyRequested(chatter.DisplayName, game.Id, _broadcasterId))
+                if (await _partyUp.HasUserAlreadyRequested(chatter.DisplayName, game.Id, _broadcasterInstance.DatabaseId))
                 {
                     _irc.SendPublicChatMessage($"You have already requested a party member. "
                         + $"Please wait until your request has been completed @{chatter.DisplayName}");
@@ -493,7 +491,7 @@ namespace TwitchBot.Commands
                 else if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
                 else
-                    _irc.SendPublicChatMessage(await _partyUp.GetRequestList(game.Id, _broadcasterId));
+                    _irc.SendPublicChatMessage(await _partyUp.GetRequestList(game.Id, _broadcasterInstance.DatabaseId));
             }
             catch (Exception ex)
             {
@@ -524,7 +522,7 @@ namespace TwitchBot.Commands
                 else if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
                 else
-                    _irc.SendPublicChatMessage(await _partyUp.GetPartyList(game.Id, _broadcasterId));
+                    _irc.SendPublicChatMessage(await _partyUp.GetPartyList(game.Id, _broadcasterInstance.DatabaseId));
             }
             catch (Exception ex)
             {
@@ -540,7 +538,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                int balance = await _bank.CheckBalance(chatter.Username, _broadcasterId);
+                int balance = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
 
                 if (balance == -1)
                     _irc.SendPublicChatMessage($"You are not currently banking with us at the moment. Please talk to a moderator about acquiring {_botConfig.CurrencyType}");
@@ -575,7 +573,7 @@ namespace TwitchBot.Commands
                     return DateTime.Now;
                 }
 
-                int walletBalance = await _bank.CheckBalance(chatter.Username, _broadcasterId);
+                int walletBalance = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
 
                 // Check if user wants to gamble all of their wallet
                 if (gambleMessage.Equals("all", StringComparison.CurrentCultureIgnoreCase))
@@ -625,7 +623,7 @@ namespace TwitchBot.Commands
                         result += $"won {gambledMoney * 3} {_botConfig.CurrencyType}";
                     }
 
-                    await _bank.UpdateFunds(chatter.Username, _broadcasterId, newBalance);
+                    await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, newBalance);
 
                     // Show how much the user has left if they didn't gamble all of their currency or gambled all and lost
                     if (allResponse != "ALL " || (allResponse == "ALL " && diceRoll < 61))
@@ -657,7 +655,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                List<Quote> quotes = await _quote.GetQuotes(_broadcasterId);
+                List<Quote> quotes = await _quote.GetQuotes(_broadcasterInstance.DatabaseId);
 
                 // Check if there any quotes inside the system
                 if (quotes == null || quotes.Count == 0)
@@ -770,12 +768,12 @@ namespace TwitchBot.Commands
 
                 if (createdAt != null)
                 {
-                    int currExp = await _follower.CurrentExp(chatter.Username, _broadcasterId);
+                    int currExp = await _follower.CurrentExp(chatter.Username, _broadcasterInstance.DatabaseId);
 
                     // Grab the follower's associated rank
                     if (currExp > -1)
                     {
-                        IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterId);
+                        IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterInstance.DatabaseId);
                         Rank currFollowerRank = _follower.GetCurrentRank(rankList, currExp);
                         decimal hoursWatched = _follower.GetHoursWatched(currExp);
 
@@ -784,7 +782,7 @@ namespace TwitchBot.Commands
                     }
                     else
                     {
-                        await _follower.EnlistRecruit(chatter.Username, _broadcasterId);
+                        await _follower.EnlistRecruit(chatter.Username, _broadcasterInstance.DatabaseId);
 
                         _irc.SendPublicChatMessage($"Welcome to the army @{chatter.DisplayName}. View your new rank using !rank");
                     }
@@ -835,7 +833,7 @@ namespace TwitchBot.Commands
                 }
                 else // Make the song request free for the mentioned chatter types above
                 {
-                    funds = await _bank.CheckBalance(chatter.Username, _broadcasterId);
+                    funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
                 }
 
                 if (funds < cost)
@@ -885,7 +883,7 @@ namespace TwitchBot.Commands
                     }
 
                     // Check if video's title and account match song request blacklist
-                    List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterId);
+                    List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
 
                     if (blacklist.Count > 0)
                     {
@@ -961,7 +959,7 @@ namespace TwitchBot.Commands
 
                             if (cost > 0)
                             {
-                                await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - cost);
+                                await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds - cost);
                             }
 
                             int position = await _libVLCSharpPlayer.AddSongRequest(playlistItem);
@@ -1105,7 +1103,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                List<Bank> richestUsers = await _bank.GetCurrencyLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
+                List<Bank> richestUsers = await _bank.GetCurrencyLeaderboard(_botConfig.Broadcaster, _broadcasterInstance.DatabaseId, _botConfig.BotName);
 
                 if (richestUsers.Count == 0)
                 {
@@ -1146,7 +1144,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                IEnumerable<RankFollower> highestRankedFollowers = await _follower.GetFollowersLeaderboard(_botConfig.Broadcaster, _broadcasterId, _botConfig.BotName);
+                IEnumerable<RankFollower> highestRankedFollowers = await _follower.GetFollowersLeaderboard(_botConfig.Broadcaster, _broadcasterInstance.DatabaseId, _botConfig.BotName);
 
                 if (highestRankedFollowers.Count() == 0)
                 {
@@ -1154,7 +1152,7 @@ namespace TwitchBot.Commands
                     return;
                 }
 
-                IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterId);
+                IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterInstance.DatabaseId);
 
                 string resultMsg = "";
                 foreach (RankFollower follower in highestRankedFollowers)
@@ -1236,17 +1234,17 @@ namespace TwitchBot.Commands
 
                     if (rouletteUser.ShotsTaken == 6)
                     {
-                        int funds = await _bank.CheckBalance(chatter.Username, _broadcasterId);
+                        int funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
                         int reward = 3000; // ToDo: Make roulette reward deposit config setting
 
                         if (funds > -1)
                         {
                             funds += reward; // deposit 500 stream currency
-                            await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds);
+                            await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds);
                         }
                         else
                         {
-                            await _bank.CreateAccount(chatter.Username, _broadcasterId, reward);
+                            await _bank.CreateAccount(chatter.Username, _broadcasterInstance.DatabaseId, reward);
                         }
 
                         Program.RouletteUsers.RemoveAll(u => u.Username == chatter.Username);
@@ -1338,7 +1336,7 @@ namespace TwitchBot.Commands
             try
             {
                 BankHeist bankHeist = new BankHeist();
-                int funds = await _bank.CheckBalance(chatter.Username, _broadcasterId);
+                int funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
                 bool isValid = int.TryParse(chatter.Message.Substring(chatter.Message.IndexOf(" ")), out int gamble);
 
                 if (_heistSettingsInstance.IsHeistOnCooldown())
@@ -1406,7 +1404,7 @@ namespace TwitchBot.Commands
                     // join bank heist
                     BankRobber robber = new BankRobber { Username = chatter.Username, Gamble = gamble };
                     bankHeist.Produce(robber);
-                    await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - gamble);
+                    await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds - gamble);
 
                     // display new heist level
                     if (!string.IsNullOrEmpty(bankHeist.NextLevelMessage()))
@@ -1464,7 +1462,7 @@ namespace TwitchBot.Commands
             try
             {
                 BossFight bossFight = new BossFight();
-                int funds = await _bank.CheckBalance(chatter.Username, _broadcasterId);
+                int funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
 
                 if (_bossSettingsInstance.IsBossFightOnCooldown())
                 {
@@ -1545,7 +1543,7 @@ namespace TwitchBot.Commands
                     FighterClass fighterClass = _bossSettingsInstance.ClassStats.Single(c => c.ChatterType == chatterType);
                     BossFighter fighter = new BossFighter { Username = chatter.Username, FighterClass = fighterClass };
                     bossFight.Produce(fighter);
-                    await _bank.UpdateFunds(chatter.Username, _broadcasterId, funds - _bossSettingsInstance.Cost);
+                    await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds - _bossSettingsInstance.Cost);
 
                     // display new boss level
                     if (!string.IsNullOrEmpty(bossFight.NextLevelMessage()))
@@ -1643,7 +1641,7 @@ namespace TwitchBot.Commands
                 }
 
                 // Get and check wallet balance
-                int balance = await _bank.CheckBalance(chatter.Username, _broadcasterId);
+                int balance = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
 
                 if (giftMessage == "all")
                 {
@@ -1659,14 +1657,14 @@ namespace TwitchBot.Commands
                 else
                 {
                     // make sure the user exists in the database to prevent fake accounts from being created
-                    int recipientBalance = await _bank.CheckBalance(recipient, _broadcasterId);
+                    int recipientBalance = await _bank.CheckBalance(recipient, _broadcasterInstance.DatabaseId);
 
                     if (recipientBalance == -1)
                         _irc.SendPublicChatMessage($"The user \"{recipient}\" is currently not banking with us. Please talk to a moderator about creating their account @{chatter.DisplayName}");
                     else
                     {
-                        await _bank.UpdateFunds(chatter.Username, _broadcasterId, balance - giftAmount); // take away from sender
-                        await _bank.UpdateFunds(recipient, _broadcasterId, giftAmount + recipientBalance); // give to recipient
+                        await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, balance - giftAmount); // take away from sender
+                        await _bank.UpdateFunds(recipient, _broadcasterInstance.DatabaseId, giftAmount + recipientBalance); // give to recipient
 
                         _irc.SendPublicChatMessage($"@{chatter.DisplayName} gave {giftAmount} {_botConfig.CurrencyType} to @{recipient}");
                         return DateTime.Now.AddSeconds(20);
@@ -1762,9 +1760,9 @@ namespace TwitchBot.Commands
 
                 InGameUsername ign = null;
                 if (chatter.Message.StartsWith("!all"))
-                    ign = await _ign.GetInGameUsername(_broadcasterId); // return generic IGN
+                    ign = await _ign.GetInGameUsername(_broadcasterInstance.DatabaseId); // return generic IGN
                 else
-                    ign = await _ign.GetInGameUsername(_broadcasterId, game); // return specified IGN (if available)
+                    ign = await _ign.GetInGameUsername(_broadcasterInstance.DatabaseId, game); // return specified IGN (if available)
 
                 if (ign != null && !string.IsNullOrEmpty(ign.Message))
                     _irc.SendPublicChatMessage(ign.Message);
@@ -2024,14 +2022,6 @@ namespace TwitchBot.Commands
         private bool IsPrivilegdChatter(TwitchChatter chatter)
         {
             return chatter.Badges.Contains("vip") || chatter.Badges.Contains("moderator") || chatter.Badges.Contains("broadcaster") ? true : false;
-        }
-
-        public void PlayCommandSound(string filepath)
-        {
-            using (SoundPlayer player = new SoundPlayer(filepath))
-            {
-                player.Play();
-            }
         }
     }
 }

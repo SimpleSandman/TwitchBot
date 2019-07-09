@@ -21,7 +21,6 @@ namespace TwitchBot.Commands
         private TimeoutCmd _timeout;
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
-        private int _broadcasterId;
         private BankService _bank;
         private TwitchInfoService _twitchInfo;
         private ManualSongRequestService _manualSongRequest;
@@ -33,14 +32,13 @@ namespace TwitchBot.Commands
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
-        public CmdVip(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, int broadcasterId, 
-            System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo, ManualSongRequestService manualSongRequest,
-            QuoteService quote, PartyUpService partyUp, GameDirectoryService gameDirectory)
+        public CmdVip(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig, 
+            BankService bank, TwitchInfoService twitchInfo, ManualSongRequestService manualSongRequest, QuoteService quote, 
+            PartyUpService partyUp, GameDirectoryService gameDirectory)
         {
             _irc = irc;
             _timeout = timeout;
             _botConfig = botConfig;
-            _broadcasterId = broadcasterId;
             _appConfig = appConfig;
             _bank = bank;
             _twitchInfo = twitchInfo;
@@ -57,7 +55,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                SongRequest removedSong = await _manualSongRequest.PopSongRequest(_broadcasterId);
+                SongRequest removedSong = await _manualSongRequest.PopSongRequest(_broadcasterInstance.DatabaseId);
 
                 if (removedSong != null)
                     _irc.SendPublicChatMessage($"The first song in the queue, \"{removedSong.Name}\" ({removedSong.Username}), has been removed");
@@ -90,7 +88,7 @@ namespace TwitchBot.Commands
                         + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
                 }
                 else if (game?.Id > 0)
-                    _irc.SendPublicChatMessage(await _partyUp.PopRequestedPartyMember(game.Id, _broadcasterId));
+                    _irc.SendPublicChatMessage(await _partyUp.PopRequestedPartyMember(game.Id, _broadcasterInstance.DatabaseId));
                 else
                     _irc.SendPublicChatMessage("This game is not part of the \"Party Up\" system");
             }
@@ -110,7 +108,7 @@ namespace TwitchBot.Commands
             {
                 string quote = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
 
-                await _quote.AddQuote(quote, chatter.DisplayName, _broadcasterId);
+                await _quote.AddQuote(quote, chatter.DisplayName, _broadcasterInstance.DatabaseId);
 
                 _irc.SendPublicChatMessage($"Quote has been created @{chatter.DisplayName}");
             }

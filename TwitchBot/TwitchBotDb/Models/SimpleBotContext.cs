@@ -23,6 +23,7 @@ namespace TwitchBotDb.Models
         public virtual DbSet<BotModerator> BotModerator { get; set; }
         public virtual DbSet<BotTimeout> BotTimeout { get; set; }
         public virtual DbSet<Broadcaster> Broadcaster { get; set; }
+        public virtual DbSet<CustomCommand> CustomCommand { get; set; }
         public virtual DbSet<ErrorLog> ErrorLog { get; set; }
         public virtual DbSet<InGameUsername> InGameUsername { get; set; }
         public virtual DbSet<PartyUp> PartyUp { get; set; }
@@ -38,6 +39,8 @@ namespace TwitchBotDb.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasAnnotation("ProductVersion", "2.2.4-servicing-10062");
+
             modelBuilder.Entity<Bank>(entity =>
             {
                 entity.Property(e => e.Username)
@@ -569,6 +572,29 @@ namespace TwitchBotDb.Models
                     .IsRequired()
                     .HasMaxLength(30)
                     .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<CustomCommand>(entity =>
+            {
+                entity.ToTable("CustomCommand", "Cmd");
+
+                entity.Property(e => e.Message)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(30);
+
+                entity.Property(e => e.Whitelist)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Broadcaster)
+                    .WithMany(p => p.CustomCommand)
+                    .HasForeignKey(d => d.BroadcasterId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Cmd_CustomCommand_Broadcaster");
             });
 
             modelBuilder.Entity<ErrorLog>(entity =>
