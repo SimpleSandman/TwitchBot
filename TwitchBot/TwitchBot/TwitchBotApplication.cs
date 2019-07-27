@@ -1435,18 +1435,42 @@ namespace TwitchBot
             {
                 CustomCommand customCommand = _customCommandInstance.FindCustomCommand(chatter.Message.ToLower());
 
-                if (customCommand == null)
+                if (customCommand == null || IsCommandOnCooldown(customCommand.Name, chatter, customCommand.IsGlobalCooldown))
                 {
                     return; // couldn't find the requested command
                 }
 
-                if (customCommand.IsSound && !IsCommandOnCooldown(customCommand.Name, chatter, customCommand.IsGlobalCooldown))
+                int balance = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+
+                if (balance == -1)
+                {
+                    _irc.SendPublicChatMessage($"You are not currently banking with us at the moment. " 
+                        + $"Please talk to a moderator about acquiring {_botConfig.CurrencyType} @{chatter.DisplayName}");
+
+                    return;
+                }
+                else if (balance < customCommand.CurrencyCost)
+                {
+                    _irc.SendPublicChatMessage($"You don't have enough {_botConfig.CurrencyType} to use this command @{chatter.DisplayName}");
+                    return;
+                }              
+
+                // Send either a sound command or a normal text command
+                if (customCommand.IsSound)
                 {
                     using (SoundPlayer player = new SoundPlayer(customCommand.Message))
                     {
                         player.Play();
                     }
+                }
+                else if (!customCommand.IsSound)
+                {
+                    _irc.SendPublicChatMessage(customCommand.Message);
+                }
 
+                // Check and add cooldown if necessary
+                if (customCommand.CooldownSec > 0)
+                {
                     _cooldownUsers.Add(new CooldownUser
                     {
                         Username = chatter.Username,
@@ -1455,9 +1479,15 @@ namespace TwitchBot
                         Warned = false
                     });
                 }
-                else if (!customCommand.IsSound)
+
+                // Make the chatter pay the price if necessary
+                if (customCommand.CurrencyCost > 0)
                 {
-                    _irc.SendPublicChatMessage(customCommand.Message);
+                    balance -= customCommand.CurrencyCost;
+                    await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, balance);
+
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} spent {customCommand.CurrencyCost} " + 
+                        $"{_botConfig.CurrencyType} for {customCommand.Name} and now has {balance} {_botConfig.CurrencyType}");
                 }
             }
             catch (Exception ex)

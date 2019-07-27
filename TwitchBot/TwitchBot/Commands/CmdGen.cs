@@ -948,45 +948,54 @@ namespace TwitchBot.Commands
                         if (parsedDuration.IndexOf("S") > 0)
                             videoSec = parsedDuration.Substring(minIndex + 1).TrimEnd('S');
 
+                        // Make sure song requests are no longer than a set amount
                         if (Convert.ToInt32(videoMin) >= videoMinLimit && Convert.ToInt32(videoSec) >= videoSecLimit)
                         {
                             _irc.SendPublicChatMessage("Song request is longer than or equal to " 
                                 + $"{videoMinLimit} minute(s) and {videoSecLimit} second(s) @{chatter.DisplayName}");
+
+                            return DateTime.Now;
                         }
-                        else
+
+                        // Make sure song requests are no shorter than a set amount
+                        if (Convert.ToInt32(videoMin) < 1 || (Convert.ToInt32(videoMin) == 1 && Convert.ToInt32(videoSec) < 30))
                         {
-                            PlaylistItem playlistItem = await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.DisplayName);
+                            _irc.SendPublicChatMessage($"Song request is shorter than 1 minute and 30 seconds @{chatter.DisplayName}");
 
-                            if (cost > 0)
-                            {
-                                await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds - cost);
-                            }
-
-                            int position = await _libVLCSharpPlayer.AddSongRequest(playlistItem);
-
-                            string response = $"@{chatter.DisplayName} spent {cost} {_botConfig.CurrencyType} "
-                                + $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) "
-                                + $"was successfully added to the queue";
-
-                            if (position == 1)
-                                response += " and will be playing next!";
-                            else if (position > 1)
-                                response += $" at position #{position}!";
-
-                            response += " https://youtu.be/" + video.Id;
-
-                            _irc.SendPublicChatMessage(response);
-
-                            // Return cooldown time by using one-third of the length of the video duration
-                            TimeSpan totalTimeSpan = new TimeSpan(0, Convert.ToInt32(videoMin), Convert.ToInt32(videoSec));
-                            TimeSpan cooldownTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 3);
-
-                            // Reduce the cooldown for privileged chatters
-                            if (IsPrivilegdChatter(chatter))
-                                cooldownTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 4);
-
-                            return DateTime.Now.AddSeconds(cooldownTimeSpan.TotalSeconds);
+                            return DateTime.Now;
                         }
+
+                        PlaylistItem playlistItem = await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.DisplayName);
+
+                        if (cost > 0)
+                        {
+                            await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds - cost);
+                        }
+
+                        int position = await _libVLCSharpPlayer.AddSongRequest(playlistItem);
+
+                        string response = $"@{chatter.DisplayName} spent {cost} {_botConfig.CurrencyType} "
+                            + $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) "
+                            + $"was successfully added to the queue";
+
+                        if (position == 1)
+                            response += " and will be playing next!";
+                        else if (position > 1)
+                            response += $" at position #{position}!";
+
+                        response += " https://youtu.be/" + video.Id;
+
+                        _irc.SendPublicChatMessage(response);
+
+                        // Return cooldown time by using one-third of the length of the video duration
+                        TimeSpan totalTimeSpan = new TimeSpan(0, Convert.ToInt32(videoMin), Convert.ToInt32(videoSec));
+                        TimeSpan cooldownTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 3);
+
+                        // Reduce the cooldown for privileged chatters
+                        if (IsPrivilegdChatter(chatter))
+                            cooldownTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 4);
+
+                        return DateTime.Now.AddSeconds(cooldownTimeSpan.TotalSeconds);
                     }
                 }
             }

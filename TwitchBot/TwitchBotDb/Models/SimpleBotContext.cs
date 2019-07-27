@@ -36,6 +36,7 @@ namespace TwitchBotDb.Models
         public virtual DbSet<SongRequestIgnore> SongRequestIgnore { get; set; }
         public virtual DbSet<SongRequestSetting> SongRequestSetting { get; set; }
         public virtual DbSet<TwitchGameCategory> TwitchGameCategory { get; set; }
+        public virtual DbSet<Whitelist> Whitelist { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -586,15 +587,16 @@ namespace TwitchBotDb.Models
                     .IsRequired()
                     .HasMaxLength(30);
 
-                entity.Property(e => e.Whitelist)
-                    .HasMaxLength(500)
-                    .IsUnicode(false);
-
                 entity.HasOne(d => d.Broadcaster)
                     .WithMany(p => p.CustomCommand)
                     .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Cmd_CustomCommand_Broadcaster");
+
+                entity.HasOne(d => d.Game)
+                    .WithMany(p => p.CustomCommand)
+                    .HasForeignKey(d => d.GameId)
+                    .HasConstraintName("FK_Cmd_CustomCommand_TwitchGameCategory");
             });
 
             modelBuilder.Entity<ErrorLog>(entity =>
@@ -819,6 +821,22 @@ namespace TwitchBotDb.Models
                     .IsRequired()
                     .HasMaxLength(100)
                     .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<Whitelist>(entity =>
+            {
+                entity.ToTable("Whitelist", "Cmd");
+
+                entity.Property(e => e.Username)
+                    .IsRequired()
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.CustomCommand)
+                    .WithMany(p => p.Whitelist)
+                    .HasForeignKey(d => d.CustomCommandId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Cmd_Whitelist_Cmd_CustomCommand");
             });
         }
     }

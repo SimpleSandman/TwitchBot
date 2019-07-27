@@ -78,7 +78,7 @@ namespace TwitchBot.Threads
 
                 if (broadcasterType == "partner" || broadcasterType == "affiliate")
                 {
-                    // Check for new subscribers
+                    /* Check for new subscribers */
                     RootSubscriptionJSON rootSubscriptionJson = await _twitchInfo.GetSubscribersByChannel();
                     IEnumerable<string> freshSubscribers = rootSubscriptionJson.Subscriptions
                         ?.Where(u => Convert.ToDateTime(u.CreatedAt).ToLocalTime() > DateTime.Now.AddSeconds(-60))
@@ -104,18 +104,44 @@ namespace TwitchBot.Threads
                             }
 
                             subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", ""); // replace trailing ","
-                            subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", " & "); // replacing joining ","
+                            subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", " & "); // replace last ","
                         }
 
-                        string welcomeMessage = $"Thank you so much {subscriberUsername} on becoming {subscriberRoleplayName}! "
-                            + $"That dedication will give @{_botConfig.Broadcaster} the edge they need to lead the charge " 
-                            + "into the seven salty seas of Twitch! SwiftRage";
+                        string welcomeMessage = $"Congrats {subscriberUsername} on becoming @{_botConfig.Broadcaster} 's {subscriberRoleplayName}!";
 
-                        _irc.SendPublicChatMessage(welcomeMessage);
+                        // Break up welcome message if it's too big
+                        if (welcomeMessage.Count() > 500)
+                        {
+                            string[] separators = new string[] { ", ", " & " };
+                            List<string> subscribers = subscriberUsername.Split(separators, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                            while (subscribers.Count > 0)
+                            {
+                                int popCount = 14;
+
+                                if (subscribers.Count < popCount)
+                                {
+                                    popCount = subscribers.Count;
+                                }
+
+                                subscriberUsername = string.Join(", ", subscribers.Take(popCount));
+                                subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", ""); // replace trailing ","
+                                subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", " & "); // replace last ","
+
+                                subscribers.RemoveRange(0, popCount);
+
+                                _irc.SendPublicChatMessage($"Congrats {subscriberUsername} on becoming @{_botConfig.Broadcaster} 's {subscriberRoleplayName}!");
+                                await Task.Delay(750);
+                            }
+                        }
+                        else
+                        {
+                            _irc.SendPublicChatMessage(welcomeMessage);
+                        }
                     }
                 }
 
-                // Check for new followers
+                /* Check for new followers */
                 RootFollowerJSON rootFollowerJson = await _twitchInfo.GetFollowersByChannel();
                 IEnumerable<string> freshFollowers = rootFollowerJson.Followers
                     ?.Where(u => Convert.ToDateTime(u.CreatedAt).ToLocalTime() > DateTime.Now.AddSeconds(-60))
