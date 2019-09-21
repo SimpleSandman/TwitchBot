@@ -335,7 +335,7 @@ namespace TwitchBot
                 Console.WriteLine();
 
                 /* Finished setup, time to start */
-                await GetChatBox(_isManualSongRequestAvail, _isYouTubeSongRequestAvail, _botConfig.TwitchAccessToken, _hasTwitterInfo, _hasYouTubeAuth);
+                await GetChatBox(_isManualSongRequestAvail, _isYouTubeSongRequestAvail, _hasTwitterInfo, _hasYouTubeAuth);
             }
             catch (Exception ex)
             {
@@ -348,10 +348,9 @@ namespace TwitchBot
         /// </summary>
         /// <param name="isManualSongRequestAvail"></param>
         /// <param name="isYouTubeSongRequestAvail"></param>
-        /// <param name="twitchAccessToken"></param>
         /// <param name="hasTwitterInfo"></param>
         /// <param name="hasYouTubeAuth"></param>
-        private async Task GetChatBox(bool isManualSongRequestAvail, bool isYouTubeSongRequestAvail, string twitchAccessToken, bool hasTwitterInfo, bool hasYouTubeAuth)
+        private async Task GetChatBox(bool isManualSongRequestAvail, bool isYouTubeSongRequestAvail, bool hasTwitterInfo, bool hasYouTubeAuth)
         {
             try
             {
@@ -1246,13 +1245,6 @@ namespace TwitchBot
                         {
                             // Use the user credentials in the application
                             Auth.SetCredentials(userCredentials);
-
-                            // ToDo: Get proper fix from Tweetinvi
-                            /* 
-                             * Reference: https://github.com/linvi/tweetinvi/issues/850
-                             * Workaround: Download hotfix .dll from GodsWithin and replace the one in
-                             * ..\TwitchBot\Twitchbot\packages\TweetinviAPI.4.0.0\lib\net461
-                            */
                             authenticatedUser = User.GetAuthenticatedUser();
                         }
 

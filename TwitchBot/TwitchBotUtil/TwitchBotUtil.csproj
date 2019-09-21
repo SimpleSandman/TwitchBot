@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -14,9 +14,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.40.2.1593" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.41.0.1699" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="RestSharp" Version="106.6.9" />
+    <PackageReference Include="RestSharp" Version="106.6.10" />
   </ItemGroup>
 
 </Project>
