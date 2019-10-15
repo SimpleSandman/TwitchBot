@@ -23,6 +23,8 @@ using TwitchBot.Threads;
 using TwitchBotDb.Models;
 using TwitchBotDb.Temp;
 
+using TwitchBotUtil.Extensions;
+
 namespace TwitchBot
 {
     public class TwitchBotApplication
@@ -987,7 +989,7 @@ namespace TwitchBot
                                             }
                                         }
 
-                                        FindCustomCommand(chatter);
+                                        UseCustomCommand(chatter);
 
                                         /* add more general commands here */
                                         break;
@@ -1421,10 +1423,30 @@ namespace TwitchBot
         /// Load a custom command made by the broadcaster
         /// </summary>
         /// <param name="chatter"></param>
-        private async void FindCustomCommand(TwitchChatter chatter)
+        private async void UseCustomCommand(TwitchChatter chatter)
         {
             try
             {
+                /* Display the sound commands to the chatter in alphabetical order */
+                if (chatter.Message == "!sound")
+                {
+                    string orderedCommands = "";
+                    foreach (string soundCommand in _customCommandInstance.GetSoundCommands().Select(c => c.Name))
+                    {
+                        orderedCommands += $"{soundCommand}, ";
+                    }
+
+                    string message = $"These are the available sound commands: {orderedCommands.ReplaceLastOccurrence(", ", "")}";
+                    if (string.IsNullOrEmpty(orderedCommands))
+                    {
+                        message = $"There are no sound commands at this time @{chatter.Username}";
+                    }
+
+                    _irc.SendPublicChatMessage(message);
+                    return;
+                }
+
+                /* Else find and use the custom command from the database */
                 CustomCommand customCommand = _customCommandInstance.FindCustomCommand(chatter.Message.ToLower());
 
                 if (customCommand == null || IsCommandOnCooldown(customCommand.Name, chatter, customCommand.IsGlobalCooldown))

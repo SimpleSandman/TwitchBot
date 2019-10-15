@@ -42,6 +42,11 @@ namespace TwitchBot.Libraries
             _customCommands = await ApiBotRequest.GetExecuteTaskAsync<List<CustomCommand>>(twitchBotApiLink + $"customcommands/get/{broadcasterId}");
         }
 
+        public IEnumerable<CustomCommand> GetSoundCommands()
+        {
+            return _customCommands.FindAll(s => s.IsSound).OrderBy(o => o.Name);
+        }
+
         public CustomCommand FindCustomCommand(string commandName)
         {
             return _customCommands.SingleOrDefault(c => c.Name == commandName);
