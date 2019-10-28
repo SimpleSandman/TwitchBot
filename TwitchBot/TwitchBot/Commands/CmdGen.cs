@@ -317,7 +317,7 @@ namespace TwitchBot.Commands
             try
             {
                 string bodyPart = "'s ";
-                string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
+                string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
                 Random rnd = new Random(DateTime.Now.Millisecond);
                 int bodyPartId = rnd.Next(8); // between 0 and 7
 
@@ -389,7 +389,7 @@ namespace TwitchBot.Commands
                     _irc.SendPublicChatMessage($"Please throw an item to a user @{chatter.DisplayName}");
                 else
                 {
-                    string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
+                    string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
                     string item = chatter.Message.Substring(indexAction, chatter.Message.IndexOf("@") - indexAction - 1);
 
                     ReactionCmd(chatter.DisplayName, recipient, $"Stop throwing {item} at yourself", $"throws {item} at", $". {Effectiveness()}");
@@ -1897,8 +1897,8 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdGen", "CheckWpfTitle(TwitchChatter)", false);
-    }
-}
+            }
+        }
 
         private async Task<bool> IsMultiplayerGame(string username)
         {
@@ -1939,48 +1939,11 @@ namespace TwitchBot.Commands
             // check if user is trying to use a command on themselves
             if (origUser.ToLower() == recipient.ToLower())
             {
-                _irc.SendPublicChatMessage(msgToSelf + " @" + origUser);
+                _irc.SendPublicChatMessage($"{msgToSelf} @{origUser}");
                 return true;
             }
 
-            // check if recipient is the broadcaster before checking the viewer channel
-            if (ChatterValid(origUser.ToLower(), recipient.ToLower()))
-            {
-                _irc.SendPublicChatMessage(origUser + " " + action + " @" + recipient + " " + addlMsg);
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool ChatterValid(string origUser, string recipient)
-        {
-            // Check if the requested user is this bot
-            if (recipient == _botConfig.BotName.ToLower() || recipient == _botConfig.Broadcaster.ToLower())
-                return true;
-
-            DateTime timeToGetOut = DateTime.Now.AddSeconds(3);
-
-            // Wait until chatter lists are available
-            while (!_twitchChatterListInstance.AreListsAvailable && DateTime.Now < timeToGetOut)
-            {
-
-            }
-
-            // Grab user's chatter info (viewers, mods, etc.)
-            List<string> chatterList = _twitchChatterListInstance.ChattersByName;
-            if (chatterList.Count > 0)
-            {
-                // Search for user
-                foreach (string chatter in chatterList)
-                {
-                    if (chatter == recipient.ToLower())
-                        return true;
-                }
-            }
-
-            // finished searching with no results
-            _irc.SendPublicChatMessage($"@{origUser}: I cannot find the user you wanted to interact with. Perhaps the user left us?");
+            _irc.SendPublicChatMessage($"{origUser} {action} @{recipient} {addlMsg}");
             return false;
         }
 
@@ -1988,22 +1951,16 @@ namespace TwitchBot.Commands
         {
             Random rnd = new Random(DateTime.Now.Millisecond);
             int effectiveLvl = rnd.Next(3); // between 0 and 2
-            string effectiveness = "";
 
             switch (effectiveLvl)
             {
                 case 0:
-                    effectiveness = "It's super effective!";
-                    break;
+                    return "It's super effective!";
                 case 1:
-                    effectiveness = "It wasn't very effective";
-                    break;
+                    return "It wasn't very effective";
                 default:
-                    effectiveness = "It had no effect";
-                    break;
+                    return "It had no effect";
             }
-
-            return effectiveness;
         }
 
         private string ParseYoutubeVideoId(TwitchChatter chatter, int spaceIndex)

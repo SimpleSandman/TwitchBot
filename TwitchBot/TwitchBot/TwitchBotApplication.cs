@@ -757,7 +757,7 @@ namespace TwitchBot
                                             await _cmdGen.CmdManualSr(isManualSongRequestAvail, chatter);
 
                                         /* Slaps a user and rates its effectiveness */
-                                        else if (message.StartsWith("!slap @") && !IsCommandOnCooldown("!slap", chatter))
+                                        else if ((message.StartsWith("!slap @") || message.StartsWith("!slaps @")) && !IsCommandOnCooldown("!slap", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdSlap(chatter);
                                             if (cooldown > DateTime.Now)
@@ -773,7 +773,7 @@ namespace TwitchBot
                                         }
 
                                         /* Stabs a user and rates its effectiveness */
-                                        else if (message.StartsWith("!stab @") && !IsCommandOnCooldown("!stab", chatter))
+                                        else if ((message.StartsWith("!stab @") || message.StartsWith("!stabs @")) && !IsCommandOnCooldown("!stab", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdStab(chatter);
                                             if (cooldown > DateTime.Now)
@@ -789,7 +789,7 @@ namespace TwitchBot
                                         }
 
                                         /* Shoots a viewer's random body part */
-                                        else if (message.StartsWith("!shoot @") && !IsCommandOnCooldown("!shoot", chatter))
+                                        else if ((message.StartsWith("!shoot @") || message.StartsWith("!shoots @")) && !IsCommandOnCooldown("!shoot", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdShoot(chatter);
                                             if (cooldown > DateTime.Now)
@@ -805,7 +805,7 @@ namespace TwitchBot
                                         }
 
                                         /* Throws an item at a viewer and rates its effectiveness against the victim */
-                                        else if (message.StartsWith("!throw ") && message.Contains("@") && !IsCommandOnCooldown("!throw", chatter))
+                                        else if ((message.StartsWith("!throw ") || message.StartsWith("!throws ")) && message.Contains("@") && !IsCommandOnCooldown("!throw", chatter))
                                         {
                                             DateTime cooldown = await _cmdGen.CmdThrow(chatter);
                                             if (cooldown > DateTime.Now)
