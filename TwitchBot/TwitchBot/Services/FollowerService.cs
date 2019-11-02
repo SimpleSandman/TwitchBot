@@ -71,6 +71,11 @@ namespace TwitchBot.Services
             return Math.Round(Convert.ToDecimal(currentExp) / (decimal)60.0, 2);
         }
 
+        public bool IsRegularFollower(int currentExp, int regularFollowerHours)
+        {
+            return GetHoursWatched(currentExp) >= regularFollowerHours;
+        }
+
         public async Task<IEnumerable<RankFollower>> GetFollowersLeaderboard(string broadcasterName, int broadcasterId, string botName)
         {
             return await _followerDb.GetFollowersLeaderboard(broadcasterName, broadcasterId, botName);

@@ -1537,8 +1537,26 @@ namespace TwitchBot.Commands
                         chatterType = _twitchChatterListInstance.GetUserChatterType(chatter.Username);
                         if (chatterType == ChatterType.DoesNotExist)
                         {
-                            _irc.SendPublicChatMessage($"I'm not able to find you in the chatter list. Please try again in 15 seconds @{chatter.DisplayName}");
-                            return;
+                            using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(chatter.TwitchId))
+                            {
+                                // check if chatter is a follower
+                                if (!message.IsSuccessStatusCode)
+                                {
+                                    int currentExp = await _follower.CurrentExp(chatter.Username, _broadcasterInstance.DatabaseId);
+                                    if (_follower.IsRegularFollower(currentExp, _botConfig.RegularFollowerHours))
+                                    {
+                                        chatterType = ChatterType.RegularFollower;
+                                    }
+                                    else
+                                    {
+                                        chatterType = ChatterType.Follower;
+                                    }
+                                }
+                                else
+                                {
+                                    chatterType = ChatterType.Viewer;
+                                }
+                            }
                         }
                     }
 

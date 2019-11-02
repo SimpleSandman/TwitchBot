@@ -57,9 +57,9 @@ namespace TwitchBot.Services
             return await TwitchApi.GetClip(_botConfig.TwitchClientId, slug);
         }
 
-        public async Task<HttpResponseMessage> CheckFollowerStatus(string username)
+        public async Task<HttpResponseMessage> CheckFollowerStatus(string chatterTwitchId)
         {
-            return await TwitchApi.GetFollowerStatus(username, _botConfig.TwitchClientId);
+            return await TwitchApi.GetFollowerStatus(chatterTwitchId, _botConfig.TwitchClientId);
         }
 
         public async Task<HttpResponseMessage> GetChatters()

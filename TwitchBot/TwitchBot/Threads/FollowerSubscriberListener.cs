@@ -257,7 +257,6 @@ namespace TwitchBot.Threads
 
                 // check if follower has experience
                 int currentExp = await _follower.CurrentExp(chatter, _broadcasterId);
-                decimal hoursWatched = 0.0m;
 
                 if (currentExp > -1)
                 {
@@ -271,23 +270,25 @@ namespace TwitchBot.Threads
 
                 // check if follower has a stream currency account
                 int funds = await _bank.CheckBalance(chatter, _broadcasterId);
+                int setIncrementFunds = 10; // default to normal follower amount
+
+                if (_follower.IsRegularFollower(currentExp, _botConfig.RegularFollowerHours))
+                {
+                    setIncrementFunds = 15;
+
+                    if (!_twitchChatterListInstance.TwitchRegularFollowers.Any(c => c.Username == chatter))
+                        _twitchChatterListInstance.TwitchRegularFollowers.Add(follower);
+                }
 
                 if (funds > -1)
                 {
-                    if (hoursWatched >= _botConfig.RegularFollowerHours)
-                    {
-                        funds += 15;
-
-                        if (!_twitchChatterListInstance.TwitchRegularFollowers.Any(c => c.Username == chatter))
-                            _twitchChatterListInstance.TwitchRegularFollowers.Add(follower);
-                    }
-                    else
-                        funds += 10;
-
+                    funds += setIncrementFunds;
                     await _bank.UpdateFunds(chatter, _broadcasterId, funds);
                 }
                 else // ToDo: Make currency auto-increment setting
-                    await _bank.CreateAccount(chatter, _broadcasterId, 10);
+                {
+                    await _bank.CreateAccount(chatter, _broadcasterId, setIncrementFunds);
+                }
             }
             catch (Exception ex)
             {
