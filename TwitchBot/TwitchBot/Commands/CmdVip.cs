@@ -127,9 +127,9 @@ namespace TwitchBot.Commands
         {
             try
             {
-                int userLimit = 3;
+                int userLimit = 7;
 
-                // Hard-coded limit to 4 users (including broadcaster) 
+                // Hard-coded limit to 8 users (including broadcaster) 
                 // because of possible video bandwidth issues for users...for now
                 if (multiStreamUsers.Count >= userLimit)
                     _irc.SendPublicChatMessage($"Max limit of users set for the MultiStream link! Please reset the link @{chatter.DisplayName}");
