@@ -318,36 +318,57 @@ namespace TwitchBot.Commands
         {
             try
             {
-                if (chatter.Message.StartsWith("!addtimeout @"))
-                    _irc.SendPublicChatMessage("I cannot make a user not talk to me without this format '!addtimeout [seconds] @[username]'");
-                else if (chatter.Message.ToLower().Contains(_botConfig.Broadcaster.ToLower()))
+                if (chatter.Message.ToLower().Contains(_botConfig.Broadcaster.ToLower()))
                     _irc.SendPublicChatMessage($"I cannot betray @{_botConfig.Broadcaster} by not allowing him to communicate with me @{chatter.DisplayName}");
                 else if (chatter.Message.ToLower().Contains(_botConfig.BotName.ToLower()))
                     _irc.SendPublicChatMessage($"You can't time me out @{chatter.DisplayName} PowerUpL Jebaited PowerUpR");
                 else
                 {
-                    int indexAction = chatter.Message.IndexOf(" ");
-                    string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
-                    double seconds = -1;
-                    bool isValidTimeout = double.TryParse(chatter.Message.Substring(indexAction, chatter.Message.IndexOf("@") - indexAction - 1), out seconds);
+                    int recipientIndexAction = chatter.Message.IndexOf("@");
+                    int cooldownAmountIndex = chatter.Message.IndexOf(" ");
+                    string recipient = chatter.Message.Substring(recipientIndexAction + 1).ToLower();
 
-                    if (!isValidTimeout || seconds < 0.00)
-                        _irc.SendPublicChatMessage("The timeout amount wasn't accepted. Please try again with positive seconds only");
-                    else if (seconds < 15.00)
-                        _irc.SendPublicChatMessage("The duration needs to be at least 15 seconds long. Please try again");
-                    else
+                    double seconds = -1.0;
+                    bool isValidTimeout = false;
+                    bool isPermanentTimeout = false;
+
+                    // if cooldown is valid, create the timeout
+                    if (cooldownAmountIndex > 0 && chatter.Message.GetNthCharIndex(' ', 2) > 0)
                     {
-                        DateTime timeoutExpiration = await _timeout.AddTimeout(recipient, _broadcasterInstance.DatabaseId, seconds, _botConfig.TwitchBotApiLink);
+                        isValidTimeout = double.TryParse(chatter.Message.Substring(cooldownAmountIndex + 1, recipientIndexAction - cooldownAmountIndex - 2), out seconds);
+                    }
+                    else if (recipient.Length > 0)
+                    {
+                        isValidTimeout = true;
+                        isPermanentTimeout = true;
+                    }
 
-                        string response = $"I'm told not to talk to you until {timeoutExpiration.ToLocalTime()} ";
+                    if (!isValidTimeout || (isValidTimeout && !isPermanentTimeout && seconds < 15.00))
+                    {
+                        _irc.SendPublicChatMessage($"The timeout amount wasn't accepted. Please try again with at least 15 seconds @{chatter.DisplayName}");
+                        return;
+                    }
+
+                    DateTime timeoutExpiration = await _timeout.AddTimeout(recipient, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink, seconds);
+
+                    // create the output
+                    string response = $"I'm told not to talk to you until ";
+
+                    if (timeoutExpiration != DateTime.MaxValue)
+                    {
+                        response += $"{timeoutExpiration.ToLocalTime()} ";
 
                         if (timeoutExpiration.ToLocalTime().IsDaylightSavingTime())
                             response += $"({TimeZone.CurrentTimeZone.DaylightName})";
                         else
                             response += $"({TimeZone.CurrentTimeZone.StandardName})";
-
-                        _irc.SendPublicChatMessage($"{response} @{recipient}");
                     }
+                    else
+                    {
+                        response += "THE END OF TIME! DarkMode";
+                    }
+
+                    _irc.SendPublicChatMessage($"{response} @{recipient}");
                 }
             }
             catch (Exception ex)

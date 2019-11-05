@@ -15,9 +15,11 @@ namespace TwitchBot.Libraries
     {
         public List<TimeoutUser> TimedoutUsers { get; set; } = new List<TimeoutUser>();
 
-        public async Task<DateTime> AddTimeout(string recipient, int broadcasterId, double seconds, string twitchBotApiLink)
+        public async Task<DateTime> AddTimeout(string recipient, int broadcasterId, string twitchBotApiLink, double seconds = -1.0)
         {
-            DateTime timeoutExpiration = DateTime.UtcNow.AddSeconds(seconds);
+            DateTime timeoutExpiration = seconds == -1.0 
+                ? timeoutExpiration = DateTime.MaxValue 
+                : DateTime.UtcNow.AddSeconds(seconds);
 
             BotTimeout timedoutUser = new BotTimeout();
 
