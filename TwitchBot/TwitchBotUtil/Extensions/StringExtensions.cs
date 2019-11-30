@@ -6,12 +6,6 @@ namespace TwitchBotUtil.Extensions
 {
     public static class StringExtensions
     {
-        public static bool IsInt(this string s)
-        {
-            int x = 0;
-            return int.TryParse(s, out x);
-        }
-
         public static int GetNthCharIndex(this string s, char findChar, int n)
         {
             int count = 0;
@@ -42,11 +36,11 @@ namespace TwitchBotUtil.Extensions
             return foundIndexes;
         }
 
-        public static Stream ToStream(this string str)
+        public static Stream ToStream(this string s)
         {
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
-            writer.Write(str);
+            writer.Write(s);
             writer.Flush();
             stream.Position = 0;
             return stream;
@@ -65,6 +59,27 @@ namespace TwitchBotUtil.Extensions
                 return source;
 
             return source.Remove(place, find.Length).Insert(place, replace);
+        }
+
+        public static DateTime? ToNullableDateTime(this string s)
+        {
+            if (DateTime.TryParse(s, out DateTime i)) return i;
+
+            return null;
+        }
+
+        public static int? ToNullableInt(this string s)
+        {
+            if (int.TryParse(s, out int i)) return i;
+
+            return null;
+        }        
+
+        public static TimeSpan? ToNullableTimeSpan(this string s)
+        {
+            if (TimeSpan.TryParse(s, out TimeSpan i)) return i;
+
+            return null;
         }
     }
 }

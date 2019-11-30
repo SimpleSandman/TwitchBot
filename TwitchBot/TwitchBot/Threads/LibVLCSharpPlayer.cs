@@ -417,7 +417,7 @@ namespace TwitchBot.Threads
                     TimeSpan durationTimeSpan = new TimeSpan(0, 0, 0, 0, (int)_mediaPlayer.Length);
 
                     return $"{_mediaPlayer.Media.State.ToString().ToLower()}" +
-                        $" at {ReformatTimeSpan(currentTimeSpan)} of {ReformatTimeSpan(durationTimeSpan)}";
+                        $" at {currentTimeSpan.ReformatTimeSpan()} of {durationTimeSpan.ReformatTimeSpan()}";
                 }
             }
             catch (Exception ex)
@@ -508,29 +508,6 @@ namespace TwitchBot.Threads
                     _personalYoutubePlaylistVideoIds.RemoveRange(0, songSkipCount - 1); // use "-1" to include currently playing song
                 }
             }
-        }
-
-        private string ReformatTimeSpan(TimeSpan ts)
-        {
-            string response = "";
-
-            // format minutes
-            if (ts.Minutes < 1)
-                response += $"[00:";
-            else if (ts.Minutes > 0 && ts.Minutes < 10)
-                response += $"[0{ts.Minutes}:";
-            else
-                response += $"[{ts.Minutes}:";
-
-            // format seconds
-            if (ts.Seconds < 1)
-                response += $"00]";
-            else if (ts.Seconds > 0 && ts.Seconds < 10)
-                response += $"0{ts.Seconds}]";
-            else
-                response += $"{ts.Seconds}]";
-
-            return response;
         }
     }
 }

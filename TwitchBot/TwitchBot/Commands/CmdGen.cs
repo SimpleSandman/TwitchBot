@@ -254,10 +254,12 @@ namespace TwitchBot.Commands
 
                     artistName = artistName.ReplaceLastOccurrence(", ", "");
 
-                    TimeSpan timeSpan = TimeSpan.FromMilliseconds(playbackContext.Item.DurationMs);
+                    TimeSpan progressTimeSpan = TimeSpan.FromMilliseconds(playbackContext.ProgressMs);
+                    TimeSpan durationTimeSpan = TimeSpan.FromMilliseconds(playbackContext.Item.DurationMs);
 
-                    _irc.SendPublicChatMessage($"Now Playing: \"{playbackContext.Item.Name}\" by {artistName} " 
-                        + $"({Math.Floor(timeSpan.TotalMinutes)}M{timeSpan.Seconds}S)");
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing from Spotify: \"{playbackContext.Item.Name}\" by {artistName} "
+                        + "https://open.spotify.com/track/" + playbackContext.Item.Id + " "
+                        + $"Currently playing at {progressTimeSpan.ReformatTimeSpan()} of {durationTimeSpan.ReformatTimeSpan()}");
                 }
                 else
                     _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.DisplayName}");
@@ -1738,25 +1740,19 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async Task CmdYouTubeCurrentSong(bool hasYouTubeAuth, TwitchChatter chatter)
+        public async Task CmdYouTubeCurrentSong(TwitchChatter chatter)
         {
             try
             {
-                if (!hasYouTubeAuth)
-                {
-                    _irc.SendPublicChatMessage("YouTube song requests have not been set up");
-                    return;
-                }
-
                 if (_libVLCSharpPlayer.LibVlc == null)
                 {
-                    CheckTwitchWpfTitle(chatter);
+                    await CheckTwitchWpfTitle(chatter);
                     return;
                 }
 
                 if (_libVLCSharpPlayer.MediaPlayerStatus() != VLCState.Playing)
                 {
-                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.DisplayName}");
+                    await CmdSpotifyCurrentSong(chatter); // fall back to see if Spotify is playing anything
                     return;
                 }
 
@@ -1765,13 +1761,17 @@ namespace TwitchBot.Commands
                 string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem);
 
                 if (!string.IsNullOrEmpty(songRequest))
+                {
                     _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest} Currently {await _libVLCSharpPlayer.GetVideoTime()}");
+                }
                 else
+                {
                     _irc.SendPublicChatMessage($"Unable to display the current song @{chatter.DisplayName}");
+                }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeCurrentSong(bool, TwitchChatter)", false, "!song");
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeCurrentSong(TwitchChatter)", false, "!song");
             }
         }
 
@@ -1855,7 +1855,7 @@ namespace TwitchBot.Commands
         /// Check if the WPF app exists so we can see its song status
         /// </summary>
         /// <param name="chatter"></param>
-        private async void CheckTwitchWpfTitle(TwitchChatter chatter)
+        private async Task CheckTwitchWpfTitle(TwitchChatter chatter)
         {
             try
             {
@@ -1909,7 +1909,7 @@ namespace TwitchBot.Commands
                 }
                 else
                 {
-                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.Username}");
+                    await CmdSpotifyCurrentSong(chatter); // fall back to see if Spotify is playing anything
                 }
             }
             catch (Exception ex)

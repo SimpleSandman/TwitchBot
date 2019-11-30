@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TwitchBotUtil.Extensions
 {
@@ -23,11 +19,27 @@ namespace TwitchBotUtil.Extensions
             return formatted;
         }
 
-        public static TimeSpan? ToNullableTimeSpan(this string s)
+        public static string ReformatTimeSpan(this TimeSpan ts)
         {
-            if (TimeSpan.TryParse(s, out TimeSpan i)) return i;
+            string response = "";
 
-            return null;
+            // format minutes
+            if (ts.Minutes < 1)
+                response += $"[00:";
+            else if (ts.Minutes > 0 && ts.Minutes < 10)
+                response += $"[0{ts.Minutes}:";
+            else
+                response += $"[{ts.Minutes}:";
+
+            // format seconds
+            if (ts.Seconds < 1)
+                response += $"00]";
+            else if (ts.Seconds > 0 && ts.Seconds < 10)
+                response += $"0{ts.Seconds}]";
+            else
+                response += $"{ts.Seconds}]";
+
+            return response;
         }
     }
 }

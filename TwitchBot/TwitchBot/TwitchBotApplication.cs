@@ -735,7 +735,7 @@ namespace TwitchBot
                                     case "!song": // Display current song that's being played from WPF app
                                     case "!currentsong":
                                     case "!srsong":
-                                        await _cmdGen.CmdYouTubeCurrentSong(hasYouTubeAuth, chatter);
+                                        await _cmdGen.CmdYouTubeCurrentSong(chatter);
                                         break;
                                     case "!ign": // Display the broadcaster's in-game (user) name based on what they're streaming
                                     case "!gt":
