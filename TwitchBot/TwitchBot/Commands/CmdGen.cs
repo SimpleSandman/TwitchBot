@@ -1348,7 +1348,15 @@ namespace TwitchBot.Commands
             {
                 BankHeist bankHeist = new BankHeist();
                 int funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
-                bool isValid = int.TryParse(chatter.Message.Substring(chatter.Message.IndexOf(" ")), out int gamble);
+                int gambleIndex = chatter.Message.IndexOf(" ");
+                bool isValid = true;
+                int gamble = 0;
+
+                if (gambleIndex != -1)
+                {
+                    string parseGamble = chatter.Message.Substring(gambleIndex);
+                    isValid = int.TryParse(parseGamble, out gamble);
+                }
 
                 if (_heistSettingsInstance.IsHeistOnCooldown())
                 {
@@ -1380,6 +1388,18 @@ namespace TwitchBot.Commands
                 {
                     _irc.SendPublicChatMessage($"Please gamble with a positive amount of {_botConfig.CurrencyType} @{chatter.DisplayName}");
                     return;
+                }
+                else if (funds > 0 && gamble == 0 && (chatter.Message.ToLower() == "!bankheist" || chatter.Message.ToLower() == "!heist"))
+                {
+                    // make sure the user can gamble something if an amount wasn't specified
+                    if (funds > _heistSettingsInstance.MaxGamble)
+                    {
+                        gamble = _heistSettingsInstance.MaxGamble;
+                    }
+                    else
+                    {
+                        gamble = funds;
+                    }
                 }
                 else if (gamble < 1)
                 {

@@ -913,7 +913,7 @@ namespace TwitchBot
                                         }
 
                                         /* Join the heist and gamble your currency for a higher payout */
-                                        else if (message.StartsWith("!bankheist ") || message.StartsWith("!heist "))
+                                        else if (message.StartsWith("!bankheist") || message.StartsWith("!heist"))
                                             await _cmdGen.CmdBankHeist(chatter);
 
                                         /* Tell the broadcaster a user is lurking */

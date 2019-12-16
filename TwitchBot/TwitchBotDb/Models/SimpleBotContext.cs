@@ -40,7 +40,7 @@ namespace TwitchBotDb.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasAnnotation("ProductVersion", "2.2.4-servicing-10062");
+            modelBuilder.HasAnnotation("ProductVersion", "2.2.6-servicing-10079");
 
             modelBuilder.Entity<Bank>(entity =>
             {
@@ -644,12 +644,12 @@ namespace TwitchBotDb.Models
                     .WithMany(p => p.InGameUsername)
                     .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__InGameUsername__Broadcaster");
+                    .HasConstraintName("FK_InGameUsername_Broadcaster");
 
                 entity.HasOne(d => d.Game)
                     .WithMany(p => p.InGameUsername)
                     .HasForeignKey(d => d.GameId)
-                    .HasConstraintName("FK__InGameUsername__GameId");
+                    .HasConstraintName("FK_InGameUsername_TwitchGameCategory");
             });
 
             modelBuilder.Entity<PartyUp>(entity =>
@@ -817,6 +817,13 @@ namespace TwitchBotDb.Models
 
             modelBuilder.Entity<TwitchGameCategory>(entity =>
             {
+                entity.HasKey(e => e.Id)
+                    .ForSqlServerIsClustered(false);
+
+                entity.HasIndex(e => e.Title)
+                    .HasName("CIDX")
+                    .ForSqlServerIsClustered();
+
                 entity.Property(e => e.Title)
                     .IsRequired()
                     .HasMaxLength(100)

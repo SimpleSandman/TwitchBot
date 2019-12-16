@@ -433,6 +433,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="SqlScripts\StoredProcedures\dbo.CreateNewBossesWithDefaultStats.sql" />
     <Content Include="SqlScripts\StoredProcedures\dbo.CreateDefaultRanks.sql" />
     <Content Include="SqlScripts\StoredProcedures\dbo.GetPartyUpRequestList.sql" />
     <Content Include="SqlScripts\StoredProcedures\dbo.UpdateCreateBalance.sql" />
