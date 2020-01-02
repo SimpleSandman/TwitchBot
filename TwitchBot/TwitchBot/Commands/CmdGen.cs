@@ -823,6 +823,13 @@ namespace TwitchBot.Commands
                     return DateTime.Now;
                 }
 
+                if (await _libVLCSharpPlayer.HasUserRequestedTooMany(chatter.DisplayName, 3))
+                {
+                    _irc.SendPublicChatMessage("You already have at least 3 song requests!" 
+                        + $" Please wait until there are less than 3 of your song requests in the queue before requesting more @{chatter.DisplayName}");
+                    return DateTime.Now;
+                }
+
                 int cost = 250; // ToDo: Set YTSR currency cost into settings
                 int funds = 0; // Set to minimum amount needed for song requests.
                                // This will allow chatters with VIP, moderator, or the broadcaster 

@@ -26,6 +26,7 @@ namespace TwitchBot.Threads
         private List<PlaylistItem> _personalYoutubePlaylistVideoIds;
         private bool _playerStatus;
         private bool _songSkipping;
+        private bool _initialLoadYoutubePlaylist = false;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
@@ -62,6 +63,7 @@ namespace TwitchBot.Threads
             {
                 if (LibVlc == null)
                 {
+                    _initialLoadYoutubePlaylist = true;
                     _vlcPlayerThread = new Thread(new ThreadStart(this.Run));
 
                     Core.Initialize();
@@ -117,7 +119,9 @@ namespace TwitchBot.Threads
                     _personalYoutubePlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
                 }
 
-                SetNextVideoId();
+                _initialLoadYoutubePlaylist = false;
+
+                SetNextVideoId(); // set current song request playlist item
 
                 if (CurrentSongRequestPlaylistItem == null)
                 {
@@ -369,10 +373,17 @@ namespace TwitchBot.Threads
         {
             try
             {
+                await WaitForInitialPlaylistLoad();
+
                 if (_songRequestPlaylistVideoIds != null)
                 {
                     _songRequestPlaylistVideoIds = _songRequestPlaylistVideoIds.Append(playlistItem).ToList();
                     return _songRequestPlaylistVideoIds.Count;
+                }
+                else
+                {
+                    _songRequestPlaylistVideoIds = new List<PlaylistItem> { playlistItem };
+                    return 1;
                 }
             }
             catch (Exception ex)
@@ -478,6 +489,30 @@ namespace TwitchBot.Threads
             return null;
         }
 
+        public async Task<bool> HasUserRequestedTooMany(string username, int songRequestLimit)
+        {
+            try
+            {
+                if (_songRequestPlaylistVideoIds == null && !_initialLoadYoutubePlaylist)
+                {
+                    _songRequestPlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubeBroadcasterPlaylistId);
+                }
+
+                await WaitForInitialPlaylistLoad();
+
+                if (_songRequestPlaylistVideoIds?.FindAll(p => p.ContentDetails.Note.Contains(username))?.Count >= songRequestLimit)
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "HasUserRequestedTooMany(string, int)", false);
+            }
+
+            return false;
+        }
+
         private void SkipSongRequestPlaylistVideoIds(ref int songSkipCount)
         {
             if (_songRequestPlaylistVideoIds.Count > 0 && songSkipCount > 0)
@@ -506,6 +541,22 @@ namespace TwitchBot.Threads
                 else
                 {
                     _personalYoutubePlaylistVideoIds.RemoveRange(0, songSkipCount - 1); // use "-1" to include currently playing song
+                }
+            }
+        }
+
+        private async Task WaitForInitialPlaylistLoad()
+        {
+            if (_initialLoadYoutubePlaylist)
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    await Task.Delay(1000); // wait
+
+                    if (!_initialLoadYoutubePlaylist)
+                    {
+                        break;
+                    }
                 }
             }
         }
