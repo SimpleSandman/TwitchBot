@@ -718,13 +718,14 @@ namespace TwitchBot
                                         case "!joinlist": // Show the users that want to play with the broadcaster
                                             await _cmdGen.CmdListJoin(chatter, _gameQueueUsers);
                                             break;
-                                        case "!join": // Request to play with the broadcaster
-                                            _gameQueueUsers = await _cmdGen.CmdJoin(chatter, _gameQueueUsers);
+                                        case "!invite": // Request to play with the broadcaster
+                                            _gameQueueUsers = await _cmdGen.CmdInvite(chatter, _gameQueueUsers);
                                             break;
                                         case "!sub": // Show the subscribe link (if broadcaster is either Affiliate/Partnered)
                                             await _cmdGen.CmdSubscribe();
                                             break;
                                         case "!raid": // Join the boss fight with a pre-defined amount of currency set by broadcaster
+                                        case "!join":
                                             await _cmdGen.CmdBossFight(chatter);
                                             break;
                                         case "!twitter": // Display the broadcaster's twitter page
@@ -1471,7 +1472,9 @@ namespace TwitchBot
                 }
                 else if (balance < customCommand.CurrencyCost)
                 {
-                    _irc.SendPublicChatMessage($"You don't have enough {_botConfig.CurrencyType} to use this command @{chatter.DisplayName}");
+                    _irc.SendPublicChatMessage($"I'm sorry! {customCommand.Name} costs {customCommand.CurrencyCost} " 
+                        + $"{_botConfig.CurrencyType} @{chatter.DisplayName}");
+
                     return;
                 }              
 

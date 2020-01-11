@@ -107,16 +107,19 @@ namespace TwitchBot.Threads
             {
                 _songRequestPlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubeBroadcasterPlaylistId);
 
-                if (_botConfig.EnablePersonalPlaylistShuffle)
+                if (!string.IsNullOrEmpty(_botConfig.YouTubePersonalPlaylistId))
                 {
-                    List<PlaylistItem> shuffledList = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
-                    shuffledList.Shuffle();
+                    if (_botConfig.EnablePersonalPlaylistShuffle)
+                    {
+                        List<PlaylistItem> shuffledList = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
+                        shuffledList.Shuffle();
 
-                    _personalYoutubePlaylistVideoIds = shuffledList;
-                }
-                else
-                {
-                    _personalYoutubePlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
+                        _personalYoutubePlaylistVideoIds = shuffledList;
+                    }
+                    else
+                    {
+                        _personalYoutubePlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
+                    }
                 }
 
                 _initialLoadYoutubePlaylist = false;
@@ -174,7 +177,7 @@ namespace TwitchBot.Threads
                     CurrentSongRequestPlaylistItem = _songRequestPlaylistVideoIds.First();
                     _songRequestPlaylistVideoIds.RemoveAt(0);
                 }
-                else if (_personalYoutubePlaylistVideoIds.Count > 0)
+                else if (_personalYoutubePlaylistVideoIds?.Count > 0)
                 {
                     CurrentSongRequestPlaylistItem = _personalYoutubePlaylistVideoIds.First();
                     _personalYoutubePlaylistVideoIds.RemoveAt(0);
@@ -443,7 +446,7 @@ namespace TwitchBot.Threads
         {
             try
             {
-                if (CurrentSongRequestPlaylistItem != null)
+                if (CurrentSongRequestPlaylistItem != null && !string.IsNullOrEmpty(_botConfig.YouTubePersonalPlaylistId))
                 {
                     List<PlaylistItem> personalPlaylist = null;
 

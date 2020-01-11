@@ -1319,7 +1319,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
         /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
-        public async Task<Queue<string>> CmdJoin(TwitchChatter chatter, Queue<string> gameQueueUsers)
+        public async Task<Queue<string>> CmdInvite(TwitchChatter chatter, Queue<string> gameQueueUsers)
         {
             try
             {
