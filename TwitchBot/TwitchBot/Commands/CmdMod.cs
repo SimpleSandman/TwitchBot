@@ -40,6 +40,7 @@ namespace TwitchBot.Commands
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
+        private CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
 
         public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, 
             System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo, ManualSongRequestService manualSongRequest,
@@ -549,7 +550,8 @@ namespace TwitchBot.Commands
                                 + $"twitch.tv/{_broadcasterInstance.Username}"));
                         }
 
-                        await Threads.ChatReminder.RefreshReminders();
+                        await ChatReminder.RefreshReminders();
+                        await _customCommandInstance.LoadCustomCommands(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
                     }
                     else
                     {

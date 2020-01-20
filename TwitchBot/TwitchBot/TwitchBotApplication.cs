@@ -475,7 +475,7 @@ namespace TwitchBot
                                         case "!refreshbossfight": // Manually refresh boss fight
                                             await _cmdBrdCstr.CmdRefreshBossFight();
                                             break;
-                                        case "!refreshcommands": // Manually refresh boss fight
+                                        case "!refreshcommands": // Manually refresh custom commands
                                             await _cmdBrdCstr.CmdRefreshCommands();
                                             break;
                                         case "!resetytsr": // Reset the YouTube song request playlist

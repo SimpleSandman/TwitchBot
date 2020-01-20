@@ -1,4 +1,7 @@
-﻿/****** Object:  Table [Cmd].[CustomCommand]    Script Date: 12/15/2019 8:25:50 PM ******/
+﻿CREATE SCHEMA Cmd;
+GO
+
+/****** Object:  Table [Cmd].[CustomCommand]    Script Date: 12/15/2019 8:25:50 PM ******/
 SET ANSI_NULLS ON;
 GO
 
