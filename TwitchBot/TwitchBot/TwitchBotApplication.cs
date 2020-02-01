@@ -286,6 +286,10 @@ namespace TwitchBot
                 /* Grab list of chatters from channel */
                 _twitchChatterListener.Start();
 
+                /* Get the status of the Twitch stream */
+                TwitchStreamStatus twitchStreamStatus = new TwitchStreamStatus(_irc, _twitchInfo);
+                twitchStreamStatus.Start();
+
                 /* Pull list of followers and check experience points for stream leveling */
                 _followerSubscriberListener.Start(_irc, _broadcasterInstance.DatabaseId);
 
@@ -664,6 +668,7 @@ namespace TwitchBot
                                     {
                                         case "!cmds": // Display some viewer commands a link to command documentation
                                         case "!commands":
+                                        case "!help":
                                             _cmdGen.CmdDisplayCmds();
                                             break;
                                         case "!hello": // Display a static greeting
@@ -685,9 +690,6 @@ namespace TwitchBot
                                         case "!rsrl": // Display list of requested songs
                                             await _cmdGen.CmdManualSrList(isManualSongRequestAvail, chatter);
                                             break;
-                                        case "!rsl": // Display link of list of songs to request
-                                            _cmdGen.CmdManualSrLink(isManualSongRequestAvail, chatter);
-                                            break;
                                         case "!spotifysong": // Displays the current song being played from Spotify
                                             await _cmdGen.CmdSpotifyCurrentSong(chatter);
                                             break;
@@ -707,6 +709,7 @@ namespace TwitchBot
                                         case "!ytsl": // Display YouTube link to song request playlist 
                                         case "!playlist":
                                         case "!songlist":
+                                        case "!sl":
                                             _cmdGen.CmdYouTubeSongRequestList(hasYouTubeAuth);
                                             break;
                                         case "!msl": // Display MultiStream link

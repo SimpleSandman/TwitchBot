@@ -255,21 +255,23 @@ namespace TwitchBot.Threads
                 if (follower == null)
                     return;
 
-                // check if follower has experience
+                /* Manage follower experience */
                 int currentExp = await _follower.CurrentExp(chatter, _broadcasterId);
 
-                if (currentExp > -1)
+                if (TwitchStreamStatus.IsLive)
                 {
-                    await _follower.UpdateExp(chatter, _broadcasterId, ++currentExp);
-                }
-                else
-                {
-                    // add new user to the ranks
-                    await _follower.EnlistRecruit(chatter, _broadcasterId);
+                    if (currentExp > -1)
+                    {
+                        await _follower.UpdateExp(chatter, _broadcasterId, ++currentExp);
+                    }
+                    else
+                    {
+                        // add new user to the ranks
+                        await _follower.EnlistRecruit(chatter, _broadcasterId);
+                    }
                 }
 
                 // check if follower has a stream currency account
-                int funds = await _bank.CheckBalance(chatter, _broadcasterId);
                 int setIncrementFunds = 10; // default to normal follower amount
 
                 if (_follower.IsRegularFollower(currentExp, _botConfig.RegularFollowerHours))
@@ -280,14 +282,20 @@ namespace TwitchBot.Threads
                         _twitchChatterListInstance.TwitchRegularFollowers.Add(follower);
                 }
 
-                if (funds > -1)
+                /* Manage follower streaming currency */
+                if (TwitchStreamStatus.IsLive)
                 {
-                    funds += setIncrementFunds;
-                    await _bank.UpdateFunds(chatter, _broadcasterId, funds);
-                }
-                else // ToDo: Make currency auto-increment setting
-                {
-                    await _bank.CreateAccount(chatter, _broadcasterId, setIncrementFunds);
+                    int funds = await _bank.CheckBalance(chatter, _broadcasterId);
+
+                    if (funds > -1)
+                    {
+                        funds += setIncrementFunds;
+                        await _bank.UpdateFunds(chatter, _broadcasterId, funds);
+                    }
+                    else // ToDo: Make currency auto-increment setting
+                    {
+                        await _bank.CreateAccount(chatter, _broadcasterId, setIncrementFunds);
+                    }
                 }
             }
             catch (Exception ex)

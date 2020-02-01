@@ -406,6 +406,7 @@
     <Compile Include="Models\JSON\StreamJSON.cs" />
     <Compile Include="Libraries\TwitchApi.cs" />
     <Compile Include="Libraries\TimeoutCmd.cs" />
+    <Compile Include="Threads\TwitchStreamStatus.cs" />
     <Compile Include="TwitchBotApplication.cs" />
   </ItemGroup>
   <ItemGroup>

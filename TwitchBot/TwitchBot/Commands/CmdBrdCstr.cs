@@ -495,16 +495,16 @@ namespace TwitchBot.Commands
         {
             try
             {
-                RootStreamJSON streamJSON = await _twitchInfo.GetBroadcasterStream();
-
-                if (streamJSON.Stream == null)
+                if (!TwitchStreamStatus.IsLive)
                     _irc.SendPublicChatMessage("This channel is not streaming right now");
                 else if (!_botConfig.EnableTweets)
                     _irc.SendPublicChatMessage("Tweets are disabled at the moment");
+                else if (string.IsNullOrEmpty(TwitchStreamStatus.CurrentCategory) || string.IsNullOrEmpty(TwitchStreamStatus.CurrentTitle))
+                    _irc.SendPublicChatMessage("Unable to pull the Twitch title/category at the moment. Please try again in a few seconds");
                 else if (_botConfig.EnableTweets && hasTwitterInfo)
                 {
-                    string tweetResult = _twitter.SendTweet($"Live on Twitch playing {streamJSON.Stream.Game} "
-                        + $"\"{streamJSON.Stream.Channel.Status}\" twitch.tv/{_botConfig.Broadcaster}");
+                    string tweetResult = _twitter.SendTweet($"Live on Twitch playing {TwitchStreamStatus.CurrentCategory} "
+                        + $"\"{TwitchStreamStatus.CurrentTitle}\" twitch.tv/{_botConfig.Broadcaster}");
 
                     _irc.SendPublicChatMessage($"{tweetResult} @{_botConfig.Broadcaster}");
                 }

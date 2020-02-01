@@ -176,26 +176,6 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
-        /// Displays link to the list of songs that can be requested manually
-        /// </summary>
-        /// <param name="isManualSongRequestAvail">Check if song requests are available</param>
-        /// <param name="chatter">User that sent the message</param>
-        public async void CmdManualSrLink(bool isManualSongRequestAvail, TwitchChatter chatter)
-        {
-            try
-            {
-                if (!isManualSongRequestAvail)
-                    _irc.SendPublicChatMessage($"Song requests are not available at this time @{chatter.DisplayName}");
-                else
-                    _irc.SendPublicChatMessage($"Here is the link to the songs you can manually request {_botConfig.ManualSongRequestLink}");
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrLink(bool, TwitchChatter)", false, "!rsl");
-            }
-        }
-
-        /// <summary>
         /// Request a song for the host to play
         /// </summary>
         /// <param name="isSongRequestAvail">Check if song request system is enabled</param>

@@ -70,9 +70,6 @@ namespace TwitchBot.Configuration
         private static readonly ConfigurationProperty _youTubePersonalPlaylistName =
             new ConfigurationProperty("youTubePersonalPlaylistName", typeof(string), "", ConfigurationPropertyOptions.None);
 
-        private static readonly ConfigurationProperty _manualSongRequestLink =
-            new ConfigurationProperty("manualSongRequestLink", typeof(string), "", ConfigurationPropertyOptions.None);
-
         private static readonly ConfigurationProperty _regularFollowerHours =
             new ConfigurationProperty("regularFollowerHours", typeof(int), 30, ConfigurationPropertyOptions.None);
 
@@ -116,7 +113,6 @@ namespace TwitchBot.Configuration
                 _youTubeBroadcasterPlaylistName,
                 _youTubePersonalPlaylistId,
                 _youTubePersonalPlaylistName,
-                _manualSongRequestLink,
                 _regularFollowerHours,
                 _spotifyClientId,
                 _spotifyRedirectUri,
@@ -354,16 +350,6 @@ namespace TwitchBot.Configuration
             {
                 ThrowIfReadOnly("YouTubeBroadcasterPlaylistName");
                 this["youTubeBroadcasterPlaylistName"] = value;
-            }
-        }
-
-        public string ManualSongRequestLink
-        {
-            get { return (string)this["manualSongRequestLink"]; }
-            set
-            {
-                ThrowIfReadOnly("ManualSongRequestLink");
-                this["manualSongRequestLink"] = value;
             }
         }
 
