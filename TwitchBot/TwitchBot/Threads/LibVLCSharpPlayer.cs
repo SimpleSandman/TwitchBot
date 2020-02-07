@@ -55,6 +55,8 @@ namespace TwitchBot.Threads
 
         public PlaylistItem CurrentSongRequestPlaylistItem { get; private set; }
 
+        public PlaylistItem LastPlayedPlaylistItem { get; private set; }
+
         public LibVLC LibVlc { get; private set; }
 
         public async Task Start()
@@ -148,6 +150,8 @@ namespace TwitchBot.Threads
                     {
                         // wait
                     }
+
+                    LastPlayedPlaylistItem = CurrentSongRequestPlaylistItem;
 
                     if (_playerStatus)
                         SetNextVideoId();

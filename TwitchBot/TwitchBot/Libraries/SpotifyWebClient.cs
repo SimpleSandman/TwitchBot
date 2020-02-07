@@ -144,6 +144,27 @@ namespace TwitchBot.Libraries
             return null;
         }
 
+        public async Task<SimpleTrack> GetLastPlayedSong()
+        {
+            await CheckForConnection();
+
+            if (!string.IsNullOrEmpty(_spotify?.AccessToken))
+            {
+                CursorPaging<PlayHistory> playbackHistory = await _spotify.GetUsersRecentlyPlayedTracksAsync(1);
+
+                if (playbackHistory.Error == null)
+                {
+                    await CheckForConnection();
+                    if (playbackHistory.Items.Count > 0)
+                    {
+                        return playbackHistory.Items[0].Track;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private async Task CheckForConnection()
         {
             if (HasInitialConfig() && string.IsNullOrEmpty(_spotify?.AccessToken))

@@ -251,6 +251,39 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
+        /// Displays the last song played from Spotify
+        /// </summary>
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdSpotifyLastPlayedSong(TwitchChatter chatter)
+        {
+            try
+            {
+                SimpleTrack simpleTrack = await _spotify.GetLastPlayedSong();
+                if (simpleTrack != null)
+                {
+                    string artistName = "";
+
+                    foreach (SimpleArtist simpleArtist in simpleTrack.Artists)
+                    {
+                        artistName += $"{simpleArtist.Name}, ";
+                    }
+
+                    artistName = artistName.ReplaceLastOccurrence(", ", "");
+
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Last played from Spotify: \"{simpleTrack.Name}\" by {artistName} "
+                        + "https://open.spotify.com/track/" + simpleTrack.Id + "WARNING: This is currently a feature in BETA --> " 
+                        + "https://developer.spotify.com/documentation/web-api/reference/player/get-recently-played/");
+                }
+                else
+                    _irc.SendPublicChatMessage($"Nothing was played recently @{chatter.DisplayName}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSpotifyLastPlayedSong(TwitchChatter)", false, "!spotifylastsong");
+            }
+        }
+
+        /// <summary>
         /// Slaps a user and rates its effectiveness
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
@@ -1858,8 +1891,43 @@ namespace TwitchBot.Commands
             return DateTime.Now;
         }
 
+        public async Task CmdYouTubeLastSong(TwitchChatter chatter)
+        {
+            try
+            {
+                if (_libVLCSharpPlayer.MediaPlayerStatus() != VLCState.Playing)
+                {
+                    await CmdSpotifyLastPlayedSong(chatter); // fall back to see if Spotify had something playing recently
+                    return;
+                }
+
+                if (_libVLCSharpPlayer.LibVlc == null)
+                {
+                    _irc.SendPublicChatMessage($"Unable to display the last played song @{chatter.DisplayName}");
+                    return;
+                }
+
+                PlaylistItem playlistItem = _libVLCSharpPlayer.LastPlayedPlaylistItem;
+
+                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem);
+
+                if (!string.IsNullOrEmpty(songRequest))
+                {
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Last played: {songRequest}");
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"Nothing was played before the current song from what I can see @{chatter.DisplayName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeLastSong(TwitchChatter)", false, "!lastsong");
+            }
+        }
+
         /// <summary>
-        /// Check if the WPF app exists so we can see its song status
+        /// Check if the WPF app exists so we can see its song status (deprecated)
         /// </summary>
         /// <param name="chatter"></param>
         private async Task CheckTwitchWpfTitle(TwitchChatter chatter)

@@ -594,11 +594,11 @@ namespace TwitchBot
                                                     await _cmdMod.CmdBonusAll(chatter);
 
                                                 /* Updates the title of the Twitch channel */
-                                                else if (message.StartsWith("!updatetitle "))
+                                                else if (message.StartsWith("!updatetitle ") || message.StartsWith("!title "))
                                                     await _cmdMod.CmdUpdateTitle(chatter);
 
                                                 /* Updates the game of the Twitch channel */
-                                                else if (message.StartsWith("!updategame "))
+                                                else if (message.StartsWith("!updategame ") || message.StartsWith("!game "))
                                                     await _cmdMod.CmdUpdateGame(chatter, hasTwitterInfo);
 
                                                 /* Add song or artist to song request blacklist */
@@ -690,9 +690,6 @@ namespace TwitchBot
                                         case "!rsrl": // Display list of requested songs
                                             await _cmdGen.CmdManualSrList(isManualSongRequestAvail, chatter);
                                             break;
-                                        case "!spotifysong": // Displays the current song being played from Spotify
-                                            await _cmdGen.CmdSpotifyCurrentSong(chatter);
-                                            break;
                                         case "!partyuprequestlist": // Check what other user's have requested
                                             await _cmdGen.CmdPartyUpRequestList();
                                             break;
@@ -742,6 +739,12 @@ namespace TwitchBot
                                         case "!currentsong":
                                         case "!srsong":
                                             await _cmdGen.CmdYouTubeCurrentSong(chatter);
+                                            break;
+                                        case "!lastsong":
+                                        case "!lastsr":
+                                        case "!lastplayed":
+                                        case "!lsr":
+                                            await _cmdGen.CmdYouTubeLastSong(chatter);
                                             break;
                                         case "!ign": // Display the broadcaster's in-game (user) name based on what they're streaming
                                         case "!gt":
