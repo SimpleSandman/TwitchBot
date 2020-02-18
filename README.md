@@ -22,7 +22,6 @@ For a development environment (testing), create an `AppConfigSecrets.config` in 
     enableDisplaySong="false"
     enableTweets="false"    
     libVLCAudioOutputDevice="[WindowsAudioOutputDevice]"
-    manualSongRequestLink="[ManualSongRequestLink]"
     regularFollowerHours="[RegularFollowerHours]"
     spotifyClientId="[SpotifyClientId]"
     spotifyRedirectUri="[SpotifyRedirectUri]"
