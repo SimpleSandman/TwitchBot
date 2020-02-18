@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -189,6 +190,33 @@ namespace TwitchBot.Threads
                 else
                 {
                     CurrentSongRequestPlaylistItem = null;
+                }
+
+                // Write to a text file to allow users to show the currently playing song as a song ticker
+                // ToDo: Add config variables
+                string filename = "Twitch Chat Bot Song Request.txt";
+                string startingText = "Currently Playing: ";
+                string separator = " - ";
+                string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                bool showChannelTitle = false;
+
+                using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, filename)))
+                {
+                    string songTitle = "";
+
+                    if (CurrentSongRequestPlaylistItem != null)
+                    {
+                        songTitle = $"{startingText}\"{CurrentSongRequestPlaylistItem.Snippet.Title}\"";
+
+                        if (showChannelTitle)
+                        {
+                            songTitle += $" by {CurrentSongRequestPlaylistItem.Snippet.ChannelTitle}";
+                        }
+
+                        songTitle += separator;
+                    }
+
+                    await outputFile.WriteAsync(songTitle);
                 }
             }
             catch (Exception ex)

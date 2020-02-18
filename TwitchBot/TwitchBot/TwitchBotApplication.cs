@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Media;
 using System.Threading;
@@ -271,6 +272,16 @@ namespace TwitchBot
                         // Save credentials into JSON file for WPF app to reference
                         YoutubePlaylistInfo.Save(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret,
                             _botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
+
+                        // Write to a text file to allow users to show the currently playing song as a song ticker
+                        // ToDo: Add config variables
+                        string filename = "Twitch Chat Bot Song Request.txt";
+                        string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+                        using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, filename)))
+                        {
+                            await outputFile.WriteAsync(""); // clear old song request or create new file with empty string
+                        }
                     }
                 }
                 catch (Exception ex)
