@@ -61,8 +61,8 @@ namespace TwitchBot
         private BankHeist _bankHeist;
         private BossFight _bossFight;
         private LibVLCSharpPlayer _libVLCSharpPlayer;
+        private TwitchStreamStatus _twitchStreamStatus;
         private TwitchChatterListener _twitchChatterListener;
-        private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
@@ -74,7 +74,7 @@ namespace TwitchBot
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
             GameDirectoryService gameDirectory, QuoteService quote, BankHeist bankHeist, TwitchChatterListener twitchChatterListener, IrcClient irc,
-            BossFight bossFight, SongRequestSettingService songRequestSetting, InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer)
+            BossFight bossFight, SongRequestSettingService songRequestSetting, InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer, TwitchStreamStatus twitchStreamStatus)
         {
             _appConfig = appConfig;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
@@ -103,6 +103,7 @@ namespace TwitchBot
             _ign = ign;
             _libVLCSharpPlayer = libVLCSharpPlayer;
             _irc = irc;
+            _twitchStreamStatus = twitchStreamStatus;
         }
 
         public async Task RunAsync()
@@ -152,7 +153,7 @@ namespace TwitchBot
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _appConfig, _songRequestBlacklist,
-                    _twitchInfo, _gameDirectory, _songRequestSetting, _ign, _libVLCSharpPlayer);
+                    _twitchInfo, _gameDirectory, _songRequestSetting, _ign, _libVLCSharpPlayer, _twitchStreamStatus);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _bank, _twitchInfo,
                     _manualSongRequest, _quote, _partyUp, _gameDirectory, _libVLCSharpPlayer);
                 _cmdVip = new CmdVip(_irc, _timeout, _botConfig, _appConfig, _bank, _twitchInfo,
@@ -298,8 +299,7 @@ namespace TwitchBot
                 _twitchChatterListener.Start();
 
                 /* Get the status of the Twitch stream */
-                TwitchStreamStatus twitchStreamStatus = new TwitchStreamStatus(_irc, _twitchInfo);
-                twitchStreamStatus.Start();
+                _twitchStreamStatus.Start();
 
                 /* Pull list of followers and check experience points for stream leveling */
                 _followerSubscriberListener.Start(_irc, _broadcasterInstance.DatabaseId);
@@ -430,127 +430,148 @@ namespace TwitchBot
                                     {
                                         case "!settings": // Display bot settings
                                             _cmdBrdCstr.CmdBotSettings();
-                                            break;
+                                            continue;
                                         case "!exit": // Stop running the bot
                                             _cmdBrdCstr.CmdExitBot();
-                                            break;
+                                            continue;
                                         case "!spotifyconnect": // Manually connect to Spotify
                                             await _spotify.Connect();
-                                            break;
+                                            continue;
                                         case "!spotifyplay": // Press local Spotify play button [>]
                                             await _spotify.Play();
-                                            break;
+                                            continue;
                                         case "!spotifypause": // Press local Spotify pause button [||]
                                             await _spotify.Pause();
-                                            break;
+                                            continue;
                                         case "!spotifyprev": // Press local Spotify previous button [|<]
                                         case "!spotifyback":
                                             await _spotify.SkipToPreviousPlayback();
-                                            break;
+                                            continue;
                                         case "!spotifynext": // Press local Spotify next (skip) button [>|]
                                         case "!spotifyskip":
                                             await _spotify.SkipToNextPlayback();
-                                            break;
+                                            continue;
                                         case "!sendtweet on": // Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets)
                                             _cmdBrdCstr.CmdEnableTweet(hasTwitterInfo);
-                                            break;
+                                            continue;
                                         case "!sendtweet off": // Disables tweets from being sent out from this bot
                                             _cmdBrdCstr.CmdDisableTweet(hasTwitterInfo);
-                                            break;
+                                            continue;
                                         case "!rsrmode on": // Enables viewers to request songs (default off)
                                             isManualSongRequestAvail = await _cmdBrdCstr.CmdEnableManualSrMode(isManualSongRequestAvail);
-                                            break;
+                                            continue;
                                         case "!rsrmode off": // Disables viewers to request songs (default off)
                                             isManualSongRequestAvail = await _cmdBrdCstr.CmdDisableManualSrMode(isManualSongRequestAvail);
-                                            break;
+                                            continue;
                                         case "!ytsrmode on": // Enables viewers to request songs (default off)
                                             isYouTubeSongRequestAvail = await _cmdBrdCstr.CmdEnableYouTubeSrMode(isYouTubeSongRequestAvail);
-                                            break;
+                                            continue;
                                         case "!ytsrmode off": // Disables viewers to request songs (default off)
                                             isYouTubeSongRequestAvail = await _cmdBrdCstr.CmdDisableYouTubeSrMode(isYouTubeSongRequestAvail);
-                                            break;
+                                            continue;
                                         case "!displaysongs on": // Enables songs from local Spotify to be displayed inside the chat
                                             _cmdBrdCstr.CmdEnableDisplaySongs();
-                                            break;
+                                            continue;
                                         case "!displaysongs off": // Disables songs from local Spotify to be displayed inside the chat
                                             _cmdBrdCstr.CmdDisableDisplaySongs();
-                                            break;
+                                            continue;
                                         case "!resetsrbl": // Reset the entire song request blacklist
                                             await _cmdBrdCstr.CmdResetSongRequestBlacklist();
-                                            break;
+                                            continue;
                                         case "!showsrbl": // Show the song request blacklist
                                             await _cmdBrdCstr.CmdListSongRequestBlacklist();
-                                            break;
+                                            continue;
                                         case "!live": // Sends an announcement tweet saying the broadcaster is live
                                             await _cmdBrdCstr.CmdLive(hasTwitterInfo);
-                                            break;
+                                            continue;
                                         case "!refreshreminders": // Manually refresh reminders
                                             await _cmdBrdCstr.CmdRefreshReminders();
-                                            break;
+                                            continue;
                                         case "!refreshbossfight": // Manually refresh boss fight
                                             await _cmdBrdCstr.CmdRefreshBossFight();
-                                            break;
+                                            continue;
                                         case "!refreshcommands": // Manually refresh custom commands
                                             await _cmdBrdCstr.CmdRefreshCommands();
-                                            break;
+                                            continue;
                                         case "!resetytsr": // Reset the YouTube song request playlist
                                             await _cmdBrdCstr.CmdResetYoutubeSongRequestList(hasYouTubeAuth);
-                                            break;
+                                            continue;
                                         case "!djmode on": // Enable DJing mode for YouTube song requests 
                                             await _cmdBrdCstr.CmdEnableDjMode();
-                                            break;
+                                            continue;
                                         case "!djmode off": // Disable DJing mode for YouTube song requests
                                             await _cmdBrdCstr.CmdDisableDjMode();
-                                            break;
+                                            continue;
                                         case "!deleteign":
                                             await _cmdBrdCstr.CmdDeleteIgn();
-                                            break;
+                                            continue;
                                         case "!srstart":
                                             await _cmdBrdCstr.CmdLibVLCSharpPlayerStart();
-                                            break;
+                                            continue;
                                         case "!srstop":
                                             _cmdBrdCstr.CmdLibVLCSharpPlayerStop();
-                                            break;
+                                            continue;
                                         case "!srplay":
                                             await _cmdBrdCstr.CmdLibVLCSharpPlayerPlay();
-                                            break;
+                                            continue;
                                         case "!srpause":
                                             await _cmdBrdCstr.CmdLibVLCSharpPlayerPause();
-                                            break;
+                                            continue;
                                         case "!srshuffle on":
                                             _cmdBrdCstr.CmdLibVLCSharpPlayerPersonalPlaylistShuffle(true);
-                                            break;
+                                            continue;
                                         case "!srshuffle off":
                                             _cmdBrdCstr.CmdLibVLCSharpPlayerPersonalPlaylistShuffle(false);
-                                            break;
+                                            continue;
                                         default: // Check commands that depend on special cases
                                             /* Sends a manual tweet (if credentials have been provided) */
                                             if (message.StartsWith("!tweet "))
+                                            {
                                                 _cmdBrdCstr.CmdTweet(hasTwitterInfo, chatter.Message);
+                                                continue;
+                                            }
 
                                             /* Remove song or artist from song request blacklist */
                                             else if (message.StartsWith("!delsrbl "))
+                                            {
                                                 await _cmdBrdCstr.CmdRemoveSongRequestBlacklist(chatter.Message);
+                                                continue;
+                                            }
 
                                             /* Set regular follower hours for dedicated followers */
                                             else if (message.StartsWith("!setregularhours "))
-                                                _cmdBrdCstr.CmdSetRegularFollowerHours(chatter.Message);
+                                            { 
+                                                _cmdBrdCstr.CmdSetRegularFollowerHours(chatter.Message); 
+                                                continue;
+                                            }
 
                                             /* Set YouTube personal playlist as a backup when new requests  */
                                             else if (message.StartsWith("!setpersonalplaylistid "))
+                                            { 
                                                 await _cmdBrdCstr.CmdSetPersonalYoutubePlaylistById(chatter.Message);
+                                                continue;
+                                            }
 
                                             /* Set in-game (user) name for the current game */
                                             else if (message.StartsWith("!setgameign ") || message.StartsWith("!setgameid "))
+                                            { 
                                                 await _cmdBrdCstr.CmdSetGameIgn(chatter.Message);
+                                                continue;
+                                            }
 
                                             /* Set in-game (user) name for any non-specified game */
                                             else if (message.StartsWith("!setgenericign ") || message.StartsWith("!setgenericid "))
-                                                await _cmdBrdCstr.CmdSetGenericIgn(chatter.Message);
+                                            { 
+                                                await _cmdBrdCstr.CmdSetGenericIgn(chatter.Message); 
+                                                continue;
+                                            }
 
                                             /* Set audio output device for LibVLCSharp media player */
                                             else if (message.StartsWith("!sraod "))
+                                            { 
                                                 _cmdBrdCstr.CmdLibVLCSharpPlayerSetAudioOutputDevice(chatter.Message);
+                                                continue;
+                                            }
 
                                             /* insert more broadcaster commands here */
                                             break;
@@ -569,64 +590,100 @@ namespace TwitchBot
                                         {
                                             case "!resetrsr": // Resets the song request queue
                                                 await _cmdMod.CmdResetManualSr();
-                                                break;
+                                                continue;
                                             case "!modafk": // Tell the stream the specified moderator will be AFK
                                                 _cmdMod.CmdModAfk(chatter);
-                                                break;
+                                                continue;
                                             case "!modback": // Tell the stream the specified moderator has returned
                                                 _cmdMod.CmdModBack(chatter);
-                                                break;
+                                                continue;
                                             case "!resetjoin": // Resets game queue of users that want to play with the broadcaster
                                                 _gameQueueUsers = await _cmdMod.CmdResetJoin(chatter, _gameQueueUsers);
-                                                break;
+                                                continue;
                                             default: // Check commands that depend on special cases
                                                 /* Takes money away from a user */
                                                 if (message.StartsWith("!charge ") && message.Contains("@"))
+                                                { 
                                                     await _cmdMod.CmdCharge(chatter);
+                                                    continue;
+                                                }
 
                                                 /* Gives money to user */
                                                 else if (message.StartsWith("!deposit ") && message.Contains("@"))
+                                                { 
                                                     await _cmdMod.CmdDeposit(chatter);
+                                                    continue;
+                                                }
 
                                                 /* Bot-specific timeout on a user for a set amount of time */
                                                 else if (message.StartsWith("!addtimeout ") && message.Contains("@"))
+                                                { 
                                                     await _cmdMod.CmdAddTimeout(chatter);
+                                                    continue;
+                                                }
 
                                                 /* Remove bot-specific timeout on a user for a set amount of time */
                                                 else if (message.StartsWith("!deltimeout @"))
+                                                { 
                                                     await _cmdMod.CmdDeleteTimeout(chatter);
+                                                    continue;
+                                                }
 
                                                 /* Set delay for messages based on the latency of the stream */
                                                 else if (message.StartsWith("!setlatency "))
+                                                { 
                                                     _cmdMod.CmdSetLatency(chatter);
+                                                    continue;
+                                                }
 
                                                 /* Gives every viewer a set amount of currency */
                                                 else if (message.StartsWith("!bonusall "))
+                                                { 
                                                     await _cmdMod.CmdBonusAll(chatter);
+                                                    continue;
+                                                }
 
                                                 /* Updates the title of the Twitch channel */
                                                 else if (message.StartsWith("!updatetitle ") || message.StartsWith("!title "))
+                                                { 
                                                     await _cmdMod.CmdUpdateTitle(chatter);
+                                                    continue;
+                                                }
 
                                                 /* Updates the game of the Twitch channel */
                                                 else if (message.StartsWith("!updategame ") || message.StartsWith("!game "))
+                                                { 
                                                     await _cmdMod.CmdUpdateGame(chatter, hasTwitterInfo);
+                                                    continue;
+                                                }
 
                                                 /* Add song or artist to song request blacklist */
                                                 else if (message.StartsWith("!srbl "))
+                                                { 
                                                     await _cmdBrdCstr.CmdAddSongRequestBlacklist(chatter.Message);
+                                                    continue;
+                                                }
 
                                                 /* Set the song request volume */
                                                 else if (message.StartsWith("!srvolume "))
+                                                { 
                                                     await _cmdMod.CmdLibVLCSharpPlayerVolume(chatter);
+                                                    continue;
+                                                }
 
                                                 /* Set the song request time */
                                                 else if (message.StartsWith("!srtime "))
+                                                { 
                                                     await _cmdMod.CmdLibVLCSharpPlayerSetTime(chatter);
+                                                    continue;
+                                                }
 
                                                 /* Skip the current/number of song request */
                                                 else if (message.StartsWith("!srskip"))
+                                                { 
                                                     await _cmdMod.CmdLibVLCSharpPlayerSkip(chatter);
+                                                    continue;
+                                                }
 
                                                 /* insert moderator commands here */
                                                 break;
@@ -645,28 +702,37 @@ namespace TwitchBot
                                         {
                                             case "!resetmsl": // Reset MultiStream link so link can be reconfigured
                                                 _multiStreamUsers = await _cmdVip.CmdResetMultiStreamLink(chatter, _multiStreamUsers);
-                                                break;
+                                                continue;
                                             case "!popjoin": // Pops user from the queue of users that want to play with the broadcaster
                                                 _gameQueueUsers = await _cmdVip.CmdPopJoin(chatter, _gameQueueUsers);
-                                                break;
+                                                continue;
                                             case "!poprsr": // Removes the first song in the queue of song requests
                                                 await _cmdVip.CmdPopManualSr();
-                                                break;
+                                                continue;
                                             case "!poppartyuprequest": // Removes first party memeber in queue of party up requests
                                                 await _cmdVip.CmdPopPartyUpRequest();
-                                                break;
+                                                continue;
                                             default:
                                                 /* Add MultiStream user to link */
                                                 if (message.StartsWith("!addmsl "))
+                                                { 
                                                     _multiStreamUsers = await _cmdVip.CmdAddMultiStreamUser(chatter, _multiStreamUsers);
+                                                    continue;
+                                                }
 
                                                 /* Add a broadcaster quote */
                                                 else if (message.StartsWith("!addquote "))
+                                                { 
                                                     await _cmdVip.CmdAddQuote(chatter);
+                                                    continue;
+                                                }
 
                                                 /* Display the streamer's channel and game status */
                                                 else if (message.StartsWith("!streamer @") || message.StartsWith("!so @") || message.StartsWith("!caster @"))
+                                                { 
                                                     await _cmdVip.CmdPromoteStreamer(chatter);
+                                                    continue;
+                                                }
 
                                                 /* insert vip commands here */
                                                 break;
@@ -681,82 +747,82 @@ namespace TwitchBot
                                         case "!commands":
                                         case "!help":
                                             _cmdGen.CmdDisplayCmds();
-                                            break;
+                                            continue;
                                         case "!hello": // Display a static greeting
                                             _cmdGen.CmdHello(chatter);
-                                            break;
+                                            continue;
                                         case "!discord": // Displays Discord link into chat (if available)
                                             _cmdMod.CmdDiscord();
-                                            break;
+                                            continue;
                                         case "!utctime": // Display the current time in UTC (Coordinated Universal Time)
                                             _cmdGen.CmdUtcTime();
-                                            break;
+                                            continue;
                                         case "!hosttime": // Display the current time in the time zone the host is located
                                         case "!mytime":
                                             _cmdGen.CmdHostTime();
-                                            break;
+                                            continue;
                                         case "!uptime": // Shows how long the broadcaster has been streaming
                                             await _cmdGen.CmdUptime();
-                                            break;
+                                            continue;
                                         case "!rsrl": // Display list of requested songs
                                             await _cmdGen.CmdManualSrList(isManualSongRequestAvail, chatter);
-                                            break;
+                                            continue;
                                         case "!partyuprequestlist": // Check what other user's have requested
                                             await _cmdGen.CmdPartyUpRequestList();
-                                            break;
+                                            continue;
                                         case "!partyuplist": // Check what party members are available (if game is part of the party up system)
                                             await _cmdGen.CmdPartyUpList();
-                                            break;
+                                            continue;
                                         case "!followsince": // Display how long a user has been following the broadcaster
                                         case "!followage":
                                             await _cmdGen.CmdFollowSince(chatter);
-                                            break;
+                                            continue;
                                         case "!rank": // Display follower's stream rank
                                             await _cmdGen.CmdViewRank(chatter);
-                                            break;
+                                            continue;
                                         case "!ytsl": // Display YouTube link to song request playlist 
                                         case "!playlist":
                                         case "!songlist":
                                         case "!sl":
                                             _cmdGen.CmdYouTubeSongRequestList(hasYouTubeAuth);
-                                            break;
+                                            continue;
                                         case "!msl": // Display MultiStream link
                                             _cmdGen.CmdMultiStreamLink(chatter, _multiStreamUsers);
-                                            break;
+                                            continue;
                                         case "!ranktop3": // Display the top 3 highest ranking users
                                             await _cmdGen.CmdLeaderboardRank(chatter);
-                                            break;
+                                            continue;
                                         case "!joinlist": // Show the users that want to play with the broadcaster
                                             await _cmdGen.CmdListJoin(chatter, _gameQueueUsers);
-                                            break;
+                                            continue;
                                         case "!invite": // Request to play with the broadcaster
                                             _gameQueueUsers = await _cmdGen.CmdInvite(chatter, _gameQueueUsers);
-                                            break;
+                                            continue;
                                         case "!sub": // Show the subscribe link (if broadcaster is either Affiliate/Partnered)
                                             await _cmdGen.CmdSubscribe();
-                                            break;
+                                            continue;
                                         case "!raid": // Join the boss fight with a pre-defined amount of currency set by broadcaster
                                         case "!join":
                                             await _cmdGen.CmdBossFight(chatter);
-                                            break;
+                                            continue;
                                         case "!twitter": // Display the broadcaster's twitter page
                                             _cmdGen.CmdTwitterLink(hasTwitterInfo, User.GetAuthenticatedUser()?.UserIdentifier?.ScreenName);
-                                            break;
+                                            continue;
                                         case "!support": // Display this project and creator's info
                                         case "!bot":
                                             _cmdGen.CmdSupport();
-                                            break;
+                                            continue;
                                         case "!song": // Display current song that's being played from WPF app
                                         case "!currentsong":
                                         case "!srsong":
                                             await _cmdGen.CmdYouTubeCurrentSong(chatter);
-                                            break;
+                                            continue;
                                         case "!lastsong":
                                         case "!lastsr":
                                         case "!lastplayed":
                                         case "!lsr":
                                             await _cmdGen.CmdYouTubeLastSong(chatter);
-                                            break;
+                                            continue;
                                         case "!ign": // Display the broadcaster's in-game (user) name based on what they're streaming
                                         case "!gt":
                                         case "!fc":
@@ -764,17 +830,20 @@ namespace TwitchBot
                                         case "!allgt":
                                         case "!allfc":
                                             await _cmdGen.CmdInGameUsername(chatter);
-                                            break;
+                                            continue;
                                         case "!srvolume":
                                             await _cmdGen.CmdLibVLCSharpPlayerShowVolume(chatter);
-                                            break;
+                                            continue;
                                         case "!srtime":
                                             await _cmdGen.CmdLibVLCSharpPlayerShowTime(chatter);
-                                            break;
+                                            continue;
                                         default: // Check commands that depend on special cases
                                             /* Request a song for the host to play */
                                             if (message.StartsWith("!rsr "))
+                                            { 
                                                 await _cmdGen.CmdManualSr(isManualSongRequestAvail, chatter);
+                                                continue;
+                                            }
 
                                             /* Slaps a user and rates its effectiveness */
                                             else if ((message.StartsWith("!slap @") || message.StartsWith("!slaps @")) && !IsCommandOnCooldown("!slap", chatter))
@@ -790,6 +859,8 @@ namespace TwitchBot
                                                         Warned = false
                                                     });
                                                 }
+
+                                                continue;
                                             }
 
                                             /* Stabs a user and rates its effectiveness */
@@ -806,6 +877,8 @@ namespace TwitchBot
                                                         Warned = false
                                                     });
                                                 }
+
+                                                continue;
                                             }
 
                                             /* Shoots a viewer's random body part */
@@ -822,6 +895,8 @@ namespace TwitchBot
                                                         Warned = false
                                                     });
                                                 }
+
+                                                continue;
                                             }
 
                                             /* Throws an item at a viewer and rates its effectiveness against the victim */
@@ -838,15 +913,23 @@ namespace TwitchBot
                                                         Warned = false
                                                     });
                                                 }
+
+                                                continue;
                                             }
 
                                             /* Request party member if game and character exists in party up system */
                                             else if (message.StartsWith("!partyup "))
+                                            { 
                                                 await _cmdGen.CmdPartyUp(chatter);
+                                                continue;
+                                            }
 
                                             /* Check user's account balance */
                                             else if (message == $"!{_botConfig.CurrencyType.ToLower()}" || message == "!points")
+                                            { 
                                                 await _cmdGen.CmdCheckFunds(chatter);
+                                                continue;
+                                            }
 
                                             /* Gamble money away */
                                             else if (message.StartsWith("!gamble ") && !IsCommandOnCooldown("!gamble", chatter))
@@ -862,6 +945,8 @@ namespace TwitchBot
                                                         Warned = false
                                                     });
                                                 }
+
+                                                continue;
                                             }
 
                                             /* Display random broadcaster quote */
@@ -878,6 +963,8 @@ namespace TwitchBot
                                                         Warned = false
                                                     });
                                                 }
+
+                                                continue;
                                             }
 
                                             /* Add song request to YouTube playlist */
@@ -894,6 +981,8 @@ namespace TwitchBot
                                                         Warned = false
                                                     });
                                                 }
+
+                                                continue;
                                             }
 
                                             /* Display Magic 8-ball response */
@@ -910,11 +999,16 @@ namespace TwitchBot
                                                         Warned = false
                                                     });
                                                 }
+
+                                                continue;
                                             }
 
                                             /* Disply the top 3 richest users */
                                             else if (message == $"!{_botConfig.CurrencyType.ToLower()}top3")
+                                            { 
                                                 await _cmdGen.CmdLeaderboardCurrency(chatter);
+                                                continue;
+                                            }
 
                                             /* Play russian roulette */
                                             else if (message == "!roulette" && !IsCommandOnCooldown("!roulette", chatter))
@@ -930,11 +1024,16 @@ namespace TwitchBot
                                                         Warned = false
                                                     });
                                                 }
+
+                                                continue;
                                             }
 
                                             /* Join the heist and gamble your currency for a higher payout */
                                             else if (message.StartsWith("!bankheist") || message.StartsWith("!heist"))
+                                            { 
                                                 await _cmdGen.CmdBankHeist(chatter);
+                                                continue;
+                                            }
 
                                             /* Tell the broadcaster a user is lurking */
                                             else if (message == "!lurk" && !IsCommandOnCooldown("!lurk", chatter))
@@ -950,6 +1049,8 @@ namespace TwitchBot
                                                         Warned = false
                                                     });
                                                 }
+
+                                                continue;
                                             }
 
                                             /* Tell the broadcaster a user is no longer lurking */
@@ -966,6 +1067,8 @@ namespace TwitchBot
                                                         Warned = false
                                                     });
                                                 }
+
+                                                continue;
                                             }
 
                                             /* Give funds to another chatter */
@@ -982,6 +1085,8 @@ namespace TwitchBot
                                                         Warned = false
                                                     });
                                                 }
+
+                                                continue;
                                             }
 
                                             /* Remove the wrong song the user requested */
@@ -1007,9 +1112,13 @@ namespace TwitchBot
                                                 {
                                                     _cooldownUsers.Remove(songRequestCooldown);
                                                 }
-                                            }
 
-                                            UseCustomCommand(chatter);
+                                                continue;
+                                            }
+                                            else
+                                            {
+                                                UseCustomCommand(chatter);
+                                            }
 
                                             /* add more general commands here */
                                             break;
@@ -1204,7 +1313,10 @@ namespace TwitchBot
         {
             try
             {
-                if (!_greetedUsers.Any(u => u == chatter.Username) && chatter.Username != _botConfig.Broadcaster.ToLower() && chatter.Message.Length > 1)
+                if (!_greetedUsers.Any(u => u == chatter.Username) 
+                    && chatter.Username != _botConfig.Broadcaster.ToLower() 
+                    && chatter.Message.Length > 1 
+                    && _twitchStreamStatus.IsLive)
                 {
                     // check if user has a stream currency account
                     int funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
@@ -1470,12 +1582,18 @@ namespace TwitchBot
                     return;
                 }
 
-                /* Else find and use the custom command from the database */
-                CustomCommand customCommand = _customCommandInstance.FindCustomCommand(chatter.Message.ToLower());
+                /* Else use the custom command from the database */
+                // Get current game name
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                string gameTitle = json.Game;
+
+                // Grab game id in order to find party member
+                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                CustomCommand customCommand = _customCommandInstance.FindCustomCommand(chatter.Message.ToLower(), game?.Id);
 
                 if (customCommand == null || IsCommandOnCooldown(customCommand.Name, chatter, customCommand.IsGlobalCooldown))
                 {
-                    return; // couldn't find the requested command
+                    return;
                 }
 
                 int balance = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);

@@ -265,7 +265,7 @@ namespace TwitchBot.Commands
                 string streamerUsername = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
 
                 RootUserJSON userInfo = await _twitchInfo.GetUsersByLoginName(streamerUsername);
-                if (userInfo.Users.Count == 0)
+                if (userInfo.Users == null || userInfo.Users.Count == 0)
                 {
                     _irc.SendPublicChatMessage($"Cannot find the requested user @{chatter.DisplayName}");
                     return;

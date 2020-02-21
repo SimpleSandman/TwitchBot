@@ -15,31 +15,31 @@ namespace TwitchBot.Libraries
         // Reference: https://dev.twitch.tv/docs/v5/reference/channels/#get-channel-by-id
         public static async Task<ChannelJSON> GetBroadcasterChannelById(string clientId)
         {
-            return await ApiTwitchRequest.GetExecuteTaskAsync<ChannelJSON>("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId, clientId);
+            return await ApiTwitchRequest.GetExecuteAsync<ChannelJSON>("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId, clientId);
         }
 
         // Reference: https://dev.twitch.tv/docs/v5/reference/channels/#get-channel-by-id
         public static async Task<ChannelJSON> GetUserChannelById(string userId, string clientId)
         {
-            return await ApiTwitchRequest.GetExecuteTaskAsync<ChannelJSON>("https://api.twitch.tv/kraken/channels/" + userId, clientId);
+            return await ApiTwitchRequest.GetExecuteAsync<ChannelJSON>("https://api.twitch.tv/kraken/channels/" + userId, clientId);
         }
 
         // Reference: https://dev.twitch.tv/docs/v5/reference/streams/#get-stream-by-user
         public static async Task<RootStreamJSON> GetBroadcasterStream(string clientId)
         {
-            return await ApiTwitchRequest.GetExecuteTaskAsync<RootStreamJSON>("https://api.twitch.tv/kraken/streams/" + _broadcasterInstance.TwitchId, clientId);
+            return await ApiTwitchRequest.GetExecuteAsync<RootStreamJSON>("https://api.twitch.tv/kraken/streams/" + _broadcasterInstance.TwitchId, clientId);
         }
 
         // Reference: https://dev.twitch.tv/docs/v5/reference/streams/#get-stream-by-user
         public static async Task<RootStreamJSON> GetUserStream(string userId, string clientId)
         {
-            return await ApiTwitchRequest.GetExecuteTaskAsync<RootStreamJSON>("https://api.twitch.tv/kraken/streams/" + userId, clientId);
+            return await ApiTwitchRequest.GetExecuteAsync<RootStreamJSON>("https://api.twitch.tv/kraken/streams/" + userId, clientId);
         }
 
         // Reference: https://dev.twitch.tv/docs/v5/reference/users/#get-users
         public static async Task<RootUserJSON> GetUsersByLoginName(string loginName, string clientId)
         {
-            return await ApiTwitchRequest.GetExecuteTaskAsync<RootUserJSON>("https://api.twitch.tv/kraken/users?login=" + loginName, clientId);
+            return await ApiTwitchRequest.GetExecuteAsync<RootUserJSON>("https://api.twitch.tv/kraken/users?login=" + loginName, clientId);
         }
 
         // Reference: https://dev.twitch.tv/docs/v5/reference/channels/#get-channel-subscribers
@@ -48,7 +48,7 @@ namespace TwitchBot.Libraries
             string apiUriBaseCall = "https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId 
                 + "/subscriptions?limit=50&direction=desc"; // get 50 newest subscribers
 
-            return await ApiTwitchRequest.GetWithOAuthExecuteTaskAsync<RootSubscriptionJSON>(apiUriBaseCall, accessToken, clientId);
+            return await ApiTwitchRequest.GetWithOAuthExecuteAsync<RootSubscriptionJSON>(apiUriBaseCall, accessToken, clientId);
         }
 
         // Reference: https://dev.twitch.tv/docs/v5/reference/channels/#get-channel-followers
@@ -57,7 +57,7 @@ namespace TwitchBot.Libraries
             string apiUriBaseCall = "https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId
                 + "/follows?limit=50&direction=desc"; // get 50 newest followers
 
-            return await ApiTwitchRequest.GetExecuteTaskAsync<RootFollowerJSON>(apiUriBaseCall, clientId);
+            return await ApiTwitchRequest.GetExecuteAsync<RootFollowerJSON>(apiUriBaseCall, clientId);
         }
 
         // Reference: https://dev.twitch.tv/docs/v5/reference/clips/#get-clip
@@ -65,7 +65,7 @@ namespace TwitchBot.Libraries
         {
             string apiUriBaseCall = "https://api.twitch.tv/kraken/clips/" + slug;
 
-            return await ApiTwitchRequest.GetExecuteTaskAsync<ClipJSON>(apiUriBaseCall, clientId);
+            return await ApiTwitchRequest.GetExecuteAsync<ClipJSON>(apiUriBaseCall, clientId);
         }
 
         // Reference: https://dev.twitch.tv/docs/v5/reference/users/#check-user-follows-by-channel

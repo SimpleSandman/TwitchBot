@@ -18,7 +18,7 @@ namespace TwitchBot.Repositories
 
         public async Task<List<Quote>> GetQuotes(int broadcasterId)
         {
-            return await ApiBotRequest.GetExecuteTaskAsync<List<Quote>>(_twitchBotApiLink + $"quotes/get/{broadcasterId}");
+            return await ApiBotRequest.GetExecuteAsync<List<Quote>>(_twitchBotApiLink + $"quotes/get/{broadcasterId}");
         }
 
         public async Task AddQuote(string quote, string username, int broadcasterId)
@@ -30,7 +30,7 @@ namespace TwitchBot.Repositories
                 BroadcasterId = broadcasterId
             };
 
-            await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"quotes/create", freshQuote);
+            await ApiBotRequest.PostExecuteAsync(_twitchBotApiLink + $"quotes/create", freshQuote);
         }
     }
 }

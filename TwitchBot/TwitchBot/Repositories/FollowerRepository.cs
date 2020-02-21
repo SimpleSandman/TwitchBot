@@ -18,14 +18,14 @@ namespace TwitchBot.Repositories
 
         public async Task<int> CurrentExp(string chatter, int broadcasterId)
         {
-            RankFollower follower = await ApiBotRequest.GetExecuteTaskAsync<RankFollower>(_twitchBotApiLink + $"rankfollowers/get/{broadcasterId}?username={chatter}");
+            RankFollower follower = await ApiBotRequest.GetExecuteAsync<RankFollower>(_twitchBotApiLink + $"rankfollowers/get/{broadcasterId}?username={chatter}");
 
             return follower.Experience;
         }
 
         public async Task UpdateExp(string chatter, int broadcasterId, int exp)
         {
-            await ApiBotRequest.PutExecuteTaskAsync<RankFollower>(_twitchBotApiLink + $"rankfollowers/updateexp/{broadcasterId}?username={chatter}&exp={exp}");
+            await ApiBotRequest.PutExecuteAsync<RankFollower>(_twitchBotApiLink + $"rankfollowers/updateexp/{broadcasterId}?username={chatter}&exp={exp}");
         }
 
         public async Task EnlistRecruit(string chatter, int broadcasterId)
@@ -37,12 +37,12 @@ namespace TwitchBot.Repositories
                 BroadcasterId = broadcasterId
             };
 
-            await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"rankfollowers/create", freshRecruit);
+            await ApiBotRequest.PostExecuteAsync(_twitchBotApiLink + $"rankfollowers/create", freshRecruit);
         }
 
         public async Task<List<Rank>> GetRankList(int broadcasterId)
         {
-            return await ApiBotRequest.GetExecuteTaskAsync<List<Rank>>(_twitchBotApiLink + $"ranks/get/{broadcasterId}");
+            return await ApiBotRequest.GetExecuteAsync<List<Rank>>(_twitchBotApiLink + $"ranks/get/{broadcasterId}");
         }
 
         public async Task<IEnumerable<Rank>> CreateDefaultRanks(int broadcasterId)
@@ -55,12 +55,12 @@ namespace TwitchBot.Repositories
                 }
             };
 
-            return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"ranks/createdefault", rank);
+            return await ApiBotRequest.PostExecuteAsync(_twitchBotApiLink + $"ranks/createdefault", rank);
         }
 
         public async Task<IEnumerable<RankFollower>> GetFollowersLeaderboard(string broadcasterName, int broadcasterId, string botName)
         {
-            return await ApiBotRequest.GetExecuteTaskAsync<List<RankFollower>>(_twitchBotApiLink + $"rankfollowers/getleaderboard/{broadcasterId}?topnumber=3");
+            return await ApiBotRequest.GetExecuteAsync<List<RankFollower>>(_twitchBotApiLink + $"rankfollowers/getleaderboard/{broadcasterId}?topnumber=3");
         }
     }
 }

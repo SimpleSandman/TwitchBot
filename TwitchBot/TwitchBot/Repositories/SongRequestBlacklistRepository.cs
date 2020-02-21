@@ -18,7 +18,7 @@ namespace TwitchBot.Repositories
 
         public async Task<List<SongRequestIgnore>> GetSongRequestIgnore(int broadcasterId)
         {
-            var response = await ApiBotRequest.GetExecuteTaskAsync<List<SongRequestIgnore>>(_twitchBotApiLink + $"songrequestignores/get/{broadcasterId}");
+            var response = await ApiBotRequest.GetExecuteAsync<List<SongRequestIgnore>>(_twitchBotApiLink + $"songrequestignores/get/{broadcasterId}");
 
             if (response != null && response.Count > 0)
             {
@@ -37,7 +37,7 @@ namespace TwitchBot.Repositories
                 BroadcasterId = broadcasterId
             };
 
-            return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"songrequestignores/create", ignoreArtist);
+            return await ApiBotRequest.PostExecuteAsync(_twitchBotApiLink + $"songrequestignores/create", ignoreArtist);
         }
 
         public async Task<SongRequestIgnore> IgnoreSong(string title, string artist, int broadcasterId)
@@ -49,22 +49,22 @@ namespace TwitchBot.Repositories
                 BroadcasterId = broadcasterId
             };
 
-            return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"songrequestignores/create", ignoreSong);
+            return await ApiBotRequest.PostExecuteAsync(_twitchBotApiLink + $"songrequestignores/create", ignoreSong);
         }
 
         public async Task<List<SongRequestIgnore>> AllowArtist(string artist, int broadcasterId)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<List<SongRequestIgnore>>(_twitchBotApiLink + $"songrequestignores/delete/{broadcasterId}?artist={artist}");
+            return await ApiBotRequest.DeleteExecuteAsync<List<SongRequestIgnore>>(_twitchBotApiLink + $"songrequestignores/delete/{broadcasterId}?artist={artist}");
         }
 
         public async Task<SongRequestIgnore> AllowSong(string title, string artist, int broadcasterId)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<SongRequestIgnore>(_twitchBotApiLink + $"songrequestignores/delete/{broadcasterId}?artist={artist}&title={title}");
+            return await ApiBotRequest.DeleteExecuteAsync<SongRequestIgnore>(_twitchBotApiLink + $"songrequestignores/delete/{broadcasterId}?artist={artist}&title={title}");
         }
 
         public async Task<List<SongRequestIgnore>> ResetIgnoreList(int broadcasterId)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<List<SongRequestIgnore>>(_twitchBotApiLink + $"songrequestignores/delete/{broadcasterId}");
+            return await ApiBotRequest.DeleteExecuteAsync<List<SongRequestIgnore>>(_twitchBotApiLink + $"songrequestignores/delete/{broadcasterId}");
         }
     }
 }

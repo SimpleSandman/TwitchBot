@@ -45,7 +45,7 @@ namespace TwitchBot.Libraries
                 /* If username not available, grab default user to show local error after db connection */
                 if (_broadcasterId == 0)
                 {
-                    Broadcaster broadcaster = await ApiBotRequest.GetExecuteTaskAsync<Broadcaster>(_botConfig.TwitchBotApiLink + $"broadcasters/get/-1");
+                    Broadcaster broadcaster = await ApiBotRequest.GetExecuteAsync<Broadcaster>(_botConfig.TwitchBotApiLink + $"broadcasters/get/-1");
                     _broadcasterId = broadcaster.Id;
                 }
 
@@ -75,7 +75,7 @@ namespace TwitchBot.Libraries
                     UserMsg = userMsg
                 };
 
-                await ApiBotRequest.PostExecuteTaskAsync(_botConfig.TwitchBotApiLink + $"errorlogs/create", error);
+                await ApiBotRequest.PostExecuteAsync(_botConfig.TwitchBotApiLink + $"errorlogs/create", error);
 
                 string publicErrMsg = "I ran into an unexpected internal error! "
                     + "@" + _botConfig.Broadcaster + " please look into the error log when you have time";

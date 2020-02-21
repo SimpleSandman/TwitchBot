@@ -42,9 +42,9 @@ namespace TwitchBot.Libraries
             Broadcaster broadcaster = null;
 
             if (!string.IsNullOrEmpty(username))
-                broadcaster = await ApiBotRequest.GetExecuteTaskAsync<Broadcaster>(twitchBotApiLink + $"broadcasters/get/{twitchId}?username={username}");
+                broadcaster = await ApiBotRequest.GetExecuteAsync<Broadcaster>(twitchBotApiLink + $"broadcasters/get/{twitchId}?username={username}");
             else
-                broadcaster = await ApiBotRequest.GetExecuteTaskAsync<Broadcaster>(twitchBotApiLink + $"broadcasters/get/{twitchId}");
+                broadcaster = await ApiBotRequest.GetExecuteAsync<Broadcaster>(twitchBotApiLink + $"broadcasters/get/{twitchId}");
 
             if (broadcaster != null)
             {
@@ -62,7 +62,7 @@ namespace TwitchBot.Libraries
                 TwitchId = int.Parse(TwitchId)
             };
 
-            await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"broadcasters/create", freshBroadcaster);
+            await ApiBotRequest.PostExecuteAsync(twitchBotApiLink + $"broadcasters/create", freshBroadcaster);
         }
 
         public async Task UpdateBroadcaster(string twitchBotApiLink)
@@ -73,7 +73,7 @@ namespace TwitchBot.Libraries
                 TwitchId = int.Parse(TwitchId)
             };
 
-            await ApiBotRequest.PutExecuteTaskAsync(twitchBotApiLink + $"broadcasters/update/{TwitchId}", updatedBroadcaster);
+            await ApiBotRequest.PutExecuteAsync(twitchBotApiLink + $"broadcasters/update/{TwitchId}", updatedBroadcaster);
         }
     }
 }

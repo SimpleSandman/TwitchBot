@@ -12,7 +12,7 @@ namespace TwitchBotUtil.Libraries
 {
     public class ApiBotRequest
     {
-        public static async Task<T> GetExecuteTaskAsync<T>(string apiUrlCall)
+        public static async Task<T> GetExecuteAsync<T>(string apiUrlCall)
         {
             try
             {
@@ -25,7 +25,7 @@ namespace TwitchBotUtil.Libraries
 
                 try
                 {
-                    IRestResponse<T> response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
+                    IRestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
                     string statResponse = response.StatusCode.ToString();
 
                     if (statResponse.Contains("OK") || statResponse.Contains("NoContent"))
@@ -47,10 +47,10 @@ namespace TwitchBotUtil.Libraries
                 Console.WriteLine(ex.Message);
             }
 
-            return default(T);
+            return default;
         }
 
-        public static async Task<T> PutExecuteTaskAsync<T>(string apiUrlCall, List<string> updateListString = null)
+        public static async Task<T> PutExecuteAsync<T>(string apiUrlCall, List<string> updateListString = null)
         {
             // Send HTTP method PUT to base URI in order to change the game
             RestClient client = new RestClient(apiUrlCall);
@@ -60,21 +60,15 @@ namespace TwitchBotUtil.Libraries
 
             if (updateListString?.Count > 0)
             {
-                request.AddParameter(new Parameter
-                {
-                    ContentType = "application/json",
-                    Name = "JSONPAYLOAD",
-                    Type = ParameterType.RequestBody,
-                    Value = JsonConvert.SerializeObject(updateListString)
-                });
+                request.AddParameter("application/json", JsonConvert.SerializeObject(updateListString), ParameterType.RequestBody);
             }
 
             var cancellationToken = new CancellationTokenSource();
-            IRestResponse response = null;
+            IRestResponse response;
 
             try
             {
-                response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
+                response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
                 string statResponse = response.StatusCode.ToString();
 
                 if (statResponse.Contains("OK") || statResponse.Contains("NoContent"))
@@ -96,30 +90,24 @@ namespace TwitchBotUtil.Libraries
                 Console.WriteLine("Error: " + response);
             }
 
-            return default(T);
+            return default;
         }
 
-        public static async Task<T> PutExecuteTaskAsync<T>(string apiUrlCall, T updateObject)
+        public static async Task<T> PutExecuteAsync<T>(string apiUrlCall, T updateObject)
         {
             // Send HTTP method PUT to base URI in order to change the game
             RestClient client = new RestClient(apiUrlCall);
             RestRequest request = new RestRequest(Method.PUT);
             request.AddHeader("Cache-Control", "no-cache");
             request.AddHeader("Content-Type", "application/json");
-            request.AddParameter(new Parameter
-            {
-                ContentType = "application/json",
-                Name = "JSONPAYLOAD",
-                Type = ParameterType.RequestBody,
-                Value = JsonConvert.SerializeObject(updateObject)
-            });
+            request.AddParameter("application/json", JsonConvert.SerializeObject(updateObject), ParameterType.RequestBody);
 
             var cancellationToken = new CancellationTokenSource();
-            IRestResponse response = null;
+            IRestResponse response;
 
             try
             {
-                response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
+                response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
                 string statResponse = response.StatusCode.ToString();
 
                 if (statResponse.Contains("OK") || statResponse.Contains("NoContent"))
@@ -141,30 +129,24 @@ namespace TwitchBotUtil.Libraries
                 Console.WriteLine("Error: " + response);
             }
 
-            return default(T);
+            return default;
         }
 
-        public static async Task<T> PostExecuteTaskAsync<T>(string apiUrlCall, T createObject)
+        public static async Task<T> PostExecuteAsync<T>(string apiUrlCall, T createObject)
         {
             // Send HTTP method POST to base URI in order to change the game
             RestClient client = new RestClient(apiUrlCall);
             RestRequest request = new RestRequest(Method.POST);
             request.AddHeader("Cache-Control", "no-cache");
             request.AddHeader("Content-Type", "application/json");
-            request.AddParameter(new Parameter
-            {
-                ContentType = "application/json",
-                Name = "JSONPAYLOAD",
-                Type = ParameterType.RequestBody,
-                Value = JsonConvert.SerializeObject(createObject)
-            });
+            request.AddParameter("application/json", JsonConvert.SerializeObject(createObject), ParameterType.RequestBody);
 
             var cancellationToken = new CancellationTokenSource();
-            IRestResponse response = null;
+            IRestResponse response;
 
             try
             {
-                response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
+                response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
                 string statResponse = response.StatusCode.ToString();
 
                 if (statResponse.Contains("OK") || statResponse.Contains("NoContent") || statResponse.Contains("Created"))
@@ -186,30 +168,24 @@ namespace TwitchBotUtil.Libraries
                 Console.WriteLine("Error: " + response);
             }
 
-            return default(T);
+            return default;
         }
 
-        public static async Task<T> PatchExecuteTaskAsync<T>(string apiUrlCall, string path, object value)
+        public static async Task<T> PatchExecuteAsync<T>(string apiUrlCall, string path, object value)
         {
             // Send HTTP method PATCH to base URI in order to change the game
             RestClient client = new RestClient(apiUrlCall);
             RestRequest request = new RestRequest(Method.PATCH);
             request.AddHeader("Cache-Control", "no-cache");
             request.AddHeader("Content-Type", "application/json");
-            request.AddParameter(new Parameter
-            {
-                ContentType = "application/json",
-                Name = "JSONPAYLOAD",
-                Type = ParameterType.RequestBody,
-                Value = "[{" + $"\"op\": \"replace\", \"path\": \"/{path}\", \"value\": \"{value}\"" + "}]"
-            });
+            request.AddParameter("application/json", "[{" + $"\"op\": \"replace\", \"path\": \"/{path}\", \"value\": \"{value}\"" + "}]", ParameterType.RequestBody);
 
             var cancellationToken = new CancellationTokenSource();
-            IRestResponse response = null;
+            IRestResponse response;
 
             try
             {
-                response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
+                response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
                 string statResponse = response.StatusCode.ToString();
 
                 if (statResponse.Contains("OK") || statResponse.Contains("NoContent"))
@@ -231,10 +207,10 @@ namespace TwitchBotUtil.Libraries
                 Console.WriteLine("Error: " + response);
             }
 
-            return default(T);
+            return default;
         }
 
-        public static async Task<T> DeleteExecuteTaskAsync<T>(string apiUrlCall)
+        public static async Task<T> DeleteExecuteAsync<T>(string apiUrlCall)
         {
             try
             {
@@ -247,7 +223,7 @@ namespace TwitchBotUtil.Libraries
 
                 try
                 {
-                    IRestResponse<T> response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
+                    IRestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
 
                     return JsonConvert.DeserializeObject<T>(response.Content);
                 }
@@ -261,7 +237,7 @@ namespace TwitchBotUtil.Libraries
                 Console.WriteLine(ex.Message);
             }
 
-            return default(T);
+            return default;
         }
     }
 }

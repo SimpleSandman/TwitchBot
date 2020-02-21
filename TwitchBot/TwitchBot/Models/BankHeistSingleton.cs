@@ -87,12 +87,12 @@ namespace TwitchBot.Models
         /// <param name="broadcasterId"></param>
         public async Task LoadSettings(int broadcasterId, string twitchBotApiLink)
         {
-            BankHeistSetting bankHeistSetting = await ApiBotRequest.GetExecuteTaskAsync<BankHeistSetting>(twitchBotApiLink + $"bankheistsettings/get/{broadcasterId}");
+            BankHeistSetting bankHeistSetting = await ApiBotRequest.GetExecuteAsync<BankHeistSetting>(twitchBotApiLink + $"bankheistsettings/get/{broadcasterId}");
 
             if (bankHeistSetting == null)
             {
                 bankHeistSetting = new BankHeistSetting { BroadcasterId = broadcasterId };
-                bankHeistSetting = await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"bankheistsettings/create", bankHeistSetting);
+                bankHeistSetting = await ApiBotRequest.PostExecuteAsync(twitchBotApiLink + $"bankheistsettings/create", bankHeistSetting);
             }
 
             if (bankHeistSetting == null)

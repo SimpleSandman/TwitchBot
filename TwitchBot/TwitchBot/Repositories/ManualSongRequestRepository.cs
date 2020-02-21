@@ -25,22 +25,22 @@ namespace TwitchBot.Repositories
                 BroadcasterId = broadcasterId
             };
 
-            return await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"songrequests/create", songRequest);
+            return await ApiBotRequest.PostExecuteAsync(_twitchBotApiLink + $"songrequests/create", songRequest);
         }
 
         public async Task<List<SongRequest>> ListSongRequests(int broadcasterId)
         {
-            return await ApiBotRequest.GetExecuteTaskAsync<List<SongRequest>>(_twitchBotApiLink + $"songrequests/get/{broadcasterId}");
+            return await ApiBotRequest.GetExecuteAsync<List<SongRequest>>(_twitchBotApiLink + $"songrequests/get/{broadcasterId}");
         }
 
         public async Task<SongRequest> PopSongRequest(int broadcasterId)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<SongRequest>(_twitchBotApiLink + $"songrequests/delete/{broadcasterId}?popone=true");
+            return await ApiBotRequest.DeleteExecuteAsync<SongRequest>(_twitchBotApiLink + $"songrequests/delete/{broadcasterId}?popone=true");
         }
 
         public async Task<List<SongRequest>> ResetSongRequests(int broadcasterId)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<List<SongRequest>>(_twitchBotApiLink + $"songrequests/delete/{broadcasterId}");
+            return await ApiBotRequest.DeleteExecuteAsync<List<SongRequest>>(_twitchBotApiLink + $"songrequests/delete/{broadcasterId}");
         }
     }
 }

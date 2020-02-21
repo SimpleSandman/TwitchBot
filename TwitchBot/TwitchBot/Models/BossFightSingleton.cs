@@ -92,12 +92,12 @@ namespace TwitchBot.Models
             BossFightClassStats bossFightClassStats = null;
             BossFightBossStats bossFightBossStats = null;
 
-            BossFightSetting bossFightSetting = await ApiBotRequest.GetExecuteTaskAsync<BossFightSetting>(twitchBotApiLink + $"bossfightsettings/get/{broadcasterId}");
+            BossFightSetting bossFightSetting = await ApiBotRequest.GetExecuteAsync<BossFightSetting>(twitchBotApiLink + $"bossfightsettings/get/{broadcasterId}");
 
             if (bossFightSetting == null)
             {
                 bossFightSetting = new BossFightSetting { BroadcasterId = broadcasterId };
-                bossFightSetting = await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"bossfightsettings/create", bossFightSetting);
+                bossFightSetting = await ApiBotRequest.PostExecuteAsync(twitchBotApiLink + $"bossfightsettings/create", bossFightSetting);
             }
 
             if (bossFightSetting == null)
@@ -105,23 +105,23 @@ namespace TwitchBot.Models
 
             SettingsId = bossFightSetting.Id;
 
-            bossFightClassStats = await ApiBotRequest.GetExecuteTaskAsync<BossFightClassStats>(twitchBotApiLink + $"bossfightclassstats/get/{SettingsId}");
+            bossFightClassStats = await ApiBotRequest.GetExecuteAsync<BossFightClassStats>(twitchBotApiLink + $"bossfightclassstats/get/{SettingsId}");
 
             if (bossFightClassStats == null)
             {
                 bossFightClassStats = new BossFightClassStats { SettingsId = SettingsId };
-                bossFightClassStats = await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"bossfightclassstats/create", bossFightClassStats);
+                bossFightClassStats = await ApiBotRequest.PostExecuteAsync(twitchBotApiLink + $"bossfightclassstats/create", bossFightClassStats);
             }
 
             if (bossFightClassStats == null)
                 throw new Exception("Unable to create boss fight class stats");
 
-            bossFightBossStats = await ApiBotRequest.GetExecuteTaskAsync<BossFightBossStats>(twitchBotApiLink + $"bossfightbossstats/get/{SettingsId}?gameId={gameId}");
+            bossFightBossStats = await ApiBotRequest.GetExecuteAsync<BossFightBossStats>(twitchBotApiLink + $"bossfightbossstats/get/{SettingsId}?gameId={gameId}");
 
             if (bossFightBossStats == null)
             {
                 bossFightBossStats = new BossFightBossStats { SettingsId = SettingsId };
-                bossFightBossStats = await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"bossfightbossstats/create", bossFightBossStats);
+                bossFightBossStats = await ApiBotRequest.PostExecuteAsync(twitchBotApiLink + $"bossfightbossstats/create", bossFightBossStats);
             }
 
             if (bossFightBossStats == null)

@@ -488,7 +488,7 @@ namespace TwitchBot.Commands
                 IRestResponse response = null;
                 try
                 {
-                    response = await client.ExecuteTaskAsync<Task>(request);
+                    response = await client.ExecuteAsync<Task>(request);
                     string statResponse = response.StatusCode.ToString();
                     if (statResponse.Contains("OK"))
                     {
@@ -539,16 +539,11 @@ namespace TwitchBot.Commands
                 IRestResponse response = null;
                 try
                 {
-                    response = await client.ExecuteTaskAsync<Task>(request);
+                    response = await client.ExecuteAsync<Task>(request);
                     string statResponse = response.StatusCode.ToString();
                     if (statResponse.Contains("OK"))
                     {
                         _irc.SendPublicChatMessage($"Twitch channel game status updated to \"{game}\"");
-                        if (_botConfig.EnableTweets && hasTwitterInfo)
-                        {
-                            Console.WriteLine(_twitter.SendTweet($"Just switched to \"{game}\" on " 
-                                + $"twitch.tv/{_broadcasterInstance.Username}"));
-                        }
 
                         await ChatReminder.RefreshReminders();
                         await _customCommandInstance.LoadCustomCommands(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);

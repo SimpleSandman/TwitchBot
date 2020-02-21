@@ -12,9 +12,11 @@ namespace TwitchBot.Threads
         private readonly Thread _checkStreamStatus;
         private readonly TwitchInfoService _twitchInfo;
 
-        public static bool IsLive { get; private set; } = false;
-        public static string CurrentCategory { get; private set; }
-        public static string CurrentTitle { get; private set; }
+        public bool IsLive { get; private set; } = false;
+        public string CurrentCategory { get; private set; }
+        public string CurrentTitle { get; private set; }
+
+        public TwitchStreamStatus() { }
 
         public TwitchStreamStatus(IrcClient irc, TwitchInfoService twitchInfo)
         {
@@ -37,6 +39,11 @@ namespace TwitchBot.Threads
 
                 if (streamJSON.Stream == null)
                 {
+                    if (IsLive)
+                    {
+                        // ToDo: Clear greeted user list
+                    }
+
                     IsLive = false;
                 }
                 else

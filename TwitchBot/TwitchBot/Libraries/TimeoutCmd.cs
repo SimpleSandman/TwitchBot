@@ -25,7 +25,7 @@ namespace TwitchBot.Libraries
 
             if (TimedoutUsers.Any(m => m.Username == recipient))
             {
-                timedoutUser = await ApiBotRequest.PatchExecuteTaskAsync<BotTimeout>(
+                timedoutUser = await ApiBotRequest.PatchExecuteAsync<BotTimeout>(
                     twitchBotApiLink + $"bottimeouts/patch/{broadcasterId}?username={recipient}", 
                     "timeout", 
                     timeoutExpiration);
@@ -34,7 +34,7 @@ namespace TwitchBot.Libraries
             }
             else
             {
-                timedoutUser = await ApiBotRequest.PostExecuteTaskAsync(
+                timedoutUser = await ApiBotRequest.PostExecuteAsync(
                     twitchBotApiLink + $"bottimeouts/create",
                     new BotTimeout { Username = recipient, Timeout = timeoutExpiration, BroadcasterId = broadcasterId }
                 );
@@ -52,7 +52,7 @@ namespace TwitchBot.Libraries
 
         public async Task<string> DeleteUserTimeout(string recipient, int broadcasterId, string twitchBotApiLink)
         {
-            BotTimeout removedTimeout = await ApiBotRequest.DeleteExecuteTaskAsync<BotTimeout>(twitchBotApiLink + $"bottimeouts/delete/{broadcasterId}?username={recipient}");
+            BotTimeout removedTimeout = await ApiBotRequest.DeleteExecuteAsync<BotTimeout>(twitchBotApiLink + $"bottimeouts/delete/{broadcasterId}?username={recipient}");
             if (removedTimeout == null) return "";
 
             string name = removedTimeout.Username;
@@ -82,12 +82,12 @@ namespace TwitchBot.Libraries
 
         public async Task<List<BotTimeout>> DeleteTimeouts(int broadcasterId, string twitchBotApiLink)
         {
-            return await ApiBotRequest.DeleteExecuteTaskAsync<List<BotTimeout>>(twitchBotApiLink + $"bottimeouts/delete/{broadcasterId}");
+            return await ApiBotRequest.DeleteExecuteAsync<List<BotTimeout>>(twitchBotApiLink + $"bottimeouts/delete/{broadcasterId}");
         }
 
         public async Task<List<BotTimeout>> GetTimeouts(int broadcasterId, string twitchBotApiLink)
         {
-            return await ApiBotRequest.GetExecuteTaskAsync<List<BotTimeout>>(twitchBotApiLink + $"bottimeouts/get/{broadcasterId}");
+            return await ApiBotRequest.GetExecuteAsync<List<BotTimeout>>(twitchBotApiLink + $"bottimeouts/get/{broadcasterId}");
         }
     }
 }

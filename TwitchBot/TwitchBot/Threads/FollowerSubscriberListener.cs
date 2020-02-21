@@ -29,16 +29,19 @@ namespace TwitchBot.Threads
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
         private BankService _bank;
+        private TwitchStreamStatus _twitchStreamStatus;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
         // Empty constructor makes instance of Thread
-        public FollowerSubscriberListener(TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo, FollowerService follower, BankService bank)
+        public FollowerSubscriberListener(TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo, 
+            FollowerService follower, BankService bank, TwitchStreamStatus twitchStreamStatus)
         {
             _botConfig = botConfig;
             _followerListener = new Thread(new ThreadStart(this.Run));
             _twitchInfo = twitchInfo;
             _follower = follower;
             _bank = bank;
+            _twitchStreamStatus = twitchStreamStatus;
         }
 
         // Starts the thread
@@ -258,7 +261,7 @@ namespace TwitchBot.Threads
                 /* Manage follower experience */
                 int currentExp = await _follower.CurrentExp(chatter, _broadcasterId);
 
-                if (TwitchStreamStatus.IsLive)
+                if (_twitchStreamStatus.IsLive)
                 {
                     if (currentExp > -1)
                     {
@@ -283,7 +286,7 @@ namespace TwitchBot.Threads
                 }
 
                 /* Manage follower streaming currency */
-                if (TwitchStreamStatus.IsLive)
+                if (_twitchStreamStatus.IsLive)
                 {
                     int funds = await _bank.CheckBalance(chatter, _broadcasterId);
 

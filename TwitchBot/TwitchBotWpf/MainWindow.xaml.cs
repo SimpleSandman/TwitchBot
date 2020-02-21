@@ -153,7 +153,7 @@ namespace TwitchBotWpf
             {
                 YoutubePlaylistInfo youtubePlaylistInfo = YoutubePlaylistInfo.Load();
 
-                YoutubeClient.SongRequestSetting = await ApiBotRequest.GetExecuteTaskAsync<SongRequestSetting>(
+                YoutubeClient.SongRequestSetting = await ApiBotRequest.GetExecuteAsync<SongRequestSetting>(
                     youtubePlaylistInfo.TwitchBotApiLink + $"songrequestsettings/get/{youtubePlaylistInfo.BroadcasterId}");
 
                 // reset cache file from last runtime
@@ -205,7 +205,7 @@ namespace TwitchBotWpf
                 await Dispatcher.BeginInvoke((Action)(async () =>
                 {
                     // Check what video was played last from the song request playlist
-                    YoutubeClient.SongRequestSetting = await ApiBotRequest.GetExecuteTaskAsync<SongRequestSetting>(
+                    YoutubeClient.SongRequestSetting = await ApiBotRequest.GetExecuteAsync<SongRequestSetting>(
                         youtubePlaylistInfo.TwitchBotApiLink + $"songrequestsettings/get/{youtubePlaylistInfo.BroadcasterId}");
 
                     DisplayDjMode();

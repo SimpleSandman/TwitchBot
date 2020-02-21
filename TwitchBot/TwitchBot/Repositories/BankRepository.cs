@@ -26,22 +26,22 @@ namespace TwitchBot.Repositories
                 Broadcaster = broadcasterId
             };
 
-            await ApiBotRequest.PostExecuteTaskAsync(_twitchBotApiLink + $"banks/createaccount", freshAccount);
+            await ApiBotRequest.PostExecuteAsync(_twitchBotApiLink + $"banks/createaccount", freshAccount);
         }
 
         public async Task UpdateAccount(string walletOwner, int broadcasterId, int newWalletBalance)
         {
-            await ApiBotRequest.PutExecuteTaskAsync<Bank>(_twitchBotApiLink + $"banks/updateaccount/{broadcasterId}?updatedwallet={newWalletBalance}&username={walletOwner}");
+            await ApiBotRequest.PutExecuteAsync<Bank>(_twitchBotApiLink + $"banks/updateaccount/{broadcasterId}?updatedwallet={newWalletBalance}&username={walletOwner}");
         }
 
         public async Task<List<BalanceResult>> UpdateCreateBalance(List<string> usernameList, int broadcasterId, int deposit, bool showOutput = false)
         {
-            return await ApiBotRequest.PutExecuteTaskAsync<List<BalanceResult>>(_twitchBotApiLink + $"banks/updatecreateaccount/{broadcasterId}?deposit={deposit}&showOutput={showOutput}", usernameList);
+            return await ApiBotRequest.PutExecuteAsync<List<BalanceResult>>(_twitchBotApiLink + $"banks/updatecreateaccount/{broadcasterId}?deposit={deposit}&showOutput={showOutput}", usernameList);
         }
 
         public async Task<int> CheckBalance(string username, int broadcasterId)
         {
-            var response = await ApiBotRequest.GetExecuteTaskAsync<List<Bank>>(_twitchBotApiLink + $"banks/get/{broadcasterId}?username={username}");
+            var response = await ApiBotRequest.GetExecuteAsync<List<Bank>>(_twitchBotApiLink + $"banks/get/{broadcasterId}?username={username}");
 
             if (response != null && response.Count > 0)
             {
@@ -53,7 +53,7 @@ namespace TwitchBot.Repositories
 
         public async Task<List<Bank>> GetCurrencyLeaderboard(string broadcasterName, int broadcasterId, string botName)
         {
-            var response = await ApiBotRequest.GetExecuteTaskAsync<List<Bank>>(_twitchBotApiLink + $"banks/getleaderboard/{broadcasterId}?broadcastername={broadcasterName}&botname={botName}&topnumber=3");
+            var response = await ApiBotRequest.GetExecuteAsync<List<Bank>>(_twitchBotApiLink + $"banks/getleaderboard/{broadcasterId}?broadcastername={broadcasterName}&botname={botName}&topnumber=3");
 
             if (response != null && response.Count > 0)
             {

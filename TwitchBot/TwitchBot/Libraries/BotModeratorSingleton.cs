@@ -38,7 +38,7 @@ namespace TwitchBot.Libraries
 
         public async Task LoadExistingModerators(string twitchBotApiLink, int broadcasterId)
         {
-            _botModerators = await ApiBotRequest.GetExecuteTaskAsync<List<BotModerator>>(twitchBotApiLink + $"botmoderators/get/{broadcasterId}");
+            _botModerators = await ApiBotRequest.GetExecuteAsync<List<BotModerator>>(twitchBotApiLink + $"botmoderators/get/{broadcasterId}");
         }
 
         public bool IsBotModerator(string twitchId)
@@ -48,14 +48,14 @@ namespace TwitchBot.Libraries
 
         public async Task AddModerator(string twitchBotApiLink, BotModerator botModerator)
         {
-            await ApiBotRequest.PostExecuteTaskAsync(twitchBotApiLink + $"botmoderators/create", botModerator);
+            await ApiBotRequest.PostExecuteAsync(twitchBotApiLink + $"botmoderators/create", botModerator);
 
             _botModerators.Add(botModerator);
         }
 
         public async Task DeleteModerator(string twitchBotApiLink, int broadcasterId, string username)
         {
-            BotModerator botModerator = await ApiBotRequest.DeleteExecuteTaskAsync<BotModerator>(twitchBotApiLink + $"botmoderators/delete/{broadcasterId}?username={username}");
+            BotModerator botModerator = await ApiBotRequest.DeleteExecuteAsync<BotModerator>(twitchBotApiLink + $"botmoderators/delete/{broadcasterId}?username={username}");
 
             _botModerators.Remove(botModerator);
         }

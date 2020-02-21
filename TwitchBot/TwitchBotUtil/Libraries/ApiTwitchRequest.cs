@@ -11,7 +11,7 @@ namespace TwitchBotUtil.Libraries
 {
     public class ApiTwitchRequest
     {
-        public static async Task<T> GetExecuteTaskAsync<T>(string basicUrl, string clientId)
+        public static async Task<T> GetExecuteAsync<T>(string basicUrl, string clientId)
         {
             try
             {
@@ -26,7 +26,7 @@ namespace TwitchBotUtil.Libraries
 
                 try
                 {
-                    IRestResponse<T> response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
+                    IRestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
 
                     return JsonConvert.DeserializeObject<T>(response.Content);
                 }
@@ -40,10 +40,10 @@ namespace TwitchBotUtil.Libraries
                 Console.WriteLine(ex.Message);
             }
 
-            return default(T);
+            return default;
         }
 
-        public static async Task<T> GetWithOAuthExecuteTaskAsync<T>(string basicUrl, string accessToken, string clientId)
+        public static async Task<T> GetWithOAuthExecuteAsync<T>(string basicUrl, string accessToken, string clientId)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace TwitchBotUtil.Libraries
 
                 try
                 {
-                    IRestResponse<T> response = await client.ExecuteTaskAsync<T>(request, cancellationToken.Token);
+                    IRestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
 
                     return JsonConvert.DeserializeObject<T>(response.Content);
                 }
@@ -73,7 +73,7 @@ namespace TwitchBotUtil.Libraries
                 Console.WriteLine(ex.Message);
             }
 
-            return default(T);
+            return default;
         }
     }
 }

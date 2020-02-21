@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 
 using TwitchBot.Libraries;
 
@@ -13,15 +9,14 @@ namespace TwitchBot.Threads
     */
     public class PingSender
     {
-        private IrcClient _irc;
-        static string PING = "PING ";
-        private Thread pingSender;
+        private readonly IrcClient _irc;
+        private readonly Thread pingSender;
 
         // Empty constructor makes instance of Thread
         public PingSender(IrcClient irc) 
         {
             _irc = irc;
-            pingSender = new Thread (new ThreadStart (this.Run) ); 
+            pingSender = new Thread (new ThreadStart(this.Run)); 
         }
 
         // Starts the thread
@@ -36,7 +31,7 @@ namespace TwitchBot.Threads
         {
             while (true)
             {
-                _irc.SendIrcMessage(PING + "irc.twitch.tv");
+                _irc.SendIrcMessage("PING irc.twitch.tv");
                 Thread.Sleep(300000); // 5 minutes
             }
         }

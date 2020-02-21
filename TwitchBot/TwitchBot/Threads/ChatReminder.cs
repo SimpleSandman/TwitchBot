@@ -107,7 +107,7 @@ namespace TwitchBot.Threads
         private static async Task LoadReminderContext()
         {
             _reminders = new List<RemindUser>();
-            List<Reminder> reminders = await ApiBotRequest.GetExecuteTaskAsync<List<Reminder>>(_twitchBotApiLink + $"reminders/get/{_broadcasterId}");
+            List<Reminder> reminders = await ApiBotRequest.GetExecuteAsync<List<Reminder>>(_twitchBotApiLink + $"reminders/get/{_broadcasterId}");
 
             if (reminders != null)
             {
