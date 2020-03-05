@@ -787,6 +787,7 @@ namespace TwitchBot
                                             _cmdGen.CmdYouTubeSongRequestList(hasYouTubeAuth);
                                             continue;
                                         case "!msl": // Display MultiStream link
+                                        case "!multi":
                                             _cmdGen.CmdMultiStreamLink(chatter, _multiStreamUsers);
                                             continue;
                                         case "!ranktop3": // Display the top 3 highest ranking users
