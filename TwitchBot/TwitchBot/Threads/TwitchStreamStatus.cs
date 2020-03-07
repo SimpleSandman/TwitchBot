@@ -1,5 +1,5 @@
 ﻿using System.Threading;
-
+using System.Threading.Tasks;
 using TwitchBot.Libraries;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
@@ -29,6 +29,17 @@ namespace TwitchBot.Threads
         {
             _checkStreamStatus.IsBackground = true;
             _checkStreamStatus.Start();
+        }
+
+        public async Task LoadChannelInfo()
+        {
+            ChannelJSON channelJSON = await _twitchInfo.GetBroadcasterChannelById();
+
+            if (channelJSON != null)
+            {
+                CurrentCategory = channelJSON.Game;
+                CurrentTitle = channelJSON.Status;
+            }
         }
 
         private async void Run()

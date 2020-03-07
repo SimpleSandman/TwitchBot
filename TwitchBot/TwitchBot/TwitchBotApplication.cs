@@ -151,7 +151,7 @@ namespace TwitchBot
                 
                 /* Load command classes */
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _twitchInfo, _bank, _follower,
-                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer);
+                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer, _twitchStreamStatus);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _appConfig, _songRequestBlacklist,
                     _twitchInfo, _gameDirectory, _songRequestSetting, _ign, _libVLCSharpPlayer, _twitchStreamStatus);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _bank, _twitchInfo,
@@ -299,6 +299,7 @@ namespace TwitchBot
                 _twitchChatterListener.Start();
 
                 /* Get the status of the Twitch stream */
+                await _twitchStreamStatus.LoadChannelInfo();
                 _twitchStreamStatus.Start();
 
                 /* Pull list of followers and check experience points for stream leveling */
@@ -311,21 +312,16 @@ namespace TwitchBot
                 await _bankHeistInstance.LoadSettings(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
                 _bankHeist.Start(_irc, _broadcasterInstance.DatabaseId);
 
-                /* Load/create settings and start the queue for the boss fight */
-                // Get current game name
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
-                string gameTitle = json.Game;
-
-                // Grab game id in order to find party member
-                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
-
-                if (string.IsNullOrEmpty(gameTitle))
+                if (string.IsNullOrEmpty(_twitchStreamStatus.CurrentCategory))
                 {
                     _irc.SendPublicChatMessage("WARNING: I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
                         + "Please have the chat verify that the game has been set for this stream. "
                         + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
                         + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
                 }
+
+                // Grab game id in order to find party member
+                TwitchGameCategory game = await _gameDirectory.GetGameId(_twitchStreamStatus.CurrentCategory);
 
                 /* Load/create settings and start the queue for the boss fight */
                 await _bossFightInstance.LoadSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
@@ -837,6 +833,12 @@ namespace TwitchBot
                                             continue;
                                         case "!srtime":
                                             await _cmdGen.CmdLibVLCSharpPlayerShowTime(chatter);
+                                            continue;
+                                        case "!game":
+                                            _cmdGen.CmdShowCurrentTwitchGame(chatter);
+                                            continue;
+                                        case "!title":
+                                            _cmdGen.CmdShowCurrentTwitchTitle(chatter);
                                             continue;
                                         default: // Check commands that depend on special cases
                                             /* Request a song for the host to play */

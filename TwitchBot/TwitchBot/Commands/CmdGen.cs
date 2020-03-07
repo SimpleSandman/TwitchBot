@@ -46,6 +46,7 @@ namespace TwitchBot.Commands
         private QuoteService _quote;
         private InGameUsernameService _ign;
         private LibVLCSharpPlayer _libVLCSharpPlayer;
+        private TwitchStreamStatus _twitchStreamStatus;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private BankHeistSingleton _heistSettingsInstance = BankHeistSingleton.Instance;
@@ -56,7 +57,7 @@ namespace TwitchBot.Commands
         public CmdGen(IrcClient irc, SpotifyWebClient spotify, TwitchBotConfigurationSection botConfig, 
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
             ManualSongRequestService manualSongRequest, PartyUpService partyUp, GameDirectoryService gameDirectory, QuoteService quote,
-            InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer)
+            InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer, TwitchStreamStatus twitchStreamStatus)
         {
             _irc = irc;
             _spotify = spotify;
@@ -71,6 +72,7 @@ namespace TwitchBot.Commands
             _quote = quote;
             _ign = ign;
             _libVLCSharpPlayer = libVLCSharpPlayer;
+            _twitchStreamStatus = twitchStreamStatus;
         }
 
         public async void CmdDisplayCmds()
@@ -849,7 +851,7 @@ namespace TwitchBot.Commands
                                // to be exempt from paying the virtual currency
 
                 // Force chatters that don't have a VIP, moderator, or broadcaster badge to use their virtul currency
-                if (IsPrivilegdChatter(chatter))
+                if (IsPrivilegedChatter(chatter))
                 {
                     cost = 0;
                 }
@@ -1014,7 +1016,7 @@ namespace TwitchBot.Commands
                         TimeSpan cooldownTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 3);
 
                         // Reduce the cooldown for privileged chatters
-                        if (IsPrivilegdChatter(chatter))
+                        if (IsPrivilegedChatter(chatter))
                             cooldownTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 4);
 
                         return DateTime.Now.AddSeconds(cooldownTimeSpan.TotalSeconds);
@@ -1927,6 +1929,40 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
+        /// Display the current game/category for the Twitch channel
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        public async void CmdShowCurrentTwitchGame(TwitchChatter chatter)
+        {
+            try
+            {
+                _irc.SendPublicChatMessage($"We're currently playing \"{_twitchStreamStatus.CurrentCategory}\" @{chatter.DisplayName}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdShowCurrentTwitchGame(TwitchChatter)", false, "!game");
+            }
+        }
+
+        /// <summary>
+        /// Display the current title for the Twitch channel
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        public async void CmdShowCurrentTwitchTitle(TwitchChatter chatter)
+        {
+            try
+            {
+                _irc.SendPublicChatMessage($"The title of this stream is \"{_twitchStreamStatus.CurrentTitle}\" @{chatter.DisplayName}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdShowCurrentTwitchTitle(TwitchChatter)", false, "!title");
+            }
+        }
+
+        /// <summary>
         /// Check if the WPF app exists so we can see its song status (deprecated)
         /// </summary>
         /// <param name="chatter"></param>
@@ -2078,7 +2114,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        private bool IsPrivilegdChatter(TwitchChatter chatter)
+        private bool IsPrivilegedChatter(TwitchChatter chatter)
         {
             return chatter.Badges.Contains("vip") || chatter.Badges.Contains("moderator") || chatter.Badges.Contains("broadcaster") ? true : false;
         }
