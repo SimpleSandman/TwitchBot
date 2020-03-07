@@ -597,7 +597,7 @@ namespace TwitchBot
                                             case "!modback": // Tell the stream the specified moderator has returned
                                                 _cmdMod.CmdModBack(chatter);
                                                 continue;
-                                            case "!resetjoin": // Resets game queue of users that want to play with the broadcaster
+                                            case "!resetinvite": // Resets game queue of users that want to play with the broadcaster
                                                 _gameQueueUsers = await _cmdMod.CmdResetJoin(chatter, _gameQueueUsers);
                                                 continue;
                                             default: // Check commands that depend on special cases
@@ -703,7 +703,7 @@ namespace TwitchBot
                                             case "!resetmsl": // Reset MultiStream link so link can be reconfigured
                                                 _multiStreamUsers = await _cmdVip.CmdResetMultiStreamLink(chatter, _multiStreamUsers);
                                                 continue;
-                                            case "!popjoin": // Pops user from the queue of users that want to play with the broadcaster
+                                            case "!popinvite": // Pops user from the queue of users that want to play with the broadcaster
                                                 _gameQueueUsers = await _cmdVip.CmdPopJoin(chatter, _gameQueueUsers);
                                                 continue;
                                             case "!poprsr": // Removes the first song in the queue of song requests
@@ -793,7 +793,7 @@ namespace TwitchBot
                                         case "!ranktop3": // Display the top 3 highest ranking users
                                             await _cmdGen.CmdLeaderboardRank(chatter);
                                             continue;
-                                        case "!joinlist": // Show the users that want to play with the broadcaster
+                                        case "!invitelist": // Show the users that want to play with the broadcaster
                                             await _cmdGen.CmdListJoin(chatter, _gameQueueUsers);
                                             continue;
                                         case "!invite": // Request to play with the broadcaster
