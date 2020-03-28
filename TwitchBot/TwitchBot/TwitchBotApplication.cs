@@ -45,6 +45,7 @@ namespace TwitchBot
         private List<string> _multiStreamUsers;
         private List<string> _greetedUsers;
         private Queue<string> _gameQueueUsers;
+        private CommandSystem _commandSystem;
         private List<CooldownUser> _cooldownUsers;
         private SpotifyWebClient _spotify;
         private TwitchInfoService _twitchInfo;
@@ -104,6 +105,7 @@ namespace TwitchBot
             _libVLCSharpPlayer = libVLCSharpPlayer;
             _irc = irc;
             _twitchStreamStatus = twitchStreamStatus;
+            _commandSystem = new CommandSystem(irc, _botConfig, bank);
         }
 
         public async Task RunAsync()
@@ -154,10 +156,8 @@ namespace TwitchBot
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer, _twitchStreamStatus);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _appConfig, _songRequestBlacklist,
                     _twitchInfo, _gameDirectory, _songRequestSetting, _ign, _libVLCSharpPlayer, _twitchStreamStatus);
-                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _bank, _twitchInfo,
-                    _manualSongRequest, _quote, _partyUp, _gameDirectory, _libVLCSharpPlayer);
-                _cmdVip = new CmdVip(_irc, _timeout, _botConfig, _appConfig, _bank, _twitchInfo,
-                    _manualSongRequest, _quote, _partyUp, _gameDirectory);
+                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _bank, _manualSongRequest, _libVLCSharpPlayer);
+                _cmdVip = new CmdVip(_irc, _botConfig, _twitchInfo, _manualSongRequest, _quote, _partyUp, _gameDirectory);
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine();
@@ -418,6 +418,8 @@ namespace TwitchBot
                                 }
 
                                 await GreetUser(chatter);
+
+                                //await _commandSystem.ExecRequest(chatter);
 
                                 #region Broadcaster Commands
                                 if (username == _botConfig.Broadcaster.ToLower())

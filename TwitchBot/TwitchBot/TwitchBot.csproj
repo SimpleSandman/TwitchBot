@@ -348,6 +348,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\CmdVip.cs" />
+    <Compile Include="Commands\CommandSystem.cs" />
+    <Compile Include="Commands\Features\BankFeature.cs" />
+    <Compile Include="Commands\Features\BaseFeature.cs" />
     <Compile Include="Enums\ChatterType.cs" />
     <Compile Include="Libraries\BotModeratorSingleton.cs" />
     <Compile Include="Libraries\CustomCommandSingleton.cs" />

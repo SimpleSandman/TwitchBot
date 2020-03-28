@@ -29,33 +29,23 @@ namespace TwitchBot.Commands
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
         private BankService _bank;
-        private TwitchInfoService _twitchInfo;
         private ManualSongRequestService _manualSongRequest;
-        private QuoteService _quote;
-        private PartyUpService _partyUp;
-        private GameDirectoryService _gameDirectory;
         private LibVLCSharpPlayer _libVLCSharpPlayer;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
-        private TwitterClient _twitter = TwitterClient.Instance;
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
 
-        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, 
-            System.Configuration.Configuration appConfig, BankService bank, TwitchInfoService twitchInfo, ManualSongRequestService manualSongRequest,
-            QuoteService quote, PartyUpService partyUp, GameDirectoryService gameDirectory, LibVLCSharpPlayer libVLCSharpPlayer)
+        public CmdMod(IrcClient irc, TimeoutCmd timeout, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig, 
+            BankService bank, ManualSongRequestService manualSongRequest, LibVLCSharpPlayer libVLCSharpPlayer)
         {
             _irc = irc;
             _timeout = timeout;
             _botConfig = botConfig;
             _appConfig = appConfig;
             _bank = bank;
-            _twitchInfo = twitchInfo;
             _manualSongRequest = manualSongRequest;
-            _quote = quote;
-            _partyUp = partyUp;
-            _gameDirectory = gameDirectory;
             _libVLCSharpPlayer = libVLCSharpPlayer;
         }
 
