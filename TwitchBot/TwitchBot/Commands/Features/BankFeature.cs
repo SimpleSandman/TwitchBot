@@ -52,7 +52,6 @@ namespace TwitchBot.Commands.Features
                     if (requestedCommand == $"!{_botConfig.CurrencyType.ToLower()}" || requestedCommand == "!points")
                     {
                         await CheckFunds(chatter);
-                        break;
                     }
 
                     break;
@@ -204,7 +203,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdCharge(TwitchChatter)", false, "!charge");
+                await _errHndlrInstance.LogError(ex, "BankFeature", "Charge(TwitchChatter)", false, "!charge");
             }
         }
 
@@ -225,7 +224,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdCheckFunds(TwitchChatter)", false, "![currency name]");
+                await _errHndlrInstance.LogError(ex, "BankFeature", "CheckFunds(TwitchChatter)", false, "![currency name]");
             }
         }
 
@@ -290,7 +289,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdMod", "CmdBonusAll(string, string)", false, "!bonusall");
+                await _errHndlrInstance.LogError(ex, "BankFeature", "BonusAll(TwitchChatter)", false, "!bonusall");
             }
         }
     }

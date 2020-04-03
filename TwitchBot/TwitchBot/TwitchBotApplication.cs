@@ -419,7 +419,7 @@ namespace TwitchBot
 
                                 await GreetUser(chatter);
 
-                                //await _commandSystem.ExecRequest(chatter);
+                                await _commandSystem.ExecRequest(chatter);
 
                                 #region Broadcaster Commands
                                 if (username == _botConfig.Broadcaster.ToLower())
@@ -599,22 +599,8 @@ namespace TwitchBot
                                                 _gameQueueUsers = await _cmdMod.CmdResetJoin(chatter, _gameQueueUsers);
                                                 continue;
                                             default: // Check commands that depend on special cases
-                                                /* Takes money away from a user */
-                                                if (message.StartsWith("!charge ") && message.Contains("@"))
-                                                { 
-                                                    await _cmdMod.CmdCharge(chatter);
-                                                    continue;
-                                                }
-
-                                                /* Gives money to user */
-                                                else if (message.StartsWith("!deposit ") && message.Contains("@"))
-                                                { 
-                                                    await _cmdMod.CmdDeposit(chatter);
-                                                    continue;
-                                                }
-
                                                 /* Bot-specific timeout on a user for a set amount of time */
-                                                else if (message.StartsWith("!addtimeout ") && message.Contains("@"))
+                                                if (message.StartsWith("!addtimeout ") && message.Contains("@"))
                                                 { 
                                                     await _cmdMod.CmdAddTimeout(chatter);
                                                     continue;
@@ -631,13 +617,6 @@ namespace TwitchBot
                                                 else if (message.StartsWith("!setlatency "))
                                                 { 
                                                     _cmdMod.CmdSetLatency(chatter);
-                                                    continue;
-                                                }
-
-                                                /* Gives every viewer a set amount of currency */
-                                                else if (message.StartsWith("!bonusall "))
-                                                { 
-                                                    await _cmdMod.CmdBonusAll(chatter);
                                                     continue;
                                                 }
 
@@ -929,13 +908,6 @@ namespace TwitchBot
                                                 continue;
                                             }
 
-                                            /* Check user's account balance */
-                                            else if (message == $"!{_botConfig.CurrencyType.ToLower()}" || message == "!points")
-                                            { 
-                                                await _cmdGen.CmdCheckFunds(chatter);
-                                                continue;
-                                            }
-
                                             /* Gamble money away */
                                             else if (message.StartsWith("!gamble ") && !IsCommandOnCooldown("!gamble", chatter))
                                             {
@@ -1133,7 +1105,7 @@ namespace TwitchBot
                             }
                             catch (Exception ex)
                             {
-                                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, bool, string, bool, bool)", false, "N/A", chatter.Message);
+                                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, bool, bool, bool)", false, "N/A", chatter.Message);
                             }
                         }
                         else if (rawMessage.Contains("NOTICE"))
@@ -1154,7 +1126,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, bool, string, bool, bool)", true);
+                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, bool, bool, bool)", true);
             }
         }
 
