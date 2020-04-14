@@ -18,11 +18,14 @@ namespace TwitchBot.Commands
     public class CommandSystem
     {
         private readonly BankFeature _bank;
+        private readonly TwitterFeature _twitter;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, BankService bank)
+        public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, bool hasTwitterInfo, System.Configuration.Configuration appConfig, 
+            BankService bank)
         {
             _bank = new BankFeature(irc, botConfig, bank);
+            _twitter = new TwitterFeature(irc, botConfig, appConfig, hasTwitterInfo);
         }
 
         public async Task ExecRequest(TwitchChatter chatter)
@@ -30,6 +33,10 @@ namespace TwitchBot.Commands
             try
             {
                 if (_bank.IsRequestExecuted(chatter))
+                {
+                    return;
+                }
+                else if (_twitter.IsRequestExecuted(chatter))
                 {
                     return;
                 }

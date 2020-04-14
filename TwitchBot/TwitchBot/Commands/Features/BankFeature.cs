@@ -37,24 +37,31 @@ namespace TwitchBot.Commands.Features
 
         public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
-            switch (requestedCommand)
+            try
             {
-                case "!deposit":
-                    await Deposit(chatter);
-                    break;
-                case "!charge":
-                    await Charge(chatter);
-                    break;
-                case "!bonusall":
-                    await BonusAll(chatter);
-                    break;
-                default:
-                    if (requestedCommand == $"!{_botConfig.CurrencyType.ToLower()}" || requestedCommand == "!points")
-                    {
-                        await CheckFunds(chatter);
-                    }
+                switch (requestedCommand)
+                {
+                    case "!deposit":
+                        await Deposit(chatter);
+                        break;
+                    case "!charge":
+                        await Charge(chatter);
+                        break;
+                    case "!bonusall":
+                        await BonusAll(chatter);
+                        break;
+                    default:
+                        if (requestedCommand == $"!{_botConfig.CurrencyType.ToLower()}" || requestedCommand == "!points")
+                        {
+                            await CheckFunds(chatter);
+                        }
 
-                    break;
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "BankFeature", "ExecCommand(TwitchChatter, string)", false);
             }
         }
 

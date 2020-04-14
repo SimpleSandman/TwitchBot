@@ -31,19 +31,26 @@ namespace TwitchBot.Commands.Features
 
         public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
-            switch (requestedCommand)
+            try
             {
-                case "!":
-                    //await Deposit(chatter);
-                    break;
-                default:
-                    if (requestedCommand == "!")
-                    {
-                        //await CheckFunds(chatter);
+                switch (requestedCommand)
+                {
+                    case "!":
+                        //await SomethingCool(chatter);
                         break;
-                    }
+                    default:
+                        if (requestedCommand == "!")
+                        {
+                            //await OtherCoolThings(chatter);
+                            break;
+                        }
 
-                    break;
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "TemplateFeature", "ExecCommand(TwitchChatter, string)", false);
             }
         }
 

@@ -105,7 +105,7 @@ namespace TwitchBot
             _libVLCSharpPlayer = libVLCSharpPlayer;
             _irc = irc;
             _twitchStreamStatus = twitchStreamStatus;
-            _commandSystem = new CommandSystem(irc, _botConfig, bank);
+            _commandSystem = new CommandSystem(irc, _botConfig, _hasTwitterInfo, appConfig, bank);
         }
 
         public async Task RunAsync()
@@ -448,12 +448,6 @@ namespace TwitchBot
                                         case "!spotifynext": // Press local Spotify next (skip) button [>|]
                                         case "!spotifyskip":
                                             await _spotify.SkipToNextPlayback();
-                                            continue;
-                                        case "!sendtweet on": // Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets)
-                                            _cmdBrdCstr.CmdEnableTweet(hasTwitterInfo);
-                                            continue;
-                                        case "!sendtweet off": // Disables tweets from being sent out from this bot
-                                            _cmdBrdCstr.CmdDisableTweet(hasTwitterInfo);
                                             continue;
                                         case "!rsrmode on": // Enables viewers to request songs (default off)
                                             isManualSongRequestAvail = await _cmdBrdCstr.CmdEnableManualSrMode(isManualSongRequestAvail);

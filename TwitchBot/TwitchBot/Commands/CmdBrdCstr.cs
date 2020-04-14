@@ -95,62 +95,6 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
-        /// Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets)
-        /// </summary>
-        /// <param name="hasTwitterInfo">Check for Twitter credentials</param>
-        public async void CmdEnableTweet(bool hasTwitterInfo)
-        {
-            try
-            {
-                if (!hasTwitterInfo)
-                    _irc.SendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
-                else
-                {
-                    _botConfig.EnableTweets = true;
-                    _appConfig.AppSettings.Settings.Remove("enableTweets");
-                    _appConfig.AppSettings.Settings.Add("enableTweets", "true");
-                    _appConfig.Save(ConfigurationSaveMode.Modified);
-                    ConfigurationManager.RefreshSection("TwitchBotConfiguration");
-
-                    Console.WriteLine("Auto publish tweets is set to [" + _botConfig.EnableTweets + "]");
-                    _irc.SendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
-                }
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableTweet(bool)", false, "!sendtweet on");
-            }
-        }
-
-        /// <summary>
-        /// Disables tweets to be sent out from this bot (both auto publish tweets and manual tweets)
-        /// </summary>
-        /// <param name="hasTwitterInfo">Check for Twitter credentials</param>
-        public async void CmdDisableTweet(bool hasTwitterInfo)
-        {
-            try
-            {
-                if (!hasTwitterInfo)
-                    _irc.SendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
-                else
-                {
-                    _botConfig.EnableTweets = false;
-                    _appConfig.AppSettings.Settings.Remove("enableTweets");
-                    _appConfig.AppSettings.Settings.Add("enableTweets", "false");
-                    _appConfig.Save(ConfigurationSaveMode.Modified);
-                    ConfigurationManager.RefreshSection("TwitchBotConfiguration");
-
-                    Console.WriteLine("Auto publish tweets is set to [" + _botConfig.EnableTweets + "]");
-                    _irc.SendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
-                }
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableTweet(bool)", false, "!sendtweet off");
-            }
-        }
-
-        /// <summary>
         /// Enable manual song request mode
         /// </summary>
         public async Task<bool> CmdEnableManualSrMode(bool isManualSongRequestAvail)
