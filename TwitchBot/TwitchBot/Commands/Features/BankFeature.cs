@@ -28,11 +28,11 @@ namespace TwitchBot.Commands.Features
         public BankFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, BankService bank) : base(irc, botConfig)
         {
             _bank = bank;
-            _rolePermission.Add("!deposit", "mod");
-            _rolePermission.Add("!charge", "mod");
+            _rolePermission.Add("!deposit", "moderator");
+            _rolePermission.Add("!charge", "moderator");
             _rolePermission.Add("!points", "");
             _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}", "");
-            _rolePermission.Add("!bonusall", "mod");
+            _rolePermission.Add("!bonusall", "moderator");
         }
 
         public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)

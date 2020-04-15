@@ -32,7 +32,7 @@ namespace TwitchBot.Commands.Features
         {
             _appConfig = appConfig;
             _hasTwitterInfo = hasTwitterInfo;
-            _rolePermission.Add("!", "");
+            _rolePermission.Add("!sendtweet", "broadcaster");
             _rolePermission.Add("!", "");
         }
 
@@ -87,7 +87,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdEnableTweet()", false, "!sendtweet on");
+                await _errHndlrInstance.LogError(ex, "TwitterFeature", "EnableTweet()", false, "!sendtweet on");
             }
         }
 
@@ -114,7 +114,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableTweet()", false, "!sendtweet off");
+                await _errHndlrInstance.LogError(ex, "TwitterFeature", "DisableTweet()", false, "!sendtweet off");
             }
         }
     }

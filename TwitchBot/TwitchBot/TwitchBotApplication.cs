@@ -105,7 +105,6 @@ namespace TwitchBot
             _libVLCSharpPlayer = libVLCSharpPlayer;
             _irc = irc;
             _twitchStreamStatus = twitchStreamStatus;
-            _commandSystem = new CommandSystem(irc, _botConfig, _hasTwitterInfo, appConfig, bank);
         }
 
         public async Task RunAsync()
@@ -158,6 +157,7 @@ namespace TwitchBot
                     _twitchInfo, _gameDirectory, _songRequestSetting, _ign, _libVLCSharpPlayer, _twitchStreamStatus);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _bank, _manualSongRequest, _libVLCSharpPlayer);
                 _cmdVip = new CmdVip(_irc, _botConfig, _twitchInfo, _manualSongRequest, _quote, _partyUp, _gameDirectory);
+                _commandSystem = new CommandSystem(_irc, _botConfig, _hasTwitterInfo, _appConfig, _bank);
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine();
