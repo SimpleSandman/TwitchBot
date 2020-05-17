@@ -33,7 +33,6 @@ namespace TwitchBot.Commands.Features
             _appConfig = appConfig;
             _hasTwitterInfo = hasTwitterInfo;
             _rolePermission.Add("!sendtweet", "broadcaster");
-            _rolePermission.Add("!", "");
         }
 
         public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)

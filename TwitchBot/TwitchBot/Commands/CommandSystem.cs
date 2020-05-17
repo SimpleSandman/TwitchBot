@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using TwitchBot.Commands.Features;
@@ -19,6 +16,7 @@ namespace TwitchBot.Commands
     {
         private readonly BankFeature _bank;
         private readonly TwitterFeature _twitter;
+        private readonly SongRequestFeature _songRequestFeature;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, bool hasTwitterInfo, System.Configuration.Configuration appConfig, 
@@ -26,6 +24,7 @@ namespace TwitchBot.Commands
         {
             _bank = new BankFeature(irc, botConfig, bank);
             _twitter = new TwitterFeature(irc, botConfig, appConfig, hasTwitterInfo);
+            _songRequestFeature = new SongRequestFeature(irc, botConfig, appConfig);
         }
 
         public async Task ExecRequest(TwitchChatter chatter)
@@ -40,6 +39,10 @@ namespace TwitchBot.Commands
                 {
                     return;
                 }
+                //else if (_songRequestFeature.IsRequestExecuted(chatter))
+                //{
+                //    return;
+                //}
                 // ToDo: Add a "else if" for each feature
             }
             catch (Exception ex)

@@ -352,6 +352,8 @@
     <Compile Include="Commands\Features\TemplateFeature.cs" />
     <Compile Include="Commands\Features\BankFeature.cs" />
     <Compile Include="Commands\Features\BaseFeature.cs" />
+    <Compile Include="Commands\Features\SongRequestFeature.cs" />
+    <Compile Include="Commands\Features\LibVLCSharpPlayerFeature.cs" />
     <Compile Include="Commands\Features\TwitterFeature.cs" />
     <Compile Include="Enums\ChatterType.cs" />
     <Compile Include="Libraries\BotModeratorSingleton.cs" />
