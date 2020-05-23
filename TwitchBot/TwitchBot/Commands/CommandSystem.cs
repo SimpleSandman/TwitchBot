@@ -17,6 +17,8 @@ namespace TwitchBot.Commands
         private readonly BankFeature _bank;
         private readonly TwitterFeature _twitter;
         private readonly SongRequestFeature _songRequestFeature;
+        private readonly LibVLCSharpPlayerFeature _libVLCSharpPlayerFeature;
+        private readonly TwitchChannelFeature _twitchChannelFeature;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, bool hasTwitterInfo, System.Configuration.Configuration appConfig, 
@@ -25,6 +27,8 @@ namespace TwitchBot.Commands
             _bank = new BankFeature(irc, botConfig, bank);
             _twitter = new TwitterFeature(irc, botConfig, appConfig, hasTwitterInfo);
             _songRequestFeature = new SongRequestFeature(irc, botConfig, appConfig);
+            _libVLCSharpPlayerFeature = new LibVLCSharpPlayerFeature(irc, botConfig, appConfig);
+            _twitchChannelFeature = new TwitchChannelFeature(irc, botConfig);
         }
 
         public async Task ExecRequest(TwitchChatter chatter)
@@ -39,10 +43,18 @@ namespace TwitchBot.Commands
                 {
                     return;
                 }
-                //else if (_songRequestFeature.IsRequestExecuted(chatter))
-                //{
-                //    return;
-                //}
+                else if (_songRequestFeature.IsRequestExecuted(chatter))
+                {
+                    return;
+                }
+                else if (_libVLCSharpPlayerFeature.IsRequestExecuted(chatter))
+                {
+                    return;
+                }
+                else if (_twitchChannelFeature.IsRequestExecuted(chatter))
+                {
+                    return;
+                }
                 // ToDo: Add a "else if" for each feature
             }
             catch (Exception ex)

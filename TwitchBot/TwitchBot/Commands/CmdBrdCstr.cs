@@ -7,7 +7,6 @@ using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
-using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
 
@@ -21,16 +20,13 @@ namespace TwitchBot.Commands
         private TwitchInfoService _twitchInfo;
         private GameDirectoryService _gameDirectory;
         private InGameUsernameService _ign;
-        private TwitchStreamStatus _twitchStreamStatus;
-        private TwitterClient _twitter = TwitterClient.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private BossFightSingleton _bossFightSettingsInstance = BossFightSingleton.Instance;
         private CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
 
         public CmdBrdCstr(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig, 
-            TwitchInfoService twitchInfo, GameDirectoryService gameDirectory, InGameUsernameService ign, 
-            TwitchStreamStatus twitchStreamStatus)
+            TwitchInfoService twitchInfo, GameDirectoryService gameDirectory, InGameUsernameService ign)
         {
             _irc = irc;
             _botConfig = botConfig;
@@ -38,7 +34,6 @@ namespace TwitchBot.Commands
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
             _ign = ign;
-            _twitchStreamStatus = twitchStreamStatus;
         }
 
         /// <summary>
@@ -146,27 +141,7 @@ namespace TwitchBot.Commands
             }
 
             return isYouTubeSongRequestAvail;
-        }
-
-        /// <summary>
-        /// Manually send a tweet
-        /// </summary>
-        /// <param name="hasTwitterInfo">Check if user has provided the specific twitter credentials</param>
-        /// <param name="message">Chat message from the user</param>
-        public async void CmdTweet(bool hasTwitterInfo, string message)
-        {
-            try
-            {
-                if (!hasTwitterInfo)
-                    _irc.SendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
-                else
-                    _irc.SendPublicChatMessage(_twitter.SendTweet(message.Replace("!tweet ", "")));
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdTweet(bool, string)", false, "!tweet");
-            }
-        }
+        }        
 
         /// <summary>
         /// Enables displaying songs from Spotify into the IRC chat
@@ -209,30 +184,6 @@ namespace TwitchBot.Commands
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdDisableDisplaySongs()", false, "!displaysongs off");
-            }
-        }
-
-        public async Task CmdLive(bool hasTwitterInfo)
-        {
-            try
-            {
-                if (!_twitchStreamStatus.IsLive)
-                    _irc.SendPublicChatMessage("This channel is not streaming right now");
-                else if (!_botConfig.EnableTweets)
-                    _irc.SendPublicChatMessage("Tweets are disabled at the moment");
-                else if (string.IsNullOrEmpty(_twitchStreamStatus.CurrentCategory) || string.IsNullOrEmpty(_twitchStreamStatus.CurrentTitle))
-                    _irc.SendPublicChatMessage("Unable to pull the Twitch title/category at the moment. Please try again in a few seconds");
-                else if (_botConfig.EnableTweets && hasTwitterInfo)
-                {
-                    string tweetResult = _twitter.SendTweet($"Live on Twitch playing {_twitchStreamStatus.CurrentCategory} "
-                        + $"\"{_twitchStreamStatus.CurrentTitle}\" twitch.tv/{_botConfig.Broadcaster}");
-
-                    _irc.SendPublicChatMessage($"{tweetResult} @{_botConfig.Broadcaster}");
-                }
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdBrdCstr", "CmdLive(bool)", false, "!live");
             }
         }
 

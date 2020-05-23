@@ -1,18 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
-using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
-using TwitchBot.Services;
-
-using TwitchBotDb.DTO;
-
-using TwitchBotUtil.Extensions;
+using TwitchBot.Threads;
 
 namespace TwitchBot.Commands.Features
 {
@@ -21,8 +14,8 @@ namespace TwitchBot.Commands.Features
     /// </summary>
     public sealed class TwitterFeature : BaseFeature
     {
-        private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
-        private readonly TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
+        private readonly TwitchStreamStatus _twitchStreamStatus;
+        private readonly TwitterClient _twitter = TwitterClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private readonly System.Configuration.Configuration _appConfig;
         private readonly bool _hasTwitterInfo;
@@ -33,6 +26,8 @@ namespace TwitchBot.Commands.Features
             _appConfig = appConfig;
             _hasTwitterInfo = hasTwitterInfo;
             _rolePermission.Add("!sendtweet", "broadcaster");
+            _rolePermission.Add("!tweet", "broadcaster");
+            _rolePermission.Add("!live", "broadcaster");
         }
 
         public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -47,13 +42,13 @@ namespace TwitchBot.Commands.Features
                     case "!sendtweet off":
                         DisableTweet();
                         break;
+                    case "!tweet":
+                        Tweet(chatter);
+                        break;
+                    case "!live":
+                        await Live();
+                        break;
                     default:
-                        if (requestedCommand == "!")
-                        {
-                            //await OtherCoolThings(chatter);
-                            break;
-                        }
-
                         break;
                 }
             }
@@ -71,7 +66,7 @@ namespace TwitchBot.Commands.Features
             try
             {
                 if (!_hasTwitterInfo)
-                    _irc.SendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
+                    _irc.SendPublicChatMessage($"You are missing twitter info @{_botConfig.Broadcaster}");
                 else
                 {
                     _botConfig.EnableTweets = true;
@@ -80,8 +75,7 @@ namespace TwitchBot.Commands.Features
                     _appConfig.Save(ConfigurationSaveMode.Modified);
                     ConfigurationManager.RefreshSection("TwitchBotConfiguration");
 
-                    Console.WriteLine("Auto publish tweets is set to [" + _botConfig.EnableTweets + "]");
-                    _irc.SendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
+                    _irc.SendPublicChatMessage($"@{_botConfig.Broadcaster} : Automatic tweets is set to \"{_botConfig.EnableTweets}\"");
                 }
             }
             catch (Exception ex)
@@ -98,7 +92,7 @@ namespace TwitchBot.Commands.Features
             try
             {
                 if (!_hasTwitterInfo)
-                    _irc.SendPublicChatMessage("You are missing twitter info @" + _botConfig.Broadcaster);
+                    _irc.SendPublicChatMessage($"You are missing twitter info @{_botConfig.Broadcaster}");
                 else
                 {
                     _botConfig.EnableTweets = false;
@@ -107,13 +101,59 @@ namespace TwitchBot.Commands.Features
                     _appConfig.Save(ConfigurationSaveMode.Modified);
                     ConfigurationManager.RefreshSection("TwitchBotConfiguration");
 
-                    Console.WriteLine("Auto publish tweets is set to [" + _botConfig.EnableTweets + "]");
-                    _irc.SendPublicChatMessage(_botConfig.Broadcaster + ": Automatic tweets is set to \"" + _botConfig.EnableTweets + "\"");
+                    _irc.SendPublicChatMessage($"@{_botConfig.Broadcaster} : Automatic tweets is set to \"{_botConfig.EnableTweets}\"");
                 }
             }
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "TwitterFeature", "DisableTweet()", false, "!sendtweet off");
+            }
+        }
+
+        /// <summary>
+        /// Manually send a tweet
+        /// </summary>
+        /// <param name="message">Chat message from the user</param>
+        public async void Tweet(TwitchChatter chatter)
+        {
+            try
+            {
+                if (!_hasTwitterInfo)
+                    _irc.SendPublicChatMessage($"You are missing twitter info @{_botConfig.Broadcaster}");
+                else
+                    _irc.SendPublicChatMessage(_twitter.SendTweet(chatter.Message.Replace("!tweet ", "")));
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "TwitterFeature", "Tweet(TwitchChatter)", false, "!tweet");
+            }
+        }
+
+        /// <summary>
+        /// Tweet when stream is live
+        /// </summary>
+        /// <returns></returns>
+        public async Task Live()
+        {
+            try
+            {
+                if (!_twitchStreamStatus.IsLive)
+                    _irc.SendPublicChatMessage("This channel is not streaming right now");
+                else if (!_botConfig.EnableTweets)
+                    _irc.SendPublicChatMessage("Tweets are disabled at the moment");
+                else if (string.IsNullOrEmpty(_twitchStreamStatus.CurrentCategory) || string.IsNullOrEmpty(_twitchStreamStatus.CurrentTitle))
+                    _irc.SendPublicChatMessage("Unable to pull the Twitch title/category at the moment. Please try again in a few seconds");
+                else if (_botConfig.EnableTweets && _hasTwitterInfo)
+                {
+                    string tweetResult = _twitter.SendTweet($"Live on Twitch playing {_twitchStreamStatus.CurrentCategory} "
+                        + $"\"{_twitchStreamStatus.CurrentTitle}\" twitch.tv/{_botConfig.Broadcaster}");
+
+                    _irc.SendPublicChatMessage($"{tweetResult} @{_botConfig.Broadcaster}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "TwitterFeature", "Live()", false, "!live");
             }
         }
     }

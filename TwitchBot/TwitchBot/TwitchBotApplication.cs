@@ -152,9 +152,8 @@ namespace TwitchBot
                 
                 /* Load command classes */
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _twitchInfo, _bank, _follower,
-                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer, _twitchStreamStatus);
-                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _appConfig, _songRequestBlacklist,
-                    _twitchInfo, _gameDirectory, _songRequestSetting, _ign, _libVLCSharpPlayer, _twitchStreamStatus);
+                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer);
+                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _appConfig, _twitchInfo, _gameDirectory, _ign);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _bank, _manualSongRequest, _libVLCSharpPlayer);
                 _cmdVip = new CmdVip(_irc, _botConfig, _twitchInfo, _manualSongRequest, _quote, _partyUp, _gameDirectory);
                 _commandSystem = new CommandSystem(_irc, _botConfig, _hasTwitterInfo, _appConfig, _bank);
@@ -467,15 +466,6 @@ namespace TwitchBot
                                         case "!displaysongs off": // Disables songs from local Spotify to be displayed inside the chat
                                             _cmdBrdCstr.CmdDisableDisplaySongs();
                                             continue;
-                                        case "!resetsrbl": // Reset the entire song request blacklist
-                                            await _cmdBrdCstr.CmdResetSongRequestBlacklist();
-                                            continue;
-                                        case "!showsrbl": // Show the song request blacklist
-                                            await _cmdBrdCstr.CmdListSongRequestBlacklist();
-                                            continue;
-                                        case "!live": // Sends an announcement tweet saying the broadcaster is live
-                                            await _cmdBrdCstr.CmdLive(hasTwitterInfo);
-                                            continue;
                                         case "!refreshreminders": // Manually refresh reminders
                                             await _cmdBrdCstr.CmdRefreshReminders();
                                             continue;
@@ -485,62 +475,14 @@ namespace TwitchBot
                                         case "!refreshcommands": // Manually refresh custom commands
                                             await _cmdBrdCstr.CmdRefreshCommands();
                                             continue;
-                                        case "!resetytsr": // Reset the YouTube song request playlist
-                                            await _cmdBrdCstr.CmdResetYoutubeSongRequestList(hasYouTubeAuth);
-                                            continue;
-                                        case "!djmode on": // Enable DJing mode for YouTube song requests 
-                                            await _cmdBrdCstr.CmdEnableDjMode();
-                                            continue;
-                                        case "!djmode off": // Disable DJing mode for YouTube song requests
-                                            await _cmdBrdCstr.CmdDisableDjMode();
-                                            continue;
                                         case "!deleteign":
                                             await _cmdBrdCstr.CmdDeleteIgn();
                                             continue;
-                                        case "!srstart":
-                                            await _cmdBrdCstr.CmdLibVLCSharpPlayerStart();
-                                            continue;
-                                        case "!srstop":
-                                            _cmdBrdCstr.CmdLibVLCSharpPlayerStop();
-                                            continue;
-                                        case "!srplay":
-                                            await _cmdBrdCstr.CmdLibVLCSharpPlayerPlay();
-                                            continue;
-                                        case "!srpause":
-                                            await _cmdBrdCstr.CmdLibVLCSharpPlayerPause();
-                                            continue;
-                                        case "!srshuffle on":
-                                            _cmdBrdCstr.CmdLibVLCSharpPlayerPersonalPlaylistShuffle(true);
-                                            continue;
-                                        case "!srshuffle off":
-                                            _cmdBrdCstr.CmdLibVLCSharpPlayerPersonalPlaylistShuffle(false);
-                                            continue;
                                         default: // Check commands that depend on special cases
-                                            /* Sends a manual tweet (if credentials have been provided) */
-                                            if (message.StartsWith("!tweet "))
-                                            {
-                                                _cmdBrdCstr.CmdTweet(hasTwitterInfo, chatter.Message);
-                                                continue;
-                                            }
-
-                                            /* Remove song or artist from song request blacklist */
-                                            else if (message.StartsWith("!delsrbl "))
-                                            {
-                                                await _cmdBrdCstr.CmdRemoveSongRequestBlacklist(chatter.Message);
-                                                continue;
-                                            }
-
                                             /* Set regular follower hours for dedicated followers */
-                                            else if (message.StartsWith("!setregularhours "))
+                                            if (message.StartsWith("!setregularhours "))
                                             { 
                                                 _cmdBrdCstr.CmdSetRegularFollowerHours(chatter.Message); 
-                                                continue;
-                                            }
-
-                                            /* Set YouTube personal playlist as a backup when new requests  */
-                                            else if (message.StartsWith("!setpersonalplaylistid "))
-                                            { 
-                                                await _cmdBrdCstr.CmdSetPersonalYoutubePlaylistById(chatter.Message);
                                                 continue;
                                             }
 
@@ -555,13 +497,6 @@ namespace TwitchBot
                                             else if (message.StartsWith("!setgenericign ") || message.StartsWith("!setgenericid "))
                                             { 
                                                 await _cmdBrdCstr.CmdSetGenericIgn(chatter.Message); 
-                                                continue;
-                                            }
-
-                                            /* Set audio output device for LibVLCSharp media player */
-                                            else if (message.StartsWith("!sraod "))
-                                            { 
-                                                _cmdBrdCstr.CmdLibVLCSharpPlayerSetAudioOutputDevice(chatter.Message);
                                                 continue;
                                             }
 
@@ -625,13 +560,6 @@ namespace TwitchBot
                                                 else if (message.StartsWith("!updategame ") || message.StartsWith("!game "))
                                                 { 
                                                     await _cmdMod.CmdUpdateGame(chatter, hasTwitterInfo);
-                                                    continue;
-                                                }
-
-                                                /* Add song or artist to song request blacklist */
-                                                else if (message.StartsWith("!srbl "))
-                                                { 
-                                                    await _cmdBrdCstr.CmdAddSongRequestBlacklist(chatter.Message);
                                                     continue;
                                                 }
 
@@ -808,12 +736,6 @@ namespace TwitchBot
                                             continue;
                                         case "!srtime":
                                             await _cmdGen.CmdLibVLCSharpPlayerShowTime(chatter);
-                                            continue;
-                                        case "!game":
-                                            _cmdGen.CmdShowCurrentTwitchGame(chatter);
-                                            continue;
-                                        case "!title":
-                                            _cmdGen.CmdShowCurrentTwitchTitle(chatter);
                                             continue;
                                         default: // Check commands that depend on special cases
                                             /* Request a song for the host to play */

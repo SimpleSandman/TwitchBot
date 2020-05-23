@@ -20,8 +20,6 @@ namespace TwitchBot.Commands.Features
     {
         private readonly LibVLCSharpPlayer _libVLCSharpPlayer;
         private readonly System.Configuration.Configuration _appConfig;
-        private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
-        private readonly TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
         private readonly YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
@@ -64,12 +62,6 @@ namespace TwitchBot.Commands.Features
                         await Play();
                         break;
                     default:
-                        //if (requestedCommand == "!srshuffle on" || requestedCommand == "!srshuffle off")
-                        //{
-                        //    await PersonalPlaylistShuffle(chatter);
-                        //    break;
-                        //}
-
                         break;
                 }
             }
