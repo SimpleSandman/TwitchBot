@@ -38,8 +38,6 @@ namespace TwitchBot
         private CmdMod _cmdMod;
         private CmdGen _cmdGen;
         private CmdVip _cmdVip;
-        private bool _isManualSongRequestAvail;
-        private bool _isYouTubeSongRequestAvail;
         private bool _hasTwitterInfo;
         private bool _hasYouTubeAuth;
         private List<string> _multiStreamUsers;
@@ -79,8 +77,6 @@ namespace TwitchBot
         {
             _appConfig = appConfig;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
-            _isManualSongRequestAvail = false;
-            _isYouTubeSongRequestAvail = false;
             _hasTwitterInfo = false;
             _hasYouTubeAuth = false;
             _timeout = new TimeoutCmd();
@@ -347,7 +343,7 @@ namespace TwitchBot
                 Console.WriteLine();
 
                 /* Finished setup, time to start */
-                await GetChatBox(_isManualSongRequestAvail, _isYouTubeSongRequestAvail, _hasTwitterInfo, _hasYouTubeAuth);
+                await GetChatBox(_hasTwitterInfo, _hasYouTubeAuth);
             }
             catch (Exception ex)
             {
@@ -362,7 +358,7 @@ namespace TwitchBot
         /// <param name="isYouTubeSongRequestAvail"></param>
         /// <param name="hasTwitterInfo"></param>
         /// <param name="hasYouTubeAuth"></param>
-        private async Task GetChatBox(bool isManualSongRequestAvail, bool isYouTubeSongRequestAvail, bool hasTwitterInfo, bool hasYouTubeAuth)
+        private async Task GetChatBox(bool hasTwitterInfo, bool hasYouTubeAuth)
         {
             try
             {
@@ -447,24 +443,6 @@ namespace TwitchBot
                                         case "!spotifynext": // Press local Spotify next (skip) button [>|]
                                         case "!spotifyskip":
                                             await _spotify.SkipToNextPlayback();
-                                            continue;
-                                        case "!rsrmode on": // Enables viewers to request songs (default off)
-                                            isManualSongRequestAvail = await _cmdBrdCstr.CmdEnableManualSrMode(isManualSongRequestAvail);
-                                            continue;
-                                        case "!rsrmode off": // Disables viewers to request songs (default off)
-                                            isManualSongRequestAvail = await _cmdBrdCstr.CmdDisableManualSrMode(isManualSongRequestAvail);
-                                            continue;
-                                        case "!ytsrmode on": // Enables viewers to request songs (default off)
-                                            isYouTubeSongRequestAvail = await _cmdBrdCstr.CmdEnableYouTubeSrMode(isYouTubeSongRequestAvail);
-                                            continue;
-                                        case "!ytsrmode off": // Disables viewers to request songs (default off)
-                                            isYouTubeSongRequestAvail = await _cmdBrdCstr.CmdDisableYouTubeSrMode(isYouTubeSongRequestAvail);
-                                            continue;
-                                        case "!displaysongs on": // Enables songs from local Spotify to be displayed inside the chat
-                                            _cmdBrdCstr.CmdEnableDisplaySongs();
-                                            continue;
-                                        case "!displaysongs off": // Disables songs from local Spotify to be displayed inside the chat
-                                            _cmdBrdCstr.CmdDisableDisplaySongs();
                                             continue;
                                         case "!refreshreminders": // Manually refresh reminders
                                             await _cmdBrdCstr.CmdRefreshReminders();
@@ -663,9 +641,9 @@ namespace TwitchBot
                                         case "!uptime": // Shows how long the broadcaster has been streaming
                                             await _cmdGen.CmdUptime();
                                             continue;
-                                        case "!rsrl": // Display list of requested songs
-                                            await _cmdGen.CmdManualSrList(isManualSongRequestAvail, chatter);
-                                            continue;
+                                        //case "!rsrl": // Display list of requested songs
+                                        //    await _cmdGen.CmdManualSrList(isManualSongRequestAvail, chatter);
+                                        //    continue;
                                         case "!partyuprequestlist": // Check what other user's have requested
                                             await _cmdGen.CmdPartyUpRequestList();
                                             continue;
@@ -739,14 +717,14 @@ namespace TwitchBot
                                             continue;
                                         default: // Check commands that depend on special cases
                                             /* Request a song for the host to play */
-                                            if (message.StartsWith("!rsr "))
-                                            { 
-                                                await _cmdGen.CmdManualSr(isManualSongRequestAvail, chatter);
-                                                continue;
-                                            }
+                                            //if (message.StartsWith("!rsr "))
+                                            //{ 
+                                            //    await _cmdGen.CmdManualSr(isManualSongRequestAvail, chatter);
+                                            //    continue;
+                                            //}
 
                                             /* Slaps a user and rates its effectiveness */
-                                            else if ((message.StartsWith("!slap @") || message.StartsWith("!slaps @")) && !IsCommandOnCooldown("!slap", chatter))
+                                            if ((message.StartsWith("!slap @") || message.StartsWith("!slaps @")) && !IsCommandOnCooldown("!slap", chatter))
                                             {
                                                 DateTime cooldown = await _cmdGen.CmdSlap(chatter);
                                                 if (cooldown > DateTime.Now)
@@ -861,22 +839,22 @@ namespace TwitchBot
                                             }
 
                                             /* Add song request to YouTube playlist */
-                                            else if ((message.StartsWith("!ytsr ") || message.StartsWith("!sr ") || message.StartsWith("!songrequest ")) && !IsCommandOnCooldown("!ytsr", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdYouTubeSongRequest(chatter, hasYouTubeAuth, isYouTubeSongRequestAvail);
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!ytsr",
-                                                        Warned = false
-                                                    });
-                                                }
+                                            //else if ((message.StartsWith("!ytsr ") || message.StartsWith("!sr ") || message.StartsWith("!songrequest ")) && !IsCommandOnCooldown("!ytsr", chatter))
+                                            //{
+                                            //    DateTime cooldown = await _cmdGen.CmdYouTubeSongRequest(chatter, hasYouTubeAuth, isYouTubeSongRequestAvail);
+                                            //    if (cooldown > DateTime.Now)
+                                            //    {
+                                            //        _cooldownUsers.Add(new CooldownUser
+                                            //        {
+                                            //            Username = chatter.Username,
+                                            //            Cooldown = cooldown,
+                                            //            Command = "!ytsr",
+                                            //            Warned = false
+                                            //        });
+                                            //    }
 
-                                                continue;
-                                            }
+                                            //    continue;
+                                            //}
 
                                             /* Display Magic 8-ball response */
                                             else if (message.StartsWith("!8ball ") && !IsCommandOnCooldown("!8ball", chatter))
@@ -1021,7 +999,7 @@ namespace TwitchBot
                             }
                             catch (Exception ex)
                             {
-                                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, bool, bool, bool)", false, "N/A", chatter.Message);
+                                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, bool)", false, "N/A", chatter.Message);
                             }
                         }
                         else if (rawMessage.Contains("NOTICE"))

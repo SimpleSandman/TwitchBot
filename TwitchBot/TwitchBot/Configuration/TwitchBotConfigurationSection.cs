@@ -88,6 +88,12 @@ namespace TwitchBot.Configuration
         private static readonly ConfigurationProperty _enablePersonalPlaylistShuffle =
             new ConfigurationProperty("enablePersonalPlaylistShuffle", typeof(bool), false, ConfigurationPropertyOptions.None);
 
+        private static readonly ConfigurationProperty _isManualSongRequestAvail =
+            new ConfigurationProperty("isManualSongRequestAvail", typeof(bool), false, ConfigurationPropertyOptions.None);
+
+        private static readonly ConfigurationProperty _isYouTubeSongRequestAvail =
+            new ConfigurationProperty("isYouTubeSongRequestAvail", typeof(bool), false, ConfigurationPropertyOptions.None);
+
         public TwitchBotConfigurationSection()
         {
             _properties = new ConfigurationPropertyCollection
@@ -118,7 +124,9 @@ namespace TwitchBot.Configuration
                 _spotifyRedirectUri,
                 _spotifyServerUri,
                 _libVLCAudioOutputDevice,
-                _enablePersonalPlaylistShuffle
+                _enablePersonalPlaylistShuffle,
+                _isManualSongRequestAvail,
+                _isYouTubeSongRequestAvail
             };
         }
 
@@ -430,6 +438,26 @@ namespace TwitchBot.Configuration
             {
                 ThrowIfReadOnly("EnablePersonalPlaylistShuffle");
                 this["enablePersonalPlaylistShuffle"] = value;
+            }
+        }
+
+        public bool IsManualSongRequestAvail
+        {
+            get { return (bool)this["isManualSongRequestAvail"]; }
+            set
+            {
+                ThrowIfReadOnly("IsManualSongRequestAvail");
+                this["isManualSongRequestAvail"] = value;
+            }
+        }
+
+        public bool IsYouTubeSongRequestAvail
+        {
+            get { return (bool)this["isYouTubeSongRequestAvail"]; }
+            set
+            {
+                ThrowIfReadOnly("IsYouTubeSongRequestAvail");
+                this["isYouTubeSongRequestAvail"] = value;
             }
         }
     }

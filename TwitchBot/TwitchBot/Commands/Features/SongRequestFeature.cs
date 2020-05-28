@@ -42,6 +42,9 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!resetytsr", "broadcaster");
             _rolePermission.Add("!setpersonalplaylistid", "broadcaster");
             _rolePermission.Add("!djmode", "broadcaster");
+            _rolePermission.Add("!rsrmode", "broadcaster");
+            _rolePermission.Add("!ytsrmode", "broadcaster");
+            _rolePermission.Add("!displaysongs", "broadcaster");
         }
 
         public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -395,39 +398,90 @@ namespace TwitchBot.Commands.Features
             }
         }
 
-        public async Task EnableDjMode()
+        /// <summary>
+        /// Set DJ mode for YouTube song requests
+        /// </summary>
+        /// <param name="hasDjModeEnabled"></param>
+        /// <returns></returns>
+        public async Task SetDjMode(bool hasDjModeEnabled)
         {
             try
             {
                 // ToDo: Make HTTP PATCH request instead of full PUT
                 await _songRequestSetting.UpdateSongRequestSetting(
-                    _botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubePersonalPlaylistId,
-                    _broadcasterInstance.DatabaseId, true);
+                    _botConfig.YouTubeBroadcasterPlaylistId, 
+                    _botConfig.YouTubePersonalPlaylistId,
+                    _broadcasterInstance.DatabaseId, 
+                    hasDjModeEnabled);
 
-                _irc.SendPublicChatMessage("DJing has been enabled for YouTube song requests. "
+                _irc.SendPublicChatMessage($"DJing has been set to {hasDjModeEnabled} for YouTube song requests. "
                     + $"Please wait a few seconds before this change is applied @{_botConfig.Broadcaster}");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "EnableDjMode()", false, "!djmode on");
+                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetDjMode(bool)", false, "!djmode");
             }
         }
 
-        public async Task DisableDjMode()
+        /// <summary>
+        /// Set manual song request mode
+        /// </summary>
+        /// <param name="isManualSongRequestAvail"></param>
+        /// <returns></returns>
+        public async void SetManualSrMode(bool isManualSongRequestAvail)
         {
             try
             {
-                // ToDo: Make HTTP PATCH request instead of full PUT
-                await _songRequestSetting.UpdateSongRequestSetting(
-                    _botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubePersonalPlaylistId,
-                    _broadcasterInstance.DatabaseId, false);
-
-                _irc.SendPublicChatMessage($"DJing has been disabled for YouTube song requests. "
-                    + $"Please wait a few seconds before this change is applied @{_botConfig.Broadcaster}");
+                _botConfig.IsManualSongRequestAvail = isManualSongRequestAvail;
+                _irc.SendPublicChatMessage("Song requests enabled");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "DisableDjMode()", false, "!djmode off");
+                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetManualSrMode(bool)", false, "!msrmode");
+            }
+        }
+
+        /// <summary>
+        /// Set YouTube song request mode
+        /// </summary>
+        public async void SetYouTubeSrMode(bool isYouTubeSongRequestAvail)
+        {
+            try
+            {
+                string boolValue = isYouTubeSongRequestAvail ? "true" : "false";
+
+                _botConfig.IsYouTubeSongRequestAvail = isYouTubeSongRequestAvail;
+                _appConfig.AppSettings.Settings.Remove("isYouTubeSongRequestAvail");
+                _appConfig.AppSettings.Settings.Add("isYouTubeSongRequestAvail", boolValue);
+                _appConfig.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+
+                _irc.SendPublicChatMessage("YouTube song requests enabled");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetYouTubeSrMode(bool)", false, "!ytsrmode");
+            }
+        }
+
+        /// <summary>
+        /// Enables displaying songs from Spotify into the IRC chat
+        /// </summary>
+        public async void SetAutoDisplaySongs()
+        {
+            try
+            {
+                _botConfig.EnableDisplaySong = true;
+                _appConfig.AppSettings.Settings.Remove("enableDisplaySong");
+                _appConfig.AppSettings.Settings.Add("enableDisplaySong", "true");
+                _appConfig.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+
+                _irc.SendPublicChatMessage($"{_botConfig.Broadcaster} : Automatic display Spotify songs is set to \"{_botConfig.EnableDisplaySong}\"");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "EnableDisplaySongs()", false, "!displaysongs on");
             }
         }
 
