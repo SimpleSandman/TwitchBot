@@ -451,10 +451,7 @@ namespace TwitchBot.Commands.Features
                 string boolValue = isYouTubeSongRequestAvail ? "true" : "false";
 
                 _botConfig.IsYouTubeSongRequestAvail = isYouTubeSongRequestAvail;
-                _appConfig.AppSettings.Settings.Remove("isYouTubeSongRequestAvail");
-                _appConfig.AppSettings.Settings.Add("isYouTubeSongRequestAvail", boolValue);
-                _appConfig.Save(ConfigurationSaveMode.Modified);
-                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+                SaveAppConfigSettings(boolValue, "isYouTubeSongRequestAvail");
 
                 _irc.SendPublicChatMessage("YouTube song requests enabled");
             }
@@ -481,10 +478,21 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "EnableDisplaySongs()", false, "!displaysongs on");
+                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "EnableDisplaySongs()", false, "!displaysongs");
             }
         }
 
-        /* ToDo: Insert new methods here */
+        /// <summary>
+        /// Save modified settings in the app config. Make sure to adjust the corresponding variable in the TwitchBotConfigurationSection
+        /// </summary>
+        /// <param name="savedValue">The new value that is replacing the property's current value</param>
+        /// <param name="propertyName">The name of the property that is being modified</param>
+        private void SaveAppConfigSettings(string savedValue, string propertyName)
+        {
+            _appConfig.AppSettings.Settings.Remove(propertyName);
+            _appConfig.AppSettings.Settings.Add(propertyName, savedValue);
+            _appConfig.Save(ConfigurationSaveMode.Modified);
+            ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+        }
     }
 }
