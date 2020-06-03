@@ -50,7 +50,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TemplateFeature", "ExecCommand(TwitchChatter, string)", false);
+                await _errHndlrInstance.LogError(ex, "TemplateFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
         }
 

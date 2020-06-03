@@ -349,6 +349,7 @@
   <ItemGroup>
     <Compile Include="Commands\CmdVip.cs" />
     <Compile Include="Commands\CommandSystem.cs" />
+    <Compile Include="Commands\Features\ReminderFeature.cs" />
     <Compile Include="Commands\Features\TwitchChannelFeature.cs" />
     <Compile Include="Commands\Features\TemplateFeature.cs" />
     <Compile Include="Commands\Features\BankFeature.cs" />
