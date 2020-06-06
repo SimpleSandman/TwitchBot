@@ -61,8 +61,8 @@ namespace TwitchBot
         private BankHeist _bankHeist;
         private BossFight _bossFight;
         private LibVLCSharpPlayer _libVLCSharpPlayer;
-        private TwitchStreamStatus _twitchStreamStatus;
         private TwitchChatterListener _twitchChatterListener;
+        private TwitchStreamStatus _twitchStreamStatus;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
@@ -74,7 +74,7 @@ namespace TwitchBot
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
             GameDirectoryService gameDirectory, QuoteService quote, BankHeist bankHeist, TwitchChatterListener twitchChatterListener, IrcClient irc,
-            BossFight bossFight, SongRequestSettingService songRequestSetting, InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer, TwitchStreamStatus twitchStreamStatus)
+            BossFight bossFight, SongRequestSettingService songRequestSetting, InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer)
         {
             _appConfig = appConfig;
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
@@ -103,7 +103,6 @@ namespace TwitchBot
             _ign = ign;
             _libVLCSharpPlayer = libVLCSharpPlayer;
             _irc = irc;
-            _twitchStreamStatus = twitchStreamStatus;
         }
 
         public async Task RunAsync()
@@ -151,9 +150,9 @@ namespace TwitchBot
                 
                 /* Load command classes */
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _twitchInfo, _bank, _follower,
-                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer, _twitchStreamStatus);
+                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer);
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _appConfig, _songRequestBlacklist,
-                    _twitchInfo, _gameDirectory, _songRequestSetting, _ign, _libVLCSharpPlayer, _twitchStreamStatus);
+                    _twitchInfo, _gameDirectory, _songRequestSetting, _ign, _libVLCSharpPlayer);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _bank, _twitchInfo,
                     _manualSongRequest, _quote, _partyUp, _gameDirectory, _libVLCSharpPlayer);
                 _cmdVip = new CmdVip(_irc, _timeout, _botConfig, _appConfig, _bank, _twitchInfo,
@@ -299,6 +298,7 @@ namespace TwitchBot
                 _twitchChatterListener.Start();
 
                 /* Get the status of the Twitch stream */
+                _twitchStreamStatus = new TwitchStreamStatus(_irc, _twitchInfo);
                 await _twitchStreamStatus.LoadChannelInfo();
                 _twitchStreamStatus.Start();
 
@@ -312,7 +312,7 @@ namespace TwitchBot
                 await _bankHeistInstance.LoadSettings(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
                 _bankHeist.Start(_irc, _broadcasterInstance.DatabaseId);
 
-                if (string.IsNullOrEmpty(_twitchStreamStatus.CurrentCategory))
+                if (string.IsNullOrEmpty(TwitchStreamStatus.CurrentCategory))
                 {
                     _irc.SendPublicChatMessage("WARNING: I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
                         + "Please have the chat verify that the game has been set for this stream. "
@@ -321,7 +321,7 @@ namespace TwitchBot
                 }
 
                 // Grab game id in order to find party member
-                TwitchGameCategory game = await _gameDirectory.GetGameId(_twitchStreamStatus.CurrentCategory);
+                TwitchGameCategory game = await _gameDirectory.GetGameId(TwitchStreamStatus.CurrentCategory);
 
                 /* Load/create settings and start the queue for the boss fight */
                 await _bossFightInstance.LoadSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
@@ -1319,7 +1319,7 @@ namespace TwitchBot
                 if (!_greetedUsers.Any(u => u == chatter.Username) 
                     && chatter.Username != _botConfig.Broadcaster.ToLower() 
                     && chatter.Message.Length > 1 
-                    && _twitchStreamStatus.IsLive)
+                    && TwitchStreamStatus.IsLive)
                 {
                     // check if user has a stream currency account
                     int funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
