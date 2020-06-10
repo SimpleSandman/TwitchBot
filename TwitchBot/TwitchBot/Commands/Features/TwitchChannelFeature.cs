@@ -21,9 +21,6 @@ namespace TwitchBot.Commands.Features
     /// </summary>
     public sealed class TwitchChannelFeature : BaseFeature
     {
-        private readonly TwitchStreamStatus _twitchStreamStatus;
-        private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
-        private readonly TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public TwitchChannelFeature(IrcClient irc, TwitchBotConfigurationSection botConfig) : base(irc, botConfig)
@@ -68,7 +65,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                _irc.SendPublicChatMessage($"We're currently playing \"{_twitchStreamStatus.CurrentCategory}\" @{chatter.DisplayName}");
+                _irc.SendPublicChatMessage($"We're currently playing \"{TwitchStreamStatus.CurrentCategory}\" @{chatter.DisplayName}");
             }
             catch (Exception ex)
             {
@@ -85,7 +82,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                _irc.SendPublicChatMessage($"The title of this stream is \"{_twitchStreamStatus.CurrentTitle}\" @{chatter.DisplayName}");
+                _irc.SendPublicChatMessage($"The title of this stream is \"{TwitchStreamStatus.CurrentTitle}\" @{chatter.DisplayName}");
             }
             catch (Exception ex)
             {

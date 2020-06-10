@@ -14,7 +14,6 @@ namespace TwitchBot.Commands.Features
     /// </summary>
     public sealed class TwitterFeature : BaseFeature
     {
-        private readonly TwitchStreamStatus _twitchStreamStatus;
         private readonly TwitterClient _twitter = TwitterClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private readonly System.Configuration.Configuration _appConfig;
@@ -137,16 +136,16 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                if (!_twitchStreamStatus.IsLive)
+                if (!TwitchStreamStatus.IsLive)
                     _irc.SendPublicChatMessage("This channel is not streaming right now");
                 else if (!_botConfig.EnableTweets)
                     _irc.SendPublicChatMessage("Tweets are disabled at the moment");
-                else if (string.IsNullOrEmpty(_twitchStreamStatus.CurrentCategory) || string.IsNullOrEmpty(_twitchStreamStatus.CurrentTitle))
+                else if (string.IsNullOrEmpty(TwitchStreamStatus.CurrentCategory) || string.IsNullOrEmpty(TwitchStreamStatus.CurrentTitle))
                     _irc.SendPublicChatMessage("Unable to pull the Twitch title/category at the moment. Please try again in a few seconds");
                 else if (_botConfig.EnableTweets && _hasTwitterInfo)
                 {
-                    string tweetResult = _twitter.SendTweet($"Live on Twitch playing {_twitchStreamStatus.CurrentCategory} "
-                        + $"\"{_twitchStreamStatus.CurrentTitle}\" twitch.tv/{_botConfig.Broadcaster}");
+                    string tweetResult = _twitter.SendTweet($"Live on Twitch playing {TwitchStreamStatus.CurrentCategory} "
+                        + $"\"{TwitchStreamStatus.CurrentTitle}\" twitch.tv/{_botConfig.Broadcaster}");
 
                     _irc.SendPublicChatMessage($"{tweetResult} @{_botConfig.Broadcaster}");
                 }
