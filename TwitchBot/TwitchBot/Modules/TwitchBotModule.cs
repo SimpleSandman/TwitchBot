@@ -66,7 +66,6 @@ namespace TwitchBot.Modules
             builder.RegisterType<BossFight>()
                 .WithParameter(TwitchBotApiLink);
             builder.RegisterType<LibVLCSharpPlayer>();
-            builder.RegisterType<TwitchStreamStatus>();
         }
     }
 }

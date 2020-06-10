@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+
 using TwitchBot.Libraries;
 using TwitchBot.Models.JSON;
 using TwitchBot.Services;
@@ -12,11 +13,9 @@ namespace TwitchBot.Threads
         private readonly Thread _checkStreamStatus;
         private readonly TwitchInfoService _twitchInfo;
 
-        public bool IsLive { get; private set; } = false;
-        public string CurrentCategory { get; private set; }
-        public string CurrentTitle { get; private set; }
-
-        public TwitchStreamStatus() { }
+        public static bool IsLive { get; private set; } = false;
+        public static string CurrentCategory { get; private set; }
+        public static string CurrentTitle { get; private set; }
 
         public TwitchStreamStatus(IrcClient irc, TwitchInfoService twitchInfo)
         {
