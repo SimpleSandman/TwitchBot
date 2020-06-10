@@ -495,7 +495,7 @@ namespace TwitchBot.Commands
         {
             try
             {
-                if (TwitchStreamStatus.IsLive)
+                if (!TwitchStreamStatus.IsLive)
                     _irc.SendPublicChatMessage("This channel is not streaming right now");
                 else if (!_botConfig.EnableTweets)
                     _irc.SendPublicChatMessage("Tweets are disabled at the moment");
