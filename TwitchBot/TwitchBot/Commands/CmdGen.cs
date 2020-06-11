@@ -546,27 +546,6 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
-        /// Check user's account balance
-        /// </summary>
-        /// <param name="chatter">User that sent the message</param>
-        public async Task CmdCheckFunds(TwitchChatter chatter)
-        {
-            try
-            {
-                int balance = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
-
-                if (balance == -1)
-                    _irc.SendPublicChatMessage($"You are not currently banking with us at the moment. Please talk to a moderator about acquiring {_botConfig.CurrencyType}");
-                else
-                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} currently has {balance.ToString()} {_botConfig.CurrencyType}");
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdCheckFunds(TwitchChatter)", false, "![currency name]");
-            }
-        }
-
-        /// <summary>
         /// Gamble away currency
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
@@ -1815,33 +1794,6 @@ namespace TwitchBot.Commands
             }
         }
 
-        public async Task CmdInGameUsername(TwitchChatter chatter)
-        {
-            try
-            {
-                // Get current game name
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
-                string gameTitle = json.Game;
-
-                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
-
-                InGameUsername ign = null;
-                if (chatter.Message.StartsWith("!all"))
-                    ign = await _ign.GetInGameUsername(_broadcasterInstance.DatabaseId); // return generic IGN
-                else
-                    ign = await _ign.GetInGameUsername(_broadcasterInstance.DatabaseId, game); // return specified IGN (if available)
-
-                if (ign != null && !string.IsNullOrEmpty(ign.Message))
-                    _irc.SendPublicChatMessage(ign.Message);
-                else
-                    _irc.SendPublicChatMessage($"I cannot find your in-game username @{chatter.DisplayName}");
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGetInGameUsername(TwitchChatter)", false, "!ign");
-            }
-        }
-
         public async Task CmdLibVLCSharpPlayerShowVolume(TwitchChatter chatter)
         {
             try
@@ -1925,8 +1877,6 @@ namespace TwitchBot.Commands
                 await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeLastSong(TwitchChatter)", false, "!lastsong");
             }
         }
-
-        
 
         /// <summary>
         /// Check if the WPF app exists so we can see its song status (deprecated)

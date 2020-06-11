@@ -50,8 +50,11 @@ namespace TwitchBot.Commands.Features
                     case "!bonusall":
                         await BonusAll(chatter);
                         break;
+                    case "!points":
+                        await CheckFunds(chatter);
+                        break;
                     default:
-                        if (requestedCommand == $"!{_botConfig.CurrencyType.ToLower()}" || requestedCommand == "!points")
+                        if (requestedCommand == $"!{_botConfig.CurrencyType.ToLower()}")
                         {
                             await CheckFunds(chatter);
                         }

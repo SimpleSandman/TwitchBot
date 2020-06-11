@@ -148,7 +148,7 @@ namespace TwitchBot
                 /* Load command classes */
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer);
-                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _appConfig, _twitchInfo, _gameDirectory, _ign);
+                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _appConfig);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _bank, _manualSongRequest, _libVLCSharpPlayer);
                 _cmdVip = new CmdVip(_irc, _botConfig, _twitchInfo, _manualSongRequest, _quote, _partyUp, _gameDirectory);
                 _commandSystem = new CommandSystem(_irc, _botConfig, _hasTwitterInfo, _appConfig, _bank);
@@ -442,28 +442,11 @@ namespace TwitchBot
                                         case "!spotifyskip":
                                             await _spotify.SkipToNextPlayback();
                                             continue;
-                                        case "!deleteign":
-                                            await _cmdBrdCstr.CmdDeleteIgn();
-                                            continue;
                                         default: // Check commands that depend on special cases
                                             /* Set regular follower hours for dedicated followers */
                                             if (message.StartsWith("!setregularhours "))
                                             { 
                                                 _cmdBrdCstr.CmdSetRegularFollowerHours(chatter.Message); 
-                                                continue;
-                                            }
-
-                                            /* Set in-game (user) name for the current game */
-                                            else if (message.StartsWith("!setgameign ") || message.StartsWith("!setgameid "))
-                                            { 
-                                                await _cmdBrdCstr.CmdSetGameIgn(chatter.Message);
-                                                continue;
-                                            }
-
-                                            /* Set in-game (user) name for any non-specified game */
-                                            else if (message.StartsWith("!setgenericign ") || message.StartsWith("!setgenericid "))
-                                            { 
-                                                await _cmdBrdCstr.CmdSetGenericIgn(chatter.Message); 
                                                 continue;
                                             }
 
@@ -686,14 +669,6 @@ namespace TwitchBot
                                         case "!lastplayed":
                                         case "!lsr":
                                             await _cmdGen.CmdYouTubeLastSong(chatter);
-                                            continue;
-                                        case "!ign": // Display the broadcaster's in-game (user) name based on what they're streaming
-                                        case "!gt":
-                                        case "!fc":
-                                        case "!allign": // Display all of the broadcaster's in-game (user) names
-                                        case "!allgt":
-                                        case "!allfc":
-                                            await _cmdGen.CmdInGameUsername(chatter);
                                             continue;
                                         case "!srvolume":
                                             await _cmdGen.CmdLibVLCSharpPlayerShowVolume(chatter);
