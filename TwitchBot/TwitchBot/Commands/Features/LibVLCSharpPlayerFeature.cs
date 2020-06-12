@@ -14,7 +14,7 @@ using TwitchBot.Threads;
 namespace TwitchBot.Commands.Features
 {
     /// <summary>
-    /// The "Command Subsystem" for the "____" feature
+    /// The "Command Subsystem" for the "LibVLCSharp Player" feature
     /// </summary>
     public sealed class LibVLCSharpPlayerFeature : BaseFeature
     {
@@ -52,11 +52,8 @@ namespace TwitchBot.Commands.Features
                     case "!sraod":
                         SetAudioOutputDevice(chatter);
                         break;
-                    case "!srshuffle on":
-                        PersonalPlaylistShuffle(true);
-                        break;
-                    case "!srshuffle off":
-                        PersonalPlaylistShuffle(false);
+                    case "!srshuffle":
+                        PersonalPlaylistShuffle(chatter);
                         break;
                     case "!srplay":
                         await Play();
@@ -128,10 +125,13 @@ namespace TwitchBot.Commands.Features
             }
         }
 
-        public async void PersonalPlaylistShuffle(bool shuffle)
+        public async void PersonalPlaylistShuffle(TwitchChatter chatter)
         {
             try
             {
+                string message = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+                bool shuffle = CommandToolbox.SetBooleanFromMessage(message);
+
                 if (_botConfig.EnablePersonalPlaylistShuffle == shuffle)
                 {
                     if (shuffle)

@@ -358,6 +358,7 @@
     <Compile Include="Commands\Features\SongRequestFeature.cs" />
     <Compile Include="Commands\Features\LibVLCSharpPlayerFeature.cs" />
     <Compile Include="Commands\Features\TwitterFeature.cs" />
+    <Compile Include="Commands\CommandToolbox.cs" />
     <Compile Include="Enums\ChatterType.cs" />
     <Compile Include="Libraries\BotModeratorSingleton.cs" />
     <Compile Include="Libraries\CustomCommandSingleton.cs" />
