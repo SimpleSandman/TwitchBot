@@ -912,7 +912,7 @@ namespace TwitchBot.Commands
             {
                 string audioOutputDevice = message.Substring(message.IndexOf(" ") + 1);
 
-                _irc.SendPublicChatMessage($"{_libVLCSharpPlayer.SetAudioOutputDevice(audioOutputDevice)} @{_botConfig.Broadcaster}");
+                _irc.SendPublicChatMessage($"{await _libVLCSharpPlayer.SetAudioOutputDevice(audioOutputDevice)} @{_botConfig.Broadcaster}");
             }
             catch (Exception ex)
             {
