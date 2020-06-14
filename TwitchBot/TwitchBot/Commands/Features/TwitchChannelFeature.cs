@@ -17,7 +17,7 @@ using TwitchBotUtil.Extensions;
 namespace TwitchBot.Commands.Features
 {
     /// <summary>
-    /// The "Command Subsystem" for the "____" feature
+    /// The "Command Subsystem" for the "Twitch Channel" feature
     /// </summary>
     public sealed class TwitchChannelFeature : BaseFeature
     {
@@ -25,7 +25,8 @@ namespace TwitchBot.Commands.Features
 
         public TwitchChannelFeature(IrcClient irc, TwitchBotConfigurationSection botConfig) : base(irc, botConfig)
         {
-            _rolePermission.Add("!", "");
+            _rolePermission.Add("!game", "");
+            _rolePermission.Add("!title", "");
         }
 
         public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)

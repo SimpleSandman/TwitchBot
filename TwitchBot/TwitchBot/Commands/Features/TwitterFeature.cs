@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
@@ -10,7 +9,7 @@ using TwitchBot.Threads;
 namespace TwitchBot.Commands.Features
 {
     /// <summary>
-    /// The "Command Subsystem" for the "____" feature
+    /// The "Command Subsystem" for the "Twitter" feature
     /// </summary>
     public sealed class TwitterFeature : BaseFeature
     {
@@ -35,11 +34,8 @@ namespace TwitchBot.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!sendtweet on":
-                        EnableTweet();
-                        break;
-                    case "!sendtweet off":
-                        DisableTweet();
+                    case "!sendtweet":
+                        SetTweet(chatter);
                         break;
                     case "!tweet":
                         Tweet(chatter);
@@ -60,7 +56,7 @@ namespace TwitchBot.Commands.Features
         /// <summary>
         /// Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets)
         /// </summary>
-        public async void EnableTweet()
+        public async void SetTweet(TwitchChatter chatter)
         {
             try
             {
@@ -68,11 +64,12 @@ namespace TwitchBot.Commands.Features
                     _irc.SendPublicChatMessage($"You are missing twitter info @{_botConfig.Broadcaster}");
                 else
                 {
+                    string message = CommandToolbox.ParseChatterCommandParameter(chatter);
+                    bool enableTweets = CommandToolbox.SetBooleanFromMessage(message);
+                    string boolValue = enableTweets ? "true" : "false";
+
                     _botConfig.EnableTweets = true;
-                    _appConfig.AppSettings.Settings.Remove("enableTweets");
-                    _appConfig.AppSettings.Settings.Add("enableTweets", "true");
-                    _appConfig.Save(ConfigurationSaveMode.Modified);
-                    ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+                    CommandToolbox.SaveAppConfigSettings(boolValue, "enableTweets", _appConfig);
 
                     _irc.SendPublicChatMessage($"@{_botConfig.Broadcaster} : Automatic tweets is set to \"{_botConfig.EnableTweets}\"");
                 }
@@ -80,32 +77,6 @@ namespace TwitchBot.Commands.Features
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "TwitterFeature", "EnableTweet()", false, "!sendtweet on");
-            }
-        }
-
-        /// <summary>
-        /// Disables tweets to be sent out from this bot (both auto publish tweets and manual tweets)
-        /// </summary>
-        public async void DisableTweet()
-        {
-            try
-            {
-                if (!_hasTwitterInfo)
-                    _irc.SendPublicChatMessage($"You are missing twitter info @{_botConfig.Broadcaster}");
-                else
-                {
-                    _botConfig.EnableTweets = false;
-                    _appConfig.AppSettings.Settings.Remove("enableTweets");
-                    _appConfig.AppSettings.Settings.Add("enableTweets", "false");
-                    _appConfig.Save(ConfigurationSaveMode.Modified);
-                    ConfigurationManager.RefreshSection("TwitchBotConfiguration");
-
-                    _irc.SendPublicChatMessage($"@{_botConfig.Broadcaster} : Automatic tweets is set to \"{_botConfig.EnableTweets}\"");
-                }
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "TwitterFeature", "DisableTweet()", false, "!sendtweet off");
             }
         }
 
@@ -129,7 +100,7 @@ namespace TwitchBot.Commands.Features
         }
 
         /// <summary>
-        /// Tweet when stream is live
+        /// Tweet that the stream is live on the broadcaster's behalf
         /// </summary>
         /// <returns></returns>
         public async Task Live()
@@ -142,7 +113,7 @@ namespace TwitchBot.Commands.Features
                     _irc.SendPublicChatMessage("Tweets are disabled at the moment");
                 else if (string.IsNullOrEmpty(TwitchStreamStatus.CurrentCategory) || string.IsNullOrEmpty(TwitchStreamStatus.CurrentTitle))
                     _irc.SendPublicChatMessage("Unable to pull the Twitch title/category at the moment. Please try again in a few seconds");
-                else if (_botConfig.EnableTweets && _hasTwitterInfo)
+                else if (_hasTwitterInfo)
                 {
                     string tweetResult = _twitter.SendTweet($"Live on Twitch playing {TwitchStreamStatus.CurrentCategory} "
                         + $"\"{TwitchStreamStatus.CurrentTitle}\" twitch.tv/{_botConfig.Broadcaster}");

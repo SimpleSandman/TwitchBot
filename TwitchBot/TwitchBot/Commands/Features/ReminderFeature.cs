@@ -12,7 +12,7 @@ using TwitchBotDb.Models;
 namespace TwitchBot.Commands.Features
 {
     /// <summary>
-    /// The "Command Subsystem" for the "____" feature
+    /// The "Command Subsystem" for the "Reminder" feature
     /// </summary>
     public sealed class ReminderFeature : BaseFeature
     {

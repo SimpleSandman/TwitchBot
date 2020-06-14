@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -82,10 +81,10 @@ namespace TwitchBot.Commands.Features
                         await AddSongRequestBlacklist(chatter);
                         break;
                     case "!delsrbl":
-                        await AddSongRequestBlacklist(chatter);
+                        await RemoveSongRequestBlacklist(chatter);
                         break;
                     case "!setpersonalplaylistid":
-                        await AddSongRequestBlacklist(chatter);
+                        await SetPersonalYoutubePlaylistById(chatter);
                         break;
                     default:
                         break;
@@ -335,20 +334,20 @@ namespace TwitchBot.Commands.Features
                 }
 
                 if (broadcasterPlaylist?.Id != null)
+                {
                     await _youTubeClientInstance.DeletePlaylist(broadcasterPlaylist.Id);
+                }
 
                 broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylist(playlistName,
                     "Songs requested via Twitch viewers on https://twitch.tv/" + _botConfig.Broadcaster
                         + " . Playlist automatically created courtesy of https://github.com/SimpleSandman/TwitchBot");
 
+                // Save broadcaster playlist info to config
                 _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
-                _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistId");
-                _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistId", broadcasterPlaylist.Id);
-                _botConfig.YouTubeBroadcasterPlaylistName = broadcasterPlaylist.Snippet.Title;
-                _appConfig.AppSettings.Settings.Remove("youTubeBroadcasterPlaylistName");
-                _appConfig.AppSettings.Settings.Add("youTubeBroadcasterPlaylistName", broadcasterPlaylist.Snippet.Title);
-                _appConfig.Save(ConfigurationSaveMode.Modified);
-                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+                CommandToolbox.SaveAppConfigSettings(broadcasterPlaylist.Id, "youTubeBroadcasterPlaylistId", _appConfig);
+
+                _botConfig.YouTubeBroadcasterPlaylistName = broadcasterPlaylist.Snippet.Title;                
+                CommandToolbox.SaveAppConfigSettings(broadcasterPlaylist.Snippet.Title, "youTubeBroadcasterPlaylistName", _appConfig);
 
                 SongRequestSetting songRequestSetting = await _songRequestSetting.GetSongRequestSetting(_broadcasterInstance.DatabaseId);
 
@@ -374,8 +373,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                string message = chatter.Message;
-                string personalPlaylistId = message.Substring(message.IndexOf(" ") + 1);
+                string personalPlaylistId = CommandToolbox.ParseChatterCommandParameter(chatter);
                 if (personalPlaylistId.Length != 34)
                 {
                     _irc.SendPublicChatMessage("Please only insert the playlist ID that you want set "
@@ -412,10 +410,7 @@ namespace TwitchBot.Commands.Features
                 }
 
                 _botConfig.YouTubePersonalPlaylistId = personalPlaylistId;
-                _appConfig.AppSettings.Settings.Remove("youTubePersonalPlaylistId");
-                _appConfig.AppSettings.Settings.Add("youTubePersonalPlaylistId", personalPlaylistId);
-                _appConfig.Save(ConfigurationSaveMode.Modified);
-                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+                CommandToolbox.SaveAppConfigSettings(personalPlaylistId, "youTubePersonalPlaylistId", _appConfig);
 
                 _irc.SendPublicChatMessage($"Your personal playlist has been set https://www.youtube.com/playlist?list={personalPlaylistId} @{_botConfig.Broadcaster}");
             }
@@ -434,7 +429,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                string message = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+                string message = CommandToolbox.ParseChatterCommandParameter(chatter);
                 bool hasDjModeEnabled = CommandToolbox.SetBooleanFromMessage(message);
 
                 // ToDo: Make HTTP PATCH request instead of full PUT
@@ -449,7 +444,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetDjMode(bool)", false, "!djmode");
+                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetDjMode(TwitchChatter)", false, "!djmode");
             }
         }
 
@@ -462,7 +457,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                string message = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+                string message = CommandToolbox.ParseChatterCommandParameter(chatter);
                 bool shuffle = CommandToolbox.SetBooleanFromMessage(message);
                 string boolValue = shuffle ? "true" : "false";
 
@@ -486,7 +481,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                string message = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+                string message = CommandToolbox.ParseChatterCommandParameter(chatter);
                 bool shuffle = CommandToolbox.SetBooleanFromMessage(message);
                 string boolValue = shuffle ? "true" : "false";
 
@@ -510,7 +505,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                string message = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+                string message = CommandToolbox.ParseChatterCommandParameter(chatter);
                 bool shuffle = CommandToolbox.SetBooleanFromMessage(message);
                 string boolValue = shuffle ? "true" : "false";
 

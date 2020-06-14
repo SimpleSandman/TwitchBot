@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Configuration;
 
+using TwitchBot.Models;
+
 namespace TwitchBot.Commands
 {
     public static class CommandToolbox
@@ -38,6 +40,16 @@ namespace TwitchBot.Commands
             appConfig.AppSettings.Settings.Add(propertyName, savedValue);
             appConfig.Save(ConfigurationSaveMode.Modified);
             ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+        }
+
+        /// <summary>
+        /// Get the parameter value(s) in the chatter's message that is denoted after the first space in the IRC message
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        public static string ParseChatterCommandParameter(TwitchChatter chatter)
+        {
+            return chatter?.Message?.Substring(chatter.Message.IndexOf(" ") + 1) ?? "";
         }
     }
 }
