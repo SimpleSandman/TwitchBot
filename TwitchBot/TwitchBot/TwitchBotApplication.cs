@@ -151,7 +151,8 @@ namespace TwitchBot
                 _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _appConfig);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _bank, _manualSongRequest, _libVLCSharpPlayer);
                 _cmdVip = new CmdVip(_irc, _botConfig, _twitchInfo, _manualSongRequest, _quote, _partyUp, _gameDirectory);
-                _commandSystem = new CommandSystem(_irc, _botConfig, _hasTwitterInfo, _appConfig, _bank);
+                _commandSystem = new CommandSystem(_irc, _botConfig, _hasTwitterInfo, _appConfig, _bank, _songRequestBlacklist,
+                    _libVLCSharpPlayer, _songRequestSetting);
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine();

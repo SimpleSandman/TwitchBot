@@ -20,11 +20,11 @@ using TwitchBotUtil.Extensions;
 namespace TwitchBot.Commands.Features
 {
     /// <summary>
-    /// The "Command Subsystem" for the "____" feature
+    /// The "Command Subsystem" for the "Song Request" feature
     /// </summary>
     public sealed class SongRequestFeature : BaseFeature
     {
-        private readonly SongRequestBlacklistService _songRequest;
+        private readonly SongRequestBlacklistService _songRequestBlacklist;
         private readonly LibVLCSharpPlayer _libVLCSharpPlayer;
         private readonly SongRequestSettingService _songRequestSetting;
         private readonly System.Configuration.Configuration _appConfig;
@@ -32,8 +32,12 @@ namespace TwitchBot.Commands.Features
         private readonly YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public SongRequestFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig) : base(irc, botConfig)
+        public SongRequestFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig,
+            SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting) : base(irc, botConfig)
         {
+            _songRequestBlacklist = songRequestBlacklist;
+            _libVLCSharpPlayer = libVLCSharpPlayer;
+            _songRequestSetting = songRequestSetting;
             _appConfig = appConfig;
             _rolePermission.Add("!srbl", "broadcaster");
             _rolePermission.Add("!delsrbl", "broadcaster");
@@ -62,49 +66,28 @@ namespace TwitchBot.Commands.Features
                     case "!resetytsr":
                         await ResetYoutubeSongRequestList();
                         break;
-                    case "!msrmode on":
-                        SetManualSrMode(true);
+                    case "!msrmode":
+                        SetManualSrMode(chatter);
                         break;
-                    case "!msrmode off":
-                        SetManualSrMode(false);
+                    case "!ytsrmode":
+                        SetYouTubeSrMode(chatter);
                         break;
-                    case "!ytsrmode on":
-                        SetYouTubeSrMode(true);
+                    case "!displaysongs":
+                        SetAutoDisplaySongs(chatter);
                         break;
-                    case "!ytsrmode off":
-                        SetYouTubeSrMode(false);
+                    case "!djmode":
+                        await SetDjMode(chatter);
                         break;
-                    case "!displaysongs on":
-                        SetAutoDisplaySongs(true);
+                    case "!srbl":
+                        await AddSongRequestBlacklist(chatter);
                         break;
-                    case "!displaysongs off":
-                        SetAutoDisplaySongs(false);
+                    case "!delsrbl":
+                        await AddSongRequestBlacklist(chatter);
                         break;
-                    case "!djmode on":
-                        await SetDjMode(true);
-                        break;
-                    case "!djmode off":
-                        await SetDjMode(false);
+                    case "!setpersonalplaylistid":
+                        await AddSongRequestBlacklist(chatter);
                         break;
                     default:
-                        if (requestedCommand.StartsWith("!srbl "))
-                        {
-                            await AddSongRequestBlacklist(chatter);
-                            break;
-                        }
-
-                        else if (requestedCommand.StartsWith("!delsrbl "))
-                        {
-                            await RemoveSongRequestBlacklist(chatter);
-                            break;
-                        }
-
-                        else if (requestedCommand.StartsWith("!setpersonalplaylistid "))
-                        {
-                            await SetPersonalYoutubePlaylistById(chatter);
-                            break;
-                        }
-
                         break;
                 }
             }
@@ -142,14 +125,14 @@ namespace TwitchBot.Commands.Features
                         return;
                     }
 
-                    List<SongRequestIgnore> blacklist = await _songRequest.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
+                    List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
                     if (blacklist.Count > 0 && blacklist.Exists(b => b.Artist.Equals(request, StringComparison.CurrentCultureIgnoreCase)))
                     {
                         _irc.SendPublicChatMessage($"This artist/video is already on the blacklist @{_botConfig.Broadcaster}");
                         return;
                     }
 
-                    SongRequestIgnore response = await _songRequest.IgnoreArtist(request, _broadcasterInstance.DatabaseId);
+                    SongRequestIgnore response = await _songRequestBlacklist.IgnoreArtist(request, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
                         _irc.SendPublicChatMessage($"The artist/video \"{response.Artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
@@ -176,7 +159,7 @@ namespace TwitchBot.Commands.Features
                     string artist = message.Substring(artistStartIndex + 1, artistEndIndex - artistStartIndex - 1);
 
                     // check if the request's exact song or artist-wide blackout-restriction has already been added
-                    List<SongRequestIgnore> blacklist = await _songRequest.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
+                    List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
 
                     if (blacklist.Count > 0)
                     {
@@ -188,7 +171,7 @@ namespace TwitchBot.Commands.Features
                         }
                     }
 
-                    SongRequestIgnore response = await _songRequest.IgnoreSong(songTitle, artist, _broadcasterInstance.DatabaseId);
+                    SongRequestIgnore response = await _songRequestBlacklist.IgnoreSong(songTitle, artist, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
                         _irc.SendPublicChatMessage($"The song \"{response.Title}\" by \"{response.Artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
@@ -227,7 +210,7 @@ namespace TwitchBot.Commands.Features
                 if (requestType == "1") // remove blackout for any song by this artist
                 {
                     // remove artist from db
-                    List<SongRequestIgnore> response = await _songRequest.AllowArtist(request, _broadcasterInstance.DatabaseId);
+                    List<SongRequestIgnore> response = await _songRequestBlacklist.AllowArtist(request, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
                         _irc.SendPublicChatMessage($"The artist \"{request}\" can now be requested @{_botConfig.Broadcaster}");
@@ -254,7 +237,7 @@ namespace TwitchBot.Commands.Features
                     string artist = message.Substring(artistStartIndex + 1, artistEndIndex - artistStartIndex - 1);
 
                     // remove artist from db
-                    SongRequestIgnore response = await _songRequest.AllowSong(songTitle, artist, _broadcasterInstance.DatabaseId);
+                    SongRequestIgnore response = await _songRequestBlacklist.AllowSong(songTitle, artist, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
                         _irc.SendPublicChatMessage($"The song \"{response.Title} by {response.Artist}\" can now requested @{_botConfig.Broadcaster}");
@@ -277,7 +260,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                List<SongRequestIgnore> response = await _songRequest.ResetIgnoreList(_broadcasterInstance.DatabaseId);
+                List<SongRequestIgnore> response = await _songRequestBlacklist.ResetIgnoreList(_broadcasterInstance.DatabaseId);
 
                 if (response?.Count > 0)
                     _irc.SendPublicChatMessage($"Song Request Blacklist has been reset @{_botConfig.Broadcaster}");
@@ -294,7 +277,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                List<SongRequestIgnore> blacklist = await _songRequest.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
+                List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
 
                 if (blacklist.Count == 0)
                 {
@@ -445,12 +428,15 @@ namespace TwitchBot.Commands.Features
         /// <summary>
         /// Set DJ mode for YouTube song requests
         /// </summary>
-        /// <param name="hasDjModeEnabled"></param>
+        /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task SetDjMode(bool hasDjModeEnabled)
+        public async Task SetDjMode(TwitchChatter chatter)
         {
             try
             {
+                string message = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+                bool hasDjModeEnabled = CommandToolbox.SetBooleanFromMessage(message);
+
                 // ToDo: Make HTTP PATCH request instead of full PUT
                 await _songRequestSetting.UpdateSongRequestSetting(
                     _botConfig.YouTubeBroadcasterPlaylistId, 
@@ -470,76 +456,73 @@ namespace TwitchBot.Commands.Features
         /// <summary>
         /// Set manual song request mode
         /// </summary>
-        /// <param name="isManualSongRequestAvail"></param>
+        /// <param name="chatter"></param>
         /// <returns></returns>
-        public async void SetManualSrMode(bool isManualSongRequestAvail)
+        public async void SetManualSrMode(TwitchChatter chatter)
         {
             try
             {
-                string boolValue = isManualSongRequestAvail ? "true" : "false";
+                string message = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+                bool shuffle = CommandToolbox.SetBooleanFromMessage(message);
+                string boolValue = shuffle ? "true" : "false";
 
-                _botConfig.IsManualSongRequestAvail = isManualSongRequestAvail;
-                SaveAppConfigSettings(boolValue, "isManualSongRequestAvail");
+                _botConfig.IsManualSongRequestAvail = shuffle;
+                CommandToolbox.SaveAppConfigSettings(boolValue, "isManualSongRequestAvail", _appConfig);
 
                 _irc.SendPublicChatMessage($"{_botConfig.Broadcaster}: Song requests set to {boolValue}");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetManualSrMode(bool)", false, "!msrmode");
+                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetManualSrMode(TwitchChatter)", false, "!msrmode");
             }
         }
 
         /// <summary>
         /// Set YouTube song request mode
         /// </summary>
-        public async void SetYouTubeSrMode(bool isYouTubeSongRequestAvail)
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        public async void SetYouTubeSrMode(TwitchChatter chatter)
         {
             try
             {
-                string boolValue = isYouTubeSongRequestAvail ? "true" : "false";
+                string message = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+                bool shuffle = CommandToolbox.SetBooleanFromMessage(message);
+                string boolValue = shuffle ? "true" : "false";
 
-                _botConfig.IsYouTubeSongRequestAvail = isYouTubeSongRequestAvail;
-                SaveAppConfigSettings(boolValue, "isYouTubeSongRequestAvail");
+                _botConfig.IsYouTubeSongRequestAvail = shuffle;
+                CommandToolbox.SaveAppConfigSettings(boolValue, "isYouTubeSongRequestAvail", _appConfig);
 
                 _irc.SendPublicChatMessage($"{_botConfig.Broadcaster}: YouTube song requests set to {boolValue}");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetYouTubeSrMode(bool)", false, "!ytsrmode");
+                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetYouTubeSrMode(TwitchChatter)", false, "!ytsrmode");
             }
         }
 
         /// <summary>
         /// Enables displaying songs from Spotify into the IRC chat
         /// </summary>
-        public async void SetAutoDisplaySongs(bool enableDisplaySong)
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        public async void SetAutoDisplaySongs(TwitchChatter chatter)
         {
             try
             {
-                string boolValue = enableDisplaySong ? "true" : "false";
+                string message = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+                bool shuffle = CommandToolbox.SetBooleanFromMessage(message);
+                string boolValue = shuffle ? "true" : "false";
 
-                _botConfig.EnableDisplaySong = enableDisplaySong;
-                SaveAppConfigSettings(boolValue, "enableDisplaySong");
+                _botConfig.EnableDisplaySong = shuffle;
+                CommandToolbox.SaveAppConfigSettings(boolValue, "enableDisplaySong", _appConfig);
 
                 _irc.SendPublicChatMessage($"{_botConfig.Broadcaster}: Automatic display Spotify songs is set to \"{boolValue}\"");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetAutoDisplaySongs(bool)", false, "!displaysongs");
+                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetAutoDisplaySongs(TwitchChatter)", false, "!displaysongs");
             }
-        }
-
-        /// <summary>
-        /// Save modified settings in the app config. Make sure to adjust the corresponding variable in the TwitchBotConfigurationSection
-        /// </summary>
-        /// <param name="savedValue">The new value that is replacing the property's current value</param>
-        /// <param name="propertyName">The name of the property that is being modified</param>
-        private void SaveAppConfigSettings(string savedValue, string propertyName)
-        {
-            _appConfig.AppSettings.Settings.Remove(propertyName);
-            _appConfig.AppSettings.Settings.Add(propertyName, savedValue);
-            _appConfig.Save(ConfigurationSaveMode.Modified);
-            ConfigurationManager.RefreshSection("TwitchBotConfiguration");
         }
     }
 }

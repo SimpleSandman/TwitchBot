@@ -23,8 +23,10 @@ namespace TwitchBot.Commands.Features
         private readonly YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public LibVLCSharpPlayerFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig) : base(irc, botConfig)
+        public LibVLCSharpPlayerFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig,
+            LibVLCSharpPlayer libVLCSharpPlayer) : base(irc, botConfig)
         {
+            _libVLCSharpPlayer = libVLCSharpPlayer;
             _appConfig = appConfig;
             _rolePermission.Add("!srstart", "broadcaster");
             _rolePermission.Add("!srstop", "broadcaster");

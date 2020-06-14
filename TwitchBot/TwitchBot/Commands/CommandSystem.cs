@@ -6,6 +6,7 @@ using TwitchBot.Configuration;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Services;
+using TwitchBot.Threads;
 
 namespace TwitchBot.Commands
 {
@@ -22,12 +23,12 @@ namespace TwitchBot.Commands
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, bool hasTwitterInfo, System.Configuration.Configuration appConfig, 
-            BankService bank)
+            BankService bank, SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting)
         {
             _bank = new BankFeature(irc, botConfig, bank);
             _twitter = new TwitterFeature(irc, botConfig, appConfig, hasTwitterInfo);
-            _songRequestFeature = new SongRequestFeature(irc, botConfig, appConfig);
-            _libVLCSharpPlayerFeature = new LibVLCSharpPlayerFeature(irc, botConfig, appConfig);
+            _songRequestFeature = new SongRequestFeature(irc, botConfig, appConfig, songRequestBlacklist, libVLCSharpPlayer, songRequestSetting);
+            _libVLCSharpPlayerFeature = new LibVLCSharpPlayerFeature(irc, botConfig, appConfig, libVLCSharpPlayer);
             _twitchChannelFeature = new TwitchChannelFeature(irc, botConfig);
         }
 
