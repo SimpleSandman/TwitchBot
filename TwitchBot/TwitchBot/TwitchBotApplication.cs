@@ -34,7 +34,6 @@ namespace TwitchBot
         private TwitchBotConfigurationSection _botConfig;
         private IrcClient _irc;
         private TimeoutCmd _timeout;
-        private CmdBrdCstr _cmdBrdCstr;
         private CmdMod _cmdMod;
         private CmdGen _cmdGen;
         private CmdVip _cmdVip;
@@ -147,8 +146,7 @@ namespace TwitchBot
                 
                 /* Load command classes */
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _twitchInfo, _bank, _follower,
-                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _ign, _libVLCSharpPlayer);
-                _cmdBrdCstr = new CmdBrdCstr(_irc, _botConfig, _appConfig);
+                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _libVLCSharpPlayer);
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _bank, _manualSongRequest, _libVLCSharpPlayer);
                 _cmdVip = new CmdVip(_irc, _botConfig, _twitchInfo, _manualSongRequest, _quote, _partyUp, _gameDirectory);
                 _commandSystem = new CommandSystem(_irc, _botConfig, _hasTwitterInfo, _appConfig, _bank, _songRequestBlacklist,
@@ -420,12 +418,6 @@ namespace TwitchBot
                                 {
                                     switch (message)
                                     {
-                                        case "!settings": // Display bot settings
-                                            _cmdBrdCstr.CmdBotSettings();
-                                            continue;
-                                        case "!exit": // Stop running the bot
-                                            _cmdBrdCstr.CmdExitBot();
-                                            continue;
                                         case "!spotifyconnect": // Manually connect to Spotify
                                             await _spotify.Connect();
                                             continue;
@@ -444,14 +436,6 @@ namespace TwitchBot
                                             await _spotify.SkipToNextPlayback();
                                             continue;
                                         default: // Check commands that depend on special cases
-                                            /* Set regular follower hours for dedicated followers */
-                                            if (message.StartsWith("!setregularhours "))
-                                            { 
-                                                _cmdBrdCstr.CmdSetRegularFollowerHours(chatter.Message); 
-                                                continue;
-                                            }
-
-                                            /* insert more broadcaster commands here */
                                             break;
                                     }
                                 }
@@ -593,39 +577,14 @@ namespace TwitchBot
                                     #region Viewer Commands
                                     switch (message)
                                     {
-                                        case "!cmds": // Display some viewer commands a link to command documentation
-                                        case "!commands":
-                                        case "!help":
-                                            _cmdGen.CmdDisplayCmds();
-                                            continue;
-                                        case "!hello": // Display a static greeting
-                                            _cmdGen.CmdHello(chatter);
-                                            continue;
                                         case "!discord": // Displays Discord link into chat (if available)
                                             _cmdMod.CmdDiscord();
-                                            continue;
-                                        case "!utctime": // Display the current time in UTC (Coordinated Universal Time)
-                                            _cmdGen.CmdUtcTime();
-                                            continue;
-                                        case "!hosttime": // Display the current time in the time zone the host is located
-                                        case "!mytime":
-                                            _cmdGen.CmdHostTime();
-                                            continue;
-                                        case "!uptime": // Shows how long the broadcaster has been streaming
-                                            await _cmdGen.CmdUptime();
                                             continue;
                                         case "!partyuprequestlist": // Check what other user's have requested
                                             await _cmdGen.CmdPartyUpRequestList();
                                             continue;
                                         case "!partyuplist": // Check what party members are available (if game is part of the party up system)
                                             await _cmdGen.CmdPartyUpList();
-                                            continue;
-                                        case "!followsince": // Display how long a user has been following the broadcaster
-                                        case "!followage":
-                                            await _cmdGen.CmdFollowSince(chatter);
-                                            continue;
-                                        case "!rank": // Display follower's stream rank
-                                            await _cmdGen.CmdViewRank(chatter);
                                             continue;
                                         case "!ytsl": // Display YouTube link to song request playlist 
                                         case "!playlist":

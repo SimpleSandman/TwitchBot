@@ -351,6 +351,8 @@
     <Compile Include="Commands\CommandSystem.cs" />
     <Compile Include="Commands\Features\ReminderFeature.cs" />
     <Compile Include="Commands\Features\InGameNameFeature.cs" />
+    <Compile Include="Commands\Features\GeneralFeature.cs" />
+    <Compile Include="Commands\Features\FollowerFeature.cs" />
     <Compile Include="Commands\Features\TwitchChannelFeature.cs" />
     <Compile Include="Commands\Features\TemplateFeature.cs" />
     <Compile Include="Commands\Features\BankFeature.cs" />
@@ -389,7 +391,6 @@
     <Compile Include="Modules\TwitchBotModule.cs" />
     <Compile Include="Repositories\BankRepository.cs" />
     <Compile Include="Repositories\FollowerRepository.cs" />
-    <Compile Include="Commands\CmdBrdCstr.cs" />
     <Compile Include="Commands\CmdGen.cs" />
     <Compile Include="Commands\CmdMod.cs" />
     <Compile Include="Configuration\TwitchBotConfigurationSection.cs" />

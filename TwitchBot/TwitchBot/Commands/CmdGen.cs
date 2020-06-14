@@ -12,8 +12,6 @@ using Google.Apis.YouTube.v3.Data;
 
 using LibVLCSharp.Shared;
 
-using Newtonsoft.Json;
-
 using SpotifyAPI.Web.Models;
 
 using TwitchBot.Configuration;
@@ -44,7 +42,6 @@ namespace TwitchBot.Commands
         private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
         private QuoteService _quote;
-        private InGameUsernameService _ign;
         private LibVLCSharpPlayer _libVLCSharpPlayer;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
@@ -56,7 +53,7 @@ namespace TwitchBot.Commands
         public CmdGen(IrcClient irc, SpotifyWebClient spotify, TwitchBotConfigurationSection botConfig, 
             TwitchInfoService twitchInfo, BankService bank, FollowerService follower, SongRequestBlacklistService songRequestBlacklist,
             ManualSongRequestService manualSongRequest, PartyUpService partyUp, GameDirectoryService gameDirectory, QuoteService quote,
-            InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer)
+            LibVLCSharpPlayer libVLCSharpPlayer)
         {
             _irc = irc;
             _spotify = spotify;
@@ -69,90 +66,7 @@ namespace TwitchBot.Commands
             _partyUp = partyUp;
             _gameDirectory = gameDirectory;
             _quote = quote;
-            _ign = ign;
             _libVLCSharpPlayer = libVLCSharpPlayer;
-        }
-
-        public async void CmdDisplayCmds()
-        {
-            try
-            {
-                _irc.SendPublicChatMessage("---> !hello, !slap @[username], !stab @[username], !throw [item] @[username], !shoot @[username], "
-                    + "!sr [youtube link/search], !ytsl, !partyup [party member name], !gamble [money], !join, "
-                    + "!quote, !8ball [question], !" + _botConfig.CurrencyType.ToLower() + " (check stream currency) <---"
-                    + " Link to full list of commands: http://bit.ly/2bXLlEe");
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdCmds()", false, "!cmds");
-            }
-        }
-
-        public async void CmdHello(TwitchChatter chatter)
-        {
-            try
-            {
-                _irc.SendPublicChatMessage($"Hey @{chatter.DisplayName}! Thanks for talking to me :) " 
-                    + $"I'll let @{_botConfig.Broadcaster.ToLower()} know you're here!");
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdHello(string)", false, "!hello");
-            }
-        }
-
-        public async void CmdUtcTime()
-        {
-            try
-            {
-                _irc.SendPublicChatMessage($"UTC Time: {DateTime.UtcNow.ToString()}");
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdUtcTime()", false, "!utctime");
-            }
-        }
-
-        public async void CmdHostTime()
-        {
-            try
-            {
-                string response = $"{_botConfig.Broadcaster}'s Current Time: {DateTime.Now.ToString()} ";
-
-                if (DateTime.Now.IsDaylightSavingTime())
-                    response += $"({TimeZone.CurrentTimeZone.DaylightName})";
-                else
-                    response += $"({TimeZone.CurrentTimeZone.StandardName})";
-
-                _irc.SendPublicChatMessage(response);
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdHostTime()", false, "!hosttime");
-            }
-        }
-
-        public async Task CmdUptime()
-        {
-            try
-            {
-                RootStreamJSON streamJson = await _twitchInfo.GetBroadcasterStream();
-
-                // Check if the channel is live
-                if (streamJson.Stream != null)
-                {
-                    string duration = streamJson.Stream.CreatedAt;
-                    TimeSpan ts = DateTime.UtcNow - DateTime.Parse(duration, new DateTimeFormatInfo(), DateTimeStyles.AdjustToUniversal);
-                    string strResultDuration = String.Format("{0:h\\:mm\\:ss}", ts);
-                    _irc.SendPublicChatMessage("This channel's current uptime (length of current stream) is " + strResultDuration);
-                }
-                else
-                    _irc.SendPublicChatMessage("This channel is not streaming right now");
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdUptime()", false, "!uptime");
-            }
         }
 
         /// <summary>
@@ -675,121 +589,6 @@ namespace TwitchBot.Commands
             }
 
             return DateTime.Now.AddSeconds(20);
-        }
-
-        /// <summary>
-        /// Tell the user how long they have been following the broadcaster
-        /// </summary>
-        /// <param name="chatter">User that sent the message</param>
-        /// <returns></returns>
-        public async Task CmdFollowSince(TwitchChatter chatter)
-        {
-            try
-            {
-                if (chatter.Username == _botConfig.Broadcaster.ToLower())
-                {
-                    _irc.SendPublicChatMessage($"Please don't tell me you're really following yourself...are you {_botConfig.Broadcaster.ToLower()}? WutFace");
-                    return;
-                }
-
-                chatter.CreatedAt = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username == chatter.Username).CreatedAt;
-
-                if (chatter.CreatedAt == null)
-                {
-                    // get chatter info manually
-                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(chatter.Username);
-
-                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
-                    {
-                        string body = await message.Content.ReadAsStringAsync();
-                        FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
-
-                        if (!string.IsNullOrEmpty(response.CreatedAt))
-                        {
-                            chatter.CreatedAt = Convert.ToDateTime(response.CreatedAt);
-                        }
-                    }
-                }
-
-                // mainly used if chatter was originally null
-                if (chatter.CreatedAt != null)
-                {
-                    DateTime startedFollowing = Convert.ToDateTime(chatter.CreatedAt);
-                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} has been following since {startedFollowing.ToLongDateString()}");
-                }
-                else
-                {
-                    _irc.SendPublicChatMessage($"{chatter.DisplayName} is not following {_botConfig.Broadcaster.ToLower()}");
-                }
-
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdFollowSince(TwitchChatter)", false, "!followsince");
-            }
-        }
-
-        /// <summary>
-        /// Display the follower's stream rank
-        /// </summary>
-        /// <param name="chatter">User that sent the message</param>
-        /// <returns></returns>
-        public async Task CmdViewRank(TwitchChatter chatter)
-        {
-            try
-            {
-                if (chatter.Username == _botConfig.Broadcaster.ToLower())
-                {
-                    _irc.SendPublicChatMessage($"Here goes {_botConfig.Broadcaster.ToLower()} flexing his rank...oh wait OpieOP");
-                    return;
-                }
-
-                DateTime? createdAt = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username == chatter.Username)?.CreatedAt ?? null;
-
-                if (createdAt == null)
-                {
-                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(chatter.TwitchId))
-                    {
-                        string body = await message.Content.ReadAsStringAsync();
-                        FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
-
-                        if (!string.IsNullOrEmpty(response.CreatedAt))
-                        {
-                            createdAt = Convert.ToDateTime(response.CreatedAt);
-                        }
-                    }
-                }
-
-                if (createdAt != null)
-                {
-                    int currExp = await _follower.CurrentExp(chatter.Username, _broadcasterInstance.DatabaseId);
-
-                    // Grab the follower's associated rank
-                    if (currExp > -1)
-                    {
-                        IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterInstance.DatabaseId);
-                        Rank currFollowerRank = _follower.GetCurrentRank(rankList, currExp);
-                        decimal hoursWatched = _follower.GetHoursWatched(currExp);
-
-                        _irc.SendPublicChatMessage($"@{chatter.DisplayName}: \"{currFollowerRank.Name}\" "
-                            + $"{currExp}/{currFollowerRank.ExpCap} EXP ({hoursWatched} hours watched)");
-                    }
-                    else
-                    {
-                        await _follower.EnlistRecruit(chatter.Username, _broadcasterInstance.DatabaseId);
-
-                        _irc.SendPublicChatMessage($"Welcome to the army @{chatter.DisplayName}. View your new rank using !rank");
-                    }
-                }
-                else
-                {
-                    _irc.SendPublicChatMessage($"{chatter.DisplayName} is not following {_botConfig.Broadcaster.ToLower()}");
-                }
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdViewRank(TwitchChatter)", false, "!rank");
-            }
         }
 
         /// <summary>
