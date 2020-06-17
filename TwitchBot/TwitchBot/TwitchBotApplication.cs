@@ -147,7 +147,7 @@ namespace TwitchBot
                 /* Load command classes */
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _libVLCSharpPlayer);
-                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _bank, _manualSongRequest, _libVLCSharpPlayer);
+                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _manualSongRequest);
                 _cmdVip = new CmdVip(_irc, _botConfig, _twitchInfo, _manualSongRequest, _quote, _partyUp, _gameDirectory);
                 _commandSystem = new CommandSystem(_irc, _botConfig, _hasTwitterInfo, _appConfig, _bank, _songRequestBlacklist,
                     _libVLCSharpPlayer, _songRequestSetting);
@@ -484,41 +484,6 @@ namespace TwitchBot
                                                     continue;
                                                 }
 
-                                                /* Updates the title of the Twitch channel */
-                                                else if (message.StartsWith("!updatetitle ") || message.StartsWith("!title "))
-                                                { 
-                                                    await _cmdMod.CmdUpdateTitle(chatter);
-                                                    continue;
-                                                }
-
-                                                /* Updates the game of the Twitch channel */
-                                                else if (message.StartsWith("!updategame ") || message.StartsWith("!game "))
-                                                { 
-                                                    await _cmdMod.CmdUpdateGame(chatter, hasTwitterInfo);
-                                                    continue;
-                                                }
-
-                                                /* Set the song request volume */
-                                                else if (message.StartsWith("!srvolume "))
-                                                { 
-                                                    await _cmdMod.CmdLibVLCSharpPlayerVolume(chatter);
-                                                    continue;
-                                                }
-
-                                                /* Set the song request time */
-                                                else if (message.StartsWith("!srtime "))
-                                                { 
-                                                    await _cmdMod.CmdLibVLCSharpPlayerSetTime(chatter);
-                                                    continue;
-                                                }
-
-                                                /* Skip the current/number of song request */
-                                                else if (message.StartsWith("!srskip"))
-                                                { 
-                                                    await _cmdMod.CmdLibVLCSharpPlayerSkip(chatter);
-                                                    continue;
-                                                }
-
                                                 /* insert moderator commands here */
                                                 break;
                                         }
@@ -577,9 +542,6 @@ namespace TwitchBot
                                     #region Viewer Commands
                                     switch (message)
                                     {
-                                        case "!discord": // Displays Discord link into chat (if available)
-                                            _cmdMod.CmdDiscord();
-                                            continue;
                                         case "!partyuprequestlist": // Check what other user's have requested
                                             await _cmdGen.CmdPartyUpRequestList();
                                             continue;

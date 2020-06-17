@@ -34,6 +34,9 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!sraod", "broadcaster");
             _rolePermission.Add("!srshuffle", "broadcaster");
             _rolePermission.Add("!srplay", "broadcaster");
+            _rolePermission.Add("!srvolume", "moderator");
+            _rolePermission.Add("!srskip", "moderator");
+            _rolePermission.Add("!srtime", "moderator");
         }
 
         public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -59,6 +62,15 @@ namespace TwitchBot.Commands.Features
                         break;
                     case "!srplay":
                         await Play();
+                        break;
+                    case "!srvolume":
+                        await Volume(chatter);
+                        break;
+                    case "!srskip":
+                        await Skip(chatter);
+                        break;
+                    case "!srtime":
+                        await SetTime(chatter);
                         break;
                     default:
                         break;
@@ -173,6 +185,10 @@ namespace TwitchBot.Commands.Features
             }
         }
 
+        /// <summary>
+        /// Play the video
+        /// </summary>
+        /// <returns></returns>
         public async Task Play()
         {
             try
@@ -200,6 +216,84 @@ namespace TwitchBot.Commands.Features
             }
         }
 
-        /* ToDo: Insert new methods here */
+        /// <summary>
+        /// Set the volume for the player
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        public async Task Volume(TwitchChatter chatter)
+        {
+            try
+            {
+                bool validMessage = int.TryParse(chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1), out int volumePercentage);
+
+                if (validMessage)
+                {
+                    if (await _libVLCSharpPlayer.SetVolume(volumePercentage))
+                        _irc.SendPublicChatMessage($"Song request volume set to {volumePercentage}% @{chatter.DisplayName}");
+                    else if (volumePercentage < 1 || volumePercentage > 100)
+                        _irc.SendPublicChatMessage($"Please use a value for the song request volume from 1-100 @{chatter.DisplayName}");
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"Requested volume not valid. Please set the song request volume from 1-100 @{chatter.DisplayName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Volume(TwitchChatter)", false, "!srvolume", chatter.Message);
+            }
+        }
+
+        /// <summary>
+        /// Skip to the next video in the queue
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        public async Task Skip(TwitchChatter chatter)
+        {
+            try
+            {
+                bool validMessage = int.TryParse(chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1), out int songSkipCount);
+
+                if (!validMessage)
+                    await _libVLCSharpPlayer.Skip();
+                else
+                    await _libVLCSharpPlayer.Skip(songSkipCount);
+
+                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(_libVLCSharpPlayer.CurrentSongRequestPlaylistItem);
+
+                if (!string.IsNullOrEmpty(songRequest))
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest}");
+                else
+                    _irc.SendPublicChatMessage($"Unable to display the current song @{chatter.DisplayName}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Skip(TwitchChatter)", false, "!srskip", chatter.Message);
+            }
+        }
+
+        /// <summary>
+        /// Seek to a specific time in the video
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        public async Task SetTime(TwitchChatter chatter)
+        {
+            try
+            {
+                bool validMessage = int.TryParse(chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1), out int seekVideoTime);
+
+                if (validMessage && await _libVLCSharpPlayer.SetVideoTime(seekVideoTime))
+                    _irc.SendPublicChatMessage($"Video seek time set to {seekVideoTime} second(s) @{chatter.DisplayName}");
+                else
+                    _irc.SendPublicChatMessage($"Time not valid. Please set the time (in seconds) between 0 and the length of the video @{chatter.DisplayName}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "SetTime(TwitchChatter)", false, "!srtime", chatter.Message);
+            }
+        }
     }
 }
