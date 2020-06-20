@@ -353,6 +353,7 @@
     <Compile Include="Commands\Features\InGameNameFeature.cs" />
     <Compile Include="Commands\Features\GeneralFeature.cs" />
     <Compile Include="Commands\Features\FollowerFeature.cs" />
+    <Compile Include="Commands\Features\SpotifyFeature.cs" />
     <Compile Include="Commands\Features\TwitchChannelFeature.cs" />
     <Compile Include="Commands\Features\TemplateFeature.cs" />
     <Compile Include="Commands\Features\BankFeature.cs" />

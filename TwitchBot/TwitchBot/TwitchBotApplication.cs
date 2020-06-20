@@ -150,7 +150,7 @@ namespace TwitchBot
                 _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _manualSongRequest);
                 _cmdVip = new CmdVip(_irc, _botConfig, _twitchInfo, _manualSongRequest, _quote, _partyUp, _gameDirectory);
                 _commandSystem = new CommandSystem(_irc, _botConfig, _hasTwitterInfo, _appConfig, _bank, _songRequestBlacklist,
-                    _libVLCSharpPlayer, _songRequestSetting);
+                    _libVLCSharpPlayer, _songRequestSetting, _spotify, _twitchInfo, _follower, _gameDirectory, _ign);
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine();
@@ -412,34 +412,6 @@ namespace TwitchBot
                                 await GreetUser(chatter);
 
                                 await _commandSystem.ExecRequest(chatter);
-
-                                #region Broadcaster Commands
-                                if (username == _botConfig.Broadcaster.ToLower())
-                                {
-                                    switch (message)
-                                    {
-                                        case "!spotifyconnect": // Manually connect to Spotify
-                                            await _spotify.Connect();
-                                            continue;
-                                        case "!spotifyplay": // Press local Spotify play button [>]
-                                            await _spotify.Play();
-                                            continue;
-                                        case "!spotifypause": // Press local Spotify pause button [||]
-                                            await _spotify.Pause();
-                                            continue;
-                                        case "!spotifyprev": // Press local Spotify previous button [|<]
-                                        case "!spotifyback":
-                                            await _spotify.SkipToPreviousPlayback();
-                                            continue;
-                                        case "!spotifynext": // Press local Spotify next (skip) button [>|]
-                                        case "!spotifyskip":
-                                            await _spotify.SkipToNextPlayback();
-                                            continue;
-                                        default: // Check commands that depend on special cases
-                                            break;
-                                    }
-                                }
-                                #endregion Broadcaster Commands
 
                                 if (!await IsUserTimedout(chatter))
                                 {
