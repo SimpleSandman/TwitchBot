@@ -27,17 +27,20 @@ namespace TwitchBot.Commands.Features
         private readonly LibVLCSharpPlayer _libVLCSharpPlayer;
         private readonly SongRequestSettingService _songRequestSetting;
         private readonly System.Configuration.Configuration _appConfig;
+        private readonly ManualSongRequestService _manualSongRequest;
         private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private readonly YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public SongRequestFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig,
-            SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting) : base(irc, botConfig)
+            SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting,
+            ManualSongRequestService manualSongRequest) : base(irc, botConfig)
         {
             _songRequestBlacklist = songRequestBlacklist;
             _libVLCSharpPlayer = libVLCSharpPlayer;
             _songRequestSetting = songRequestSetting;
             _appConfig = appConfig;
+            _manualSongRequest = manualSongRequest;
             _rolePermission.Add("!srbl", "broadcaster");
             _rolePermission.Add("!delsrbl", "broadcaster");
             _rolePermission.Add("!resetsrbl", "broadcaster");
@@ -48,6 +51,7 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!msrmode", "broadcaster");
             _rolePermission.Add("!ytsrmode", "broadcaster");
             _rolePermission.Add("!displaysongs", "broadcaster");
+            _rolePermission.Add("!resetmsr", "moderator");
         }
 
         public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -85,6 +89,9 @@ namespace TwitchBot.Commands.Features
                         break;
                     case "!setpersonalplaylistid":
                         await SetPersonalYoutubePlaylistById(chatter);
+                        break;
+                    case "!resetmsr":
+                        await ResetManualSr();
                         break;
                     default:
                         break;
@@ -517,6 +524,26 @@ namespace TwitchBot.Commands.Features
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetAutoDisplaySongs(TwitchChatter)", false, "!displaysongs");
+            }
+        }
+
+        /// <summary>
+        /// Resets the song request queue
+        /// </summary>
+        public async Task ResetManualSr()
+        {
+            try
+            {
+                List<SongRequest> removedSong = await _manualSongRequest.ResetSongRequests(_broadcasterInstance.DatabaseId);
+
+                if (removedSong != null && removedSong.Count > 0)
+                    _irc.SendPublicChatMessage($"The song request queue has been reset @{_botConfig.Broadcaster}");
+                else
+                    _irc.SendPublicChatMessage($"Song requests are empty @{_botConfig.Broadcaster}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "SongRequestFeature", "ResetManualSr()", false, "!resetrsr");
             }
         }
     }

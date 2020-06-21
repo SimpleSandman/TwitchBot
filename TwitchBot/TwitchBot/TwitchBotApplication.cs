@@ -147,10 +147,10 @@ namespace TwitchBot
                 /* Load command classes */
                 _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _twitchInfo, _bank, _follower,
                     _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _libVLCSharpPlayer);
-                _cmdMod = new CmdMod(_irc, _timeout, _botConfig, _appConfig, _manualSongRequest);
+                _cmdMod = new CmdMod(_irc, _timeout, _botConfig);
                 _cmdVip = new CmdVip(_irc, _botConfig, _twitchInfo, _manualSongRequest, _quote, _partyUp, _gameDirectory);
                 _commandSystem = new CommandSystem(_irc, _botConfig, _hasTwitterInfo, _appConfig, _bank, _songRequestBlacklist,
-                    _libVLCSharpPlayer, _songRequestSetting, _spotify, _twitchInfo, _follower, _gameDirectory, _ign);
+                    _libVLCSharpPlayer, _songRequestSetting, _spotify, _twitchInfo, _follower, _gameDirectory, _ign, _manualSongRequest);
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine();
@@ -422,17 +422,11 @@ namespace TwitchBot
                                     {
                                         switch (message)
                                         {
-                                            case "!resetrsr": // Resets the song request queue
-                                                await _cmdMod.CmdResetManualSr();
-                                                continue;
                                             case "!modafk": // Tell the stream the specified moderator will be AFK
                                                 _cmdMod.CmdModAfk(chatter);
                                                 continue;
                                             case "!modback": // Tell the stream the specified moderator has returned
                                                 _cmdMod.CmdModBack(chatter);
-                                                continue;
-                                            case "!resetinvite": // Resets game queue of users that want to play with the broadcaster
-                                                _gameQueueUsers = await _cmdMod.CmdResetJoin(chatter, _gameQueueUsers);
                                                 continue;
                                             default: // Check commands that depend on special cases
                                                 /* Bot-specific timeout on a user for a set amount of time */
@@ -449,17 +443,9 @@ namespace TwitchBot
                                                     continue;
                                                 }
 
-                                                /* Set delay for messages based on the latency of the stream */
-                                                else if (message.StartsWith("!setlatency "))
-                                                { 
-                                                    _cmdMod.CmdSetLatency(chatter);
-                                                    continue;
-                                                }
-
                                                 /* insert moderator commands here */
                                                 break;
                                         }
-
                                     }
                                     #endregion Moderator Commands
 
@@ -514,12 +500,6 @@ namespace TwitchBot
                                     #region Viewer Commands
                                     switch (message)
                                     {
-                                        case "!partyuprequestlist": // Check what other user's have requested
-                                            await _cmdGen.CmdPartyUpRequestList();
-                                            continue;
-                                        case "!partyuplist": // Check what party members are available (if game is part of the party up system)
-                                            await _cmdGen.CmdPartyUpList();
-                                            continue;
                                         case "!ytsl": // Display YouTube link to song request playlist 
                                         case "!playlist":
                                         case "!songlist":
@@ -532,12 +512,6 @@ namespace TwitchBot
                                             continue;
                                         case "!ranktop3": // Display the top 3 highest ranking users
                                             await _cmdGen.CmdLeaderboardRank(chatter);
-                                            continue;
-                                        case "!invitelist": // Show the users that want to play with the broadcaster
-                                            await _cmdGen.CmdListJoin(chatter, _gameQueueUsers);
-                                            continue;
-                                        case "!invite": // Request to play with the broadcaster
-                                            _gameQueueUsers = await _cmdGen.CmdInvite(chatter, _gameQueueUsers);
                                             continue;
                                         case "!sub": // Show the subscribe link (if broadcaster is either Affiliate/Partnered)
                                             await _cmdGen.CmdSubscribe();
@@ -640,13 +614,6 @@ namespace TwitchBot
                                                     });
                                                 }
 
-                                                continue;
-                                            }
-
-                                            /* Request party member if game and character exists in party up system */
-                                            else if (message.StartsWith("!partyup "))
-                                            { 
-                                                await _cmdGen.CmdPartyUp(chatter);
                                                 continue;
                                             }
 

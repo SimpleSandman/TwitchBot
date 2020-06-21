@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 using TwitchBot.Configuration;
 using TwitchBot.Libraries;
@@ -15,6 +11,8 @@ namespace TwitchBot.Commands.Features
     /// </summary>
     public abstract class BaseFeature
     {
+        private readonly BotModeratorSingleton _botModeratorInstance = BotModeratorSingleton.Instance;
+
         protected IrcClient _irc;
         protected TwitchBotConfigurationSection _botConfig;
         protected readonly Dictionary<string, string> _rolePermission;
@@ -41,7 +39,7 @@ namespace TwitchBot.Commands.Features
             if (validCommand)
             {
                 if ((chatter.Badges.Contains("broadcaster"))
-                    || (chatter.Badges.Contains("moderator") && (role == "mod" || role == "vip"))
+                    || ((chatter.Badges.Contains("moderator") || _botModeratorInstance.IsBotModerator(chatter.TwitchId)) && (role == "mod" || role == "vip"))
                     || (chatter.Badges.Contains("vip") && role == "vip")
                     || string.IsNullOrEmpty(role))
                 {

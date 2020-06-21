@@ -16,11 +16,14 @@ namespace TwitchBot.Commands.Features
     public sealed class GeneralFeature : BaseFeature
     {
         private readonly TwitchInfoService _twitchInfo;
+        private readonly System.Configuration.Configuration _appConfig;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public GeneralFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo) : base(irc, botConfig)
+        public GeneralFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo,
+            System.Configuration.Configuration appConfig) : base(irc, botConfig)
         {
             _twitchInfo = twitchInfo;
+            _appConfig = appConfig;
             _rolePermission.Add("!settings", "broadcaster");
             _rolePermission.Add("!exit", "broadcaster");
         }
@@ -161,6 +164,33 @@ namespace TwitchBot.Commands.Features
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "GeneralFeature", "Uptime()", false, "!uptime");
+            }
+        }
+
+        /// <summary>
+        /// Set delay for messages based on the latency of the stream
+        /// </summary>
+        /// <param name="chatter"></param>
+        public async void SetLatency(TwitchChatter chatter)
+        {
+            try
+            {
+                int latency = -1;
+                bool isValidInput = int.TryParse(chatter.Message.Substring(chatter.Message.IndexOf(" ")), out latency);
+
+                if (!isValidInput || latency < 0)
+                    _irc.SendPublicChatMessage("Please insert a valid positive alloted amount of time (in seconds)");
+                else
+                {
+                    _botConfig.StreamLatency = latency;
+                    CommandToolbox.SaveAppConfigSettings(latency.ToString(), "streamLatency", _appConfig);
+
+                    _irc.SendPublicChatMessage($"Bot settings for stream latency set to {_botConfig.StreamLatency} second(s) @{chatter.DisplayName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "GeneralFeature", "SetLatency(TwitchChatter)", false, "!setlatency");
             }
         }
     }

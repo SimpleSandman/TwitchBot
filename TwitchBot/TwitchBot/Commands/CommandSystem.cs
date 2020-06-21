@@ -29,15 +29,16 @@ namespace TwitchBot.Commands
 
         public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, bool hasTwitterInfo, System.Configuration.Configuration appConfig, 
             BankService bank, SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting,
-            SpotifyWebClient spotify, TwitchInfoService twitchInfo, FollowerService follower, GameDirectoryService gameDirectory, InGameUsernameService ign)
+            SpotifyWebClient spotify, TwitchInfoService twitchInfo, FollowerService follower, GameDirectoryService gameDirectory, InGameUsernameService ign,
+            ManualSongRequestService manualSongRequest)
         {
             _bank = new BankFeature(irc, botConfig, bank);
             _twitter = new TwitterFeature(irc, botConfig, appConfig, hasTwitterInfo);
-            _songRequestFeature = new SongRequestFeature(irc, botConfig, appConfig, songRequestBlacklist, libVLCSharpPlayer, songRequestSetting);
+            _songRequestFeature = new SongRequestFeature(irc, botConfig, appConfig, songRequestBlacklist, libVLCSharpPlayer, songRequestSetting, manualSongRequest);
             _libVLCSharpPlayerFeature = new LibVLCSharpPlayerFeature(irc, botConfig, appConfig, libVLCSharpPlayer);
             _twitchChannelFeature = new TwitchChannelFeature(irc, botConfig);
             _followerFeature = new FollowerFeature(irc, botConfig, twitchInfo, follower, appConfig);
-            _generalFeature = new GeneralFeature(irc, botConfig, twitchInfo);
+            _generalFeature = new GeneralFeature(irc, botConfig, twitchInfo, appConfig);
             _inGameNameFeature = new InGameNameFeature(irc, botConfig, twitchInfo, gameDirectory, ign);
             _reminderFeature = new ReminderFeature(irc, botConfig, twitchInfo, gameDirectory);
             _spotifyFeature = new SpotifyFeature(irc, botConfig, spotify);
