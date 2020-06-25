@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TwitchBot.Enums
+﻿namespace TwitchBot.Enums
 {
     public enum ChatterType
     {
@@ -12,11 +6,12 @@ namespace TwitchBot.Enums
         Viewer,
         Follower,
         RegularFollower,
+        Subscriber,
+        VIP,
         Moderator,
         GlobalModerator,
         Admin,
         Staff,
-        Subscriber,
-        VIP
+        Broadcaster
     }
 }

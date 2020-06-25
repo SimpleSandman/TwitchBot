@@ -28,14 +28,14 @@ namespace TwitchBot.Commands.Features
         public BankFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, BankService bank) : base(irc, botConfig)
         {
             _bank = bank;
-            _rolePermission.Add("!deposit", "moderator");
-            _rolePermission.Add("!charge", "moderator");
-            _rolePermission.Add("!points", "");
-            _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}", "");
-            _rolePermission.Add("!bonusall", "moderator");
+            _rolePermission.Add("!deposit", new List<ChatterType> { ChatterType.Moderator });
+            _rolePermission.Add("!charge", new List<ChatterType> { ChatterType.Moderator });
+            _rolePermission.Add("!points", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!bonusall", new List<ChatterType> { ChatterType.Moderator });
         }
 
-        public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -43,20 +43,21 @@ namespace TwitchBot.Commands.Features
                 {
                     case "!deposit":
                         await Deposit(chatter);
-                        break;
+                        return true;
                     case "!charge":
                         await Charge(chatter);
-                        break;
+                        return true;
                     case "!bonusall":
                         await BonusAll(chatter);
-                        break;
+                        return true;
                     case "!points":
                         await CheckFunds(chatter);
-                        break;
+                        return true;
                     default:
                         if (requestedCommand == $"!{_botConfig.CurrencyType.ToLower()}")
                         {
                             await CheckFunds(chatter);
+                            return true;
                         }
 
                         break;
@@ -66,6 +67,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "BankFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
+
+            return false;
         }
 
         /// <summary>

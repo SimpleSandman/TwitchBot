@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 
+using TwitchBot.Enums;
 using TwitchBot.Models;
 
 namespace TwitchBot.Commands
@@ -50,6 +53,18 @@ namespace TwitchBot.Commands
         public static string ParseChatterCommandParameter(TwitchChatter chatter)
         {
             return chatter?.Message?.Substring(chatter.Message.IndexOf(" ") + 1) ?? "";
+        }
+
+        /// <summary>
+        /// Check if the chatter has the minimum permissons needed
+        /// </summary>
+        /// <param name="requestedCommand"></param>
+        /// <param name="rolePermissions"></param>
+        /// <returns></returns>
+        public static bool HasAccessToCommand(string requestedCommand, ChatterType chatterPermission, Dictionary<string, List<ChatterType>> rolePermissions)
+        {
+            rolePermissions.TryGetValue(requestedCommand, out List<ChatterType> permissions);
+            return chatterPermission >= permissions.Min();
         }
     }
 }

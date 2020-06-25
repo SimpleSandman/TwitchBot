@@ -48,43 +48,43 @@ namespace TwitchBot.Commands
         {
             try
             {
-                if (_bank.IsRequestExecuted(chatter))
+                if (await _bank.IsRequestExecuted(chatter))
                 {
                     return;
                 }
-                else if (_twitter.IsRequestExecuted(chatter))
+                else if (await _twitter.IsRequestExecuted(chatter))
                 {
                     return;
                 }
-                else if (_songRequestFeature.IsRequestExecuted(chatter))
+                else if (await _songRequestFeature.IsRequestExecuted(chatter))
                 {
                     return;
                 }
-                else if (_libVLCSharpPlayerFeature.IsRequestExecuted(chatter))
+                else if (await _libVLCSharpPlayerFeature.IsRequestExecuted(chatter))
                 {
                     return;
                 }
-                else if (_twitchChannelFeature.IsRequestExecuted(chatter))
+                else if (await _twitchChannelFeature.IsRequestExecuted(chatter))
                 {
                     return;
                 }
-                else if (_followerFeature.IsRequestExecuted(chatter))
+                else if (await _followerFeature.IsRequestExecuted(chatter))
                 {
                     return;
                 }
-                else if (_generalFeature.IsRequestExecuted(chatter))
+                else if (await _generalFeature.IsRequestExecuted(chatter))
                 {
                     return;
                 }
-                else if (_inGameNameFeature.IsRequestExecuted(chatter))
+                else if (await _inGameNameFeature.IsRequestExecuted(chatter))
                 {
                     return;
                 }
-                else if (_reminderFeature.IsRequestExecuted(chatter))
+                else if (await _reminderFeature.IsRequestExecuted(chatter))
                 {
                     return;
                 }
-                else if (_spotifyFeature.IsRequestExecuted(chatter))
+                else if (await _spotifyFeature.IsRequestExecuted(chatter))
                 {
                     return;
                 }

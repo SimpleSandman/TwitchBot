@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
 using RestSharp;
 
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Threads;
@@ -22,29 +25,45 @@ namespace TwitchBot.Commands.Features
 
         public TwitchChannelFeature(IrcClient irc, TwitchBotConfigurationSection botConfig) : base(irc, botConfig)
         {
-            _rolePermission.Add("!game", "");
-            _rolePermission.Add("!title", "");
-            _rolePermission.Add("!updategame", "moderator");
-            _rolePermission.Add("!updatetitle", "moderator");
+            _rolePermission.Add("!game", new List<ChatterType> { ChatterType.Viewer, ChatterType.Moderator });
+            _rolePermission.Add("!title", new List<ChatterType> { ChatterType.Viewer, ChatterType.Moderator });
+            _rolePermission.Add("!updategame", new List<ChatterType> { ChatterType.Moderator });
+            _rolePermission.Add("!updatetitle", new List<ChatterType> { ChatterType.Moderator });
         }
 
-        public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
-                    case "!game":
-                        ShowCurrentTwitchGame(chatter);
-                        break;
-                    case "!title":
-                        ShowCurrentTwitchTitle(chatter);
-                        break;
                     case "!updategame":
-                        await UpdateGame(chatter);
+                    case "!game":
+                        if ((chatter.Message.StartsWith("!game ") || chatter.Message.StartsWith("!updategame ")) 
+                            && CommandToolbox.HasAccessToCommand("!updategame", DetermineChatterPermissions(chatter), _rolePermission))
+                        {
+                            await UpdateGame(chatter);
+                            return true;
+                        }
+                        else if (chatter.Message == "!game")
+                        {
+                            ShowCurrentTwitchGame(chatter);
+                            return true;
+                        }
                         break;
                     case "!updatetitle":
-                        await UpdateTitle(chatter);
+                    case "!title":
+                        if ((chatter.Message.StartsWith("!title ") || chatter.Message.StartsWith("!updatetitle ")) 
+                            && CommandToolbox.HasAccessToCommand("!updatetitle", DetermineChatterPermissions(chatter), _rolePermission))
+                        {
+                            await UpdateTitle(chatter);
+                            return true;
+                        }
+                        else if (chatter.Message == "!title")
+                        {
+                            ShowCurrentTwitchTitle(chatter);
+                            return true;
+                        }
                         break;
                     default:
                         break;
@@ -54,6 +73,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "TwitchChannelFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
+
+            return false;
         }
 
         /// <summary>

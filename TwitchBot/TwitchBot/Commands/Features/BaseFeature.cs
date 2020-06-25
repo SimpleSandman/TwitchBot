@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 
@@ -15,16 +17,16 @@ namespace TwitchBot.Commands.Features
 
         protected IrcClient _irc;
         protected TwitchBotConfigurationSection _botConfig;
-        protected readonly Dictionary<string, string> _rolePermission;
+        protected readonly Dictionary<string, List<ChatterType>> _rolePermission;
 
         public BaseFeature(IrcClient irc, TwitchBotConfigurationSection botConfig)
         {
             _irc = irc;
             _botConfig = botConfig;
-            _rolePermission = new Dictionary<string, string>();
+            _rolePermission = new Dictionary<string, List<ChatterType>>();
         }
 
-        public bool IsRequestExecuted(TwitchChatter chatter)
+        public async Task<bool> IsRequestExecuted(TwitchChatter chatter)
         {
             string requestedCommand = chatter.Message;
 
@@ -34,23 +36,44 @@ namespace TwitchBot.Commands.Features
                 requestedCommand = chatter.Message.Substring(0, spaceIndex);
             }
 
-            bool validCommand = _rolePermission.TryGetValue(requestedCommand, out string role);
+            bool validCommand = _rolePermission.ContainsKey(requestedCommand);
 
             if (validCommand)
             {
-                if ((chatter.Badges.Contains("broadcaster"))
-                    || ((chatter.Badges.Contains("moderator") || _botModeratorInstance.IsBotModerator(chatter.TwitchId)) && (role == "mod" || role == "vip"))
-                    || (chatter.Badges.Contains("vip") && role == "vip")
-                    || string.IsNullOrEmpty(role))
-                {
-                    ExecCommand(chatter, requestedCommand);
-                    return true;
-                }
+                return await ExecCommand(chatter, requestedCommand);
             }
 
             return false;
         }
 
-        public abstract void ExecCommand(TwitchChatter chatter, string requestedCommand);
+        /// <summary>
+        /// Returns the chatter type needed to determine specific permissions (i.e. for ambiguous command names)
+        /// </summary>
+        /// <param name="chatter">The user in the chat</param>
+        /// <returns></returns>
+        protected ChatterType DetermineChatterPermissions(TwitchChatter chatter)
+        {
+            if (chatter.Badges.Contains("broadcaster"))
+            {
+                return ChatterType.Broadcaster;
+            }
+            else if ((chatter.Badges.Contains("moderator") || _botModeratorInstance.IsBotModerator(chatter.TwitchId)))
+            {
+                return ChatterType.Moderator;
+            }
+            else if (chatter.Badges.Contains("vip"))
+            {
+                return ChatterType.VIP;
+            }
+
+            return ChatterType.Viewer;
+        }
+
+        /// <summary>
+        /// Execute a command from a feature
+        /// </summary>
+        /// <param name="chatter">The user in the chat</param>
+        /// <param name="requestedCommand">The command that is being requested</param>
+        public abstract Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand);
     }
 }
