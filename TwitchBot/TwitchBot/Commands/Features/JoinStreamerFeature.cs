@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
@@ -14,7 +15,7 @@ using TwitchBotDb.Models;
 namespace TwitchBot.Commands.Features
 {
     /// <summary>
-    /// The "Command Subsystem" for the "____" feature
+    /// The "Command Subsystem" for the "Join Streamer" feature
     /// </summary>
     public sealed class JoinStreamerFeature : BaseFeature
     {
@@ -27,10 +28,10 @@ namespace TwitchBot.Commands.Features
         {
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
-            _rolePermission.Add("!", "");
+            _rolePermission.Add("!", new List<ChatterType> { ChatterType.Viewer });
         }
 
-        public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -38,12 +39,12 @@ namespace TwitchBot.Commands.Features
                 {
                     case "!":
                         //await SomethingCool(chatter);
-                        break;
+                        return true;
                     default:
                         if (requestedCommand == "!")
                         {
                             //await OtherCoolThings(chatter);
-                            break;
+                            return true;
                         }
 
                         break;
@@ -51,8 +52,10 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "PartyUpFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogError(ex, "JoinStreamerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
+
+            return false;
         }
 
         public async Task<Queue<string>> CmdResetJoin(TwitchChatter chatter, Queue<string> gameQueueUsers)

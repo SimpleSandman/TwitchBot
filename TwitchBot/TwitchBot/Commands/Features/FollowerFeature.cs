@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
@@ -35,12 +36,12 @@ namespace TwitchBot.Commands.Features
             _follower = follower;
             _twitchInfo = twitchInfo;
             _appConfig = appConfig;
-            _rolePermission.Add("!followsince", "");
-            _rolePermission.Add("!rank", "");
-            _rolePermission.Add("!setregularhours", "broadcaster");
+            _rolePermission.Add("!followsince", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!rank", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!setregularhours", new List<ChatterType> { ChatterType.Broadcaster });
         }
 
-        public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -48,13 +49,13 @@ namespace TwitchBot.Commands.Features
                 {
                     case "!followsince":
                         await FollowSince(chatter);
-                        break;
+                        return true;
                     case "!rank":
                         await ViewRank(chatter);
-                        break;
+                        return true;
                     case "!setregularhours":
                         SetRegularFollowerHours(chatter);
-                        break;
+                        return true;
                     default:
                         break;
                 }
@@ -63,6 +64,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "FollowerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
+
+            return false;
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Threading.Tasks;
 
@@ -7,6 +8,7 @@ using Google.Apis.YouTube.v3.Data;
 using LibVLCSharp.Shared;
 
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Threads;
@@ -28,18 +30,18 @@ namespace TwitchBot.Commands.Features
         {
             _libVLCSharpPlayer = libVLCSharpPlayer;
             _appConfig = appConfig;
-            _rolePermission.Add("!srstart", "broadcaster");
-            _rolePermission.Add("!srstop", "broadcaster");
-            _rolePermission.Add("!srpause", "broadcaster");
-            _rolePermission.Add("!sraod", "broadcaster");
-            _rolePermission.Add("!srshuffle", "broadcaster");
-            _rolePermission.Add("!srplay", "broadcaster");
-            _rolePermission.Add("!srvolume", "moderator");
-            _rolePermission.Add("!srskip", "moderator");
-            _rolePermission.Add("!srtime", "moderator");
+            _rolePermission.Add("!srstart", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!srstop", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!srpause", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!sraod", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!srshuffle", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!srplay", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!srvolume", new List<ChatterType> { ChatterType.Moderator });
+            _rolePermission.Add("!srskip", new List<ChatterType> { ChatterType.Moderator });
+            _rolePermission.Add("!srtime", new List<ChatterType> { ChatterType.Moderator });
         }
 
-        public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -47,31 +49,31 @@ namespace TwitchBot.Commands.Features
                 {
                     case "!srstart":
                         await Start();
-                        break;
+                        return true;
                     case "!srstop":
                         Stop();
-                        break;
+                        return true;
                     case "!srpause":
                         await Pause();
-                        break;
+                        return true;
                     case "!sraod":
                         SetAudioOutputDevice(chatter);
-                        break;
+                        return true;
                     case "!srshuffle":
                         PersonalPlaylistShuffle(chatter);
-                        break;
+                        return true;
                     case "!srplay":
                         await Play();
-                        break;
+                        return true;
                     case "!srvolume":
                         await Volume(chatter);
-                        break;
+                        return true;
                     case "!srskip":
                         await Skip(chatter);
-                        break;
+                        return true;
                     case "!srtime":
                         await SetTime(chatter);
-                        break;
+                        return true;
                     default:
                         break;
                 }
@@ -80,6 +82,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
+
+            return false;
         }
 
         public async Task Start()

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
@@ -28,10 +30,10 @@ namespace TwitchBot.Commands.Features
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
             _partyUp = partyUp;
-            _rolePermission.Add("!", "");
+            _rolePermission.Add("!", new List<ChatterType> { ChatterType.Viewer });
         }
 
-        public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -39,12 +41,12 @@ namespace TwitchBot.Commands.Features
                 {
                     case "!":
                         //await SomethingCool(chatter);
-                        break;
+                        return true;
                     default:
                         if (requestedCommand == "!")
                         {
                             //await OtherCoolThings(chatter);
-                            break;
+                            return true;
                         }
 
                         break;
@@ -54,6 +56,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "PartyUpFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
+
+            return false;
         }
 
         /// <summary>

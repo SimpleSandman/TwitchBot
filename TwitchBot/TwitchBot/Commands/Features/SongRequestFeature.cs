@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Google.Apis.YouTube.v3.Data;
 
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Services;
@@ -41,20 +42,20 @@ namespace TwitchBot.Commands.Features
             _songRequestSetting = songRequestSetting;
             _appConfig = appConfig;
             _manualSongRequest = manualSongRequest;
-            _rolePermission.Add("!srbl", "broadcaster");
-            _rolePermission.Add("!delsrbl", "broadcaster");
-            _rolePermission.Add("!resetsrbl", "broadcaster");
-            _rolePermission.Add("!showsrbl", "broadcaster");
-            _rolePermission.Add("!resetytsr", "broadcaster");
-            _rolePermission.Add("!setpersonalplaylistid", "broadcaster");
-            _rolePermission.Add("!djmode", "broadcaster");
-            _rolePermission.Add("!msrmode", "broadcaster");
-            _rolePermission.Add("!ytsrmode", "broadcaster");
-            _rolePermission.Add("!displaysongs", "broadcaster");
-            _rolePermission.Add("!resetmsr", "moderator");
+            _rolePermission.Add("!srbl", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!delsrbl", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!resetsrbl", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!showsrbl", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!resetytsr", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!setpersonalplaylistid", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!djmode", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!msrmode", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!ytsrmode", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!displaysongs", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!resetmsr", new List<ChatterType> { ChatterType.Moderator });
         }
 
-        public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -62,37 +63,37 @@ namespace TwitchBot.Commands.Features
                 {
                     case "!resetsrbl":
                         await ResetSongRequestBlacklist();
-                        break;
+                        return true;
                     case "!showsrbl":
                         await ListSongRequestBlacklist();
-                        break;
+                        return true;
                     case "!resetytsr":
                         await ResetYoutubeSongRequestList();
-                        break;
+                        return true;
                     case "!msrmode":
                         SetManualSrMode(chatter);
-                        break;
+                        return true;
                     case "!ytsrmode":
                         SetYouTubeSrMode(chatter);
-                        break;
+                        return true;
                     case "!displaysongs":
                         SetAutoDisplaySongs(chatter);
-                        break;
+                        return true;
                     case "!djmode":
                         await SetDjMode(chatter);
-                        break;
+                        return true;
                     case "!srbl":
                         await AddSongRequestBlacklist(chatter);
-                        break;
+                        return true;
                     case "!delsrbl":
                         await RemoveSongRequestBlacklist(chatter);
-                        break;
+                        return true;
                     case "!setpersonalplaylistid":
                         await SetPersonalYoutubePlaylistById(chatter);
-                        break;
+                        return true;
                     case "!resetmsr":
                         await ResetManualSr();
-                        break;
+                        return true;
                     default:
                         break;
                 }
@@ -101,6 +102,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
+
+            return false;
         }
 
         public async Task AddSongRequestBlacklist(TwitchChatter chatter)

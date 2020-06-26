@@ -26,10 +26,10 @@ namespace TwitchBot.Commands.Features
 
         public TemplateFeature(IrcClient irc, TwitchBotConfigurationSection botConfig) : base(irc, botConfig)
         {
-            _rolePermission.Add("!", "");
+            _rolePermission.Add("!", new List<ChatterType> { ChatterType.Viewer });
         }
 
-        public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -37,12 +37,12 @@ namespace TwitchBot.Commands.Features
                 {
                     case "!":
                         //await SomethingCool(chatter);
-                        break;
+                        return true;
                     default:
                         if (requestedCommand == "!")
                         {
                             //await OtherCoolThings(chatter);
-                            break;
+                            return true;
                         }
 
                         break;
@@ -52,6 +52,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "TemplateFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
+
+            return false;
         }
 
         /* ToDo: Insert new methods here */

@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
@@ -24,11 +26,11 @@ namespace TwitchBot.Commands.Features
         {
             _twitchInfo = twitchInfo;
             _appConfig = appConfig;
-            _rolePermission.Add("!settings", "broadcaster");
-            _rolePermission.Add("!exit", "broadcaster");
+            _rolePermission.Add("!settings", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!exit", new List<ChatterType> { ChatterType.Broadcaster });
         }
 
-        public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -36,10 +38,10 @@ namespace TwitchBot.Commands.Features
                 {
                     case "!settings":
                         BotSettings();
-                        break;
+                        return true;
                     case "!exit":
                         ExitBot();
-                        break;
+                        return true;
                     default:
                         break;
                 }
@@ -48,6 +50,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "GeneralFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
+
+            return false;
         }
 
         /// <summary>

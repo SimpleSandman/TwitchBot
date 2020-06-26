@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -25,8 +24,8 @@ namespace TwitchBot.Commands.Features
 
         public TwitchChannelFeature(IrcClient irc, TwitchBotConfigurationSection botConfig) : base(irc, botConfig)
         {
-            _rolePermission.Add("!game", new List<ChatterType> { ChatterType.Viewer, ChatterType.Moderator });
-            _rolePermission.Add("!title", new List<ChatterType> { ChatterType.Viewer, ChatterType.Moderator });
+            _rolePermission.Add("!game", new List<ChatterType> { ChatterType.Viewer});
+            _rolePermission.Add("!title", new List<ChatterType> { ChatterType.Viewer});
             _rolePermission.Add("!updategame", new List<ChatterType> { ChatterType.Moderator });
             _rolePermission.Add("!updatetitle", new List<ChatterType> { ChatterType.Moderator });
         }

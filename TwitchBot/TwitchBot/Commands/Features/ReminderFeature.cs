@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Models.JSON;
@@ -28,12 +30,12 @@ namespace TwitchBot.Commands.Features
         {
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
-            _rolePermission.Add("!refreshreminders", "broadcaster");
-            _rolePermission.Add("!refreshbossfight", "broadcaster");
-            _rolePermission.Add("!refreshcommands", "broadcaster");
+            _rolePermission.Add("!refreshreminders", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!refreshbossfight", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!refreshcommands", new List<ChatterType> { ChatterType.Broadcaster });
         }
 
-        public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -41,13 +43,13 @@ namespace TwitchBot.Commands.Features
                 {
                     case "!refreshreminders":
                         await RefreshReminders();
-                        break;
+                        return true;
                     case "!refreshbossfight":
                         await RefreshBossFight();
-                        break;
+                        return true;
                     case "!refreshcommands":
                         await RefreshCommands();
-                        break;
+                        return true;
                     default:
                         break;
                 }
@@ -56,6 +58,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "ReminderFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
+
+            return false;
         }
 
         public async Task RefreshReminders()

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
+using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
 using TwitchBot.Threads;
@@ -23,12 +25,12 @@ namespace TwitchBot.Commands.Features
         {
             _appConfig = appConfig;
             _hasTwitterInfo = hasTwitterInfo;
-            _rolePermission.Add("!sendtweet", "broadcaster");
-            _rolePermission.Add("!tweet", "broadcaster");
-            _rolePermission.Add("!live", "broadcaster");
+            _rolePermission.Add("!sendtweet", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!tweet", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!live", new List<ChatterType> { ChatterType.Broadcaster });
         }
 
-        public override async void ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -36,13 +38,13 @@ namespace TwitchBot.Commands.Features
                 {
                     case "!sendtweet":
                         SetTweet(chatter);
-                        break;
+                        return true;
                     case "!tweet":
                         Tweet(chatter);
-                        break;
+                        return true;
                     case "!live":
                         await Live();
-                        break;
+                        return true;
                     default:
                         break;
                 }
@@ -51,6 +53,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "TwitterFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
+
+            return false;
         }
 
         /// <summary>
