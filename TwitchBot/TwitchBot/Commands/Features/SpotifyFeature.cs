@@ -1,10 +1,15 @@
-﻿using System;
+﻿using SpotifyAPI.Web.Models;
+
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using TwitchBot.Configuration;
 using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
+
+using TwitchBotUtil.Extensions;
 
 namespace TwitchBot.Commands.Features
 {
@@ -26,31 +31,27 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!spotifyback", new List<ChatterType> { ChatterType.Broadcaster });
             _rolePermission.Add("!spotifynext", new List<ChatterType> { ChatterType.Broadcaster });
             _rolePermission.Add("!spotifyskip", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!spotifylastsong", new List<ChatterType> { ChatterType.Viewer });
         }
 
-        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!spotifyconnect": // Manually connect to Spotify
-                        await _spotify.Connect();
-                        return true;
+                        return (true, await _spotify.Connect());
                     case "!spotifyplay": // Press local Spotify play button [>]
-                        await _spotify.Play();
-                        return true;
+                        return (true, await _spotify.Play());
                     case "!spotifypause": // Press local Spotify pause button [||]
-                        await _spotify.Pause();
-                        return true;
+                        return (true, await _spotify.Pause());
                     case "!spotifyprev": // Press local Spotify previous button [|<]
                     case "!spotifyback":
-                        await _spotify.SkipToPreviousPlayback();
-                        return true;
+                        return (true, await _spotify.SkipToPreviousPlayback());
                     case "!spotifynext": // Press local Spotify next (skip) button [>|]
                     case "!spotifyskip":
-                        await _spotify.SkipToNextPlayback();
-                        return true;
+                        return (true, await _spotify.SkipToNextPlayback());
                     default:
                         break;
                 }
@@ -60,7 +61,43 @@ namespace TwitchBot.Commands.Features
                 await _errHndlrInstance.LogError(ex, "SpotifyFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
-            return false;
+            return (false, DateTime.Now);
+        }
+
+        /// <summary>
+        /// Displays the current song being played from Spotify
+        /// </summary>
+        /// <param name="chatter">User that sent the message</param>
+        public async Task SpotifyCurrentSong(TwitchChatter chatter)
+        {
+            try
+            {
+                PlaybackContext playbackContext = await _spotify.GetPlayback();
+                if (playbackContext != null && playbackContext.IsPlaying)
+                {
+                    string artistName = "";
+
+                    foreach (SimpleArtist simpleArtist in playbackContext.Item.Artists)
+                    {
+                        artistName += $"{simpleArtist.Name}, ";
+                    }
+
+                    artistName = artistName.ReplaceLastOccurrence(", ", "");
+
+                    TimeSpan progressTimeSpan = TimeSpan.FromMilliseconds(playbackContext.ProgressMs);
+                    TimeSpan durationTimeSpan = TimeSpan.FromMilliseconds(playbackContext.Item.DurationMs);
+
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing from Spotify: \"{playbackContext.Item.Name}\" by {artistName} "
+                        + "https://open.spotify.com/track/" + playbackContext.Item.Id + " "
+                        + $"Currently playing at {progressTimeSpan.ReformatTimeSpan()} of {durationTimeSpan.ReformatTimeSpan()}");
+                }
+                else
+                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.DisplayName}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "SpotifyFeature", "SpotifyCurrentSong(TwitchChatter)", false, "!spotifysong");
+            }
         }
     }
 }

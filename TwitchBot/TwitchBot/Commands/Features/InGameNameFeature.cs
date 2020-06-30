@@ -43,7 +43,7 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!allgt", new List<ChatterType> { ChatterType.Viewer });
         }
 
-        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -51,23 +51,19 @@ namespace TwitchBot.Commands.Features
                 {
                     case "!setgameign":
                     case "!setgameid":
-                        await SetGameIgn(chatter);
-                        return true;
+                        return (true, await SetGameIgn(chatter));
                     case "!setgenericign":
                     case "setgenericid":
-                        await SetGenericIgn(chatter);
-                        return true;
+                        return (true, await SetGenericIgn(chatter));
                     case "!deleteign":
-                        await DeleteIgn();
-                        return true;
+                        return (true, await DeleteIgn());
                     case "!ign":
                     case "!fc":
                     case "!gt":
                     case "!allign":
                     case "!allfc":
                     case "!allgt":
-                        await InGameUsername(chatter);
-                        return true;
+                        return (true, await InGameUsername(chatter));
                     default:
                         break;
                 }
@@ -77,10 +73,10 @@ namespace TwitchBot.Commands.Features
                 await _errHndlrInstance.LogError(ex, "InGameNameFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
-            return false;
+            return (false, DateTime.Now);
         }
 
-        public async Task SetGameIgn(TwitchChatter chatter)
+        public async Task<DateTime> SetGameIgn(TwitchChatter chatter)
         {
             try
             {
@@ -112,9 +108,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "InGameNameFeature", "SetGameIgn(string)", false, "!setgameign");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task SetGenericIgn(TwitchChatter chatter)
+        public async Task<DateTime> SetGenericIgn(TwitchChatter chatter)
         {
             try
             {
@@ -145,9 +143,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "InGameNameFeature", "SetGenericIgn(string)", false, "!setgenericign");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task DeleteIgn()
+        public async Task<DateTime> DeleteIgn()
         {
             try
             {
@@ -173,9 +173,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "InGameNameFeature", "DeleteIgn()", false, "!deleteign");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task InGameUsername(TwitchChatter chatter)
+        public async Task<DateTime> InGameUsername(TwitchChatter chatter)
         {
             try
             {
@@ -200,6 +202,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "InGameNameFeature", "InGameUsername(TwitchChatter)", false, "!ign");
             }
+
+            return DateTime.Now;
         }
     }
 }

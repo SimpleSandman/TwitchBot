@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TwitchBot.Models
 {
-    public class CooldownUser
+    public partial class CooldownUser
     {
         public string Username { get; set; }
         public DateTime Cooldown { get; set; }

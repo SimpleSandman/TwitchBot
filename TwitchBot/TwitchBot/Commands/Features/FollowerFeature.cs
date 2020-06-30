@@ -16,6 +16,8 @@ using TwitchBot.Services;
 
 using TwitchBotDb.Models;
 
+using TwitchBotUtil.Extensions;
+
 namespace TwitchBot.Commands.Features
 {
     /// <summary>
@@ -41,21 +43,18 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!setregularhours", new List<ChatterType> { ChatterType.Broadcaster });
         }
 
-        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!followsince":
-                        await FollowSince(chatter);
-                        return true;
+                        return (true, await FollowSince(chatter));
                     case "!rank":
-                        await ViewRank(chatter);
-                        return true;
+                        return (true, await ViewRank(chatter));
                     case "!setregularhours":
-                        SetRegularFollowerHours(chatter);
-                        return true;
+                        return (true, await SetRegularFollowerHours(chatter));
                     default:
                         break;
                 }
@@ -65,7 +64,7 @@ namespace TwitchBot.Commands.Features
                 await _errHndlrInstance.LogError(ex, "FollowerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
-            return false;
+            return (false, DateTime.Now);
         }
 
         /// <summary>
@@ -73,14 +72,14 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        public async Task FollowSince(TwitchChatter chatter)
+        public async Task<DateTime> FollowSince(TwitchChatter chatter)
         {
             try
             {
                 if (chatter.Username == _botConfig.Broadcaster.ToLower())
                 {
                     _irc.SendPublicChatMessage($"Please don't tell me you're really following yourself...are you {_botConfig.Broadcaster.ToLower()}? WutFace");
-                    return;
+                    return DateTime.Now;
                 }
 
                 chatter.CreatedAt = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username == chatter.Username).CreatedAt;
@@ -118,6 +117,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "FollowerFeature", "FollowSince(TwitchChatter)", false, "!followsince");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -125,14 +126,14 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        public async Task ViewRank(TwitchChatter chatter)
+        public async Task<DateTime> ViewRank(TwitchChatter chatter)
         {
             try
             {
                 if (chatter.Username == _botConfig.Broadcaster.ToLower())
                 {
                     _irc.SendPublicChatMessage($"Here goes {_botConfig.Broadcaster.ToLower()} flexing his rank...oh wait OpieOP");
-                    return;
+                    return DateTime.Now;
                 }
 
                 DateTime? createdAt = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username == chatter.Username)?.CreatedAt ?? null;
@@ -181,9 +182,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "FollowerFeature", "ViewRank(TwitchChatter)", false, "!rank");
             }
+
+            return DateTime.Now;
         }
 
-        public async void SetRegularFollowerHours(TwitchChatter chatter)
+        public async Task<DateTime> SetRegularFollowerHours(TwitchChatter chatter)
         {
             try
             {
@@ -192,12 +195,12 @@ namespace TwitchBot.Commands.Features
                 {
                     _irc.SendPublicChatMessage($"I can't process the time you've entered. " +
                         $"Please insert positive hours @{_botConfig.Broadcaster}");
-                    return;
+                    return DateTime.Now;
                 }
                 else if (regularHours < 1)
                 {
                     _irc.SendPublicChatMessage($"Please insert positive hours @{_botConfig.Broadcaster}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 _botConfig.RegularFollowerHours = regularHours;
@@ -212,6 +215,54 @@ namespace TwitchBot.Commands.Features
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "FollowerFeature", "SetRegularFollowerHours(TwitchChatter)", false, "!setregularhours");
+            }
+
+            return DateTime.Now;
+        }
+
+        /// <summary>
+        /// Display the top 3 highest ranking members (if available)
+        /// </summary>
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdLeaderboardRank(TwitchChatter chatter)
+        {
+            try
+            {
+                IEnumerable<RankFollower> highestRankedFollowers = await _follower.GetFollowersLeaderboard(_botConfig.Broadcaster, _broadcasterInstance.DatabaseId, _botConfig.BotName);
+
+                if (highestRankedFollowers.Count() == 0)
+                {
+                    _irc.SendPublicChatMessage($"There's no one in your ranks. Start recruiting today! @{chatter.DisplayName}");
+                    return;
+                }
+
+                IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterInstance.DatabaseId);
+
+                string resultMsg = "";
+                foreach (RankFollower follower in highestRankedFollowers)
+                {
+                    Rank currFollowerRank = _follower.GetCurrentRank(rankList, follower.Experience);
+                    decimal hoursWatched = _follower.GetHoursWatched(follower.Experience);
+
+                    resultMsg += $"\"{currFollowerRank.Name} {follower.Username}\" with {hoursWatched} hour(s), ";
+                }
+
+                resultMsg = resultMsg.Remove(resultMsg.Length - 2); // remove extra ","
+
+                // improve list grammar
+                if (highestRankedFollowers.Count() == 2)
+                    resultMsg = resultMsg.ReplaceLastOccurrence(", ", " and ");
+                else if (highestRankedFollowers.Count() > 2)
+                    resultMsg = resultMsg.ReplaceLastOccurrence(", ", ", and ");
+
+                if (highestRankedFollowers.Count() == 1)
+                    _irc.SendPublicChatMessage($"This leader's highest ranking member is {resultMsg}");
+                else
+                    _irc.SendPublicChatMessage($"This leader's highest ranking members are: {resultMsg}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardRank(TwitchChatter)", false, "!ranktop3");
             }
         }
     }

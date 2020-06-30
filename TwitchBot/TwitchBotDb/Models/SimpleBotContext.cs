@@ -21,7 +21,6 @@ namespace TwitchBotDb.Models
         public virtual DbSet<BossFightClassStats> BossFightClassStats { get; set; }
         public virtual DbSet<BossFightSetting> BossFightSetting { get; set; }
         public virtual DbSet<BotModerator> BotModerator { get; set; }
-        public virtual DbSet<BotTimeout> BotTimeout { get; set; }
         public virtual DbSet<Broadcaster> Broadcaster { get; set; }
         public virtual DbSet<CustomCommand> CustomCommand { get; set; }
         public virtual DbSet<ErrorLog> ErrorLog { get; set; }
@@ -541,26 +540,6 @@ namespace TwitchBotDb.Models
                     .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_BotModerator_Broadcaster");
-            });
-
-            modelBuilder.Entity<BotTimeout>(entity =>
-            {
-                entity.Property(e => e.TimeAdded)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.Timeout).HasColumnType("datetime");
-
-                entity.Property(e => e.Username)
-                    .IsRequired()
-                    .HasMaxLength(30)
-                    .IsUnicode(false);
-
-                entity.HasOne(d => d.Broadcaster)
-                    .WithMany(p => p.BotTimeout)
-                    .HasForeignKey(d => d.BroadcasterId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_BotTimeout_Broadcaster");
             });
 
             modelBuilder.Entity<Broadcaster>(entity =>

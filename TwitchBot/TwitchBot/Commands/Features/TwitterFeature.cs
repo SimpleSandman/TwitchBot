@@ -30,21 +30,18 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!live", new List<ChatterType> { ChatterType.Broadcaster });
         }
 
-        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!sendtweet":
-                        SetTweet(chatter);
-                        return true;
+                        return (true, await SetTweet(chatter));
                     case "!tweet":
-                        Tweet(chatter);
-                        return true;
+                        return (true, await Tweet(chatter));
                     case "!live":
-                        await Live();
-                        return true;
+                        return (true, await Live());
                     default:
                         break;
                 }
@@ -54,13 +51,13 @@ namespace TwitchBot.Commands.Features
                 await _errHndlrInstance.LogError(ex, "TwitterFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
-            return false;
+            return (false, DateTime.Now);
         }
 
         /// <summary>
         /// Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets)
         /// </summary>
-        public async void SetTweet(TwitchChatter chatter)
+        public async Task<DateTime> SetTweet(TwitchChatter chatter)
         {
             try
             {
@@ -82,13 +79,15 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "TwitterFeature", "EnableTweet()", false, "!sendtweet on");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Manually send a tweet
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        public async void Tweet(TwitchChatter chatter)
+        public async Task<DateTime> Tweet(TwitchChatter chatter)
         {
             try
             {
@@ -101,13 +100,15 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "TwitterFeature", "Tweet(TwitchChatter)", false, "!tweet");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Tweet that the stream is live on the broadcaster's behalf
         /// </summary>
         /// <returns></returns>
-        public async Task Live()
+        public async Task<DateTime> Live()
         {
             try
             {
@@ -128,6 +129,25 @@ namespace TwitchBot.Commands.Features
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "TwitterFeature", "Live()", false, "!live");
+            }
+
+            return DateTime.Now;
+        }
+
+        public async void CmdTwitterLink(bool hasTwitterInfo, string screenName)
+        {
+            try
+            {
+                if (!hasTwitterInfo)
+                    _irc.SendPublicChatMessage($"Twitter username not found @{_botConfig.Broadcaster}");
+                else if (string.IsNullOrEmpty(screenName))
+                    _irc.SendPublicChatMessage("I'm sorry. I'm unable to get this broadcaster's Twitter handle/screen name");
+                else
+                    _irc.SendPublicChatMessage($"Check out this broadcaster's twitter at https://twitter.com/" + screenName);
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdTwitterLink(bool, string)", false, "!twitter");
             }
         }
     }

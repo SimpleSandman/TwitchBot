@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Linq;
 
 using TwitchBot.Enums;
+using TwitchBot.Libraries;
 using TwitchBot.Models;
 
 namespace TwitchBot.Commands
@@ -46,6 +47,20 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
+        /// Parse out the command from the chatter's message
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        public static string ParseChatterCommand(TwitchChatter chatter)
+        {
+            int spaceIndex = chatter.Message.IndexOf(" ") > 0
+                ? chatter.Message.IndexOf(" ")
+                : chatter.Message.Length;
+
+            return chatter.Message.Substring(0, spaceIndex).ToLower();
+        }
+
+        /// <summary>
         /// Get the parameter value(s) in the chatter's message that is denoted after the first space in the IRC message
         /// </summary>
         /// <param name="chatter"></param>
@@ -59,12 +74,57 @@ namespace TwitchBot.Commands
         /// Check if the chatter has the minimum permissons needed
         /// </summary>
         /// <param name="requestedCommand"></param>
+        /// <param name="chatterPermission"></param>
         /// <param name="rolePermissions"></param>
         /// <returns></returns>
         public static bool HasAccessToCommand(string requestedCommand, ChatterType chatterPermission, Dictionary<string, List<ChatterType>> rolePermissions)
         {
             rolePermissions.TryGetValue(requestedCommand, out List<ChatterType> permissions);
             return chatterPermission >= permissions.Min();
+        }
+
+        public static bool ReactionCmd(IrcClient irc, string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
+        {
+            // check if user is trying to use a command on themselves
+            if (origUser.ToLower() == recipient.ToLower())
+            {
+                irc.SendPublicChatMessage($"{msgToSelf} @{origUser}");
+                return true;
+            }
+
+            irc.SendPublicChatMessage($"{origUser} {action} @{recipient} {addlMsg}");
+            return false;
+        }
+
+        public static string Effectiveness()
+        {
+            Random rnd = new Random(DateTime.Now.Millisecond);
+            int effectiveLvl = rnd.Next(3); // between 0 and 2
+
+            switch (effectiveLvl)
+            {
+                case 0:
+                    return "It's super effective!";
+                case 1:
+                    return "It wasn't very effective";
+                default:
+                    return "It had no effect";
+            }
+        }
+
+        /// <summary>
+        /// Get the requested username from the chatter's message
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        public static string ParseChatterMessageName(TwitchChatter chatter)
+        {
+            if (chatter.Message.IndexOf("@") > 0)
+            {
+                return chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
+            }
+            
+            return chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
         }
     }
 }

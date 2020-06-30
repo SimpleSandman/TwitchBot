@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
@@ -13,6 +14,7 @@ namespace TwitchBot.Commands.Features
     /// </summary>
     public abstract class BaseFeature
     {
+        private readonly CooldownUsersSingleton _cooldownUsersInstance = CooldownUsersSingleton.Instance;
         private readonly BotModeratorSingleton _botModeratorInstance = BotModeratorSingleton.Instance;
 
         protected IrcClient _irc;
@@ -26,21 +28,16 @@ namespace TwitchBot.Commands.Features
             _rolePermission = new Dictionary<string, List<ChatterType>>();
         }
 
-        public async Task<bool> IsRequestExecuted(TwitchChatter chatter)
+        public async Task<bool> IsRequestExecuted(TwitchChatter chatter) 
         {
-            string requestedCommand = chatter.Message;
-
-            int spaceIndex = chatter.Message.IndexOf(" ");
-            if (spaceIndex > 1)
-            {
-                requestedCommand = chatter.Message.Substring(0, spaceIndex);
-            }
-
+            string requestedCommand = CommandToolbox.ParseChatterCommand(chatter);
             bool validCommand = _rolePermission.ContainsKey(requestedCommand);
 
-            if (validCommand)
+            if (validCommand && !_cooldownUsersInstance.IsCommandOnCooldown(requestedCommand, chatter, _irc))
             {
-                return await ExecCommand(chatter, requestedCommand);
+                (bool, DateTime) commandResult = await ExecCommand(chatter, requestedCommand);
+                _cooldownUsersInstance.AddCooldown(chatter, commandResult.Item2);
+                return commandResult.Item1;
             }
 
             return false;
@@ -74,6 +71,6 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter">The user in the chat</param>
         /// <param name="requestedCommand">The command that is being requested</param>
-        public abstract Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand);
+        public abstract Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand);
     }
 }

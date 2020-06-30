@@ -33,17 +33,10 @@ namespace TwitchBot
         private System.Configuration.Configuration _appConfig;
         private TwitchBotConfigurationSection _botConfig;
         private IrcClient _irc;
-        private TimeoutCmd _timeout;
-        private CmdMod _cmdMod;
-        private CmdGen _cmdGen;
-        private CmdVip _cmdVip;
         private bool _hasTwitterInfo;
         private bool _hasYouTubeAuth;
-        private List<string> _multiStreamUsers;
         private List<string> _greetedUsers;
-        private Queue<string> _gameQueueUsers;
         private CommandSystem _commandSystem;
-        private List<CooldownUser> _cooldownUsers;
         private SpotifyWebClient _spotify;
         private TwitchInfoService _twitchInfo;
         private FollowerService _follower;
@@ -51,7 +44,6 @@ namespace TwitchBot
         private BankService _bank;
         private SongRequestBlacklistService _songRequestBlacklist;
         private ManualSongRequestService _manualSongRequest;
-        private PartyUpService _partyUp;
         private GameDirectoryService _gameDirectory;
         private QuoteService _quote;
         private SongRequestSettingService _songRequestSetting;
@@ -63,6 +55,7 @@ namespace TwitchBot
         private TwitchStreamStatus _twitchStreamStatus;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
+        private CooldownUsersSingleton _cooldownUsersInstance = CooldownUsersSingleton.Instance;
         private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private BankHeistSingleton _bankHeistInstance = BankHeistSingleton.Instance;
         private BossFightSingleton _bossFightInstance = BossFightSingleton.Instance;
@@ -78,18 +71,13 @@ namespace TwitchBot
             _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
             _hasTwitterInfo = false;
             _hasYouTubeAuth = false;
-            _timeout = new TimeoutCmd();
-            _cooldownUsers = new List<CooldownUser>();
-            _multiStreamUsers = new List<string>();
             _greetedUsers = new List<string>();
-            _gameQueueUsers = new Queue<string>();
             _twitchInfo = twitchInfo;
             _follower = follower;
             _followerSubscriberListener = followerListener;
             _bank = bank;
             _songRequestBlacklist = songRequestBlacklist;
             _manualSongRequest = manualSongRequest;
-            _partyUp = partyUp;
             _gameDirectory = gameDirectory;
             _quote = quote;
             _bankHeist = bankHeist;
@@ -109,7 +97,7 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error Message: " + ex.Message);
+                Console.WriteLine($"Error Message: {ex.Message}");
                 Console.WriteLine();
                 Console.WriteLine("Cannot connect to database to verify the correct version of myself");
                 Console.WriteLine("Local troubleshooting needed by author of this bot");
@@ -145,12 +133,9 @@ namespace TwitchBot
                 await _spotify.Connect();
                 
                 /* Load command classes */
-                _cmdGen = new CmdGen(_irc, _spotify, _botConfig, _twitchInfo, _bank, _follower,
-                    _songRequestBlacklist, _manualSongRequest, _partyUp, _gameDirectory, _quote, _libVLCSharpPlayer);
-                _cmdMod = new CmdMod(_irc, _timeout, _botConfig);
-                _cmdVip = new CmdVip(_irc, _botConfig, _twitchInfo, _manualSongRequest, _quote, _partyUp, _gameDirectory);
                 _commandSystem = new CommandSystem(_irc, _botConfig, _hasTwitterInfo, _appConfig, _bank, _songRequestBlacklist,
-                    _libVLCSharpPlayer, _songRequestSetting, _spotify, _twitchInfo, _follower, _gameDirectory, _ign, _manualSongRequest);
+                    _libVLCSharpPlayer, _songRequestSetting, _spotify, _twitchInfo, _follower, _gameDirectory, _ign, _manualSongRequest,
+                    _quote);
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine();
@@ -299,9 +284,6 @@ namespace TwitchBot
                 /* Pull list of followers and check experience points for stream leveling */
                 _followerSubscriberListener.Start(_irc, _broadcasterInstance.DatabaseId);
 
-                /* Get list of timed out users from database */
-                await SetListTimeouts();
-
                 /* Load/create settings and start the queue for the heist */
                 await _bankHeistInstance.LoadSettings(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
                 _bankHeist.Start(_irc, _broadcasterInstance.DatabaseId);
@@ -342,7 +324,7 @@ namespace TwitchBot
                 Console.WriteLine();
 
                 /* Finished setup, time to start */
-                await GetChatBox(_hasTwitterInfo, _hasYouTubeAuth);
+                await GetChatBox();
             }
             catch (Exception ex)
             {
@@ -355,7 +337,7 @@ namespace TwitchBot
         /// </summary>
         /// <param name="hasTwitterInfo"></param>
         /// <param name="hasYouTubeAuth"></param>
-        private async Task GetChatBox(bool hasTwitterInfo, bool hasYouTubeAuth)
+        private async Task GetChatBox()
         {
             try
             {
@@ -413,408 +395,11 @@ namespace TwitchBot
 
                                 await _commandSystem.ExecRequest(chatter);
 
-                                if (!await IsUserTimedout(chatter))
-                                {
-                                    #region Moderator Commands
-                                    if (username == _botConfig.Broadcaster.ToLower()
-                                        || chatter.Badges.Contains("moderator")
-                                        || _botModeratorInstance.IsBotModerator(chatter.TwitchId))
-                                    {
-                                        switch (message)
-                                        {
-                                            case "!modafk": // Tell the stream the specified moderator will be AFK
-                                                _cmdMod.CmdModAfk(chatter);
-                                                continue;
-                                            case "!modback": // Tell the stream the specified moderator has returned
-                                                _cmdMod.CmdModBack(chatter);
-                                                continue;
-                                            default: // Check commands that depend on special cases
-                                                /* Bot-specific timeout on a user for a set amount of time */
-                                                if (message.StartsWith("!addtimeout ") && message.Contains("@"))
-                                                { 
-                                                    await _cmdMod.CmdAddTimeout(chatter);
-                                                    continue;
-                                                }
-
-                                                /* Remove bot-specific timeout on a user for a set amount of time */
-                                                else if (message.StartsWith("!deltimeout @"))
-                                                { 
-                                                    await _cmdMod.CmdDeleteTimeout(chatter);
-                                                    continue;
-                                                }
-
-                                                /* insert moderator commands here */
-                                                break;
-                                        }
-                                    }
-                                    #endregion Moderator Commands
-
-                                    #region VIP Commands
-                                    if (username == _botConfig.Broadcaster.ToLower()
-                                        || chatter.Badges.Contains("moderator")
-                                        || chatter.Badges.Contains("vip")
-                                        || _botModeratorInstance.IsBotModerator(chatter.TwitchId))
-                                    {
-                                        switch (message)
-                                        {
-                                            case "!resetmsl": // Reset MultiStream link so link can be reconfigured
-                                                _multiStreamUsers = await _cmdVip.CmdResetMultiStreamLink(chatter, _multiStreamUsers);
-                                                continue;
-                                            case "!popinvite": // Pops user from the queue of users that want to play with the broadcaster
-                                                _gameQueueUsers = await _cmdVip.CmdPopJoin(chatter, _gameQueueUsers);
-                                                continue;
-                                            case "!poprsr": // Removes the first song in the queue of song requests
-                                                await _cmdVip.CmdPopManualSr();
-                                                continue;
-                                            case "!poppartyuprequest": // Removes first party memeber in queue of party up requests
-                                                await _cmdVip.CmdPopPartyUpRequest();
-                                                continue;
-                                            default:
-                                                /* Add MultiStream user to link */
-                                                if (message.StartsWith("!addmsl "))
-                                                { 
-                                                    _multiStreamUsers = await _cmdVip.CmdAddMultiStreamUser(chatter, _multiStreamUsers);
-                                                    continue;
-                                                }
-
-                                                /* Add a broadcaster quote */
-                                                else if (message.StartsWith("!addquote "))
-                                                { 
-                                                    await _cmdVip.CmdAddQuote(chatter);
-                                                    continue;
-                                                }
-
-                                                /* Display the streamer's channel and game status */
-                                                else if (message.StartsWith("!streamer @") || message.StartsWith("!so @") || message.StartsWith("!caster @"))
-                                                { 
-                                                    await _cmdVip.CmdPromoteStreamer(chatter);
-                                                    continue;
-                                                }
-
-                                                /* insert vip commands here */
-                                                break;
-                                        }
-                                    }
-                                    #endregion VIP Commands
-
-                                    #region Viewer Commands
-                                    switch (message)
-                                    {
-                                        case "!ytsl": // Display YouTube link to song request playlist 
-                                        case "!playlist":
-                                        case "!songlist":
-                                        case "!sl":
-                                            _cmdGen.CmdYouTubeSongRequestList(hasYouTubeAuth);
-                                            continue;
-                                        case "!msl": // Display MultiStream link
-                                        case "!multi":
-                                            _cmdGen.CmdMultiStreamLink(chatter, _multiStreamUsers);
-                                            continue;
-                                        case "!ranktop3": // Display the top 3 highest ranking users
-                                            await _cmdGen.CmdLeaderboardRank(chatter);
-                                            continue;
-                                        case "!sub": // Show the subscribe link (if broadcaster is either Affiliate/Partnered)
-                                            await _cmdGen.CmdSubscribe();
-                                            continue;
-                                        case "!raid": // Join the boss fight with a pre-defined amount of currency set by broadcaster
-                                        case "!join":
-                                            await _cmdGen.CmdBossFight(chatter);
-                                            continue;
-                                        case "!twitter": // Display the broadcaster's twitter page
-                                            _cmdGen.CmdTwitterLink(hasTwitterInfo, User.GetAuthenticatedUser()?.UserIdentifier?.ScreenName);
-                                            continue;
-                                        case "!support": // Display this project and creator's info
-                                        case "!bot":
-                                            _cmdGen.CmdSupport();
-                                            continue;
-                                        case "!song": // Display current song that's being played from WPF app
-                                        case "!currentsong":
-                                        case "!srsong":
-                                            await _cmdGen.CmdYouTubeCurrentSong(chatter);
-                                            continue;
-                                        case "!lastsong":
-                                        case "!lastsr":
-                                        case "!lastplayed":
-                                        case "!lsr":
-                                            await _cmdGen.CmdYouTubeLastSong(chatter);
-                                            continue;
-                                        case "!srvolume":
-                                            await _cmdGen.CmdLibVLCSharpPlayerShowVolume(chatter);
-                                            continue;
-                                        case "!srtime":
-                                            await _cmdGen.CmdLibVLCSharpPlayerShowTime(chatter);
-                                            continue;
-                                        default: // Check commands that depend on special cases
-                                            /* Slaps a user and rates its effectiveness */
-                                            if ((message.StartsWith("!slap @") || message.StartsWith("!slaps @")) && !IsCommandOnCooldown("!slap", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdSlap(chatter);
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!slap",
-                                                        Warned = false
-                                                    });
-                                                }
-
-                                                continue;
-                                            }
-
-                                            /* Stabs a user and rates its effectiveness */
-                                            else if ((message.StartsWith("!stab @") || message.StartsWith("!stabs @")) && !IsCommandOnCooldown("!stab", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdStab(chatter);
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!stab",
-                                                        Warned = false
-                                                    });
-                                                }
-
-                                                continue;
-                                            }
-
-                                            /* Shoots a viewer's random body part */
-                                            else if ((message.StartsWith("!shoot @") || message.StartsWith("!shoots @")) && !IsCommandOnCooldown("!shoot", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdShoot(chatter);
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!shoot",
-                                                        Warned = false
-                                                    });
-                                                }
-
-                                                continue;
-                                            }
-
-                                            /* Throws an item at a viewer and rates its effectiveness against the victim */
-                                            else if ((message.StartsWith("!throw ") || message.StartsWith("!throws ")) && message.Contains("@") && !IsCommandOnCooldown("!throw", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdThrow(chatter);
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!throw",
-                                                        Warned = false
-                                                    });
-                                                }
-
-                                                continue;
-                                            }
-
-                                            /* Gamble money away */
-                                            else if (message.StartsWith("!gamble ") && !IsCommandOnCooldown("!gamble", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdGamble(chatter);
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!gamble",
-                                                        Warned = false
-                                                    });
-                                                }
-
-                                                continue;
-                                            }
-
-                                            /* Display random broadcaster quote */
-                                            else if (message == "!quote" && !IsCommandOnCooldown("!quote", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdQuote();
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!quote",
-                                                        Warned = false
-                                                    });
-                                                }
-
-                                                continue;
-                                            }
-
-                                            /* Add song request to YouTube playlist */
-                                            else if ((message.StartsWith("!ytsr ") || message.StartsWith("!sr ") || message.StartsWith("!songrequest ")) && !IsCommandOnCooldown("!ytsr", chatter))
-                                            {
-                                                //DateTime cooldown = await _cmdGen.CmdYouTubeSongRequest(chatter, hasYouTubeAuth, isYouTubeSongRequestAvail);
-                                                //if (cooldown > DateTime.Now)
-                                                //{
-                                                //    _cooldownUsers.Add(new CooldownUser
-                                                //    {
-                                                //        Username = chatter.Username,
-                                                //        Cooldown = cooldown,
-                                                //        Command = "!ytsr",
-                                                //        Warned = false
-                                                //    });
-                                                //}
-
-                                                continue;
-                                            }
-
-                                            /* Display Magic 8-ball response */
-                                            else if (message.StartsWith("!8ball ") && !IsCommandOnCooldown("!8ball", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdMagic8Ball(chatter);
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!8ball",
-                                                        Warned = false
-                                                    });
-                                                }
-
-                                                continue;
-                                            }
-
-                                            /* Disply the top 3 richest users */
-                                            else if (message == $"!{_botConfig.CurrencyType.ToLower()}top3")
-                                            { 
-                                                await _cmdGen.CmdLeaderboardCurrency(chatter);
-                                                continue;
-                                            }
-
-                                            /* Play russian roulette */
-                                            else if (message == "!roulette" && !IsCommandOnCooldown("!roulette", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdRussianRoulette(chatter);
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!roulette",
-                                                        Warned = false
-                                                    });
-                                                }
-
-                                                continue;
-                                            }
-
-                                            /* Join the heist and gamble your currency for a higher payout */
-                                            else if (message.StartsWith("!bankheist") || message.StartsWith("!heist"))
-                                            { 
-                                                await _cmdGen.CmdBankHeist(chatter);
-                                                continue;
-                                            }
-
-                                            /* Tell the broadcaster a user is lurking */
-                                            else if (message == "!lurk" && !IsCommandOnCooldown("!lurk", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdLurk(chatter);
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!lurk",
-                                                        Warned = false
-                                                    });
-                                                }
-
-                                                continue;
-                                            }
-
-                                            /* Tell the broadcaster a user is no longer lurking */
-                                            else if (message == "!unlurk" && !IsCommandOnCooldown("!unlurk", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdUnlurk(chatter);
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!unlurk",
-                                                        Warned = false
-                                                    });
-                                                }
-
-                                                continue;
-                                            }
-
-                                            /* Give funds to another chatter */
-                                            else if (message.StartsWith("!give ") && !IsCommandOnCooldown("!give", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdGiveFunds(chatter);
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!give",
-                                                        Warned = false
-                                                    });
-                                                }
-
-                                                continue;
-                                            }
-
-                                            /* Remove the wrong song the user requested */
-                                            else if (message == "!wrongsong" && !IsCommandOnCooldown("!wrongsong", chatter))
-                                            {
-                                                DateTime cooldown = await _cmdGen.CmdYoutubeRemoveWrongSong(chatter);
-                                                if (cooldown > DateTime.Now)
-                                                {
-                                                    _cooldownUsers.Add(new CooldownUser
-                                                    {
-                                                        Username = chatter.Username,
-                                                        Cooldown = cooldown,
-                                                        Command = "!wrongsong",
-                                                        Warned = false
-                                                    });
-                                                }
-
-                                                // Allow the user to request another song in case if cooldown exists
-                                                CooldownUser songRequestCooldown =
-                                                    _cooldownUsers.FirstOrDefault(u => u.Username == chatter.Username && u.Command == "!ytsr");
-
-                                                if (songRequestCooldown != null)
-                                                {
-                                                    _cooldownUsers.Remove(songRequestCooldown);
-                                                }
-
-                                                continue;
-                                            }
-                                            else
-                                            {
-                                                UseCustomCommand(chatter);
-                                            }
-
-                                            /* add more general commands here */
-                                            break;
-                                    }
-                                    #endregion Viewer Commands
-                                }
+                                UseCustomCommand(chatter);
                             }
                             catch (Exception ex)
                             {
-                                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, bool)", false, "N/A", chatter.Message);
+                                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox()", false, "N/A", chatter.Message);
                             }
                         }
                         else if (rawMessage.Contains("NOTICE"))
@@ -835,93 +420,8 @@ namespace TwitchBot
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox(bool, bool, bool, bool)", true);
+                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox()", true);
             }
-        }
-
-        /// <summary>
-        /// Checks if a user is timed out from all bot commands
-        /// </summary>
-        /// <param name="username"></param>
-        /// <returns></returns>
-        private async Task<bool> IsUserTimedout(TwitchChatter chatter)
-        {
-            if (chatter.Username == _botConfig.Broadcaster)
-                return false;
-
-            TimeoutUser user = _timeout.TimedoutUsers.FirstOrDefault(u => u.Username == chatter.Username);
-
-            if (user == null) return false;
-            else if (user.TimeoutExpirationUtc < DateTime.UtcNow)
-            {
-                await _timeout.DeleteUserTimeout(chatter.Username, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
-                return false;
-            }
-            else if (!user.HasBeenWarned)
-            {
-                user.HasBeenWarned = true; // prevent spamming timeout message
-                string timeout = await _timeout.GetUserTimeout(chatter.Username, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
-
-                if (timeout == "0 seconds")
-                    return false;
-                else
-                    _irc.SendPublicChatMessage("FYI: I am not allowed to talk to you for " + timeout);
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Checks if a user/command is on a cooldown from a particular command
-        /// </summary>
-        /// <param name="command"></param>
-        /// <param name="chatter"></param>
-        /// <returns></returns>
-        private bool IsCommandOnCooldown(string command, TwitchChatter chatter, bool hasGlobalCooldown = false)
-        {
-            CooldownUser cooldown = null;
-
-            if (!hasGlobalCooldown)
-                cooldown = _cooldownUsers.FirstOrDefault(u => u.Username == chatter.Username && u.Command == command);
-            else
-                cooldown = _cooldownUsers.FirstOrDefault(u => u.Command == command);
-
-            if (cooldown == null) return false;
-            else if (cooldown.Cooldown < DateTime.Now)
-            {
-                _cooldownUsers.Remove(cooldown);
-                return false;
-            }
-
-            if (!cooldown.Warned)
-            {
-                string specialCooldownMessage = "";
-
-                // ToDo: Find more graceful way to prevent spam of commands with a global cooldown
-                if (!hasGlobalCooldown)
-                {
-                    cooldown.Warned = true; // prevent spamming cooldown message per personal cooldown
-                    specialCooldownMessage = "a PERSONAL";
-                }
-                else
-                {
-                    specialCooldownMessage = "a GLOBAL";
-                }
-
-                string timespanMessage = "";
-                TimeSpan timespan = cooldown.Cooldown - DateTime.Now;
-
-                if (timespan.Minutes > 0)
-                    timespanMessage = $"{timespan.Minutes} minute(s) and {timespan.Seconds} second(s)";
-                else if (timespan.Seconds == 0)
-                    timespanMessage = $"{timespan.Milliseconds} millisecond(s)";
-                else
-                    timespanMessage = $"{timespan.Seconds} second(s)";
-
-                _irc.SendPublicChatMessage($"The {command} command is currently on {specialCooldownMessage} cooldown @{chatter.DisplayName} for {timespanMessage}");
-            }
-
-            return true;
         }
 
         private async Task SetBroadcasterIds()
@@ -966,28 +466,6 @@ namespace TwitchBot
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "SetBroadcasterIds()", true);
-            }
-        }
-
-        private async Task SetListTimeouts()
-        {
-            try
-            {
-                List<BotTimeout> botTimeouts = await _timeout.GetTimeouts(_broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink);
-
-                foreach (BotTimeout botTimeout in botTimeouts)
-                {
-                    _timeout.TimedoutUsers.Add(new TimeoutUser
-                    {
-                        Username = botTimeout.Username,
-                        TimeoutExpirationUtc = botTimeout.Timeout,
-                        HasBeenWarned = false
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "SetListTimeouts()", true);
             }
         }
 
@@ -1277,7 +755,7 @@ namespace TwitchBot
                 TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
                 CustomCommand customCommand = _customCommandInstance.FindCustomCommand(chatter.Message.ToLower(), game?.Id);
 
-                if (customCommand == null || IsCommandOnCooldown(customCommand.Name, chatter, customCommand.IsGlobalCooldown))
+                if (customCommand == null || _cooldownUsersInstance.IsCommandOnCooldown(customCommand.Name, chatter, _irc, customCommand.IsGlobalCooldown))
                 {
                     return;
                 }
@@ -1315,13 +793,7 @@ namespace TwitchBot
                 // Check and add cooldown if necessary
                 if (customCommand.CooldownSec > 0)
                 {
-                    _cooldownUsers.Add(new CooldownUser
-                    {
-                        Username = chatter.Username,
-                        Cooldown = DateTime.Now.AddSeconds(customCommand.CooldownSec),
-                        Command = customCommand.Name,
-                        Warned = false
-                    });
+                    _cooldownUsersInstance.AddCooldown(chatter, DateTime.Now.AddSeconds(customCommand.CooldownSec), customCommand.Name);
                 }
 
                 // Make the chatter pay the price if necessary

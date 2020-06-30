@@ -29,20 +29,18 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!", new List<ChatterType> { ChatterType.Viewer });
         }
 
-        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!":
-                        //await SomethingCool(chatter);
-                        return true;
+                        //return (true, await SomethingCool(chatter));
                     default:
                         if (requestedCommand == "!")
                         {
-                            //await OtherCoolThings(chatter);
-                            return true;
+                            //return (true, await OtherCoolThings(chatter));
                         }
 
                         break;
@@ -53,7 +51,7 @@ namespace TwitchBot.Commands.Features
                 await _errHndlrInstance.LogError(ex, "TemplateFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
-            return false;
+            return (false, DateTime.Now);
         }
 
         /* ToDo: Insert new methods here */

@@ -347,8 +347,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\CmdVip.cs" />
     <Compile Include="Commands\CommandSystem.cs" />
+    <Compile Include="Commands\Features\MultiLinkUserFeature.cs" />
+    <Compile Include="Commands\SharedCommands.cs" />
     <Compile Include="Commands\Features\ReminderFeature.cs" />
     <Compile Include="Commands\Features\InGameNameFeature.cs" />
     <Compile Include="Commands\Features\GeneralFeature.cs" />
@@ -356,6 +357,8 @@
     <Compile Include="Commands\Features\SpotifyFeature.cs" />
     <Compile Include="Commands\Features\JoinStreamerFeature.cs" />
     <Compile Include="Commands\Features\PartyUpFeature.cs" />
+    <Compile Include="Commands\Features\QuoteFeature.cs" />
+    <Compile Include="Commands\Features\MinigameFeature.cs" />
     <Compile Include="Commands\Features\TwitchChannelFeature.cs" />
     <Compile Include="Commands\Features\TemplateFeature.cs" />
     <Compile Include="Commands\Features\BankFeature.cs" />
@@ -366,7 +369,10 @@
     <Compile Include="Commands\CommandToolbox.cs" />
     <Compile Include="Enums\ChatterType.cs" />
     <Compile Include="Libraries\BotModeratorSingleton.cs" />
+    <Compile Include="Libraries\CooldownUsersSingleton.cs" />
+    <Compile Include="Libraries\MultiLinkUserSingleton.cs" />
     <Compile Include="Libraries\CustomCommandSingleton.cs" />
+    <Compile Include="Libraries\JoinStreamerSingleton.cs" />
     <Compile Include="Libraries\TwitchChatterList.cs" />
     <Compile Include="Models\JSON\ClipJSON.cs" />
     <Compile Include="Models\JSON\SubscriptionJSON.cs" />
@@ -389,13 +395,10 @@
     <Compile Include="Models\JSON\UserJSON.cs" />
     <Compile Include="Models\RemindUser.cs" />
     <Compile Include="Models\RouletteUser.cs" />
-    <Compile Include="Models\TimeoutUser.cs" />
     <Compile Include="Models\TwitchChatterType.cs" />
     <Compile Include="Modules\TwitchBotModule.cs" />
     <Compile Include="Repositories\BankRepository.cs" />
     <Compile Include="Repositories\FollowerRepository.cs" />
-    <Compile Include="Commands\CmdGen.cs" />
-    <Compile Include="Commands\CmdMod.cs" />
     <Compile Include="Configuration\TwitchBotConfigurationSection.cs" />
     <Compile Include="Configuration\TwitchBotConfigurator.cs" />
     <Compile Include="Repositories\GameDirectoryRepository.cs" />
@@ -426,7 +429,6 @@
     <Compile Include="Libraries\SpotifyWebClient.cs" />
     <Compile Include="Models\JSON\StreamJSON.cs" />
     <Compile Include="Libraries\TwitchApi.cs" />
-    <Compile Include="Libraries\TimeoutCmd.cs" />
     <Compile Include="Threads\TwitchStreamStatus.cs" />
     <Compile Include="TwitchBotApplication.cs" />
   </ItemGroup>

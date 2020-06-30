@@ -33,20 +33,18 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!", new List<ChatterType> { ChatterType.Viewer });
         }
 
-        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!":
-                        //await SomethingCool(chatter);
-                        return true;
+                        //return (true, await SomethingCool(chatter));
                     default:
                         if (requestedCommand == "!")
                         {
-                            //await OtherCoolThings(chatter);
-                            return true;
+                            //return (true, await OtherCoolThings(chatter));
                         }
 
                         break;
@@ -57,7 +55,7 @@ namespace TwitchBot.Commands.Features
                 await _errHndlrInstance.LogError(ex, "PartyUpFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
-            return false;
+            return (false, DateTime.Now);
         }
 
         /// <summary>
@@ -183,6 +181,36 @@ namespace TwitchBot.Commands.Features
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUpList()", false, "!partyuplist");
+            }
+        }
+
+        /// <summary>
+        /// Removes first party memeber in queue of party up requests
+        /// </summary>
+        public async Task CmdPopPartyUpRequest()
+        {
+            try
+            {
+                // get current game info
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                string gameTitle = json.Game;
+                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+
+                if (string.IsNullOrEmpty(gameTitle))
+                {
+                    _irc.SendPublicChatMessage("I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
+                        + "Please have the chat verify that the game has been set for this stream. "
+                        + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
+                        + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
+                }
+                else if (game?.Id > 0)
+                    _irc.SendPublicChatMessage(await _partyUp.PopRequestedPartyMember(game.Id, _broadcasterInstance.DatabaseId));
+                else
+                    _irc.SendPublicChatMessage("This game is not part of the \"Party Up\" system");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPopPartyUpRequest()", false, "!poppartyuprequest");
             }
         }
     }

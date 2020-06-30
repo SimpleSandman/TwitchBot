@@ -31,20 +31,18 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!", new List<ChatterType> { ChatterType.Viewer });
         }
 
-        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!":
-                        //await SomethingCool(chatter);
-                        return true;
+                        //return (true, await SomethingCool(chatter));
                     default:
                         if (requestedCommand == "!")
                         {
-                            //await OtherCoolThings(chatter);
-                            return true;
+                            //return (true, await OtherCoolThings(chatter));
                         }
 
                         break;
@@ -55,7 +53,7 @@ namespace TwitchBot.Commands.Features
                 await _errHndlrInstance.LogError(ex, "JoinStreamerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
-            return false;
+            return (true, DateTime.Now);
         }
 
         public async Task<Queue<string>> CmdResetJoin(TwitchChatter chatter, Queue<string> gameQueueUsers)
@@ -135,6 +133,26 @@ namespace TwitchBot.Commands.Features
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "CmdGen", "CmdJoin(TwitchChatter, Queue<string>)", false, "!join");
+            }
+
+            return gameQueueUsers;
+        }
+
+        public async Task<Queue<string>> CmdPopJoin(TwitchChatter chatter, Queue<string> gameQueueUsers)
+        {
+            try
+            {
+                if (gameQueueUsers.Count == 0)
+                    _irc.SendPublicChatMessage($"Queue is empty @{chatter.DisplayName}");
+                else
+                {
+                    string poppedUser = gameQueueUsers.Dequeue();
+                    _irc.SendPublicChatMessage($"{poppedUser} has been removed from the queue @{chatter.DisplayName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPopJoin(TwitchChatter, Queue<string>)", false, "!popjoin");
             }
 
             return gameQueueUsers;

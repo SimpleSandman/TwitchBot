@@ -10,6 +10,7 @@ using TwitchBot.Models;
 using TwitchBot.Services;
 
 using TwitchBotDb.DTO;
+using TwitchBotDb.Models;
 
 using TwitchBotUtil.Extensions;
 
@@ -35,29 +36,24 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!bonusall", new List<ChatterType> { ChatterType.Moderator });
         }
 
-        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!deposit":
-                        await Deposit(chatter);
-                        return true;
+                        return (true, await Deposit(chatter));
                     case "!charge":
-                        await Charge(chatter);
-                        return true;
+                        return (true, await Charge(chatter));
                     case "!bonusall":
-                        await BonusAll(chatter);
-                        return true;
+                        return (true, await BonusAll(chatter));
                     case "!points":
-                        await CheckFunds(chatter);
-                        return true;
+                        return (true, await CheckFunds(chatter));
                     default:
                         if (requestedCommand == $"!{_botConfig.CurrencyType.ToLower()}")
                         {
-                            await CheckFunds(chatter);
-                            return true;
+                            return (true, await CheckFunds(chatter));
                         }
 
                         break;
@@ -68,14 +64,14 @@ namespace TwitchBot.Commands.Features
                 await _errHndlrInstance.LogError(ex, "BankFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
-            return false;
+            return (false, DateTime.Now);
         }
 
         /// <summary>
         /// Gives a set amount of stream currency to user
         /// </summary>
         /// <param name="chatter"></param>
-        private async Task Deposit(TwitchChatter chatter)
+        private async Task<DateTime> Deposit(TwitchChatter chatter)
         {
             try
             {
@@ -106,7 +102,7 @@ namespace TwitchBot.Commands.Features
                             if (_twitchChatterListInstance.GetUserChatterType(user) == ChatterType.Moderator)
                             {
                                 _irc.SendPublicChatMessage($"Entire deposit voided. You cannot add {_botConfig.CurrencyType} to another moderator's account @{chatter.DisplayName}");
-                                return;
+                                return DateTime.Now;
                             }
                         }
                     }
@@ -161,13 +157,15 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "BankFeature", "Deposit(TwitchChatter)", false, "!deposit");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Takes money away from a user
         /// </summary>
         /// <param name="chatter"></param>
-        private async Task Charge(TwitchChatter chatter)
+        private async Task<DateTime> Charge(TwitchChatter chatter)
         {
             try
             {
@@ -218,13 +216,15 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "BankFeature", "Charge(TwitchChatter)", false, "!charge");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Check user's account balance
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task CheckFunds(TwitchChatter chatter)
+        private async Task<DateTime> CheckFunds(TwitchChatter chatter)
         {
             try
             {
@@ -239,13 +239,15 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "BankFeature", "CheckFunds(TwitchChatter)", false, "![currency name]");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Gives every viewer currently watching a set amount of currency
         /// </summary>
         /// <param name="chatter"></param>
-        private async Task BonusAll(TwitchChatter chatter)
+        private async Task<DateTime> BonusAll(TwitchChatter chatter)
         {
             try
             {
@@ -267,6 +269,7 @@ namespace TwitchBot.Commands.Features
                     else
                     {
                         // Wait until chatter lists are available
+                        // ToDo: Create timeout in case if list never becomes available
                         while (!_twitchChatterListInstance.AreListsAvailable)
                         {
 
@@ -304,6 +307,227 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "BankFeature", "BonusAll(TwitchChatter)", false, "!bonusall");
             }
+
+            return DateTime.Now;
+        }
+
+        /// <summary>
+        /// Let a user give an amount of their funds to another chatter
+        /// </summary>
+        /// <param name="chatter">User that sent the message</param>
+        public async Task<DateTime> CmdGiveFunds(TwitchChatter chatter)
+        {
+            try
+            {
+                if (chatter.Message.StartsWith("!give @"))
+                {
+                    _irc.SendPublicChatMessage($"Please enter a valid amount @{chatter.DisplayName} (ex: !give [amount/all] @[username])");
+                    return DateTime.Now;
+                }
+
+                int giftAmount = 0;
+                bool validGiftAmount = false;
+                string giftMessage = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1, chatter.Message.GetNthCharIndex(' ', 2) - chatter.Message.IndexOf(" ") - 1);
+
+                // Check if user wants to give all of their wallet to another user
+                // Else check if their message is a valid amount to give
+                validGiftAmount = giftMessage == "all" ? true : int.TryParse(giftMessage, out giftAmount);
+
+                if (!validGiftAmount)
+                {
+                    _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{chatter.DisplayName}");
+                    return DateTime.Now;
+                }
+
+                // Get and check recipient
+                string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
+
+                if (string.IsNullOrEmpty(recipient) || chatter.Message.IndexOf("@") == -1)
+                {
+                    _irc.SendPublicChatMessage($"I don't know who I'm supposed to send this to. Please specify a recipient @{chatter.DisplayName}");
+                    return DateTime.Now;
+                }
+                else if (recipient == chatter.Username)
+                {
+                    _irc.SendPublicChatMessage($"Stop trying to give {_botConfig.CurrencyType} to yourself @{chatter.DisplayName}");
+                    return DateTime.Now;
+                }
+
+                // Get and check wallet balance
+                int balance = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+
+                if (giftMessage == "all")
+                {
+                    giftAmount = balance;
+                }
+
+                if (balance == -1)
+                    _irc.SendPublicChatMessage($"You are not currently banking with us @{chatter.DisplayName} . Please talk to a moderator about acquiring {_botConfig.CurrencyType}");
+                else if (giftAmount < 1)
+                    _irc.SendPublicChatMessage($"That is not a valid amount of {_botConfig.CurrencyType} to give. Please try again with a positive whole amount (no decimals) @{chatter.DisplayName}");
+                else if (balance < giftAmount)
+                    _irc.SendPublicChatMessage($"You do not have enough to give {giftAmount} {_botConfig.CurrencyType} @{chatter.DisplayName}");
+                else
+                {
+                    // make sure the user exists in the database to prevent fake accounts from being created
+                    int recipientBalance = await _bank.CheckBalance(recipient, _broadcasterInstance.DatabaseId);
+
+                    if (recipientBalance == -1)
+                        _irc.SendPublicChatMessage($"The user \"{recipient}\" is currently not banking with us. Please talk to a moderator about creating their account @{chatter.DisplayName}");
+                    else
+                    {
+                        await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, balance - giftAmount); // take away from sender
+                        await _bank.UpdateFunds(recipient, _broadcasterInstance.DatabaseId, giftAmount + recipientBalance); // give to recipient
+
+                        _irc.SendPublicChatMessage($"@{chatter.DisplayName} gave {giftAmount} {_botConfig.CurrencyType} to @{recipient}");
+                        return DateTime.Now.AddSeconds(20);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGiveFunds(TwitchChatter)", false, "!give", chatter.Message);
+            }
+
+            return DateTime.Now;
+        }
+
+        /// <summary>
+        /// Disply the top 3 richest users (if available)
+        /// </summary>
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdLeaderboardCurrency(TwitchChatter chatter)
+        {
+            try
+            {
+                List<Bank> richestUsers = await _bank.GetCurrencyLeaderboard(_botConfig.Broadcaster, _broadcasterInstance.DatabaseId, _botConfig.BotName);
+
+                if (richestUsers.Count == 0)
+                {
+                    _irc.SendPublicChatMessage($"Everyone's broke! @{chatter.DisplayName} NotLikeThis");
+                    return;
+                }
+
+                string resultMsg = "";
+                foreach (Bank user in richestUsers)
+                {
+                    resultMsg += $"\"{user.Username}\" with {user.Wallet} {_botConfig.CurrencyType}, ";
+                }
+
+                resultMsg = resultMsg.Remove(resultMsg.Length - 2); // remove extra ","
+
+                // improve list grammar
+                if (richestUsers.Count == 2)
+                    resultMsg = resultMsg.ReplaceLastOccurrence(", ", " and ");
+                else if (richestUsers.Count > 2)
+                    resultMsg = resultMsg.ReplaceLastOccurrence(", ", ", and ");
+
+                if (richestUsers.Count == 1)
+                    _irc.SendPublicChatMessage($"The richest user is {resultMsg}");
+                else
+                    _irc.SendPublicChatMessage($"The richest users are: {resultMsg}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardCurrency(TwitchChatter)", false, "![currency name]top3");
+            }
+        }
+
+        /// <summary>
+        /// Gamble away currency
+        /// </summary>
+        /// <param name="chatter">User that sent the message</param>
+        public async Task<DateTime> CmdGamble(TwitchChatter chatter)
+        {
+            try
+            {
+                int gambledMoney = 0; // Money put into the gambling system
+                bool isValidMsg = false;
+                string gambleMessage = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+
+                // Check if user wants to gamble all of their wallet
+                // Else check if their message is a valid amount to gamble
+                isValidMsg = gambleMessage.Equals("all", StringComparison.CurrentCultureIgnoreCase) ? true : int.TryParse(gambleMessage, out gambledMoney);
+
+                if (!isValidMsg)
+                {
+                    _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{chatter.DisplayName}");
+                    return DateTime.Now;
+                }
+
+                int walletBalance = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+
+                // Check if user wants to gamble all of their wallet
+                if (gambleMessage.Equals("all", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    gambledMoney = walletBalance;
+                }
+
+                if (gambledMoney < 1)
+                    _irc.SendPublicChatMessage($"Please insert a positive whole amount (no decimal numbers) to gamble @{chatter.DisplayName}");
+                else if (gambledMoney > walletBalance)
+                    _irc.SendPublicChatMessage($"You do not have the sufficient funds to gamble {gambledMoney} {_botConfig.CurrencyType} @{chatter.DisplayName}");
+                else
+                {
+                    Random rnd = new Random(DateTime.Now.Millisecond);
+                    int diceRoll = rnd.Next(1, 101); // between 1 and 100
+                    int newBalance = 0;
+
+                    string result = $"@{chatter.DisplayName} gambled ";
+                    string allResponse = "";
+
+                    if (gambledMoney == walletBalance)
+                    {
+                        allResponse = "ALL ";
+                    }
+
+                    result += $"{allResponse} {gambledMoney} {_botConfig.CurrencyType} and the dice roll was {diceRoll}. They ";
+
+                    // Check the 100-sided die roll result
+                    if (diceRoll < 61) // lose gambled money
+                    {
+                        newBalance = walletBalance - gambledMoney;
+
+                        result += $"lost {allResponse} {gambledMoney} {_botConfig.CurrencyType}";
+                    }
+                    else if (diceRoll >= 61 && diceRoll <= 98) // earn double
+                    {
+                        walletBalance -= gambledMoney; // put money into the gambling pot (remove money from wallet)
+                        newBalance = walletBalance + (gambledMoney * 2); // recieve 2x earnings back into wallet
+
+                        result += $"won {gambledMoney * 2} {_botConfig.CurrencyType}";
+                    }
+                    else if (diceRoll == 99 || diceRoll == 100) // earn triple
+                    {
+                        walletBalance -= gambledMoney; // put money into the gambling pot (remove money from wallet)
+                        newBalance = walletBalance + (gambledMoney * 3); // recieve 3x earnings back into wallet
+
+                        result += $"won {gambledMoney * 3} {_botConfig.CurrencyType}";
+                    }
+
+                    await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, newBalance);
+
+                    // Show how much the user has left if they didn't gamble all of their currency or gambled all and lost
+                    if (allResponse != "ALL " || (allResponse == "ALL " && diceRoll < 61))
+                    {
+                        string possession = "has";
+
+                        if (newBalance > 1)
+                            possession = "have";
+
+                        result += $" and now {possession} {newBalance} {_botConfig.CurrencyType}";
+                    }
+
+                    _irc.SendPublicChatMessage(result);
+                    return DateTime.Now.AddSeconds(20);
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGamble(string, string)", false, "!gamble", chatter.Message);
+            }
+
+            return DateTime.Now;
         }
     }
 }

@@ -41,39 +41,30 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!srtime", new List<ChatterType> { ChatterType.Moderator });
         }
 
-        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!srstart":
-                        await Start();
-                        return true;
+                        return (true, await Start());
                     case "!srstop":
-                        Stop();
-                        return true;
+                        return (true, await Stop());
                     case "!srpause":
-                        await Pause();
-                        return true;
+                        return (true, await Pause());
                     case "!sraod":
-                        SetAudioOutputDevice(chatter);
-                        return true;
+                        return (true, await SetAudioOutputDevice(chatter));
                     case "!srshuffle":
-                        PersonalPlaylistShuffle(chatter);
-                        return true;
+                        return (true, await PersonalPlaylistShuffle(chatter));
                     case "!srplay":
-                        await Play();
-                        return true;
+                        return (true, await Play());
                     case "!srvolume":
-                        await Volume(chatter);
-                        return true;
+                        return (true, await Volume(chatter));
                     case "!srskip":
-                        await Skip(chatter);
-                        return true;
+                        return (true, await Skip(chatter));
                     case "!srtime":
-                        await SetTime(chatter);
-                        return true;
+                        return (true, await SetTime(chatter));
                     default:
                         break;
                 }
@@ -83,10 +74,10 @@ namespace TwitchBot.Commands.Features
                 await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
-            return false;
+            return (false, DateTime.Now);
         }
 
-        public async Task Start()
+        public async Task<DateTime> Start()
         {
             try
             {
@@ -96,9 +87,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Start()", false, "!srstart");
             }
+
+            return DateTime.Now;
         }
 
-        public async void Stop()
+        public async Task<DateTime> Stop()
         {
             try
             {
@@ -108,16 +101,18 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Stop()", false, "!srstop");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task Pause()
+        public async Task<DateTime> Pause()
         {
             try
             {
                 if (_libVLCSharpPlayer.MediaPlayerStatus() == VLCState.Paused && _libVLCSharpPlayer.MediaPlayerStatus() == VLCState.Stopped)
                 {
                     _irc.SendPublicChatMessage($"This media player is already {await _libVLCSharpPlayer.GetVideoTime()} @{_botConfig.Broadcaster}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 _libVLCSharpPlayer.Pause();
@@ -127,9 +122,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Pause()", false, "!srpause");
             }
+
+            return DateTime.Now;
         }
 
-        public async void SetAudioOutputDevice(TwitchChatter chatter)
+        public async Task<DateTime> SetAudioOutputDevice(TwitchChatter chatter)
         {
             try
             {
@@ -141,9 +138,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "SetAudioOutputDevice(string)", false, "!sraod");
             }
+
+            return DateTime.Now;
         }
 
-        public async void PersonalPlaylistShuffle(TwitchChatter chatter)
+        public async Task<DateTime> PersonalPlaylistShuffle(TwitchChatter chatter)
         {
             try
             {
@@ -187,20 +186,22 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "PersonalPlaylistShuffle(bool)", false, "!srshuffle");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Play the video
         /// </summary>
         /// <returns></returns>
-        public async Task Play()
+        public async Task<DateTime> Play()
         {
             try
             {
                 if (_libVLCSharpPlayer.MediaPlayerStatus() == VLCState.Playing)
                 {
                     _irc.SendPublicChatMessage($"This media player is already {await _libVLCSharpPlayer.GetVideoTime()} @{_botConfig.Broadcaster}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 await _libVLCSharpPlayer.Play();
@@ -218,6 +219,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Play()", false, "!srplay");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -225,7 +228,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task Volume(TwitchChatter chatter)
+        public async Task<DateTime> Volume(TwitchChatter chatter)
         {
             try
             {
@@ -247,6 +250,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Volume(TwitchChatter)", false, "!srvolume", chatter.Message);
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -254,7 +259,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task Skip(TwitchChatter chatter)
+        public async Task<DateTime> Skip(TwitchChatter chatter)
         {
             try
             {
@@ -276,6 +281,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Skip(TwitchChatter)", false, "!srskip", chatter.Message);
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -283,7 +290,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task SetTime(TwitchChatter chatter)
+        public async Task<DateTime> SetTime(TwitchChatter chatter)
         {
             try
             {
@@ -297,6 +304,32 @@ namespace TwitchBot.Commands.Features
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "SetTime(TwitchChatter)", false, "!srtime", chatter.Message);
+            }
+
+            return DateTime.Now;
+        }
+
+        public async Task CmdLibVLCSharpPlayerShowVolume(TwitchChatter chatter)
+        {
+            try
+            {
+                _irc.SendPublicChatMessage($"Song request volume is currently at {await _libVLCSharpPlayer.GetVolume()}% @{chatter.DisplayName}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLibVLCSharpPlayerShowVolume(TwitchChatter)", false, "!srvolume");
+            }
+        }
+
+        public async Task CmdLibVLCSharpPlayerShowTime(TwitchChatter chatter)
+        {
+            try
+            {
+                _irc.SendPublicChatMessage($"Currently {await _libVLCSharpPlayer.GetVideoTime()} @{chatter.DisplayName}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLibVLCSharpPlayerShowTime(TwitchChatter)", false, "!srtime");
             }
         }
     }

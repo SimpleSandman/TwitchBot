@@ -30,7 +30,7 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!updatetitle", new List<ChatterType> { ChatterType.Moderator });
         }
 
-        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -41,13 +41,11 @@ namespace TwitchBot.Commands.Features
                         if ((chatter.Message.StartsWith("!game ") || chatter.Message.StartsWith("!updategame ")) 
                             && CommandToolbox.HasAccessToCommand("!updategame", DetermineChatterPermissions(chatter), _rolePermission))
                         {
-                            await UpdateGame(chatter);
-                            return true;
+                            return (true, await UpdateGame(chatter));
                         }
                         else if (chatter.Message == "!game")
                         {
-                            ShowCurrentTwitchGame(chatter);
-                            return true;
+                            return (true, await ShowCurrentTwitchGame(chatter));
                         }
                         break;
                     case "!updatetitle":
@@ -55,13 +53,11 @@ namespace TwitchBot.Commands.Features
                         if ((chatter.Message.StartsWith("!title ") || chatter.Message.StartsWith("!updatetitle ")) 
                             && CommandToolbox.HasAccessToCommand("!updatetitle", DetermineChatterPermissions(chatter), _rolePermission))
                         {
-                            await UpdateTitle(chatter);
-                            return true;
+                            return (true, await UpdateTitle(chatter));
                         }
                         else if (chatter.Message == "!title")
                         {
-                            ShowCurrentTwitchTitle(chatter);
-                            return true;
+                            return (true, await ShowCurrentTwitchTitle(chatter));
                         }
                         break;
                     default:
@@ -73,7 +69,7 @@ namespace TwitchBot.Commands.Features
                 await _errHndlrInstance.LogError(ex, "TwitchChannelFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
-            return false;
+            return (false, DateTime.Now);
         }
 
         /// <summary>
@@ -81,7 +77,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async void ShowCurrentTwitchGame(TwitchChatter chatter)
+        public async Task<DateTime> ShowCurrentTwitchGame(TwitchChatter chatter)
         {
             try
             {
@@ -91,6 +87,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "TwitchChannelFeature", "ShowCurrentTwitchGame(TwitchChatter)", false, "!game");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -98,7 +96,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async void ShowCurrentTwitchTitle(TwitchChatter chatter)
+        public async Task<DateTime> ShowCurrentTwitchTitle(TwitchChatter chatter)
         {
             try
             {
@@ -108,13 +106,15 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "TwitchChannelFeature", "ShowCurrentTwitchTitle(TwitchChatter)", false, "!title");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Update the title of the Twitch channel
         /// </summary>
         /// <param name="chatter"></param>
-        public async Task UpdateTitle(TwitchChatter chatter)
+        public async Task<DateTime> UpdateTitle(TwitchChatter chatter)
         {
             try
             {
@@ -158,13 +158,15 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "TwitchChannelFeature", "UpdateTitle(TwitchChatter)", false, "!updatetitle");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Updates the game being played on the Twitch channel
         /// </summary>
         /// <param name="chatter"></param>
-        public async Task UpdateGame(TwitchChatter chatter)
+        public async Task<DateTime> UpdateGame(TwitchChatter chatter)
         {
             try
             {
@@ -213,6 +215,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "TwitchChannelFeature", "UpdateGame(TwitchChatter)", false, "!updategame");
             }
+
+            return DateTime.Now;
         }
     }
 }

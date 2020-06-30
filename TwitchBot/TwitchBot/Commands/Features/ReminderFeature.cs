@@ -35,21 +35,18 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!refreshcommands", new List<ChatterType> { ChatterType.Broadcaster });
         }
 
-        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!refreshreminders":
-                        await RefreshReminders();
-                        return true;
+                        return (true, await RefreshReminders());
                     case "!refreshbossfight":
-                        await RefreshBossFight();
-                        return true;
+                        return (true, await RefreshBossFight());
                     case "!refreshcommands":
-                        await RefreshCommands();
-                        return true;
+                        return (true, await RefreshCommands());
                     default:
                         break;
                 }
@@ -59,10 +56,10 @@ namespace TwitchBot.Commands.Features
                 await _errHndlrInstance.LogError(ex, "ReminderFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
-            return false;
+            return (false, DateTime.Now);
         }
 
-        public async Task RefreshReminders()
+        public async Task<DateTime> RefreshReminders()
         {
             try
             {
@@ -72,9 +69,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "ReminderFeature", "RefreshReminders()", false, "!refreshreminders");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task RefreshBossFight()
+        public async Task<DateTime> RefreshBossFight()
         {
             try
             {
@@ -82,7 +81,7 @@ namespace TwitchBot.Commands.Features
                 if (_bossFightSettingsInstance.Fighters.Count > 0)
                 {
                     _irc.SendPublicChatMessage($"A boss fight is either queued or in progress @{_botConfig.Broadcaster}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 // Get current game name
@@ -103,9 +102,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "ReminderFeature", "RefreshBossFight()", false, "!refreshbossfight");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task RefreshCommands()
+        public async Task<DateTime> RefreshCommands()
         {
             try
             {
@@ -117,8 +118,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "ReminderFeature", "RefreshCommands()", false, "!refreshcommands");
             }
-        }
 
-        /* ToDo: Insert new methods here */
+            return DateTime.Now;
+        }
     }
 }

@@ -23,12 +23,14 @@ namespace TwitchBot.Libraries
             _botConfig = _botSection;
         }
 
-        public async Task Connect()
+        public async Task<DateTime> Connect()
         {
             try
             {
                 if (!HasInitialConfig())
-                    return;
+                {
+                    return DateTime.Now;
+                }
 
                 ImplicitGrantAuth auth = new ImplicitGrantAuth(
                     _botConfig.SpotifyClientId,
@@ -46,6 +48,8 @@ namespace TwitchBot.Libraries
             {
                 await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "Connect()", false);
             }
+
+            return DateTime.Now;
         }
 
         private void OnAuthReceived(object sender, Token token)
@@ -60,7 +64,7 @@ namespace TwitchBot.Libraries
             };
         }
 
-        public async Task Play()
+        public async Task<DateTime> Play()
         {
             await CheckForConnection();
 
@@ -74,9 +78,11 @@ namespace TwitchBot.Libraries
                     await _spotify.ResumePlaybackAsync("", "", null, "");
                 }
             }
+
+            return DateTime.Now;
         }
 
-        public async Task Pause()
+        public async Task<DateTime> Pause()
         {
             await CheckForConnection();
 
@@ -90,9 +96,11 @@ namespace TwitchBot.Libraries
                     await _spotify.PausePlaybackAsync();
                 }
             }
+
+            return DateTime.Now;
         }
 
-        public async Task SkipToPreviousPlayback()
+        public async Task<DateTime> SkipToPreviousPlayback()
         {
             await CheckForConnection();
 
@@ -106,9 +114,11 @@ namespace TwitchBot.Libraries
                     await _spotify.SkipPlaybackToPreviousAsync();
                 }
             }
+
+            return DateTime.Now;
         }
 
-        public async Task SkipToNextPlayback()
+        public async Task<DateTime> SkipToNextPlayback()
         {
             await CheckForConnection();
 
@@ -122,6 +132,8 @@ namespace TwitchBot.Libraries
                     await _spotify.SkipPlaybackToNextAsync();
                 }
             }
+
+            return DateTime.Now;
         }
 
         public async Task<PlaybackContext> GetPlayback()

@@ -11,7 +11,6 @@ namespace TwitchBotDb.Models
             BankHeistSetting = new HashSet<BankHeistSetting>();
             BossFightSetting = new HashSet<BossFightSetting>();
             BotModerator = new HashSet<BotModerator>();
-            BotTimeout = new HashSet<BotTimeout>();
             CustomCommand = new HashSet<CustomCommand>();
             ErrorLog = new HashSet<ErrorLog>();
             InGameUsername = new HashSet<InGameUsername>();
@@ -34,7 +33,6 @@ namespace TwitchBotDb.Models
         public virtual ICollection<BankHeistSetting> BankHeistSetting { get; set; }
         public virtual ICollection<BossFightSetting> BossFightSetting { get; set; }
         public virtual ICollection<BotModerator> BotModerator { get; set; }
-        public virtual ICollection<BotTimeout> BotTimeout { get; set; }
         public virtual ICollection<CustomCommand> CustomCommand { get; set; }
         public virtual ICollection<ErrorLog> ErrorLog { get; set; }
         public virtual ICollection<InGameUsername> InGameUsername { get; set; }

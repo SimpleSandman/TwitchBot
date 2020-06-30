@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Google.Apis.YouTube.v3.Data;
-
+using LibVLCSharp.Shared;
 using TwitchBot.Configuration;
 using TwitchBot.Enums;
 using TwitchBot.Libraries;
@@ -29,19 +32,23 @@ namespace TwitchBot.Commands.Features
         private readonly SongRequestSettingService _songRequestSetting;
         private readonly System.Configuration.Configuration _appConfig;
         private readonly ManualSongRequestService _manualSongRequest;
+        private readonly BankService _bank;
+        private readonly SpotifyWebClient _spotify;
         private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private readonly YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public SongRequestFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig,
             SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting,
-            ManualSongRequestService manualSongRequest) : base(irc, botConfig)
+            ManualSongRequestService manualSongRequest, BankService bank, SpotifyWebClient spotify) : base(irc, botConfig)
         {
             _songRequestBlacklist = songRequestBlacklist;
             _libVLCSharpPlayer = libVLCSharpPlayer;
             _songRequestSetting = songRequestSetting;
             _appConfig = appConfig;
             _manualSongRequest = manualSongRequest;
+            _bank = bank;
+            _spotify = spotify;
             _rolePermission.Add("!srbl", new List<ChatterType> { ChatterType.Broadcaster });
             _rolePermission.Add("!delsrbl", new List<ChatterType> { ChatterType.Broadcaster });
             _rolePermission.Add("!resetsrbl", new List<ChatterType> { ChatterType.Broadcaster });
@@ -55,45 +62,34 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!resetmsr", new List<ChatterType> { ChatterType.Moderator });
         }
 
-        public override async Task<bool> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!resetsrbl":
-                        await ResetSongRequestBlacklist();
-                        return true;
+                        return (true, await ResetSongRequestBlacklist());
                     case "!showsrbl":
-                        await ListSongRequestBlacklist();
-                        return true;
+                        return (true, await ListSongRequestBlacklist());
                     case "!resetytsr":
-                        await ResetYoutubeSongRequestList();
-                        return true;
+                        return (true, await ResetYoutubeSongRequestList());
                     case "!msrmode":
-                        SetManualSrMode(chatter);
-                        return true;
+                        return (true, await SetManualSrMode(chatter));
                     case "!ytsrmode":
-                        SetYouTubeSrMode(chatter);
-                        return true;
+                        return (true, await SetYouTubeSrMode(chatter));
                     case "!displaysongs":
-                        SetAutoDisplaySongs(chatter);
-                        return true;
+                        return (true, await SetAutoDisplaySongs(chatter));
                     case "!djmode":
-                        await SetDjMode(chatter);
-                        return true;
+                        return (true, await SetDjMode(chatter));
                     case "!srbl":
-                        await AddSongRequestBlacklist(chatter);
-                        return true;
+                        return (true, await AddSongRequestBlacklist(chatter));
                     case "!delsrbl":
-                        await RemoveSongRequestBlacklist(chatter);
-                        return true;
+                        return (true, await RemoveSongRequestBlacklist(chatter));
                     case "!setpersonalplaylistid":
-                        await SetPersonalYoutubePlaylistById(chatter);
-                        return true;
+                        return (true, await SetPersonalYoutubePlaylistById(chatter));
                     case "!resetmsr":
-                        await ResetManualSr();
-                        return true;
+                        return (true, await ResetManualSr());
                     default:
                         break;
                 }
@@ -103,10 +99,10 @@ namespace TwitchBot.Commands.Features
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
-            return false;
+            return (false, DateTime.Now);
         }
 
-        public async Task AddSongRequestBlacklist(TwitchChatter chatter)
+        public async Task<DateTime> AddSongRequestBlacklist(TwitchChatter chatter)
         {
             try
             {
@@ -116,7 +112,7 @@ namespace TwitchBot.Commands.Features
                 if (requestIndex == -1)
                 {
                     _irc.SendPublicChatMessage($"Please enter a request to block @{_botConfig.Broadcaster}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 string requestType = message.Substring(message.IndexOf(" ") + 1, 1);
@@ -131,14 +127,14 @@ namespace TwitchBot.Commands.Features
                         || request.Count(c => c == '>') == 1)
                     {
                         _irc.SendPublicChatMessage($"Please use request type 2 for song-specific blacklist restrictions @{_botConfig.Broadcaster}");
-                        return;
+                        return DateTime.Now;
                     }
 
                     List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
                     if (blacklist.Count > 0 && blacklist.Exists(b => b.Artist.Equals(request, StringComparison.CurrentCultureIgnoreCase)))
                     {
                         _irc.SendPublicChatMessage($"This artist/video is already on the blacklist @{_botConfig.Broadcaster}");
-                        return;
+                        return DateTime.Now;
                     }
 
                     SongRequestIgnore response = await _songRequestBlacklist.IgnoreArtist(request, _broadcasterInstance.DatabaseId);
@@ -156,7 +152,7 @@ namespace TwitchBot.Commands.Features
                     {
                         _irc.SendPublicChatMessage($"Please surround the song title with \" (quotation marks) " +
                             $"and the artist with \"<\" and \">\" @{_botConfig.Broadcaster}");
-                        return;
+                        return DateTime.Now;
                     }
 
                     int songTitleStartIndex = message.IndexOf('"');
@@ -176,7 +172,7 @@ namespace TwitchBot.Commands.Features
                                 && b.Title.Equals(songTitle, StringComparison.CurrentCultureIgnoreCase)))
                         {
                             _irc.SendPublicChatMessage($"This song is already on the blacklist @{_botConfig.Broadcaster}");
-                            return;
+                            return DateTime.Now;
                         }
                     }
 
@@ -190,16 +186,18 @@ namespace TwitchBot.Commands.Features
                 else
                 {
                     _irc.SendPublicChatMessage($"Please insert request type (1 = artist/2 = song) @{_botConfig.Broadcaster}");
-                    return;
+                    return DateTime.Now;
                 }
             }
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "AddSongRequestBlacklist(TwitchChatter)", false, "!srbl", chatter.Message);
             }
+
+            return DateTime.Now;
         }
 
-        public async Task RemoveSongRequestBlacklist(TwitchChatter chatter)
+        public async Task<DateTime> RemoveSongRequestBlacklist(TwitchChatter chatter)
         {
             try
             {
@@ -209,7 +207,7 @@ namespace TwitchBot.Commands.Features
                 if (requestIndex == -1)
                 {
                     _irc.SendPublicChatMessage($"Please enter a request @{_botConfig.Broadcaster}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 string requestType = message.Substring(message.IndexOf(" ") + 1, 1);
@@ -234,7 +232,7 @@ namespace TwitchBot.Commands.Features
                     {
                         _irc.SendPublicChatMessage($"Please surround the song title with \" (quotation marks) "
                             + $"and the artist with \"<\" and \">\" @{_botConfig.Broadcaster}");
-                        return;
+                        return DateTime.Now;
                     }
 
                     int songTitleStartIndex = message.IndexOf('"');
@@ -256,16 +254,18 @@ namespace TwitchBot.Commands.Features
                 else
                 {
                     _irc.SendPublicChatMessage($"Please insert request type (1 = artist/2 = song) @{_botConfig.Broadcaster}");
-                    return;
+                    return DateTime.Now;
                 }
             }
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "RemoveSongRequestBlacklist(string)", false, "!delsrbl");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task ResetSongRequestBlacklist()
+        public async Task<DateTime> ResetSongRequestBlacklist()
         {
             try
             {
@@ -280,9 +280,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "ResetSongRequestBlacklist()", false, "!resetsrbl");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task ListSongRequestBlacklist()
+        public async Task<DateTime> ListSongRequestBlacklist()
         {
             try
             {
@@ -291,7 +293,7 @@ namespace TwitchBot.Commands.Features
                 if (blacklist.Count == 0)
                 {
                     _irc.SendPublicChatMessage($"The song request blacklist is empty @{_botConfig.Broadcaster}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 string songList = "";
@@ -314,16 +316,18 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "ListSongRequestBlacklist()", false, "!showsrbl");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task ResetYoutubeSongRequestList()
+        public async Task<DateTime> ResetYoutubeSongRequestList()
         {
             try
             {
                 if (!_botConfig.IsYouTubeSongRequestAvail)
                 {
                     _irc.SendPublicChatMessage("YouTube song requests have not been set up");
-                    return;
+                    return DateTime.Now;
                 }
 
                 // Check if user has a song request playlist, else create one
@@ -377,9 +381,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "ResetYoutubeSongRequestList()", false, "!resetytsr");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task SetPersonalYoutubePlaylistById(TwitchChatter chatter)
+        public async Task<DateTime> SetPersonalYoutubePlaylistById(TwitchChatter chatter)
         {
             try
             {
@@ -388,7 +394,7 @@ namespace TwitchBot.Commands.Features
                 {
                     _irc.SendPublicChatMessage("Please only insert the playlist ID that you want set "
                         + $"when the song requests are finished/not available @{_botConfig.Broadcaster}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 Playlist playlist = await _youTubeClientInstance.GetPlaylistById(personalPlaylistId);
@@ -397,7 +403,7 @@ namespace TwitchBot.Commands.Features
                 {
                     _irc.SendPublicChatMessage($"I'm sorry @{_botConfig.Broadcaster} I cannot find your playlist "
                         + "you requested as a backup when song requests are finished/not available");
-                    return;
+                    return DateTime.Now;
                 }
 
                 SongRequestSetting songRequestSetting = await _songRequestSetting.GetSongRequestSetting(_broadcasterInstance.DatabaseId);
@@ -416,7 +422,7 @@ namespace TwitchBot.Commands.Features
                 {
                     _irc.SendPublicChatMessage("Cannot find settings in database! Please contact my creator using "
                         + $"the command \"!support\" if this problem persists @{_botConfig.Broadcaster}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 _botConfig.YouTubePersonalPlaylistId = personalPlaylistId;
@@ -428,6 +434,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetPersonalYoutubePlaylistById(TwitchChatter)", false, "!setpersonalplaylistid");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -435,7 +443,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task SetDjMode(TwitchChatter chatter)
+        public async Task<DateTime> SetDjMode(TwitchChatter chatter)
         {
             try
             {
@@ -456,6 +464,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetDjMode(TwitchChatter)", false, "!djmode");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -463,7 +473,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async void SetManualSrMode(TwitchChatter chatter)
+        public async Task<DateTime> SetManualSrMode(TwitchChatter chatter)
         {
             try
             {
@@ -480,6 +490,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetManualSrMode(TwitchChatter)", false, "!msrmode");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -487,7 +499,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async void SetYouTubeSrMode(TwitchChatter chatter)
+        public async Task<DateTime> SetYouTubeSrMode(TwitchChatter chatter)
         {
             try
             {
@@ -504,6 +516,8 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetYouTubeSrMode(TwitchChatter)", false, "!ytsrmode");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -511,7 +525,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async void SetAutoDisplaySongs(TwitchChatter chatter)
+        public async Task<DateTime> SetAutoDisplaySongs(TwitchChatter chatter)
         {
             try
             {
@@ -528,12 +542,14 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "SetAutoDisplaySongs(TwitchChatter)", false, "!displaysongs");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Resets the song request queue
         /// </summary>
-        public async Task ResetManualSr()
+        public async Task<DateTime> ResetManualSr()
         {
             try
             {
@@ -548,6 +564,443 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "SongRequestFeature", "ResetManualSr()", false, "!resetrsr");
             }
+
+            return DateTime.Now;
+        }
+
+        /// <summary>
+        /// Uses the Google API to add YouTube videos to the broadcaster's specified request playlist
+        /// </summary>
+        /// <param name="chatter">User that sent the message</param>
+        /// <param name="hasYouTubeAuth">Checks if broadcaster allowed this bot to post videos to the playlist</param>
+        /// <param name="isYouTubeSongRequestAvail">Checks if users can request songs</param>
+        /// <returns></returns>
+        public async Task<DateTime> CmdYouTubeSongRequest(TwitchChatter chatter, bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
+        {
+            try
+            {
+                if (!hasYouTubeAuth)
+                {
+                    _irc.SendPublicChatMessage("YouTube song requests have not been set up");
+                    return DateTime.Now;
+                }
+
+                if (!isYouTubeSongRequestAvail)
+                {
+                    _irc.SendPublicChatMessage("YouTube song requests are not turned on");
+                    return DateTime.Now;
+                }
+
+                if (await _libVLCSharpPlayer.HasUserRequestedTooMany(chatter.DisplayName, 3))
+                {
+                    _irc.SendPublicChatMessage("You already have at least 3 song requests!"
+                        + $" Please wait until there are less than 3 of your song requests in the queue before requesting more @{chatter.DisplayName}");
+                    return DateTime.Now;
+                }
+
+                int cost = 250; // ToDo: Set YTSR currency cost into settings
+                int funds = 0; // Set to minimum amount needed for song requests.
+                               // This will allow chatters with VIP, moderator, or the broadcaster 
+                               // to be exempt from paying the virtual currency
+
+                // Force chatters that don't have a VIP, moderator, or broadcaster badge to use their virtul currency
+                if (IsPrivilegedChatter(chatter))
+                {
+                    cost = 0;
+                }
+                else // Make the song request free for the mentioned chatter types above
+                {
+                    funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+                }
+
+                if (funds < cost)
+                {
+                    _irc.SendPublicChatMessage($"You do not have enough {_botConfig.CurrencyType} to make a song request. "
+                        + $"You currently have {funds} {_botConfig.CurrencyType} @{chatter.DisplayName}");
+                }
+                else
+                {
+                    int spaceIndex = chatter.Message.IndexOf(" ");
+                    string videoId = ParseYoutubeVideoId(chatter, spaceIndex);
+
+                    Video video = null;
+
+                    // Try to get video info using the parsed video ID
+                    if (!string.IsNullOrEmpty(videoId))
+                    {
+                        video = await _youTubeClientInstance.GetVideoById(videoId);
+                    }
+
+                    // Default to search by keyword if parsed video ID was null or not available
+                    if (video == null || video.Id == null)
+                    {
+                        string videoKeyword = chatter.Message.Substring(spaceIndex + 1);
+                        videoId = await _youTubeClientInstance.SearchVideoByKeyword(videoKeyword);
+
+                        if (string.IsNullOrEmpty(videoId))
+                        {
+                            _irc.SendPublicChatMessage($"Couldn't find video ID for song request @{chatter.DisplayName}");
+                            return DateTime.Now;
+                        }
+
+                        video = await _youTubeClientInstance.GetVideoById(videoId);
+
+                        if (video == null || video.Id == null)
+                        {
+                            _irc.SendPublicChatMessage($"Video wasn't available for song request @{chatter.DisplayName}");
+                            return DateTime.Now;
+                        }
+                    }
+
+                    // Confirm if video ID has been found and is a new song request
+                    if (await _youTubeClientInstance.HasDuplicatePlaylistItem(_botConfig.YouTubeBroadcasterPlaylistId, videoId))
+                    {
+                        _irc.SendPublicChatMessage($"Song has already been requested @{chatter.DisplayName}");
+                        return DateTime.Now;
+                    }
+
+                    // Check if video's title and account match song request blacklist
+                    List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
+
+                    if (blacklist.Count > 0)
+                    {
+                        // Check for artist-wide blacklist
+                        if (blacklist.Any(
+                                b => (string.IsNullOrEmpty(b.Title)
+                                        && video.Snippet.Title.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
+                                    || (string.IsNullOrEmpty(b.Title)
+                                        && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase))
+                            ))
+                        {
+                            _irc.SendPublicChatMessage($"I'm not allowing this artist/video to be queued on my master's behalf @{chatter.DisplayName}");
+                            return DateTime.Now;
+                        }
+                        // Check for song-specific blacklist
+                        else if (blacklist.Any(
+                                b => (!string.IsNullOrEmpty(b.Title) && video.Snippet.Title.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase)
+                                        && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // both song/artist in video title
+                                    || (!string.IsNullOrEmpty(b.Title) && video.Snippet.ChannelTitle.Contains(b.Artist, StringComparison.CurrentCultureIgnoreCase)
+                                        && video.Snippet.Title.Contains(b.Title, StringComparison.CurrentCultureIgnoreCase)) // song in title and artist in channel title
+                            ))
+                        {
+                            _irc.SendPublicChatMessage($"I'm not allowing this song to be queued on my master's behalf @{chatter.DisplayName}");
+                            return DateTime.Now;
+                        }
+                    }
+
+                    // Check if video is blocked in the broadcaster's country
+                    CultureInfo cultureInfo = Thread.CurrentThread.CurrentCulture;
+                    RegionInfo regionInfo = new RegionInfo(cultureInfo.Name);
+                    var regionRestriction = video.ContentDetails.RegionRestriction;
+
+                    if ((regionRestriction?.Allowed != null && !regionRestriction.Allowed.Contains(regionInfo.TwoLetterISORegionName))
+                        || (regionRestriction?.Blocked != null && regionRestriction.Blocked.Contains(regionInfo.TwoLetterISORegionName)))
+                    {
+                        _irc.SendPublicChatMessage($"Your song request is blocked in this broadcaster's country. Please request a different song");
+                        return DateTime.Now;
+                    }
+
+                    string videoDuration = video.ContentDetails.Duration;
+
+                    // Check if time limit has been reached
+                    // ToDo: Make bot setting for duration limit based on minutes (if set)
+                    if (!videoDuration.Contains("PT") || videoDuration.Contains("H"))
+                    {
+                        _irc.SendPublicChatMessage($"Either couldn't find the video duration or it was way too long for the stream @{chatter.DisplayName}");
+                    }
+                    else
+                    {
+                        int timeIndex = videoDuration.IndexOf("T") + 1;
+                        string parsedDuration = videoDuration.Substring(timeIndex);
+                        int minIndex = parsedDuration.IndexOf("M");
+
+                        string videoMin = "0";
+                        string videoSec = "0";
+                        int videoMinLimit = 10;
+                        int videoSecLimit = 0;
+
+                        if (minIndex > 0)
+                            videoMin = parsedDuration.Substring(0, minIndex);
+
+                        if (parsedDuration.IndexOf("S") > 0)
+                            videoSec = parsedDuration.Substring(minIndex + 1).TrimEnd('S');
+
+                        // Make sure song requests are no longer than a set amount
+                        if (Convert.ToInt32(videoMin) >= videoMinLimit && Convert.ToInt32(videoSec) >= videoSecLimit)
+                        {
+                            _irc.SendPublicChatMessage("Song request is longer than or equal to "
+                                + $"{videoMinLimit} minute(s) and {videoSecLimit} second(s) @{chatter.DisplayName}");
+
+                            return DateTime.Now;
+                        }
+
+                        // Make sure song requests are no shorter than a set amount
+                        if (Convert.ToInt32(videoMin) < 1 || (Convert.ToInt32(videoMin) == 1 && Convert.ToInt32(videoSec) < 30))
+                        {
+                            _irc.SendPublicChatMessage($"Song request is shorter than 1 minute and 30 seconds @{chatter.DisplayName}");
+
+                            return DateTime.Now;
+                        }
+
+                        PlaylistItem playlistItem = await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.DisplayName);
+
+                        if (cost > 0)
+                        {
+                            await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds - cost);
+                        }
+
+                        int position = await _libVLCSharpPlayer.AddSongRequest(playlistItem);
+
+                        string response = $"@{chatter.DisplayName} spent {cost} {_botConfig.CurrencyType} "
+                            + $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) "
+                            + $"was successfully added to the queue";
+
+                        if (position == 1)
+                            response += " and will be playing next!";
+                        else if (position > 1)
+                            response += $" at position #{position}!";
+
+                        response += " https://youtu.be/" + video.Id;
+
+                        _irc.SendPublicChatMessage(response);
+
+                        // Return cooldown time by using one-third of the length of the video duration
+                        TimeSpan totalTimeSpan = new TimeSpan(0, Convert.ToInt32(videoMin), Convert.ToInt32(videoSec));
+                        TimeSpan cooldownTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 3);
+
+                        // Reduce the cooldown for privileged chatters
+                        if (IsPrivilegedChatter(chatter))
+                            cooldownTimeSpan = new TimeSpan(totalTimeSpan.Ticks / 4);
+
+                        return DateTime.Now.AddSeconds(cooldownTimeSpan.TotalSeconds);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest(TwitchChatter, bool, bool)", false, "!ytsr");
+            }
+
+            return DateTime.Now;
+        }
+
+        /// <summary>
+        /// Display's link to broadcaster's YouTube song request playlist
+        /// </summary>
+        /// <param name="hasYouTubeAuth">Checks if broadcaster allowed this bot to post videos to the playlist</param>
+        public async void CmdYouTubeSongRequestList(bool hasYouTubeAuth)
+        {
+            try
+            {
+                if (hasYouTubeAuth && !string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
+                {
+                    _irc.SendPublicChatMessage($"{_botConfig.Broadcaster.ToLower()}'s song request list is at " +
+                        "https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage("There is no song request list at this time");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequestList(bool)", false, "!ytsl");
+            }
+        }
+
+        /// <summary>
+        /// Display list of requested songs
+        /// </summary>
+        /// <param name="isManualSongRequestAvail">Check if song requests are available</param>
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdManualSrList(bool isManualSongRequestAvail, TwitchChatter chatter)
+        {
+            try
+            {
+                if (!isManualSongRequestAvail)
+                    _irc.SendPublicChatMessage($"Song requests are not available at this time @{chatter.DisplayName}");
+                else
+                    _irc.SendPublicChatMessage(await _manualSongRequest.ListSongRequests(_broadcasterInstance.DatabaseId));
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList(bool, TwitchChatter)", false, "!rsrl");
+            }
+        }
+
+        /// <summary>
+        /// Request a song for the host to play
+        /// </summary>
+        /// <param name="isSongRequestAvail">Check if song request system is enabled</param>
+        /// <param name="chatter">User that sent the message</param>
+        public async Task CmdManualSr(bool isSongRequestAvail, TwitchChatter chatter)
+        {
+            try
+            {
+                // Check if song request system is enabled
+                if (isSongRequestAvail)
+                {
+                    // Grab the song name from the request
+                    int index = chatter.Message.IndexOf(" ");
+                    string songRequest = chatter.Message.Substring(index + 1);
+
+                    // Check if song request has more than allowed symbols
+                    if (!Regex.IsMatch(songRequest, @"^[a-zA-Z0-9 \-\(\)\'\?\,\/\""]+$"))
+                    {
+                        _irc.SendPublicChatMessage("Only letters, numbers, commas, hyphens, parentheses, "
+                            + "apostrophes, forward-slash, and question marks are allowed. Please try again. "
+                            + "If the problem persists, please contact my creator");
+                    }
+                    else
+                    {
+                        await _manualSongRequest.AddSongRequest(songRequest, chatter.DisplayName, _broadcasterInstance.DatabaseId);
+
+                        _irc.SendPublicChatMessage($"The song \"{songRequest}\" has been successfully requested @{chatter.DisplayName}");
+                    }
+                }
+                else
+                    _irc.SendPublicChatMessage($"Song requests are disabled at the moment @{chatter.DisplayName}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSr(bool, TwitchChatter)", false, "!rsr", chatter.Message);
+            }
+        }
+
+        public async Task CmdYouTubeCurrentSong(TwitchChatter chatter)
+        {
+            try
+            {
+                if (_libVLCSharpPlayer.MediaPlayerStatus() != VLCState.Playing)
+                {
+                    await SharedCommands.SpotifyLastPlayedSong(chatter, _spotify); // fall back to see if Spotify is playing anything
+                    return;
+                }
+
+                PlaylistItem playlistItem = _libVLCSharpPlayer.CurrentSongRequestPlaylistItem;
+
+                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem);
+
+                if (!string.IsNullOrEmpty(songRequest))
+                {
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest} Currently {await _libVLCSharpPlayer.GetVideoTime()}");
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"Unable to display the current song @{chatter.DisplayName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeCurrentSong(TwitchChatter)", false, "!song");
+            }
+        }
+
+        public async Task<DateTime> CmdYoutubeRemoveWrongSong(TwitchChatter chatter)
+        {
+            try
+            {
+                PlaylistItem removedWrongSong = await _libVLCSharpPlayer.RemoveWrongSong(chatter.DisplayName);
+
+                if (removedWrongSong == null)
+                {
+                    _irc.SendPublicChatMessage($"It doesn't appear that you've requested a song for me to remove @{chatter.DisplayName}");
+                    return DateTime.Now;
+                }
+
+                await _youTubeClientInstance.DeleteVideoFromPlaylist(removedWrongSong.Id);
+                _irc.SendPublicChatMessage($"Successfully removed the wrong song request \"{removedWrongSong.Snippet.Title}\" @{chatter.DisplayName}");
+
+                return DateTime.Now.AddMinutes(10);
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYoutubeRemoveWrongSong(TwitchChatter)", false, "!wrongsong");
+            }
+
+            return DateTime.Now;
+        }
+
+        public async Task CmdYouTubeLastSong(TwitchChatter chatter)
+        {
+            try
+            {
+                if (_libVLCSharpPlayer.MediaPlayerStatus() != VLCState.Playing)
+                {
+                    await SharedCommands.SpotifyLastPlayedSong(chatter, _spotify); // fall back to see if Spotify had something playing recently
+                    return;
+                }
+
+                if (_libVLCSharpPlayer.LibVlc == null)
+                {
+                    _irc.SendPublicChatMessage($"Unable to display the last played song @{chatter.DisplayName}");
+                    return;
+                }
+
+                PlaylistItem playlistItem = _libVLCSharpPlayer.LastPlayedPlaylistItem;
+
+                string songRequest = _youTubeClientInstance.ShowPlayingSongRequest(playlistItem);
+
+                if (!string.IsNullOrEmpty(songRequest))
+                {
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Last played: {songRequest}");
+                }
+                else
+                {
+                    _irc.SendPublicChatMessage($"Nothing was played before the current song from what I can see @{chatter.DisplayName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeLastSong(TwitchChatter)", false, "!lastsong");
+            }
+        }
+
+        /// <summary>
+        /// Removes the first song in the queue of song requests
+        /// </summary>
+        public async Task CmdPopManualSr()
+        {
+            try
+            {
+                SongRequest removedSong = await _manualSongRequest.PopSongRequest(_broadcasterInstance.DatabaseId);
+
+                if (removedSong != null)
+                    _irc.SendPublicChatMessage($"The first song in the queue, \"{removedSong.Name}\" ({removedSong.Username}), has been removed");
+                else
+                    _irc.SendPublicChatMessage("There are no songs that can be removed from the song request list");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPopManualSr()", false, "!poprsr");
+            }
+        }
+
+        /// <summary>
+        /// Check if chatter is a VIP, moderator, or the broadcaster
+        /// </summary>
+        /// <param name="chatter">User that sent the message</param>
+        /// <returns></returns>
+        private bool IsPrivilegedChatter(TwitchChatter chatter)
+        {
+            return chatter.Badges.Contains("vip") || chatter.Badges.Contains("moderator") || chatter.Badges.Contains("broadcaster");
+        }
+
+        private string ParseYoutubeVideoId(TwitchChatter chatter, int spaceIndex)
+        {
+            // Parse video ID based on different types of requests
+            if (chatter.Message.Contains("?v=") || chatter.Message.Contains("&v=") || chatter.Message.Contains("youtu.be/")) // full or short URL
+            {
+                return _youTubeClientInstance.ParseYouTubeVideoId(chatter.Message);
+            }
+            else if (chatter.Message.Substring(spaceIndex + 1).Length == 11
+                && chatter.Message.Substring(spaceIndex + 1).IndexOf(" ") == -1
+                && Regex.Match(chatter.Message, @"[\w\-]").Success) // assume only video ID
+            {
+                return chatter.Message.Substring(spaceIndex + 1);
+            }
+
+            return "";
         }
     }
 }
