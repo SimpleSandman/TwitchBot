@@ -33,6 +33,27 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!so", new List<ChatterType> { ChatterType.Viewer });
             _rolePermission.Add("!shoutout", new List<ChatterType> { ChatterType.Viewer });
             _rolePermission.Add("!caster", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!cmds", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!help", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!commands", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!hello", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!hi", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!utctime", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!hosttime", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!uptime", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!setlatency", new List<ChatterType> { ChatterType.Moderator });
+            _rolePermission.Add("!latency", new List<ChatterType> { ChatterType.Moderator });
+            _rolePermission.Add("!support", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!bot", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!lurk", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!unlurk", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!sub", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!subscribe", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!8ball", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!slap", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!stab", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!shoot", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!throw", new List<ChatterType> { ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -50,6 +71,42 @@ namespace TwitchBot.Commands.Features
                     case "!caster":
                     case "!so":
                         return (true, await PromoteStreamer(chatter));
+                    case "!cmds":
+                    case "!help":
+                    case "!commands":
+                        return (true, await Displays());
+                    case "!hello":
+                    case "!hi":
+                        return (true, await Hello(chatter));
+                    case "!utctime":
+                        return (true, await UtcTime());
+                    case "!hosttime":
+                        return (true, await HostTime());
+                    case "!uptime":
+                        return (true, await Uptime());
+                    case "!setlatency":
+                    case "!latency":
+                        return (true, await SetLatency(chatter));
+                    case "!support":
+                    case "!bot":
+                        return (true, await Support());
+                    case "!lurk":
+                        return (true, await Lurk(chatter));
+                    case "!unlurk":
+                        return (true, await Unlurk(chatter));
+                    case "!sub":
+                    case "!subscribe":
+                        return (true, await Subscribe());
+                    case "!8ball":
+                        return (true, await Magic8Ball(chatter));
+                    case "!slap":
+                        return (true, await Slap(chatter));
+                    case "!stab":
+                        return (true, await Stab(chatter));
+                    case "!shoot":
+                        return (true, await Shoot(chatter));
+                    case "!throw":
+                        return (true, await Throw(chatter));
                     default:
                         break;
                 }
@@ -65,7 +122,7 @@ namespace TwitchBot.Commands.Features
         /// <summary>
         /// Display bot settings
         /// </summary>
-        public async Task<DateTime> BotSettings()
+        private async Task<DateTime> BotSettings()
         {
             try
             {
@@ -86,7 +143,7 @@ namespace TwitchBot.Commands.Features
         /// <summary>
         /// Stop running the bot
         /// </summary>
-        public async Task<DateTime> ExitBot()
+        private async Task<DateTime> ExitBot()
         {
             try
             {
@@ -101,7 +158,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async void Displays()
+        private async Task<DateTime> Displays()
         {
             try
             {
@@ -114,9 +171,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "GeneralFeature", "Displays()", false, "!cmds");
             }
+
+            return DateTime.Now;
         }
 
-        public async void Hello(TwitchChatter chatter)
+        private async Task<DateTime> Hello(TwitchChatter chatter)
         {
             try
             {
@@ -127,9 +186,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "GeneralFeature", "Hello(TwitchChatter)", false, "!hello");
             }
+
+            return DateTime.Now;
         }
 
-        public async void UtcTime()
+        private async Task<DateTime> UtcTime()
         {
             try
             {
@@ -139,9 +200,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "GeneralFeature", "UtcTime()", false, "!utctime");
             }
+
+            return DateTime.Now;
         }
 
-        public async void HostTime()
+        private async Task<DateTime> HostTime()
         {
             try
             {
@@ -158,9 +221,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "GeneralFeature", "HostTime()", false, "!hosttime");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task Uptime()
+        private async Task<DateTime> Uptime()
         {
             try
             {
@@ -181,18 +246,20 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "GeneralFeature", "Uptime()", false, "!uptime");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Set delay for messages based on the latency of the stream
         /// </summary>
         /// <param name="chatter"></param>
-        public async void SetLatency(TwitchChatter chatter)
+        private async Task<DateTime> SetLatency(TwitchChatter chatter)
         {
             try
             {
                 int latency = -1;
-                bool isValidInput = int.TryParse(chatter.Message.Substring(chatter.Message.IndexOf(" ")), out latency);
+                bool isValidInput = int.TryParse(CommandToolbox.ParseChatterCommandParameter(chatter), out latency);
 
                 if (!isValidInput || latency < 0)
                     _irc.SendPublicChatMessage("Please insert a valid positive alloted amount of time (in seconds)");
@@ -208,9 +275,11 @@ namespace TwitchBot.Commands.Features
             {
                 await _errHndlrInstance.LogError(ex, "GeneralFeature", "SetLatency(TwitchChatter)", false, "!setlatency");
             }
+
+            return DateTime.Now;
         }
 
-        public async void CmdSupport()
+        private async Task<DateTime> Support()
         {
             try
             {
@@ -221,8 +290,10 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSupport()", false, "!support");
+                await _errHndlrInstance.LogError(ex, "Gen", "Support()", false, "!support");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -230,7 +301,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        public async Task<DateTime> CmdLurk(TwitchChatter chatter)
+        private async Task<DateTime> Lurk(TwitchChatter chatter)
         {
             try
             {
@@ -239,7 +310,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLurk(TwitchChatter)", false, "!lurk");
+                await _errHndlrInstance.LogError(ex, "Gen", "Lurk(TwitchChatter)", false, "!lurk");
             }
 
             return DateTime.Now;
@@ -250,7 +321,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        public async Task<DateTime> CmdUnlurk(TwitchChatter chatter)
+        private async Task<DateTime> Unlurk(TwitchChatter chatter)
         {
             try
             {
@@ -259,7 +330,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdUnlurk(TwitchChatter)", false, "!unlurk");
+                await _errHndlrInstance.LogError(ex, "Gen", "Unlurk(TwitchChatter)", false, "!unlurk");
             }
 
             return DateTime.Now;
@@ -269,7 +340,7 @@ namespace TwitchBot.Commands.Features
         /// Display the broadcaster's subscriber link (if they're an Affiliate/Partner)
         /// </summary>
         /// <returns></returns>
-        public async Task CmdSubscribe()
+        private async Task<DateTime> Subscribe()
         {
             try
             {
@@ -289,15 +360,17 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSubscribe()", false, "!sub");
+                await _errHndlrInstance.LogError(ex, "Gen", "Subscribe()", false, "!sub");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Ask any question and the Magic 8 Ball will give a fortune
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> CmdMagic8Ball(TwitchChatter chatter)
+        private async Task<DateTime> Magic8Ball(TwitchChatter chatter)
         {
             try
             {
@@ -333,7 +406,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdMagic8Ball(TwitchChatter)", false, "!8ball");
+                await _errHndlrInstance.LogError(ex, "Gen", "Magic8Ball(TwitchChatter)", false, "!8ball");
             }
 
             return DateTime.Now;
@@ -343,17 +416,17 @@ namespace TwitchBot.Commands.Features
         /// Slaps a user and rates its effectiveness
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> CmdSlap(TwitchChatter chatter)
+        private async Task<DateTime> Slap(TwitchChatter chatter)
         {
             try
             {
                 string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
-                CommandToolbox.ReactionCmd(_irc, chatter.DisplayName, recipient, "Stop smacking yourself", "slaps", CommandToolbox.Effectiveness());
+                CommandToolbox.ReactionCommand(_irc, chatter.DisplayName, recipient, "Stop smacking yourself", "slaps", CommandToolbox.Effectiveness());
                 return DateTime.Now.AddSeconds(20);
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdSlap(TwitchChatter)", false, "!slap", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "Gen", "Slap(TwitchChatter)", false, "!slap", chatter.Message);
             }
 
             return DateTime.Now;
@@ -363,17 +436,17 @@ namespace TwitchBot.Commands.Features
         /// Stabs a user and rates its effectiveness
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> CmdStab(TwitchChatter chatter)
+        private async Task<DateTime> Stab(TwitchChatter chatter)
         {
             try
             {
                 string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
-                CommandToolbox.ReactionCmd(_irc, chatter.DisplayName, recipient, "Stop stabbing yourself! You'll bleed out", "stabs", CommandToolbox.Effectiveness());
+                CommandToolbox.ReactionCommand(_irc, chatter.DisplayName, recipient, "Stop stabbing yourself! You'll bleed out", "stabs", CommandToolbox.Effectiveness());
                 return DateTime.Now.AddSeconds(20);
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdStab(TwitchChatter)", false, "!stab", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "Gen", "Stab(TwitchChatter)", false, "!stab", chatter.Message);
             }
 
             return DateTime.Now;
@@ -383,7 +456,7 @@ namespace TwitchBot.Commands.Features
         /// Shoots a viewer's random body part
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> CmdShoot(TwitchChatter chatter)
+        private async Task<DateTime> Shoot(TwitchChatter chatter)
         {
             try
             {
@@ -433,14 +506,14 @@ namespace TwitchBot.Commands.Features
                     }
                     else // viewer is the target
                     {
-                        CommandToolbox.ReactionCmd(_irc, chatter.DisplayName, recipient, $"You just shot your own {bodyPart.Replace("'s ", "")}", "shoots", bodyPart);
+                        CommandToolbox.ReactionCommand(_irc, chatter.DisplayName, recipient, $"You just shot your own {bodyPart.Replace("'s ", "")}", "shoots", bodyPart);
                         return DateTime.Now.AddSeconds(20);
                     }
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdShoot(TwitchChatter)", false, "!shoot", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "Gen", "Shoot(TwitchChatter)", false, "!shoot", chatter.Message);
             }
 
             return DateTime.Now;
@@ -450,7 +523,7 @@ namespace TwitchBot.Commands.Features
         /// Throws an item at a viewer and rates its effectiveness against the victim
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> CmdThrow(TwitchChatter chatter)
+        private async Task<DateTime> Throw(TwitchChatter chatter)
         {
             try
             {
@@ -463,23 +536,23 @@ namespace TwitchBot.Commands.Features
                     string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
                     string item = chatter.Message.Substring(indexAction, chatter.Message.IndexOf("@") - indexAction - 1);
 
-                    CommandToolbox.ReactionCmd(_irc, chatter.DisplayName, recipient, $"Stop throwing {item} at yourself", $"throws {item} at", $". {CommandToolbox.Effectiveness()}");
+                    CommandToolbox.ReactionCommand(_irc, chatter.DisplayName, recipient, $"Stop throwing {item} at yourself", $"throws {item} at", $". {CommandToolbox.Effectiveness()}");
                     return DateTime.Now.AddSeconds(20);
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdThrow(TwitchChatter)", false, "!throw", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "Gen", "Throw(TwitchChatter)", false, "!throw", chatter.Message);
             }
 
             return DateTime.Now;
         }
 
-        public async Task<DateTime> PromoteStreamer(TwitchChatter chatter)
+        private async Task<DateTime> PromoteStreamer(TwitchChatter chatter)
         {
             try
             {
-                string streamerUsername = CommandToolbox.ParseChatterMessageName(chatter);
+                string streamerUsername = CommandToolbox.ParseChatterMessageUsername(chatter);
 
                 RootUserJSON userInfo = await _twitchInfo.GetUsersByLoginName(streamerUsername);
                 if (userInfo.Users == null || userInfo.Users.Count == 0)
@@ -511,7 +584,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPromoteStreamer(TwitchChatter)", false, "!streamer");
+                await _errHndlrInstance.LogError(ex, "Vip", "PromoteStreamer(TwitchChatter)", false, "!streamer");
             }
 
             return DateTime.Now;

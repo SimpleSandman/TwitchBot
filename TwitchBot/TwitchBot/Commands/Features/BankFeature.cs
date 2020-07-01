@@ -33,7 +33,10 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!charge", new List<ChatterType> { ChatterType.Moderator });
             _rolePermission.Add("!points", new List<ChatterType> { ChatterType.Viewer });
             _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}top3", new List<ChatterType> { ChatterType.Viewer });
             _rolePermission.Add("!bonusall", new List<ChatterType> { ChatterType.Moderator });
+            _rolePermission.Add("!give", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!gamble", new List<ChatterType> { ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -50,10 +53,19 @@ namespace TwitchBot.Commands.Features
                         return (true, await BonusAll(chatter));
                     case "!points":
                         return (true, await CheckFunds(chatter));
+                    case "!give":
+                        return (true, await GiveFunds(chatter));
+                    case "!gamble":
+                        return (true, await Gamble(chatter));
                     default:
                         if (requestedCommand == $"!{_botConfig.CurrencyType.ToLower()}")
                         {
                             return (true, await CheckFunds(chatter));
+                        }
+
+                        else if (requestedCommand == $"!{_botConfig.CurrencyType.ToLower()}top3")
+                        {
+                            return (true, await LeaderboardCurrency(chatter));
                         }
 
                         break;
@@ -315,7 +327,7 @@ namespace TwitchBot.Commands.Features
         /// Let a user give an amount of their funds to another chatter
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> CmdGiveFunds(TwitchChatter chatter)
+        private async Task<DateTime> GiveFunds(TwitchChatter chatter)
         {
             try
             {
@@ -386,7 +398,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGiveFunds(TwitchChatter)", false, "!give", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "BankFeature", "GiveFunds(TwitchChatter)", false, "!give", chatter.Message);
             }
 
             return DateTime.Now;
@@ -396,7 +408,7 @@ namespace TwitchBot.Commands.Features
         /// Disply the top 3 richest users (if available)
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task CmdLeaderboardCurrency(TwitchChatter chatter)
+        private async Task<DateTime> LeaderboardCurrency(TwitchChatter chatter)
         {
             try
             {
@@ -405,7 +417,7 @@ namespace TwitchBot.Commands.Features
                 if (richestUsers.Count == 0)
                 {
                     _irc.SendPublicChatMessage($"Everyone's broke! @{chatter.DisplayName} NotLikeThis");
-                    return;
+                    return DateTime.Now;
                 }
 
                 string resultMsg = "";
@@ -429,15 +441,17 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLeaderboardCurrency(TwitchChatter)", false, "![currency name]top3");
+                await _errHndlrInstance.LogError(ex, "BankFeature", "LeaderboardCurrency(TwitchChatter)", false, "![currency name]top3");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Gamble away currency
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> CmdGamble(TwitchChatter chatter)
+        private async Task<DateTime> Gamble(TwitchChatter chatter)
         {
             try
             {
@@ -524,7 +538,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdGamble(string, string)", false, "!gamble", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "BankFeature", "Gamble(TwitchChatter)", false, "!gamble", chatter.Message);
             }
 
             return DateTime.Now;

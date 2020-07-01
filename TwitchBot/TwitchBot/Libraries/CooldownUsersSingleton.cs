@@ -42,7 +42,7 @@ namespace TwitchBot.Libraries
         /// <param name="cooldown"></param>
         public void AddCooldown(TwitchChatter chatter, DateTime cooldown, string optionalCommand = "")
         {
-            string command = CommandToolbox.ParseChatterCommand(chatter);
+            string command = CommandToolbox.ParseChatterCommandName(chatter);
 
             if (!string.IsNullOrEmpty(optionalCommand))
             {

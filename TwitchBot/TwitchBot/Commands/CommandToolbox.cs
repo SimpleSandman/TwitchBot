@@ -51,7 +51,7 @@ namespace TwitchBot.Commands
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public static string ParseChatterCommand(TwitchChatter chatter)
+        public static string ParseChatterCommandName(TwitchChatter chatter)
         {
             int spaceIndex = chatter.Message.IndexOf(" ") > 0
                 ? chatter.Message.IndexOf(" ")
@@ -71,6 +71,21 @@ namespace TwitchBot.Commands
         }
 
         /// <summary>
+        /// Get the requested username from the chatter's message
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        public static string ParseChatterMessageUsername(TwitchChatter chatter)
+        {
+            if (chatter.Message.IndexOf("@") > 0)
+            {
+                return chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
+            }
+
+            return chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+        }
+
+        /// <summary>
         /// Check if the chatter has the minimum permissons needed
         /// </summary>
         /// <param name="requestedCommand"></param>
@@ -83,7 +98,7 @@ namespace TwitchBot.Commands
             return chatterPermission >= permissions.Min();
         }
 
-        public static bool ReactionCmd(IrcClient irc, string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
+        public static bool ReactionCommand(IrcClient irc, string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
         {
             // check if user is trying to use a command on themselves
             if (origUser.ToLower() == recipient.ToLower())
@@ -110,21 +125,6 @@ namespace TwitchBot.Commands
                 default:
                     return "It had no effect";
             }
-        }
-
-        /// <summary>
-        /// Get the requested username from the chatter's message
-        /// </summary>
-        /// <param name="chatter"></param>
-        /// <returns></returns>
-        public static string ParseChatterMessageName(TwitchChatter chatter)
-        {
-            if (chatter.Message.IndexOf("@") > 0)
-            {
-                return chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
-            }
-            
-            return chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
         }
     }
 }

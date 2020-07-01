@@ -30,7 +30,7 @@ namespace TwitchBot.Commands.Features
 
         public async Task<bool> IsRequestExecuted(TwitchChatter chatter) 
         {
-            string requestedCommand = CommandToolbox.ParseChatterCommand(chatter);
+            string requestedCommand = CommandToolbox.ParseChatterCommandName(chatter);
             bool validCommand = _rolePermission.ContainsKey(requestedCommand);
 
             if (validCommand && !_cooldownUsersInstance.IsCommandOnCooldown(requestedCommand, chatter, _irc))
