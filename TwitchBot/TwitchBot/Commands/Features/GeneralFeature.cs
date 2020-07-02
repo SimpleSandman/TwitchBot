@@ -27,33 +27,33 @@ namespace TwitchBot.Commands.Features
         {
             _twitchInfo = twitchInfo;
             _appConfig = appConfig;
-            _rolePermission.Add("!settings", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!exit", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!streamer", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!so", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!shoutout", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!caster", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!cmds", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!help", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!commands", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!hello", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!hi", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!utctime", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!hosttime", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!uptime", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!setlatency", new List<ChatterType> { ChatterType.Moderator });
-            _rolePermission.Add("!latency", new List<ChatterType> { ChatterType.Moderator });
-            _rolePermission.Add("!support", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!bot", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!lurk", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!unlurk", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!sub", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!subscribe", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!8ball", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!slap", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!stab", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!shoot", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!throw", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!settings", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!exit", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!streamer", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!so", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!shoutout", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!caster", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!cmds", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!help", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!commands", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!hello", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!hi", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!utctime", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!hosttime", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!uptime", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!setlatency", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermission.Add("!latency", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermission.Add("!support", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!bot", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!lurk", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!unlurk", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!sub", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!subscribe", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!8ball", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!slap", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!stab", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!shoot", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!throw", new CommandPermission { General = ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -259,14 +259,14 @@ namespace TwitchBot.Commands.Features
             try
             {
                 int latency = -1;
-                bool isValidInput = int.TryParse(CommandToolbox.ParseChatterCommandParameter(chatter), out latency);
+                bool isValidInput = int.TryParse(ParseChatterCommandParameter(chatter), out latency);
 
                 if (!isValidInput || latency < 0)
                     _irc.SendPublicChatMessage("Please insert a valid positive alloted amount of time (in seconds)");
                 else
                 {
                     _botConfig.StreamLatency = latency;
-                    CommandToolbox.SaveAppConfigSettings(latency.ToString(), "streamLatency", _appConfig);
+                    SaveAppConfigSettings(latency.ToString(), "streamLatency", _appConfig);
 
                     _irc.SendPublicChatMessage($"Bot settings for stream latency set to {_botConfig.StreamLatency} second(s) @{chatter.DisplayName}");
                 }
@@ -421,7 +421,7 @@ namespace TwitchBot.Commands.Features
             try
             {
                 string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
-                CommandToolbox.ReactionCommand(_irc, chatter.DisplayName, recipient, "Stop smacking yourself", "slaps", CommandToolbox.Effectiveness());
+                ReactionCommand(_irc, chatter.DisplayName, recipient, "Stop smacking yourself", "slaps", Effectiveness());
                 return DateTime.Now.AddSeconds(20);
             }
             catch (Exception ex)
@@ -441,7 +441,7 @@ namespace TwitchBot.Commands.Features
             try
             {
                 string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
-                CommandToolbox.ReactionCommand(_irc, chatter.DisplayName, recipient, "Stop stabbing yourself! You'll bleed out", "stabs", CommandToolbox.Effectiveness());
+                ReactionCommand(_irc, chatter.DisplayName, recipient, "Stop stabbing yourself! You'll bleed out", "stabs", Effectiveness());
                 return DateTime.Now.AddSeconds(20);
             }
             catch (Exception ex)
@@ -506,7 +506,7 @@ namespace TwitchBot.Commands.Features
                     }
                     else // viewer is the target
                     {
-                        CommandToolbox.ReactionCommand(_irc, chatter.DisplayName, recipient, $"You just shot your own {bodyPart.Replace("'s ", "")}", "shoots", bodyPart);
+                        ReactionCommand(_irc, chatter.DisplayName, recipient, $"You just shot your own {bodyPart.Replace("'s ", "")}", "shoots", bodyPart);
                         return DateTime.Now.AddSeconds(20);
                     }
                 }
@@ -536,7 +536,7 @@ namespace TwitchBot.Commands.Features
                     string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
                     string item = chatter.Message.Substring(indexAction, chatter.Message.IndexOf("@") - indexAction - 1);
 
-                    CommandToolbox.ReactionCommand(_irc, chatter.DisplayName, recipient, $"Stop throwing {item} at yourself", $"throws {item} at", $". {CommandToolbox.Effectiveness()}");
+                    ReactionCommand(_irc, chatter.DisplayName, recipient, $"Stop throwing {item} at yourself", $"throws {item} at", $". {Effectiveness()}");
                     return DateTime.Now.AddSeconds(20);
                 }
             }
@@ -552,7 +552,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                string streamerUsername = CommandToolbox.ParseChatterMessageUsername(chatter);
+                string streamerUsername = ParseChatterMessageUsername(chatter);
 
                 RootUserJSON userInfo = await _twitchInfo.GetUsersByLoginName(streamerUsername);
                 if (userInfo.Users == null || userInfo.Users.Count == 0)

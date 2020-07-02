@@ -24,14 +24,14 @@ namespace TwitchBot.Commands.Features
         public SpotifyFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, SpotifyWebClient spotify) : base(irc, botConfig)
         {
             _spotify = spotify;
-            _rolePermission.Add("!spotifyconnect", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!spotifyplay", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!spotifypause", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!spotifyprev", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!spotifyback", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!spotifynext", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!spotifyskip", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!spotifylastsong", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!spotifyconnect", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!spotifyplay", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!spotifypause", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!spotifyprev", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!spotifyback", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!spotifynext", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!spotifyskip", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!spotifylastsong", new CommandPermission { General = ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)

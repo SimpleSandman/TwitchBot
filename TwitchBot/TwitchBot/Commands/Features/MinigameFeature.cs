@@ -33,7 +33,7 @@ namespace TwitchBot.Commands.Features
             _bank = bank;
             _follower = follower;
             _twitchInfo = twitchInfo;
-            _rolePermission.Add("!", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!", new CommandPermission { General = ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)

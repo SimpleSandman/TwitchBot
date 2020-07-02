@@ -40,15 +40,8 @@ namespace TwitchBot.Libraries
         /// </summary>
         /// <param name="chatter"></param>
         /// <param name="cooldown"></param>
-        public void AddCooldown(TwitchChatter chatter, DateTime cooldown, string optionalCommand = "")
+        public void AddCooldown(TwitchChatter chatter, DateTime cooldown, string command)
         {
-            string command = CommandToolbox.ParseChatterCommandName(chatter);
-
-            if (!string.IsNullOrEmpty(optionalCommand))
-            {
-                command = optionalCommand;
-            }
-
             if (cooldown > DateTime.Now)
             {
                 _cooldownUsers.Add(new CooldownUser

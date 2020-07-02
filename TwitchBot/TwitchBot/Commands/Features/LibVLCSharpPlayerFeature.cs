@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Threading.Tasks;
 
@@ -30,15 +29,15 @@ namespace TwitchBot.Commands.Features
         {
             _libVLCSharpPlayer = libVLCSharpPlayer;
             _appConfig = appConfig;
-            _rolePermission.Add("!srstart", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!srstop", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!srpause", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!sraod", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!srshuffle", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!srplay", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!srvolume", new List<ChatterType> { ChatterType.Moderator });
-            _rolePermission.Add("!srskip", new List<ChatterType> { ChatterType.Moderator });
-            _rolePermission.Add("!srtime", new List<ChatterType> { ChatterType.Moderator });
+            _rolePermission.Add("!srstart", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!srstop", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!srpause", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!sraod", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!srshuffle", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!srplay", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!srvolume", new CommandPermission { General = ChatterType.Viewer, Elevated = ChatterType.Moderator });
+            _rolePermission.Add("!srskip", new CommandPermission { General = ChatterType.Moderator, Elevated = ChatterType.Moderator });
+            _rolePermission.Add("!srtime", new CommandPermission { General = ChatterType.Moderator, Elevated = ChatterType.Moderator });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -60,11 +59,27 @@ namespace TwitchBot.Commands.Features
                     case "!srplay":
                         return (true, await Play());
                     case "!srvolume":
-                        return (true, await Volume(chatter));
+                        if ((chatter.Message.StartsWith("!srvolume ")) && HasElevatedPermissions("!srvolume", DetermineChatterPermissions(chatter), _rolePermission))
+                        {
+                            return (true, await SetVolume(chatter));
+                        }
+                        else if (chatter.Message == "!srvolume")
+                        {
+                            return (true, await ShowVolume(chatter));
+                        }
+                        break;
                     case "!srskip":
                         return (true, await Skip(chatter));
                     case "!srtime":
-                        return (true, await SetTime(chatter));
+                        if ((chatter.Message.StartsWith("!srtime ")) && HasElevatedPermissions("!srtime", DetermineChatterPermissions(chatter), _rolePermission))
+                        {
+                            return (true, await SetTime(chatter));
+                        }
+                        else if (chatter.Message == "!srtime")
+                        {
+                            return (true, await ShowTime(chatter));
+                        }
+                        break;
                     default:
                         break;
                 }
@@ -77,7 +92,7 @@ namespace TwitchBot.Commands.Features
             return (false, DateTime.Now);
         }
 
-        public async Task<DateTime> Start()
+        private async Task<DateTime> Start()
         {
             try
             {
@@ -91,7 +106,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> Stop()
+        private async Task<DateTime> Stop()
         {
             try
             {
@@ -105,7 +120,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> Pause()
+        private async Task<DateTime> Pause()
         {
             try
             {
@@ -126,7 +141,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> SetAudioOutputDevice(TwitchChatter chatter)
+        private async Task<DateTime> SetAudioOutputDevice(TwitchChatter chatter)
         {
             try
             {
@@ -142,12 +157,12 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> PersonalPlaylistShuffle(TwitchChatter chatter)
+        private async Task<DateTime> PersonalPlaylistShuffle(TwitchChatter chatter)
         {
             try
             {
                 string message = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
-                bool shuffle = CommandToolbox.SetBooleanFromMessage(message);
+                bool shuffle = SetBooleanFromMessage(message);
 
                 if (_botConfig.EnablePersonalPlaylistShuffle == shuffle)
                 {
@@ -194,7 +209,7 @@ namespace TwitchBot.Commands.Features
         /// Play the video
         /// </summary>
         /// <returns></returns>
-        public async Task<DateTime> Play()
+        private async Task<DateTime> Play()
         {
             try
             {
@@ -228,7 +243,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task<DateTime> Volume(TwitchChatter chatter)
+        private async Task<DateTime> SetVolume(TwitchChatter chatter)
         {
             try
             {
@@ -248,7 +263,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Volume(TwitchChatter)", false, "!srvolume", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "SetVolume(TwitchChatter)", false, "!srvolume", chatter.Message);
             }
 
             return DateTime.Now;
@@ -259,7 +274,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task<DateTime> Skip(TwitchChatter chatter)
+        private async Task<DateTime> Skip(TwitchChatter chatter)
         {
             try
             {
@@ -290,7 +305,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task<DateTime> SetTime(TwitchChatter chatter)
+        private async Task<DateTime> SetTime(TwitchChatter chatter)
         {
             try
             {
@@ -309,7 +324,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task CmdLibVLCSharpPlayerShowVolume(TwitchChatter chatter)
+        private async Task<DateTime> ShowVolume(TwitchChatter chatter)
         {
             try
             {
@@ -317,11 +332,13 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLibVLCSharpPlayerShowVolume(TwitchChatter)", false, "!srvolume");
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "ShowVolume(TwitchChatter)", false, "!srvolume");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task CmdLibVLCSharpPlayerShowTime(TwitchChatter chatter)
+        private async Task<DateTime> ShowTime(TwitchChatter chatter)
         {
             try
             {
@@ -329,8 +346,10 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdLibVLCSharpPlayerShowTime(TwitchChatter)", false, "!srtime");
+                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "ShowTime(TwitchChatter)", false, "!srtime");
             }
+
+            return DateTime.Now;
         }
     }
 }

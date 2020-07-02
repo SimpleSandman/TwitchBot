@@ -25,9 +25,9 @@ namespace TwitchBot.Commands.Features
         {
             _appConfig = appConfig;
             _hasTwitterInfo = hasTwitterInfo;
-            _rolePermission.Add("!sendtweet", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!tweet", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!live", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!sendtweet", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!tweet", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!live", new CommandPermission { General = ChatterType.Broadcaster });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -65,12 +65,12 @@ namespace TwitchBot.Commands.Features
                     _irc.SendPublicChatMessage($"You are missing twitter info @{_botConfig.Broadcaster}");
                 else
                 {
-                    string message = CommandToolbox.ParseChatterCommandParameter(chatter);
-                    bool enableTweets = CommandToolbox.SetBooleanFromMessage(message);
+                    string message = ParseChatterCommandParameter(chatter);
+                    bool enableTweets = SetBooleanFromMessage(message);
                     string boolValue = enableTweets ? "true" : "false";
 
                     _botConfig.EnableTweets = true;
-                    CommandToolbox.SaveAppConfigSettings(boolValue, "enableTweets", _appConfig);
+                    SaveAppConfigSettings(boolValue, "enableTweets", _appConfig);
 
                     _irc.SendPublicChatMessage($"@{_botConfig.Broadcaster} : Automatic tweets is set to \"{_botConfig.EnableTweets}\"");
                 }

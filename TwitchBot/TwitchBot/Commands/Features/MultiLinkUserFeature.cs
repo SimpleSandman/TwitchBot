@@ -26,7 +26,7 @@ namespace TwitchBot.Commands.Features
 
         public MultiLinkUserFeature(IrcClient irc, TwitchBotConfigurationSection botConfig) : base(irc, botConfig)
         {
-            _rolePermission.Add("!", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!", new CommandPermission { General = ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)

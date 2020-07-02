@@ -30,9 +30,9 @@ namespace TwitchBot.Commands.Features
         {
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
-            _rolePermission.Add("!refreshreminders", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!refreshbossfight", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!refreshcommands", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!refreshreminders", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!refreshbossfight", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!refreshcommands", new CommandPermission { General = ChatterType.Broadcaster });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)

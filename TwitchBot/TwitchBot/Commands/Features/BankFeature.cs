@@ -29,14 +29,14 @@ namespace TwitchBot.Commands.Features
         public BankFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, BankService bank) : base(irc, botConfig)
         {
             _bank = bank;
-            _rolePermission.Add("!deposit", new List<ChatterType> { ChatterType.Moderator });
-            _rolePermission.Add("!charge", new List<ChatterType> { ChatterType.Moderator });
-            _rolePermission.Add("!points", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}top3", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!bonusall", new List<ChatterType> { ChatterType.Moderator });
-            _rolePermission.Add("!give", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!gamble", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!deposit", new CommandPermission { General = ChatterType.Moderator});
+            _rolePermission.Add("!charge", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermission.Add("!points", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}top3", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!bonusall", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermission.Add("!give", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!gamble", new CommandPermission { General = ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)

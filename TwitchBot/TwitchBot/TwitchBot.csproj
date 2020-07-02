@@ -366,7 +366,6 @@
     <Compile Include="Commands\Features\SongRequestFeature.cs" />
     <Compile Include="Commands\Features\LibVLCSharpPlayerFeature.cs" />
     <Compile Include="Commands\Features\TwitterFeature.cs" />
-    <Compile Include="Commands\CommandToolbox.cs" />
     <Compile Include="Enums\ChatterType.cs" />
     <Compile Include="Libraries\BotModeratorSingleton.cs" />
     <Compile Include="Libraries\CooldownUsersSingleton.cs" />
@@ -374,6 +373,7 @@
     <Compile Include="Libraries\CustomCommandSingleton.cs" />
     <Compile Include="Libraries\JoinStreamerSingleton.cs" />
     <Compile Include="Libraries\TwitchChatterList.cs" />
+    <Compile Include="Models\CommandPermission.cs" />
     <Compile Include="Models\JSON\ClipJSON.cs" />
     <Compile Include="Models\JSON\SubscriptionJSON.cs" />
     <Compile Include="Models\TwitchChatter.cs" />

@@ -38,10 +38,10 @@ namespace TwitchBot.Commands.Features
             _follower = follower;
             _twitchInfo = twitchInfo;
             _appConfig = appConfig;
-            _rolePermission.Add("!followsince", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!rank", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!ranktop3", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!setregularhours", new List<ChatterType> { ChatterType.Broadcaster });
+            _rolePermission.Add("!followsince", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!rank", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!ranktop3", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!setregularhours", new CommandPermission { General = ChatterType.Broadcaster });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -193,7 +193,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                bool validInput = int.TryParse(CommandToolbox.ParseChatterCommandParameter(chatter), out int regularHours);
+                bool validInput = int.TryParse(ParseChatterCommandParameter(chatter), out int regularHours);
                 if (!validInput)
                 {
                     _irc.SendPublicChatMessage($"I can't process the time you've entered. " +

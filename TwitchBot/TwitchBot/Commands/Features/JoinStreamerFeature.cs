@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
@@ -21,6 +20,7 @@ namespace TwitchBot.Commands.Features
     {
         private readonly TwitchInfoService _twitchInfo;
         private readonly GameDirectoryService _gameDirectory;
+        private readonly JoinStreamerSingleton _joinStreamerInstance = JoinStreamerSingleton.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public JoinStreamerFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo, 
@@ -28,7 +28,10 @@ namespace TwitchBot.Commands.Features
         {
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
-            _rolePermission.Add("!", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!resetjoin", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermission.Add("!listjoin", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!invite", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!popjoin", new CommandPermission { General = ChatterType.VIP });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -37,14 +40,15 @@ namespace TwitchBot.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!":
-                        //return (true, await SomethingCool(chatter));
+                    case "!resetjoin":
+                        return (true, await ResetJoin(chatter));
+                    case "!listjoin":
+                        return (true, await ListJoin(chatter));
+                    case "!invite":
+                        return (true, await Invite(chatter));
+                    case "!popjoin":
+                        return (true, await PopJoin(chatter));
                     default:
-                        if (requestedCommand == "!")
-                        {
-                            //return (true, await OtherCoolThings(chatter));
-                        }
-
                         break;
                 }
             }
@@ -56,21 +60,19 @@ namespace TwitchBot.Commands.Features
             return (true, DateTime.Now);
         }
 
-        public async Task<Queue<string>> CmdResetJoin(TwitchChatter chatter, Queue<string> gameQueueUsers)
+        private async Task<DateTime> ResetJoin(TwitchChatter chatter)
         {
             try
             {
-                if (gameQueueUsers.Count != 0)
-                    gameQueueUsers.Clear();
-
+                _joinStreamerInstance.ResetList();
                 _irc.SendPublicChatMessage($"Queue is empty @{chatter.DisplayName}");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "PartyUpFeature", "CmdResetJoin(TwitchChatter, Queue<string>)", false, "!resetjoin");
+                await _errHndlrInstance.LogError(ex, "JoinStreamerFeature", "ResetJoin(TwitchChatter)", false, "!resetjoin");
             }
 
-            return gameQueueUsers;
+            return DateTime.Now;
         }
 
         /// <summary>
@@ -78,84 +80,60 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
         /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
-        public async Task CmdListJoin(TwitchChatter chatter, Queue<string> gameQueueUsers)
+        private async Task<DateTime> ListJoin(TwitchChatter chatter)
         {
             try
             {
-                if (!await IsMultiplayerGame(chatter.Username)) return;
-
-                if (gameQueueUsers.Count == 0)
+                if (!await IsMultiplayerGame(chatter.Username))
                 {
-                    _irc.SendPublicChatMessage($"No one wants to play with the streamer at the moment. "
-                        + "Be the first to play with !join");
-                    return;
+                    return DateTime.Now;
                 }
 
-                // Show list of queued users
-                string message = $"List of users waiting to play with the streamer (in order from left to right): < ";
-
-                foreach (string user in gameQueueUsers)
-                {
-                    message += user + " >< ";
-                }
+                string message = _joinStreamerInstance.ListJoin();
 
                 _irc.SendPublicChatMessage(message.Remove(message.Length - 2));
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdListJoin(TwitchChatter, Queue<string>)", false, "!listjoin");
+                await _errHndlrInstance.LogError(ex, "JoinStreamerFeature", "ListJoin(TwitchChatter)", false, "!listjoin");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Add a user to the queue of users that want to play with the broadcaster
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
-        public async Task<Queue<string>> CmdInvite(TwitchChatter chatter, Queue<string> gameQueueUsers)
+        private async Task<DateTime> Invite(TwitchChatter chatter)
         {
             try
             {
-                if (gameQueueUsers.Contains(chatter.Username))
+                if (await IsMultiplayerGame(chatter.Username))
                 {
-                    _irc.SendPublicChatMessage($"Don't worry @{chatter.DisplayName}. You're on the list to play with " +
-                        $"the streamer with your current position at {gameQueueUsers.ToList().IndexOf(chatter.Username) + 1} " +
-                        $"of {gameQueueUsers.Count} user(s)");
-                }
-                else if (await IsMultiplayerGame(chatter.Username))
-                {
-                    gameQueueUsers.Enqueue(chatter.Username);
-
-                    _irc.SendPublicChatMessage($"Congrats @{chatter.DisplayName}! You're currently in line with your current position at " +
-                        $"{gameQueueUsers.ToList().IndexOf(chatter.Username) + 1}");
+                    _joinStreamerInstance.Invite(chatter);
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdJoin(TwitchChatter, Queue<string>)", false, "!join");
+                await _errHndlrInstance.LogError(ex, "JoinStreamerFeature", "Invite(TwitchChatter)", false, "!join");
             }
 
-            return gameQueueUsers;
+            return DateTime.Now;
         }
 
-        public async Task<Queue<string>> CmdPopJoin(TwitchChatter chatter, Queue<string> gameQueueUsers)
+        private async Task<DateTime> PopJoin(TwitchChatter chatter)
         {
             try
             {
-                if (gameQueueUsers.Count == 0)
-                    _irc.SendPublicChatMessage($"Queue is empty @{chatter.DisplayName}");
-                else
-                {
-                    string poppedUser = gameQueueUsers.Dequeue();
-                    _irc.SendPublicChatMessage($"{poppedUser} has been removed from the queue @{chatter.DisplayName}");
-                }
+                _joinStreamerInstance.PopJoin(chatter);
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPopJoin(TwitchChatter, Queue<string>)", false, "!popjoin");
+                await _errHndlrInstance.LogError(ex, "JoinStreamerFeature", "PopJoin(TwitchChatter)", false, "!popjoin");
             }
 
-            return gameQueueUsers;
+            return DateTime.Now;
         }
 
         private async Task<bool> IsMultiplayerGame(string username)

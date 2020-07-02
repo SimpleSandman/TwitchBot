@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -24,10 +23,10 @@ namespace TwitchBot.Commands.Features
 
         public TwitchChannelFeature(IrcClient irc, TwitchBotConfigurationSection botConfig) : base(irc, botConfig)
         {
-            _rolePermission.Add("!game", new List<ChatterType> { ChatterType.Viewer});
-            _rolePermission.Add("!title", new List<ChatterType> { ChatterType.Viewer});
-            _rolePermission.Add("!updategame", new List<ChatterType> { ChatterType.Moderator });
-            _rolePermission.Add("!updatetitle", new List<ChatterType> { ChatterType.Moderator });
+            _rolePermission.Add("!game", new CommandPermission { General = ChatterType.Viewer, Elevated = ChatterType.Moderator });
+            _rolePermission.Add("!title", new CommandPermission { General = ChatterType.Viewer, Elevated = ChatterType.Moderator });
+            _rolePermission.Add("!updategame", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermission.Add("!updatetitle", new CommandPermission { General = ChatterType.Moderator });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -39,7 +38,7 @@ namespace TwitchBot.Commands.Features
                     case "!updategame":
                     case "!game":
                         if ((chatter.Message.StartsWith("!game ") || chatter.Message.StartsWith("!updategame ")) 
-                            && CommandToolbox.HasAccessToCommand("!updategame", DetermineChatterPermissions(chatter), _rolePermission))
+                            && HasElevatedPermissions("!updategame", DetermineChatterPermissions(chatter), _rolePermission))
                         {
                             return (true, await UpdateGame(chatter));
                         }
@@ -51,7 +50,7 @@ namespace TwitchBot.Commands.Features
                     case "!updatetitle":
                     case "!title":
                         if ((chatter.Message.StartsWith("!title ") || chatter.Message.StartsWith("!updatetitle ")) 
-                            && CommandToolbox.HasAccessToCommand("!updatetitle", DetermineChatterPermissions(chatter), _rolePermission))
+                            && HasElevatedPermissions("!updatetitle", DetermineChatterPermissions(chatter), _rolePermission))
                         {
                             return (true, await UpdateTitle(chatter));
                         }

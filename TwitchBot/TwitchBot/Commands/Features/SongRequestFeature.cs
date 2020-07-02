@@ -49,17 +49,17 @@ namespace TwitchBot.Commands.Features
             _manualSongRequest = manualSongRequest;
             _bank = bank;
             _spotify = spotify;
-            _rolePermission.Add("!srbl", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!delsrbl", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!resetsrbl", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!showsrbl", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!resetytsr", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!setpersonalplaylistid", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!djmode", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!msrmode", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!ytsrmode", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!displaysongs", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!resetmsr", new List<ChatterType> { ChatterType.Moderator });
+            _rolePermission.Add("!srbl", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!delsrbl", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!resetsrbl", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!showsrbl", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!resetytsr", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!setpersonalplaylistid", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!djmode", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!msrmode", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!ytsrmode", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!displaysongs", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!resetmsr", new CommandPermission { General = ChatterType.Moderator });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -358,10 +358,10 @@ namespace TwitchBot.Commands.Features
 
                 // Save broadcaster playlist info to config
                 _botConfig.YouTubeBroadcasterPlaylistId = broadcasterPlaylist.Id;
-                CommandToolbox.SaveAppConfigSettings(broadcasterPlaylist.Id, "youTubeBroadcasterPlaylistId", _appConfig);
+                SaveAppConfigSettings(broadcasterPlaylist.Id, "youTubeBroadcasterPlaylistId", _appConfig);
 
                 _botConfig.YouTubeBroadcasterPlaylistName = broadcasterPlaylist.Snippet.Title;                
-                CommandToolbox.SaveAppConfigSettings(broadcasterPlaylist.Snippet.Title, "youTubeBroadcasterPlaylistName", _appConfig);
+                SaveAppConfigSettings(broadcasterPlaylist.Snippet.Title, "youTubeBroadcasterPlaylistName", _appConfig);
 
                 SongRequestSetting songRequestSetting = await _songRequestSetting.GetSongRequestSetting(_broadcasterInstance.DatabaseId);
 
@@ -389,7 +389,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                string personalPlaylistId = CommandToolbox.ParseChatterCommandParameter(chatter);
+                string personalPlaylistId = ParseChatterCommandParameter(chatter);
                 if (personalPlaylistId.Length != 34)
                 {
                     _irc.SendPublicChatMessage("Please only insert the playlist ID that you want set "
@@ -426,7 +426,7 @@ namespace TwitchBot.Commands.Features
                 }
 
                 _botConfig.YouTubePersonalPlaylistId = personalPlaylistId;
-                CommandToolbox.SaveAppConfigSettings(personalPlaylistId, "youTubePersonalPlaylistId", _appConfig);
+                SaveAppConfigSettings(personalPlaylistId, "youTubePersonalPlaylistId", _appConfig);
 
                 _irc.SendPublicChatMessage($"Your personal playlist has been set https://www.youtube.com/playlist?list={personalPlaylistId} @{_botConfig.Broadcaster}");
             }
@@ -447,8 +447,8 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                string message = CommandToolbox.ParseChatterCommandParameter(chatter);
-                bool hasDjModeEnabled = CommandToolbox.SetBooleanFromMessage(message);
+                string message = ParseChatterCommandParameter(chatter);
+                bool hasDjModeEnabled = SetBooleanFromMessage(message);
 
                 // ToDo: Make HTTP PATCH request instead of full PUT
                 await _songRequestSetting.UpdateSongRequestSetting(
@@ -477,12 +477,12 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                string message = CommandToolbox.ParseChatterCommandParameter(chatter);
-                bool shuffle = CommandToolbox.SetBooleanFromMessage(message);
+                string message = ParseChatterCommandParameter(chatter);
+                bool shuffle = SetBooleanFromMessage(message);
                 string boolValue = shuffle ? "true" : "false";
 
                 _botConfig.IsManualSongRequestAvail = shuffle;
-                CommandToolbox.SaveAppConfigSettings(boolValue, "isManualSongRequestAvail", _appConfig);
+                SaveAppConfigSettings(boolValue, "isManualSongRequestAvail", _appConfig);
 
                 _irc.SendPublicChatMessage($"{_botConfig.Broadcaster}: Song requests set to {boolValue}");
             }
@@ -503,12 +503,12 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                string message = CommandToolbox.ParseChatterCommandParameter(chatter);
-                bool shuffle = CommandToolbox.SetBooleanFromMessage(message);
+                string message = ParseChatterCommandParameter(chatter);
+                bool shuffle = SetBooleanFromMessage(message);
                 string boolValue = shuffle ? "true" : "false";
 
                 _botConfig.IsYouTubeSongRequestAvail = shuffle;
-                CommandToolbox.SaveAppConfigSettings(boolValue, "isYouTubeSongRequestAvail", _appConfig);
+                SaveAppConfigSettings(boolValue, "isYouTubeSongRequestAvail", _appConfig);
 
                 _irc.SendPublicChatMessage($"{_botConfig.Broadcaster}: YouTube song requests set to {boolValue}");
             }
@@ -529,12 +529,12 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                string message = CommandToolbox.ParseChatterCommandParameter(chatter);
-                bool shuffle = CommandToolbox.SetBooleanFromMessage(message);
+                string message = ParseChatterCommandParameter(chatter);
+                bool shuffle = SetBooleanFromMessage(message);
                 string boolValue = shuffle ? "true" : "false";
 
                 _botConfig.EnableDisplaySong = shuffle;
-                CommandToolbox.SaveAppConfigSettings(boolValue, "enableDisplaySong", _appConfig);
+                SaveAppConfigSettings(boolValue, "enableDisplaySong", _appConfig);
 
                 _irc.SendPublicChatMessage($"{_botConfig.Broadcaster}: Automatic display Spotify songs is set to \"{boolValue}\"");
             }

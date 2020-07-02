@@ -30,17 +30,17 @@ namespace TwitchBot.Commands.Features
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
             _ign = ign;
-            _rolePermission.Add("!setgameign", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!setgameid", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!setgenericign", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!setgenericid", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!deleteign", new List<ChatterType> { ChatterType.Broadcaster });
-            _rolePermission.Add("!ign", new List<ChatterType> { ChatterType.Viewer }); // Display the broadcaster's in-game (user) name based on what they're streaming
-            _rolePermission.Add("!fc", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!gt", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!allign", new List<ChatterType> { ChatterType.Viewer }); // Display all of the broadcaster's in-game (user) names
-            _rolePermission.Add("!allfc", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!allgt", new List<ChatterType> { ChatterType.Viewer });
+            _rolePermission.Add("!setgameign", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!setgameid", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!setgenericign", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!setgenericid", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!deleteign", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!ign", new CommandPermission { General = ChatterType.Viewer }); // Display the broadcaster's in-game (user) name based on what they're streaming
+            _rolePermission.Add("!fc", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!gt", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!allign", new CommandPermission { General = ChatterType.Viewer }); // Display all of the broadcaster's in-game (user) names
+            _rolePermission.Add("!allfc", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!allgt", new CommandPermission { General = ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -76,7 +76,7 @@ namespace TwitchBot.Commands.Features
             return (false, DateTime.Now);
         }
 
-        public async Task<DateTime> SetGameIgn(TwitchChatter chatter)
+        private async Task<DateTime> SetGameIgn(TwitchChatter chatter)
         {
             try
             {
@@ -112,7 +112,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> SetGenericIgn(TwitchChatter chatter)
+        private async Task<DateTime> SetGenericIgn(TwitchChatter chatter)
         {
             try
             {
@@ -147,7 +147,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> DeleteIgn()
+        private async Task<DateTime> DeleteIgn()
         {
             try
             {
@@ -177,7 +177,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> InGameUsername(TwitchChatter chatter)
+        private async Task<DateTime> InGameUsername(TwitchChatter chatter)
         {
             try
             {

@@ -26,8 +26,8 @@ namespace TwitchBot.Commands.Features
         public QuoteFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, QuoteService quote) : base(irc, botConfig)
         {
             _quote = quote;
-            _rolePermission.Add("!quote", new List<ChatterType> { ChatterType.Viewer });
-            _rolePermission.Add("!addquote", new List<ChatterType> { ChatterType.VIP });
+            _rolePermission.Add("!quote", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!addquote", new CommandPermission { General = ChatterType.VIP });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
