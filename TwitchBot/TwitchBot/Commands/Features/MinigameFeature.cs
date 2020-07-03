@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -14,7 +13,7 @@ using TwitchBot.Threads;
 namespace TwitchBot.Commands.Features
 {
     /// <summary>
-    /// The "Command Subsystem" for the "Mini Game" feature
+    /// The "Command Subsystem" for the "Mini Games" feature
     /// </summary>
     public sealed class MinigameFeature : BaseFeature
     {
@@ -33,7 +32,11 @@ namespace TwitchBot.Commands.Features
             _bank = bank;
             _follower = follower;
             _twitchInfo = twitchInfo;
-            _rolePermission.Add("!", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!roulette", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!bankheist", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!heist", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!raid", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!bossfight", new CommandPermission { General = ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -42,14 +45,15 @@ namespace TwitchBot.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!":
-                    //return (true, await SomethingCool(chatter));
+                    case "!roulette":
+                        return (true, await RussianRoulette(chatter));
+                    case "!bankheist":
+                    case "!heist":
+                        return (true, await BankHeist(chatter));
+                    case "!raid":
+                    case "!bossfight":
+                        return (true, await BossFight(chatter));
                     default:
-                        if (requestedCommand == "!")
-                        {
-                            //return (true, await OtherCoolThings(chatter));
-                        }
-
                         break;
                 }
             }
@@ -65,7 +69,7 @@ namespace TwitchBot.Commands.Features
         /// Play a friendly game of Russian Roulette and risk chat privileges for stream currency
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> CmdRussianRoulette(TwitchChatter chatter)
+        public async Task<DateTime> RussianRoulette(TwitchChatter chatter)
         {
             try
             {
@@ -135,7 +139,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdRussianRoulette(TwitchChatter)", false, "!roulette");
+                await _errHndlrInstance.LogError(ex, "MinigameFeature", "RussianRoulette(TwitchChatter)", false, "!roulette");
             }
 
             return DateTime.Now;
@@ -145,7 +149,7 @@ namespace TwitchBot.Commands.Features
         /// Engage in the bank heist minigame
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task CmdBankHeist(TwitchChatter chatter)
+        public async Task<DateTime> BankHeist(TwitchChatter chatter)
         {
             try
             {
@@ -177,20 +181,20 @@ namespace TwitchBot.Commands.Features
                             .Replace("minutes", "seconds"));
                     }
 
-                    return;
+                    return DateTime.Now;
                 }
 
                 if (bankHeist.HasRobberAlreadyEntered(chatter.Username))
                 {
                     _irc.SendPublicChatMessage($"You are already in this heist @{chatter.DisplayName}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 // check if funds and gambling amount are valid
                 if (!isValid)
                 {
                     _irc.SendPublicChatMessage($"Please gamble with a positive amount of {_botConfig.CurrencyType} @{chatter.DisplayName}");
-                    return;
+                    return DateTime.Now;
                 }
                 else if (funds > 0 && gamble == 0 && (chatter.Message.ToLower() == "!bankheist" || chatter.Message.ToLower() == "!heist"))
                 {
@@ -207,23 +211,23 @@ namespace TwitchBot.Commands.Features
                 else if (gamble < 1)
                 {
                     _irc.SendPublicChatMessage($"You cannot gamble less than one {_botConfig.CurrencyType} @{chatter.DisplayName}");
-                    return;
+                    return DateTime.Now;
                 }
                 else if (funds < 1)
                 {
                     _irc.SendPublicChatMessage($"You need at least one {_botConfig.CurrencyType} to join the heist @{chatter.DisplayName}");
-                    return;
+                    return DateTime.Now;
                 }
                 else if (funds < gamble)
                 {
                     _irc.SendPublicChatMessage($"You do not have enough to gamble {gamble} {_botConfig.CurrencyType} @{chatter.DisplayName}");
-                    return;
+                    return DateTime.Now;
                 }
                 else if (gamble > _heistSettingsInstance.MaxGamble)
                 {
                     _irc.SendPublicChatMessage($"{_heistSettingsInstance.MaxGamble} {_botConfig.CurrencyType} is the most you can put in. " +
                         $"Please try again with less {_botConfig.CurrencyType} @{chatter.DisplayName}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 if (!bankHeist.IsEntryPeriodOver())
@@ -255,15 +259,17 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdBankHeist(TwitchChatter)", false, "!bankheist", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "MinigameFeature", "BankHeist(TwitchChatter)", false, "!bankheist", chatter.Message);
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Engage in the boss fight minigame
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task CmdBossFight(TwitchChatter chatter)
+        public async Task<DateTime> BossFight(TwitchChatter chatter)
         {
             try
             {
@@ -286,25 +292,25 @@ namespace TwitchBot.Commands.Features
                             .Replace("minutes", "seconds"));
                     }
 
-                    return;
+                    return DateTime.Now;
                 }
 
                 if (_bossSettingsInstance.RefreshBossFight)
                 {
                     _irc.SendPublicChatMessage($"The boss fight is currently being refreshed with new settings @{chatter.DisplayName}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 if (bossFight.HasFighterAlreadyEntered(chatter.Username))
                 {
                     _irc.SendPublicChatMessage($"You are already in this fight @{chatter.DisplayName}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 if (funds < _bossSettingsInstance.Cost)
                 {
                     _irc.SendPublicChatMessage($"You do need {_bossSettingsInstance.Cost} {_botConfig.CurrencyType} to enter this fight @{chatter.DisplayName}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 if (!bossFight.IsEntryPeriodOver())
@@ -378,8 +384,10 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdBossFight(TwitchChatter)", false, "!raid");
+                await _errHndlrInstance.LogError(ex, "MinigameFeature", "BossFight(TwitchChatter)", false, "!raid");
             }
+
+            return DateTime.Now;
         }
     }
 }

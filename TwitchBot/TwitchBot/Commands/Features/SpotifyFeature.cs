@@ -1,7 +1,6 @@
 ﻿using SpotifyAPI.Web.Models;
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
@@ -31,6 +30,7 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!spotifyback", new CommandPermission { General = ChatterType.Broadcaster });
             _rolePermission.Add("!spotifynext", new CommandPermission { General = ChatterType.Broadcaster });
             _rolePermission.Add("!spotifyskip", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermission.Add("!spotifysong", new CommandPermission { General = ChatterType.Viewer });
             _rolePermission.Add("!spotifylastsong", new CommandPermission { General = ChatterType.Viewer });
         }
 
@@ -52,6 +52,10 @@ namespace TwitchBot.Commands.Features
                     case "!spotifynext": // Press local Spotify next (skip) button [>|]
                     case "!spotifyskip":
                         return (true, await _spotify.SkipToNextPlayback());
+                    case "!spotifysong":
+                        return (true, await SpotifyCurrentSong(chatter));
+                    case "!spotifylastsong":
+                        return (true, await SpotifyLastLong(chatter));
                     default:
                         break;
                 }
@@ -68,7 +72,7 @@ namespace TwitchBot.Commands.Features
         /// Displays the current song being played from Spotify
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task SpotifyCurrentSong(TwitchChatter chatter)
+        public async Task<DateTime> SpotifyCurrentSong(TwitchChatter chatter)
         {
             try
             {
@@ -92,12 +96,30 @@ namespace TwitchBot.Commands.Features
                         + $"Currently playing at {progressTimeSpan.ReformatTimeSpan()} of {durationTimeSpan.ReformatTimeSpan()}");
                 }
                 else
+                {
                     _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.DisplayName}");
+                }
             }
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogError(ex, "SpotifyFeature", "SpotifyCurrentSong(TwitchChatter)", false, "!spotifysong");
             }
+
+            return DateTime.Now;
+        }
+
+        public async Task<DateTime> SpotifyLastLong(TwitchChatter chatter)
+        {
+            try
+            {
+                _irc.SendPublicChatMessage(await SharedCommands.SpotifyLastPlayedSong(chatter, _spotify));
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "SpotifyFeature", "SpotifyLastLong(TwitchChatter)", false, "!spotifylastsong");
+            }
+
+            return DateTime.Now;
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
@@ -30,7 +29,11 @@ namespace TwitchBot.Commands.Features
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
             _partyUp = partyUp;
-            _rolePermission.Add("!", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!partyup", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!partyuprequestlist", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!partyuplist", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!poppartyup", new CommandPermission { General = ChatterType.VIP });
+            _rolePermission.Add("!poppartyuprequest", new CommandPermission { General = ChatterType.VIP });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -39,14 +42,16 @@ namespace TwitchBot.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!":
-                        //return (true, await SomethingCool(chatter));
+                    case "!partyup":
+                        return (true, await PartyUp(chatter));
+                    case "!partyuprequestlist":
+                        return (true, await PartyUpRequestList());
+                    case "!partyuplist":
+                        return (true, await PartyUpList());
+                    case "!poppartyup":
+                    case "!poppartyuprequest":
+                        return (true, await PopPartyUpRequest());
                     default:
-                        if (requestedCommand == "!")
-                        {
-                            //return (true, await OtherCoolThings(chatter));
-                        }
-
                         break;
                 }
             }
@@ -62,7 +67,7 @@ namespace TwitchBot.Commands.Features
         /// Request party member if game and character exists in party up system
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task CmdPartyUp(TwitchChatter chatter)
+        public async Task<DateTime> PartyUp(TwitchChatter chatter)
         {
             try
             {
@@ -72,7 +77,7 @@ namespace TwitchBot.Commands.Features
                 if (chatter.Message.Length < inputIndex)
                 {
                     _irc.SendPublicChatMessage($"Please enter a party member @{chatter.DisplayName}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 // get current game info
@@ -88,12 +93,12 @@ namespace TwitchBot.Commands.Features
                         + "Please have the chat verify that the game has been set for this stream. "
                         + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
                         + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
-                    return;
+                    return DateTime.Now;
                 }
                 else if (game == null || game.Id == 0)
                 {
                     _irc.SendPublicChatMessage("This game is not part of the \"Party Up\" system");
-                    return;
+                    return DateTime.Now;
                 }
 
                 PartyUp partyMember = await _partyUp.GetPartyMember(partyMemberName, game.Id, _broadcasterInstance.DatabaseId);
@@ -102,14 +107,14 @@ namespace TwitchBot.Commands.Features
                 {
                     _irc.SendPublicChatMessage($"I couldn't find the requested party member \"{partyMemberName}\" @{chatter.DisplayName}. "
                         + "Please check with the broadcaster for possible spelling errors");
-                    return;
+                    return DateTime.Now;
                 }
 
                 if (await _partyUp.HasUserAlreadyRequested(chatter.DisplayName, game.Id, _broadcasterInstance.DatabaseId))
                 {
                     _irc.SendPublicChatMessage($"You have already requested a party member. "
                         + $"Please wait until your request has been completed @{chatter.DisplayName}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 await _partyUp.AddPartyMember(chatter.DisplayName, partyMember.Id);
@@ -119,14 +124,16 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUp(TwitchChatter)", false, "!partyup", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "PartyUpFeature", "PartyUp(TwitchChatter)", false, "!partyup", chatter.Message);
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Check what other user's have requested
         /// </summary>
-        public async Task CmdPartyUpRequestList()
+        public async Task<DateTime> PartyUpRequestList()
         {
             try
             {
@@ -149,14 +156,16 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUpRequestList()", false, "!partyuprequestlist");
+                await _errHndlrInstance.LogError(ex, "PartyUpFeature", "PartyUpRequestList()", false, "!partyuprequestlist");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Check what party members are available (if game is part of the party up system)
         /// </summary>
-        public async Task CmdPartyUpList()
+        public async Task<DateTime> PartyUpList()
         {
             try
             {
@@ -171,7 +180,7 @@ namespace TwitchBot.Commands.Features
                         + "Please have the chat verify that the game has been set for this stream. "
                         + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
                         + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
-                    return;
+                    return DateTime.Now;
                 }
                 else if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
@@ -180,14 +189,16 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdPartyUpList()", false, "!partyuplist");
+                await _errHndlrInstance.LogError(ex, "PartyUpFeature", "PartyUpList()", false, "!partyuplist");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Removes first party memeber in queue of party up requests
         /// </summary>
-        public async Task CmdPopPartyUpRequest()
+        public async Task<DateTime> PopPartyUpRequest()
         {
             try
             {
@@ -210,8 +221,10 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPopPartyUpRequest()", false, "!poppartyuprequest");
+                await _errHndlrInstance.LogError(ex, "PartyUpFeature", "PopPartyUpRequest()", false, "!poppartyuprequest");
             }
+
+            return DateTime.Now;
         }
     }
 }

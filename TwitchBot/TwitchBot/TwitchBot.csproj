@@ -360,7 +360,6 @@
     <Compile Include="Commands\Features\QuoteFeature.cs" />
     <Compile Include="Commands\Features\MinigameFeature.cs" />
     <Compile Include="Commands\Features\TwitchChannelFeature.cs" />
-    <Compile Include="Commands\Features\TemplateFeature.cs" />
     <Compile Include="Commands\Features\BankFeature.cs" />
     <Compile Include="Commands\Features\BaseFeature.cs" />
     <Compile Include="Commands\Features\SongRequestFeature.cs" />

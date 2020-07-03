@@ -36,8 +36,8 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!srshuffle", new CommandPermission { General = ChatterType.Broadcaster });
             _rolePermission.Add("!srplay", new CommandPermission { General = ChatterType.Broadcaster });
             _rolePermission.Add("!srvolume", new CommandPermission { General = ChatterType.Viewer, Elevated = ChatterType.Moderator });
-            _rolePermission.Add("!srskip", new CommandPermission { General = ChatterType.Moderator, Elevated = ChatterType.Moderator });
-            _rolePermission.Add("!srtime", new CommandPermission { General = ChatterType.Moderator, Elevated = ChatterType.Moderator });
+            _rolePermission.Add("!srskip", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermission.Add("!srtime", new CommandPermission { General = ChatterType.Viewer, Elevated = ChatterType.Moderator });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)

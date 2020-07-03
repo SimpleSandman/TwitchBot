@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Tweetinvi;
 
@@ -14,6 +10,9 @@ namespace TwitchBot.Libraries
         private static object _syncRoot = new Object();
 
         private TwitterClient() { }
+
+        public bool HasCredentials { get; set; } = false;
+        public string ScreenName { get; set; }
 
         public static TwitterClient Instance
         {
@@ -36,11 +35,9 @@ namespace TwitchBot.Libraries
 
         public string SendTweet(string pendingMessage)
         {
-            var basicTweet = new object();
-
             if (pendingMessage.Length <= 280)
             {
-                basicTweet = Tweet.PublishTweet(pendingMessage);
+                Tweet.PublishTweet(pendingMessage);
                 return "Tweet successfully published!";
             }
             else

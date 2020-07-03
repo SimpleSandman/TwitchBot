@@ -20,6 +20,8 @@ namespace TwitchBot.Libraries
 
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        public bool HasCredentials { get; set; }
+
         public static YoutubeClient Instance
         {
             get

@@ -8,7 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Google.Apis.YouTube.v3.Data;
+
 using LibVLCSharp.Shared;
+
 using TwitchBot.Configuration;
 using TwitchBot.Enums;
 using TwitchBot.Libraries;
@@ -60,6 +62,18 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!ytsrmode", new CommandPermission { General = ChatterType.Broadcaster });
             _rolePermission.Add("!displaysongs", new CommandPermission { General = ChatterType.Broadcaster });
             _rolePermission.Add("!resetmsr", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermission.Add("!sr", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!ytsr", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!songrequest", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!sl", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!ytsl", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!songlist", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!rsl", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!rsr", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!song", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!wrongsong", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!lastsong", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!popsr", new CommandPermission { General = ChatterType.VIP });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
@@ -75,9 +89,9 @@ namespace TwitchBot.Commands.Features
                     case "!resetytsr":
                         return (true, await ResetYoutubeSongRequestList());
                     case "!msrmode":
-                        return (true, await SetManualSrMode(chatter));
+                        return (true, await SetManualSongRequestMode(chatter));
                     case "!ytsrmode":
-                        return (true, await SetYouTubeSrMode(chatter));
+                        return (true, await SetYouTubeSongRequestMode(chatter));
                     case "!displaysongs":
                         return (true, await SetAutoDisplaySongs(chatter));
                     case "!djmode":
@@ -89,7 +103,27 @@ namespace TwitchBot.Commands.Features
                     case "!setpersonalplaylistid":
                         return (true, await SetPersonalYoutubePlaylistById(chatter));
                     case "!resetmsr":
-                        return (true, await ResetManualSr());
+                        return (true, await ResetManualSongRequest());
+                    case "!sr":
+                    case "!ytsr":
+                    case "!songrequest":
+                        return (true, await YouTubeSongRequest(chatter));
+                    case "!sl":
+                    case "!ytsl":
+                    case "!songlist":
+                        return (true, await YouTubeSongRequestList());
+                    case "!rsl":
+                        return (true, await ManuallyRequestedSongRequestList(chatter));
+                    case "!rsr":
+                        return (true, await ManuallyRequestedSongRequest(chatter));
+                    case "!song":
+                        return (true, await YouTubeCurrentSong(chatter));
+                    case "!wrongsong":
+                        return (true, await YoutubeRemoveWrongSong(chatter));
+                    case "!lastsong":
+                        return (true, await YouTubeLastSong(chatter));
+                    case "!poprsr":
+                        return (true, await PopManuallyRequestedSongRequest());
                     default:
                         break;
                 }
@@ -102,7 +136,7 @@ namespace TwitchBot.Commands.Features
             return (false, DateTime.Now);
         }
 
-        public async Task<DateTime> AddSongRequestBlacklist(TwitchChatter chatter)
+        private async Task<DateTime> AddSongRequestBlacklist(TwitchChatter chatter)
         {
             try
             {
@@ -197,7 +231,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> RemoveSongRequestBlacklist(TwitchChatter chatter)
+        private async Task<DateTime> RemoveSongRequestBlacklist(TwitchChatter chatter)
         {
             try
             {
@@ -265,7 +299,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> ResetSongRequestBlacklist()
+        private async Task<DateTime> ResetSongRequestBlacklist()
         {
             try
             {
@@ -284,7 +318,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> ListSongRequestBlacklist()
+        private async Task<DateTime> ListSongRequestBlacklist()
         {
             try
             {
@@ -320,7 +354,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> ResetYoutubeSongRequestList()
+        private async Task<DateTime> ResetYoutubeSongRequestList()
         {
             try
             {
@@ -385,7 +419,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> SetPersonalYoutubePlaylistById(TwitchChatter chatter)
+        private async Task<DateTime> SetPersonalYoutubePlaylistById(TwitchChatter chatter)
         {
             try
             {
@@ -443,7 +477,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task<DateTime> SetDjMode(TwitchChatter chatter)
+        private async Task<DateTime> SetDjMode(TwitchChatter chatter)
         {
             try
             {
@@ -473,7 +507,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task<DateTime> SetManualSrMode(TwitchChatter chatter)
+        private async Task<DateTime> SetManualSongRequestMode(TwitchChatter chatter)
         {
             try
             {
@@ -499,7 +533,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task<DateTime> SetYouTubeSrMode(TwitchChatter chatter)
+        private async Task<DateTime> SetYouTubeSongRequestMode(TwitchChatter chatter)
         {
             try
             {
@@ -525,7 +559,7 @@ namespace TwitchBot.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task<DateTime> SetAutoDisplaySongs(TwitchChatter chatter)
+        private async Task<DateTime> SetAutoDisplaySongs(TwitchChatter chatter)
         {
             try
             {
@@ -549,7 +583,7 @@ namespace TwitchBot.Commands.Features
         /// <summary>
         /// Resets the song request queue
         /// </summary>
-        public async Task<DateTime> ResetManualSr()
+        private async Task<DateTime> ResetManualSongRequest()
         {
             try
             {
@@ -575,17 +609,17 @@ namespace TwitchBot.Commands.Features
         /// <param name="hasYouTubeAuth">Checks if broadcaster allowed this bot to post videos to the playlist</param>
         /// <param name="isYouTubeSongRequestAvail">Checks if users can request songs</param>
         /// <returns></returns>
-        public async Task<DateTime> CmdYouTubeSongRequest(TwitchChatter chatter, bool hasYouTubeAuth, bool isYouTubeSongRequestAvail)
+        private async Task<DateTime> YouTubeSongRequest(TwitchChatter chatter)
         {
             try
             {
-                if (!hasYouTubeAuth)
+                if (!_youTubeClientInstance.HasCredentials)
                 {
                     _irc.SendPublicChatMessage("YouTube song requests have not been set up");
                     return DateTime.Now;
                 }
 
-                if (!isYouTubeSongRequestAvail)
+                if (!_botConfig.IsYouTubeSongRequestAvail)
                 {
                     _irc.SendPublicChatMessage("YouTube song requests are not turned on");
                     return DateTime.Now;
@@ -778,7 +812,7 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequest(TwitchChatter, bool, bool)", false, "!ytsr");
+                await _errHndlrInstance.LogError(ex, "Gen", "YouTubeSongRequest(TwitchChatter, bool, bool)", false, "!ytsr");
             }
 
             return DateTime.Now;
@@ -787,12 +821,11 @@ namespace TwitchBot.Commands.Features
         /// <summary>
         /// Display's link to broadcaster's YouTube song request playlist
         /// </summary>
-        /// <param name="hasYouTubeAuth">Checks if broadcaster allowed this bot to post videos to the playlist</param>
-        public async void CmdYouTubeSongRequestList(bool hasYouTubeAuth)
+        private async Task<DateTime> YouTubeSongRequestList()
         {
             try
             {
-                if (hasYouTubeAuth && !string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
+                if (_youTubeClientInstance.HasCredentials && !string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                 {
                     _irc.SendPublicChatMessage($"{_botConfig.Broadcaster.ToLower()}'s song request list is at " +
                         "https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);
@@ -804,41 +837,43 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeSongRequestList(bool)", false, "!ytsl");
+                await _errHndlrInstance.LogError(ex, "Gen", "YouTubeSongRequestList(bool)", false, "!ytsl");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Display list of requested songs
         /// </summary>
-        /// <param name="isManualSongRequestAvail">Check if song requests are available</param>
         /// <param name="chatter">User that sent the message</param>
-        public async Task CmdManualSrList(bool isManualSongRequestAvail, TwitchChatter chatter)
+        private async Task<DateTime> ManuallyRequestedSongRequestList(TwitchChatter chatter)
         {
             try
             {
-                if (!isManualSongRequestAvail)
+                if (!_botConfig.IsManualSongRequestAvail)
                     _irc.SendPublicChatMessage($"Song requests are not available at this time @{chatter.DisplayName}");
                 else
                     _irc.SendPublicChatMessage(await _manualSongRequest.ListSongRequests(_broadcasterInstance.DatabaseId));
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSrList(bool, TwitchChatter)", false, "!rsrl");
+                await _errHndlrInstance.LogError(ex, "Gen", "ManualSrList(TwitchChatter)", false, "!rsl");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Request a song for the host to play
         /// </summary>
-        /// <param name="isSongRequestAvail">Check if song request system is enabled</param>
         /// <param name="chatter">User that sent the message</param>
-        public async Task CmdManualSr(bool isSongRequestAvail, TwitchChatter chatter)
+        private async Task<DateTime> ManuallyRequestedSongRequest(TwitchChatter chatter)
         {
             try
             {
                 // Check if song request system is enabled
-                if (isSongRequestAvail)
+                if (_botConfig.IsManualSongRequestAvail)
                 {
                     // Grab the song name from the request
                     int index = chatter.Message.IndexOf(" ");
@@ -863,18 +898,21 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdManualSr(bool, TwitchChatter)", false, "!rsr", chatter.Message);
+                await _errHndlrInstance.LogError(ex, "Gen", "ManualSr(bool, TwitchChatter)", false, "!rsr", chatter.Message);
             }
+
+            return DateTime.Now;
         }
 
-        public async Task CmdYouTubeCurrentSong(TwitchChatter chatter)
+        private async Task<DateTime> YouTubeCurrentSong(TwitchChatter chatter)
         {
             try
             {
                 if (_libVLCSharpPlayer.MediaPlayerStatus() != VLCState.Playing)
                 {
-                    await SharedCommands.SpotifyLastPlayedSong(chatter, _spotify); // fall back to see if Spotify is playing anything
-                    return;
+                    // fall back to see if Spotify is playing anything
+                    _irc.SendPublicChatMessage(await SharedCommands.SpotifyLastPlayedSong(chatter, _spotify));
+                    return DateTime.Now;
                 }
 
                 PlaylistItem playlistItem = _libVLCSharpPlayer.CurrentSongRequestPlaylistItem;
@@ -892,11 +930,13 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeCurrentSong(TwitchChatter)", false, "!song");
+                await _errHndlrInstance.LogError(ex, "Gen", "YouTubeCurrentSong(TwitchChatter)", false, "!song");
             }
+
+            return DateTime.Now;
         }
 
-        public async Task<DateTime> CmdYoutubeRemoveWrongSong(TwitchChatter chatter)
+        private async Task<DateTime> YoutubeRemoveWrongSong(TwitchChatter chatter)
         {
             try
             {
@@ -915,26 +955,26 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYoutubeRemoveWrongSong(TwitchChatter)", false, "!wrongsong");
+                await _errHndlrInstance.LogError(ex, "Gen", "YoutubeRemoveWrongSong(TwitchChatter)", false, "!wrongsong");
             }
 
             return DateTime.Now;
         }
 
-        public async Task CmdYouTubeLastSong(TwitchChatter chatter)
+        private async Task<DateTime> YouTubeLastSong(TwitchChatter chatter)
         {
             try
             {
                 if (_libVLCSharpPlayer.MediaPlayerStatus() != VLCState.Playing)
                 {
                     await SharedCommands.SpotifyLastPlayedSong(chatter, _spotify); // fall back to see if Spotify had something playing recently
-                    return;
+                    return DateTime.Now;
                 }
 
                 if (_libVLCSharpPlayer.LibVlc == null)
                 {
                     _irc.SendPublicChatMessage($"Unable to display the last played song @{chatter.DisplayName}");
-                    return;
+                    return DateTime.Now;
                 }
 
                 PlaylistItem playlistItem = _libVLCSharpPlayer.LastPlayedPlaylistItem;
@@ -952,14 +992,16 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdGen", "CmdYouTubeLastSong(TwitchChatter)", false, "!lastsong");
+                await _errHndlrInstance.LogError(ex, "Gen", "YouTubeLastSong(TwitchChatter)", false, "!lastsong");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>
         /// Removes the first song in the queue of song requests
         /// </summary>
-        public async Task CmdPopManualSr()
+        private async Task<DateTime> PopManuallyRequestedSongRequest()
         {
             try
             {
@@ -972,8 +1014,10 @@ namespace TwitchBot.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CmdVip", "CmdPopManualSr()", false, "!poprsr");
+                await _errHndlrInstance.LogError(ex, "Vip", "PopManualSr()", false, "!poprsr");
             }
+
+            return DateTime.Now;
         }
 
         /// <summary>

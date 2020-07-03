@@ -26,24 +26,32 @@ namespace TwitchBot.Commands
         private readonly ReminderFeature _reminderFeature;
         private readonly SpotifyFeature _spotifyFeature;
         private readonly QuoteFeature _quoteFeature;
+        private readonly JoinStreamerFeature _joinStreamerFeature;
+        private readonly MinigameFeature _miniGameFeature;
+        private readonly MultiLinkUserFeature _multiLinkUserFeature;
+        private readonly PartyUpFeature _partyUpFeature;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, bool hasTwitterInfo, System.Configuration.Configuration appConfig, 
+        public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig, 
             BankService bank, SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting,
             SpotifyWebClient spotify, TwitchInfoService twitchInfo, FollowerService follower, GameDirectoryService gameDirectory, InGameUsernameService ign,
-            ManualSongRequestService manualSongRequest, QuoteService quote)
+            ManualSongRequestService manualSongRequest, QuoteService quote, PartyUpService partyUp)
         {
             _bank = new BankFeature(irc, botConfig, bank);
-            _twitter = new TwitterFeature(irc, botConfig, appConfig, hasTwitterInfo);
-            _songRequestFeature = new SongRequestFeature(irc, botConfig, appConfig, songRequestBlacklist, libVLCSharpPlayer, songRequestSetting, manualSongRequest, bank, spotify);
-            _libVLCSharpPlayerFeature = new LibVLCSharpPlayerFeature(irc, botConfig, appConfig, libVLCSharpPlayer);
-            _twitchChannelFeature = new TwitchChannelFeature(irc, botConfig);
             _followerFeature = new FollowerFeature(irc, botConfig, twitchInfo, follower, appConfig);
             _generalFeature = new GeneralFeature(irc, botConfig, twitchInfo, appConfig);
             _inGameNameFeature = new InGameNameFeature(irc, botConfig, twitchInfo, gameDirectory, ign);
-            _reminderFeature = new ReminderFeature(irc, botConfig, twitchInfo, gameDirectory);
-            _spotifyFeature = new SpotifyFeature(irc, botConfig, spotify);
+            _joinStreamerFeature = new JoinStreamerFeature(irc, botConfig, twitchInfo, gameDirectory);
+            _libVLCSharpPlayerFeature = new LibVLCSharpPlayerFeature(irc, botConfig, appConfig, libVLCSharpPlayer);
+            _miniGameFeature = new MinigameFeature(irc, botConfig, bank, follower, twitchInfo);
+            _multiLinkUserFeature = new MultiLinkUserFeature(irc, botConfig);
+            _partyUpFeature = new PartyUpFeature(irc, botConfig, twitchInfo, gameDirectory, partyUp);
             _quoteFeature = new QuoteFeature(irc, botConfig, quote);
+            _reminderFeature = new ReminderFeature(irc, botConfig, twitchInfo, gameDirectory);
+            _songRequestFeature = new SongRequestFeature(irc, botConfig, appConfig, songRequestBlacklist, libVLCSharpPlayer, songRequestSetting, manualSongRequest, bank, spotify);
+            _spotifyFeature = new SpotifyFeature(irc, botConfig, spotify);
+            _twitchChannelFeature = new TwitchChannelFeature(irc, botConfig);
+            _twitter = new TwitterFeature(irc, botConfig, appConfig);
         }
 
         public async Task ExecRequest(TwitchChatter chatter)
@@ -51,22 +59,6 @@ namespace TwitchBot.Commands
             try
             {
                 if (await _bank.IsRequestExecuted(chatter))
-                {
-                    return;
-                }
-                else if (await _twitter.IsRequestExecuted(chatter))
-                {
-                    return;
-                }
-                else if (await _songRequestFeature.IsRequestExecuted(chatter))
-                {
-                    return;
-                }
-                else if (await _libVLCSharpPlayerFeature.IsRequestExecuted(chatter))
-                {
-                    return;
-                }
-                else if (await _twitchChannelFeature.IsRequestExecuted(chatter))
                 {
                     return;
                 }
@@ -82,7 +74,35 @@ namespace TwitchBot.Commands
                 {
                     return;
                 }
+                else if (await _joinStreamerFeature.IsRequestExecuted(chatter))
+                {
+                    return;
+                }
+                else if (await _libVLCSharpPlayerFeature.IsRequestExecuted(chatter))
+                {
+                    return;
+                }
+                else if (await _miniGameFeature.IsRequestExecuted(chatter))
+                {
+                    return;
+                }
+                else if (await _multiLinkUserFeature.IsRequestExecuted(chatter))
+                {
+                    return;
+                }
+                else if (await _partyUpFeature.IsRequestExecuted(chatter))
+                {
+                    return;
+                }
+                else if (await _quoteFeature.IsRequestExecuted(chatter))
+                {
+                    return;
+                }
                 else if (await _reminderFeature.IsRequestExecuted(chatter))
+                {
+                    return;
+                }
+                else if (await _songRequestFeature.IsRequestExecuted(chatter))
                 {
                     return;
                 }
@@ -90,7 +110,11 @@ namespace TwitchBot.Commands
                 {
                     return;
                 }
-                else if (await _quoteFeature.IsRequestExecuted(chatter))
+                else if (await _twitchChannelFeature.IsRequestExecuted(chatter))
+                {
+                    return;
+                }
+                else if (await _twitter.IsRequestExecuted(chatter))
                 {
                     return;
                 }
