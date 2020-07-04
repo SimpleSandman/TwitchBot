@@ -76,29 +76,7 @@ namespace TwitchBot.Commands.Features
         {
             try
             {
-                PlaybackContext playbackContext = await _spotify.GetPlayback();
-                if (playbackContext != null && playbackContext.IsPlaying)
-                {
-                    string artistName = "";
-
-                    foreach (SimpleArtist simpleArtist in playbackContext.Item.Artists)
-                    {
-                        artistName += $"{simpleArtist.Name}, ";
-                    }
-
-                    artistName = artistName.ReplaceLastOccurrence(", ", "");
-
-                    TimeSpan progressTimeSpan = TimeSpan.FromMilliseconds(playbackContext.ProgressMs);
-                    TimeSpan durationTimeSpan = TimeSpan.FromMilliseconds(playbackContext.Item.DurationMs);
-
-                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing from Spotify: \"{playbackContext.Item.Name}\" by {artistName} "
-                        + "https://open.spotify.com/track/" + playbackContext.Item.Id + " "
-                        + $"Currently playing at {progressTimeSpan.ReformatTimeSpan()} of {durationTimeSpan.ReformatTimeSpan()}");
-                }
-                else
-                {
-                    _irc.SendPublicChatMessage($"Nothing is playing at the moment @{chatter.DisplayName}");
-                }
+                _irc.SendPublicChatMessage(await SharedCommands.SpotifyCurrentSong(chatter, _spotify));
             }
             catch (Exception ex)
             {

@@ -216,8 +216,6 @@ namespace TwitchBot
         /// <summary>
         /// Monitor chat box for commands
         /// </summary>
-        /// <param name="hasTwitterInfo"></param>
-        /// <param name="hasYouTubeAuth"></param>
         private async Task GetChatBox()
         {
             try

@@ -911,7 +911,7 @@ namespace TwitchBot.Commands.Features
                 if (_libVLCSharpPlayer.MediaPlayerStatus() != VLCState.Playing)
                 {
                     // fall back to see if Spotify is playing anything
-                    _irc.SendPublicChatMessage(await SharedCommands.SpotifyLastPlayedSong(chatter, _spotify));
+                    _irc.SendPublicChatMessage(await SharedCommands.SpotifyCurrentSong(chatter, _spotify));
                     return DateTime.Now;
                 }
 
@@ -967,7 +967,8 @@ namespace TwitchBot.Commands.Features
             {
                 if (_libVLCSharpPlayer.MediaPlayerStatus() != VLCState.Playing)
                 {
-                    await SharedCommands.SpotifyLastPlayedSong(chatter, _spotify); // fall back to see if Spotify had something playing recently
+                    // fall back to see if Spotify had something playing recently
+                    _irc.SendPublicChatMessage(await SharedCommands.SpotifyLastPlayedSong(chatter, _spotify));
                     return DateTime.Now;
                 }
 
