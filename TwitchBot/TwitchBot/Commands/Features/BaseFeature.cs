@@ -32,9 +32,11 @@ namespace TwitchBot.Commands.Features
         public async Task<bool> IsRequestExecuted(TwitchChatter chatter) 
         {
             string requestedCommand = ParseChatterCommandName(chatter);
-            bool validCommand = _rolePermission.ContainsKey(requestedCommand);
+            bool validCommand = _rolePermission.TryGetValue(requestedCommand, out CommandPermission permission);
 
-            if (validCommand && !_cooldownUsersInstance.IsCommandOnCooldown(requestedCommand, chatter, _irc))
+            if (validCommand 
+                && DetermineChatterPermissions(chatter) >= permission.General
+                && !_cooldownUsersInstance.IsCommandOnCooldown(requestedCommand, chatter, _irc))
             {
                 (bool, DateTime) commandResult = await ExecCommand(chatter, requestedCommand);
                 _cooldownUsersInstance.AddCooldown(chatter, commandResult.Item2, ParseChatterCommandName(chatter));
