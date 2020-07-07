@@ -33,6 +33,7 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!charge", new CommandPermission { General = ChatterType.Moderator });
             _rolePermission.Add("!points", new CommandPermission { General = ChatterType.Viewer });
             _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!pointstop3", new CommandPermission { General = ChatterType.Viewer });
             _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}top3", new CommandPermission { General = ChatterType.Viewer });
             _rolePermission.Add("!bonusall", new CommandPermission { General = ChatterType.Moderator });
             _rolePermission.Add("!give", new CommandPermission { General = ChatterType.Viewer });
@@ -53,6 +54,8 @@ namespace TwitchBot.Commands.Features
                         return (true, await BonusAll(chatter));
                     case "!points":
                         return (true, await CheckFunds(chatter));
+                    case "!pointstop3":
+                        return (true, await LeaderboardCurrency(chatter));
                     case "!give":
                         return (true, await GiveFunds(chatter));
                     case "!gamble":
@@ -343,7 +346,7 @@ namespace TwitchBot.Commands.Features
 
                 // Check if user wants to give all of their wallet to another user
                 // Else check if their message is a valid amount to give
-                validGiftAmount = giftMessage == "all" ? true : int.TryParse(giftMessage, out giftAmount);
+                validGiftAmount = giftMessage == "all" || int.TryParse(giftMessage, out giftAmount);
 
                 if (!validGiftAmount)
                 {
@@ -461,7 +464,7 @@ namespace TwitchBot.Commands.Features
 
                 // Check if user wants to gamble all of their wallet
                 // Else check if their message is a valid amount to gamble
-                isValidMsg = gambleMessage.Equals("all", StringComparison.CurrentCultureIgnoreCase) ? true : int.TryParse(gambleMessage, out gambledMoney);
+                isValidMsg = gambleMessage.Equals("all", StringComparison.CurrentCultureIgnoreCase) || int.TryParse(gambleMessage, out gambledMoney);
 
                 if (!isValidMsg)
                 {
