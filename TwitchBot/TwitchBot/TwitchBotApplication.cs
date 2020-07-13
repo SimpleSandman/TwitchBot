@@ -29,37 +29,37 @@ namespace TwitchBot
 {
     public class TwitchBotApplication
     {
-        private System.Configuration.Configuration _appConfig;
-        private TwitchBotConfigurationSection _botConfig;
-        private IrcClient _irc;
-        private List<string> _greetedUsers;
         private CommandSystem _commandSystem;
         private SpotifyWebClient _spotify;
-        private TwitchInfoService _twitchInfo;
-        private FollowerService _follower;
-        private FollowerSubscriberListener _followerSubscriberListener;
-        private BankService _bank;
-        private SongRequestBlacklistService _songRequestBlacklist;
-        private ManualSongRequestService _manualSongRequest;
-        private GameDirectoryService _gameDirectory;
-        private QuoteService _quote;
-        private SongRequestSettingService _songRequestSetting;
-        private InGameUsernameService _ign;
-        private BankHeist _bankHeist;
-        private BossFight _bossFight;
-        private LibVLCSharpPlayer _libVLCSharpPlayer;
-        private TwitchChatterListener _twitchChatterListener;
         private TwitchStreamStatus _twitchStreamStatus;
-        private PartyUpService _partyUp;
-        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
-        private TwitterClient _twitterInstance = TwitterClient.Instance;
-        private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
-        private CooldownUsersSingleton _cooldownUsersInstance = CooldownUsersSingleton.Instance;
-        private BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
-        private BankHeistSingleton _bankHeistInstance = BankHeistSingleton.Instance;
-        private BossFightSingleton _bossFightInstance = BossFightSingleton.Instance;
-        private BotModeratorSingleton _botModeratorInstance = BotModeratorSingleton.Instance;
-        private CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
+        private readonly System.Configuration.Configuration _appConfig;
+        private readonly TwitchBotConfigurationSection _botConfig;
+        private readonly IrcClient _irc;
+        private readonly List<string> _greetedUsers;
+        private readonly TwitchInfoService _twitchInfo;
+        private readonly FollowerService _follower;
+        private readonly FollowerSubscriberListener _followerSubscriberListener;
+        private readonly BankService _bank;
+        private readonly SongRequestBlacklistService _songRequestBlacklist;
+        private readonly ManualSongRequestService _manualSongRequest;
+        private readonly GameDirectoryService _gameDirectory;
+        private readonly QuoteService _quote;
+        private readonly SongRequestSettingService _songRequestSetting;
+        private readonly InGameUsernameService _ign;
+        private readonly BankHeist _bankHeist;
+        private readonly BossFight _bossFight;
+        private readonly LibVLCSharpPlayer _libVLCSharpPlayer;
+        private readonly TwitchChatterListener _twitchChatterListener;
+        private readonly PartyUpService _partyUp;
+        private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+        private readonly TwitterClient _twitterInstance = TwitterClient.Instance;
+        private readonly YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
+        private readonly CooldownUsersSingleton _cooldownUsersInstance = CooldownUsersSingleton.Instance;
+        private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
+        private readonly BankHeistSingleton _bankHeistInstance = BankHeistSingleton.Instance;
+        private readonly BossFightSingleton _bossFightInstance = BossFightSingleton.Instance;
+        private readonly BotModeratorSingleton _botModeratorInstance = BotModeratorSingleton.Instance;
+        private readonly CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
 
         public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
