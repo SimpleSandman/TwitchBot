@@ -73,7 +73,7 @@ namespace TwitchBot.Commands.Features
             _rolePermission.Add("!song", new CommandPermission { General = ChatterType.Viewer });
             _rolePermission.Add("!wrongsong", new CommandPermission { General = ChatterType.Viewer });
             _rolePermission.Add("!lastsong", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!popsr", new CommandPermission { General = ChatterType.VIP });
+            _rolePermission.Add("!poprsr", new CommandPermission { General = ChatterType.VIP });
         }
 
         public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
