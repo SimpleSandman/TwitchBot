@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using TwitchBot.Repositories;
 
@@ -21,6 +17,8 @@ namespace TwitchBot.Services
 
         public async Task<TwitchGameCategory> GetGameId(string gameTitle)
         {
+            gameTitle = gameTitle.TrimEnd();
+
             if (string.IsNullOrEmpty(gameTitle))
             {
                 return null;

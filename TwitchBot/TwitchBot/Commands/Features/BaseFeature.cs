@@ -149,11 +149,16 @@ namespace TwitchBot.Commands.Features
         /// <param name="requestedCommand"></param>
         /// <param name="chatterPermission"></param>
         /// <param name="rolePermissions"></param>
+        /// <param name="isElevated"></param>
         /// <returns></returns>
-        protected bool HasElevatedPermissions(string requestedCommand, ChatterType chatterPermission, Dictionary<string, CommandPermission> rolePermissions)
+        protected bool HasPermission(string requestedCommand, ChatterType chatterPermission, Dictionary<string, CommandPermission> rolePermissions, bool isElevated = false)
         {
             rolePermissions.TryGetValue(requestedCommand, out CommandPermission permissions);
-            return chatterPermission >= permissions.Elevated;
+
+            if (isElevated)
+                return chatterPermission >= permissions.Elevated;
+            else
+                return chatterPermission >= permissions.General;
         }
 
         protected bool ReactionCommand(IrcClient irc, string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")

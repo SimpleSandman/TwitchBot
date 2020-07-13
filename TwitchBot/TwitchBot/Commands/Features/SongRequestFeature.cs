@@ -145,7 +145,7 @@ namespace TwitchBot.Commands.Features
 
                 if (requestIndex == -1)
                 {
-                    _irc.SendPublicChatMessage($"Please enter a request to block @{_botConfig.Broadcaster}");
+                    _irc.SendPublicChatMessage($"Please enter a request to block @{chatter.DisplayName}");
                     return DateTime.Now;
                 }
 
@@ -160,23 +160,23 @@ namespace TwitchBot.Commands.Features
                         || request.Count(c => c == '<') == 1
                         || request.Count(c => c == '>') == 1)
                     {
-                        _irc.SendPublicChatMessage($"Please use request type 2 for song-specific blacklist restrictions @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"Please use request type 2 for song-specific blacklist restrictions @{chatter.DisplayName}");
                         return DateTime.Now;
                     }
 
                     List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
                     if (blacklist.Count > 0 && blacklist.Exists(b => b.Artist.Equals(request, StringComparison.CurrentCultureIgnoreCase)))
                     {
-                        _irc.SendPublicChatMessage($"This artist/video is already on the blacklist @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"This artist/video is already on the blacklist @{chatter.DisplayName}");
                         return DateTime.Now;
                     }
 
                     SongRequestIgnore response = await _songRequestBlacklist.IgnoreArtist(request, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
-                        _irc.SendPublicChatMessage($"The artist/video \"{response.Artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"The artist/video \"{response.Artist}\" has been added to the blacklist @{chatter.DisplayName}");
                     else
-                        _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this artist/video to the blacklist at this time @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this artist/video to the blacklist at this time @{chatter.DisplayName}");
                 }
                 else if (requestType == "2") // blackout a song by an artist
                 {
@@ -185,7 +185,7 @@ namespace TwitchBot.Commands.Features
                         || request.Count(c => c == '>') != 1)
                     {
                         _irc.SendPublicChatMessage($"Please surround the song title with \" (quotation marks) " +
-                            $"and the artist with \"<\" and \">\" @{_botConfig.Broadcaster}");
+                            $"and the artist with \"<\" and \">\" @{chatter.DisplayName}");
                         return DateTime.Now;
                     }
 
@@ -205,7 +205,7 @@ namespace TwitchBot.Commands.Features
                         if (blacklist.Exists(b => b.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase)
                                 && b.Title.Equals(songTitle, StringComparison.CurrentCultureIgnoreCase)))
                         {
-                            _irc.SendPublicChatMessage($"This song is already on the blacklist @{_botConfig.Broadcaster}");
+                            _irc.SendPublicChatMessage($"This song is already on the blacklist @{chatter.DisplayName}");
                             return DateTime.Now;
                         }
                     }
@@ -213,13 +213,13 @@ namespace TwitchBot.Commands.Features
                     SongRequestIgnore response = await _songRequestBlacklist.IgnoreSong(songTitle, artist, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
-                        _irc.SendPublicChatMessage($"The song \"{response.Title}\" by \"{response.Artist}\" has been added to the blacklist @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"The song \"{response.Title}\" by \"{response.Artist}\" has been added to the blacklist @{chatter.DisplayName}");
                     else
-                        _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this song to the blacklist at this time @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"I'm sorry. I'm not able to add this song to the blacklist at this time @{chatter.DisplayName}");
                 }
                 else
                 {
-                    _irc.SendPublicChatMessage($"Please insert request type (1 = artist/2 = song) @{_botConfig.Broadcaster}");
+                    _irc.SendPublicChatMessage($"Please insert request type (1 = artist/2 = song) @{chatter.DisplayName}");
                     return DateTime.Now;
                 }
             }
@@ -240,7 +240,7 @@ namespace TwitchBot.Commands.Features
 
                 if (requestIndex == -1)
                 {
-                    _irc.SendPublicChatMessage($"Please enter a request @{_botConfig.Broadcaster}");
+                    _irc.SendPublicChatMessage($"Please enter a request @{chatter.DisplayName}");
                     return DateTime.Now;
                 }
 
@@ -254,9 +254,9 @@ namespace TwitchBot.Commands.Features
                     List<SongRequestIgnore> response = await _songRequestBlacklist.AllowArtist(request, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
-                        _irc.SendPublicChatMessage($"The artist \"{request}\" can now be requested @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"The artist \"{request}\" can now be requested @{chatter.DisplayName}");
                     else
-                        _irc.SendPublicChatMessage($"Couldn't find the requested artist for blacklist-removal @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"Couldn't find the requested artist for blacklist-removal @{chatter.DisplayName}");
                 }
                 else if (requestType == "2") // remove blackout for a song by an artist
                 {
@@ -265,7 +265,7 @@ namespace TwitchBot.Commands.Features
                         || request.Count(c => c == '>') != 1)
                     {
                         _irc.SendPublicChatMessage($"Please surround the song title with \" (quotation marks) "
-                            + $"and the artist with \"<\" and \">\" @{_botConfig.Broadcaster}");
+                            + $"and the artist with \"<\" and \">\" @{chatter.DisplayName}");
                         return DateTime.Now;
                     }
 
@@ -281,13 +281,13 @@ namespace TwitchBot.Commands.Features
                     SongRequestIgnore response = await _songRequestBlacklist.AllowSong(songTitle, artist, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
-                        _irc.SendPublicChatMessage($"The song \"{response.Title} by {response.Artist}\" can now requested @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"The song \"{response.Title} by {response.Artist}\" can now requested @{chatter.DisplayName}");
                     else
-                        _irc.SendPublicChatMessage($"Couldn't find the requested song for blacklist-removal @{_botConfig.Broadcaster}");
+                        _irc.SendPublicChatMessage($"Couldn't find the requested song for blacklist-removal @{chatter.DisplayName}");
                 }
                 else
                 {
-                    _irc.SendPublicChatMessage($"Please insert request type (1 = artist/2 = song) @{_botConfig.Broadcaster}");
+                    _irc.SendPublicChatMessage($"Please insert request type (1 = artist/2 = song) @{chatter.DisplayName}");
                     return DateTime.Now;
                 }
             }
@@ -427,7 +427,7 @@ namespace TwitchBot.Commands.Features
                 if (personalPlaylistId.Length != 34)
                 {
                     _irc.SendPublicChatMessage("Please only insert the playlist ID that you want set "
-                        + $"when the song requests are finished/not available @{_botConfig.Broadcaster}");
+                        + $"when the song requests are finished/not available @{chatter.DisplayName}");
                     return DateTime.Now;
                 }
 
@@ -435,7 +435,7 @@ namespace TwitchBot.Commands.Features
 
                 if (playlist?.Id == null)
                 {
-                    _irc.SendPublicChatMessage($"I'm sorry @{_botConfig.Broadcaster} I cannot find your playlist "
+                    _irc.SendPublicChatMessage($"I'm sorry @{chatter.DisplayName} I cannot find your playlist "
                         + "you requested as a backup when song requests are finished/not available");
                     return DateTime.Now;
                 }
@@ -455,14 +455,14 @@ namespace TwitchBot.Commands.Features
                 else
                 {
                     _irc.SendPublicChatMessage("Cannot find settings in database! Please contact my creator using "
-                        + $"the command \"!support\" if this problem persists @{_botConfig.Broadcaster}");
+                        + $"the command \"!support\" if this problem persists @{chatter.DisplayName}");
                     return DateTime.Now;
                 }
 
                 _botConfig.YouTubePersonalPlaylistId = personalPlaylistId;
                 SaveAppConfigSettings(personalPlaylistId, "youTubePersonalPlaylistId", _appConfig);
 
-                _irc.SendPublicChatMessage($"Your personal playlist has been set https://www.youtube.com/playlist?list={personalPlaylistId} @{_botConfig.Broadcaster}");
+                _irc.SendPublicChatMessage($"Your personal playlist has been set https://www.youtube.com/playlist?list={personalPlaylistId} @{chatter.DisplayName}");
             }
             catch (Exception ex)
             {
@@ -492,7 +492,7 @@ namespace TwitchBot.Commands.Features
                     hasDjModeEnabled);
 
                 _irc.SendPublicChatMessage($"DJing has been set to {hasDjModeEnabled} for YouTube song requests. "
-                    + $"Please wait a few seconds before this change is applied @{_botConfig.Broadcaster}");
+                    + $"Please wait a few seconds before this change is applied @{chatter.DisplayName}");
             }
             catch (Exception ex)
             {
@@ -518,7 +518,7 @@ namespace TwitchBot.Commands.Features
                 _botConfig.IsManualSongRequestAvail = shuffle;
                 SaveAppConfigSettings(boolValue, "isManualSongRequestAvail", _appConfig);
 
-                _irc.SendPublicChatMessage($"{_botConfig.Broadcaster}: Song requests set to {boolValue}");
+                _irc.SendPublicChatMessage($"{chatter.DisplayName}: Song requests set to {boolValue}");
             }
             catch (Exception ex)
             {
@@ -544,7 +544,7 @@ namespace TwitchBot.Commands.Features
                 _botConfig.IsYouTubeSongRequestAvail = shuffle;
                 SaveAppConfigSettings(boolValue, "isYouTubeSongRequestAvail", _appConfig);
 
-                _irc.SendPublicChatMessage($"{_botConfig.Broadcaster}: YouTube song requests set to {boolValue}");
+                _irc.SendPublicChatMessage($"{chatter.DisplayName}: YouTube song requests set to {boolValue}");
             }
             catch (Exception ex)
             {
@@ -570,7 +570,7 @@ namespace TwitchBot.Commands.Features
                 _botConfig.EnableDisplaySong = shuffle;
                 SaveAppConfigSettings(boolValue, "enableDisplaySong", _appConfig);
 
-                _irc.SendPublicChatMessage($"{_botConfig.Broadcaster}: Automatic display Spotify songs is set to \"{boolValue}\"");
+                _irc.SendPublicChatMessage($"{chatter.DisplayName}: Automatic display Spotify songs is set to \"{boolValue}\"");
             }
             catch (Exception ex)
             {
@@ -827,7 +827,7 @@ namespace TwitchBot.Commands.Features
             {
                 if (_youTubeClientInstance.HasCredentials && !string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                 {
-                    _irc.SendPublicChatMessage($"{_botConfig.Broadcaster.ToLower()}'s song request list is at " +
+                    _irc.SendPublicChatMessage($"{_botConfig.Broadcaster}'s song request list is at " +
                         "https://www.youtube.com/playlist?list=" + _botConfig.YouTubeBroadcasterPlaylistId);
                 }
                 else

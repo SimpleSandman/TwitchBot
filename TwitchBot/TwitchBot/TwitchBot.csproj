@@ -350,7 +350,7 @@
     <Compile Include="Commands\CommandSystem.cs" />
     <Compile Include="Commands\Features\MultiLinkUserFeature.cs" />
     <Compile Include="Commands\SharedCommands.cs" />
-    <Compile Include="Commands\Features\ReminderFeature.cs" />
+    <Compile Include="Commands\Features\RefreshFeature.cs" />
     <Compile Include="Commands\Features\InGameNameFeature.cs" />
     <Compile Include="Commands\Features\GeneralFeature.cs" />
     <Compile Include="Commands\Features\FollowerFeature.cs" />

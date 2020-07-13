@@ -37,19 +37,9 @@ namespace TwitchBot.Commands.Features
                 switch (requestedCommand)
                 {
                     case "!quote":
+                        return (true, await Quote());
                     case "!addquote":
-                        if ((chatter.Message.StartsWith("!quote ") || chatter.Message.StartsWith("!addquote "))
-                            && HasElevatedPermissions("!addquote", DetermineChatterPermissions(chatter), _rolePermission))
-                        {
-                            return (true, await AddQuote(chatter));
-                        }
-                        else if (chatter.Message == "!quote")
-                        {
-                            return (true, await Quote());
-                        }
-                        break;
-                    default:
-                        break;
+                        return (true, await AddQuote(chatter));
                 }
             }
             catch (Exception ex)

@@ -36,7 +36,7 @@ namespace TwitchBot.Libraries
         }
 
         /// <summary>
-        /// Put a cooldown for a user on a command
+        /// Add user(s) to a MultiStream link so viewers can watch multiple streamers at the same time
         /// </summary>
         /// <param name="chatter"></param>
         /// <param name="broadcasterName"></param>

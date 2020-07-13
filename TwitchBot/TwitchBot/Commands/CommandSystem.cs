@@ -23,7 +23,7 @@ namespace TwitchBot.Commands
         private readonly FollowerFeature _followerFeature;
         private readonly GeneralFeature _generalFeature;
         private readonly InGameNameFeature _inGameNameFeature;
-        private readonly ReminderFeature _reminderFeature;
+        private readonly RefreshFeature _reminderFeature;
         private readonly SpotifyFeature _spotifyFeature;
         private readonly QuoteFeature _quoteFeature;
         private readonly JoinStreamerFeature _joinStreamerFeature;
@@ -47,10 +47,10 @@ namespace TwitchBot.Commands
             _multiLinkUserFeature = new MultiLinkUserFeature(irc, botConfig);
             _partyUpFeature = new PartyUpFeature(irc, botConfig, twitchInfo, gameDirectory, partyUp);
             _quoteFeature = new QuoteFeature(irc, botConfig, quote);
-            _reminderFeature = new ReminderFeature(irc, botConfig, twitchInfo, gameDirectory);
+            _reminderFeature = new RefreshFeature(irc, botConfig, twitchInfo, gameDirectory);
             _songRequestFeature = new SongRequestFeature(irc, botConfig, appConfig, songRequestBlacklist, libVLCSharpPlayer, songRequestSetting, manualSongRequest, bank, spotify);
             _spotifyFeature = new SpotifyFeature(irc, botConfig, spotify);
-            _twitchChannelFeature = new TwitchChannelFeature(irc, botConfig);
+            _twitchChannelFeature = new TwitchChannelFeature(irc, botConfig, gameDirectory);
             _twitter = new TwitterFeature(irc, botConfig, appConfig);
         }
 

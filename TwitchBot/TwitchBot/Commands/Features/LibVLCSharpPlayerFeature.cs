@@ -59,7 +59,7 @@ namespace TwitchBot.Commands.Features
                     case "!srplay":
                         return (true, await Play());
                     case "!srvolume":
-                        if ((chatter.Message.StartsWith("!srvolume ")) && HasElevatedPermissions("!srvolume", DetermineChatterPermissions(chatter), _rolePermission))
+                        if ((chatter.Message.StartsWith("!srvolume ")) && HasPermission("!srvolume", DetermineChatterPermissions(chatter), _rolePermission, true))
                         {
                             return (true, await SetVolume(chatter));
                         }
@@ -71,7 +71,7 @@ namespace TwitchBot.Commands.Features
                     case "!srskip":
                         return (true, await Skip(chatter));
                     case "!srtime":
-                        if ((chatter.Message.StartsWith("!srtime ")) && HasElevatedPermissions("!srtime", DetermineChatterPermissions(chatter), _rolePermission))
+                        if ((chatter.Message.StartsWith("!srtime ")) && HasPermission("!srtime", DetermineChatterPermissions(chatter), _rolePermission, true))
                         {
                             return (true, await SetTime(chatter));
                         }

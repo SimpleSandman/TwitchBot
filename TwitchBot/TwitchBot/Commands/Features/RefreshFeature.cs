@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using TwitchBot.Configuration;
@@ -16,7 +15,7 @@ namespace TwitchBot.Commands.Features
     /// <summary>
     /// The "Command Subsystem" for the "Reminder" feature
     /// </summary>
-    public sealed class ReminderFeature : BaseFeature
+    public sealed class RefreshFeature : BaseFeature
     {
         private readonly TwitchInfoService _twitchInfo;
         private readonly GameDirectoryService _gameDirectory;
@@ -25,7 +24,7 @@ namespace TwitchBot.Commands.Features
         private readonly CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public ReminderFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo, GameDirectoryService gameDirectory) 
+        public RefreshFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo, GameDirectoryService gameDirectory) 
             : base(irc, botConfig)
         {
             _twitchInfo = twitchInfo;

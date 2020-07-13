@@ -135,6 +135,7 @@ namespace TwitchBot.Commands.Features
             return DateTime.Now;
         }
 
+        #region Private Methods
         private async Task<bool> IsMultiplayerGame(string username)
         {
             // Get current game name
@@ -154,7 +155,7 @@ namespace TwitchBot.Commands.Features
             }
             else if (game == null || game.Id == 0)
             {
-                _irc.SendPublicChatMessage($"I cannot find the game, \"{gameTitle}\", in the database. "
+                _irc.SendPublicChatMessage($"I cannot find the game, \"{gameTitle.TrimEnd()}\", in the database. "
                     + $"Have my master resolve this issue by typing !support in this chat @{username}");
                 return false;
             }
@@ -168,5 +169,6 @@ namespace TwitchBot.Commands.Features
 
             return true;
         }
+        #endregion Private Methods
     }
 }

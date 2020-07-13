@@ -8,7 +8,9 @@ using TwitchBot.Configuration;
 using TwitchBot.Enums;
 using TwitchBot.Libraries;
 using TwitchBot.Models;
+using TwitchBot.Services;
 using TwitchBot.Threads;
+using TwitchBotDb.Models;
 
 namespace TwitchBot.Commands.Features
 {
@@ -17,14 +19,17 @@ namespace TwitchBot.Commands.Features
     /// </summary>
     public sealed class TwitchChannelFeature : BaseFeature
     {
+        private readonly GameDirectoryService _gameDirectory;
+        private readonly BossFightSingleton _bossFightSettingsInstance = BossFightSingleton.Instance;
         private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private readonly CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public TwitchChannelFeature(IrcClient irc, TwitchBotConfigurationSection botConfig) : base(irc, botConfig)
+        public TwitchChannelFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, GameDirectoryService gameDirectory) : base(irc, botConfig)
         {
-            _rolePermission.Add("!game", new CommandPermission { General = ChatterType.Viewer, Elevated = ChatterType.Moderator });
-            _rolePermission.Add("!title", new CommandPermission { General = ChatterType.Viewer, Elevated = ChatterType.Moderator });
+            _gameDirectory = gameDirectory;
+            _rolePermission.Add("!game", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermission.Add("!title", new CommandPermission { General = ChatterType.Viewer });
             _rolePermission.Add("!updategame", new CommandPermission { General = ChatterType.Moderator });
             _rolePermission.Add("!updatetitle", new CommandPermission { General = ChatterType.Moderator });
         }
@@ -38,7 +43,7 @@ namespace TwitchBot.Commands.Features
                     case "!updategame":
                     case "!game":
                         if ((chatter.Message.StartsWith("!game ") || chatter.Message.StartsWith("!updategame ")) 
-                            && HasElevatedPermissions("!updategame", DetermineChatterPermissions(chatter), _rolePermission))
+                            && HasPermission("!updategame", DetermineChatterPermissions(chatter), _rolePermission))
                         {
                             return (true, await UpdateGame(chatter));
                         }
@@ -50,7 +55,7 @@ namespace TwitchBot.Commands.Features
                     case "!updatetitle":
                     case "!title":
                         if ((chatter.Message.StartsWith("!title ") || chatter.Message.StartsWith("!updatetitle ")) 
-                            && HasElevatedPermissions("!updatetitle", DetermineChatterPermissions(chatter), _rolePermission))
+                            && HasPermission("!updatetitle", DetermineChatterPermissions(chatter), _rolePermission))
                         {
                             return (true, await UpdateTitle(chatter));
                         }
@@ -170,7 +175,7 @@ namespace TwitchBot.Commands.Features
             try
             {
                 // Get game from command parameter
-                string game = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+                string gameTitle = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
 
                 // Send HTTP method PUT to base URI in order to change the game
                 RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId);
@@ -180,7 +185,7 @@ namespace TwitchBot.Commands.Features
                 request.AddHeader("Authorization", "OAuth " + _botConfig.TwitchAccessToken);
                 request.AddHeader("Accept", "application/vnd.twitchtv.v5+json");
                 request.AddHeader("Client-ID", _botConfig.TwitchClientId);
-                request.AddParameter("application/json", "{\"channel\":{\"game\":\"" + game + "\"}}",
+                request.AddParameter("application/json", "{\"channel\":{\"game\":\"" + gameTitle + "\"}}",
                     ParameterType.RequestBody);
 
                 IRestResponse response = null;
@@ -190,10 +195,19 @@ namespace TwitchBot.Commands.Features
                     string statResponse = response.StatusCode.ToString();
                     if (statResponse.Contains("OK"))
                     {
-                        _irc.SendPublicChatMessage($"Twitch channel game status updated to \"{game}\"");
+                        _irc.SendPublicChatMessage($"Twitch channel game status updated to \"{gameTitle}\"");
 
                         await ChatReminder.RefreshReminders();
                         await _customCommandInstance.LoadCustomCommands(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
+                        _irc.SendPublicChatMessage($"Your commands have been refreshed @{chatter.DisplayName}");
+
+                        // Grab game id in order to find party member
+                        TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+
+                        // During refresh, make sure no fighters can join
+                        _bossFightSettingsInstance.RefreshBossFight = true;
+                        await _bossFightSettingsInstance.LoadSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
+                        _bossFightSettingsInstance.RefreshBossFight = false;
                     }
                     else
                     {
