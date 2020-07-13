@@ -22,7 +22,6 @@ using TwitchBot.Services;
 using TwitchBot.Threads;
 
 using TwitchBotDb.Models;
-using TwitchBotDb.Temp;
 
 using TwitchBotUtil.Extensions;
 
@@ -623,10 +622,6 @@ namespace TwitchBot
                             _broadcasterInstance.DatabaseId
                         );
                     }
-
-                    // Save credentials into JSON file for WPF app to reference
-                    YoutubePlaylistInfo.Save(_botConfig.YouTubeClientId, _botConfig.YouTubeClientSecret,
-                        _botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
 
                     // Write to a text file to allow users to show the currently playing song as a song ticker
                     // ToDo: Add config variables

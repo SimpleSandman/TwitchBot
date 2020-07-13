@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchBotDb", "TwitchBotDb\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchBotUtil", "TwitchBotUtil\TwitchBotUtil.csproj", "{7633DB4D-C143-46A8-9B3E-6D4063D08831}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchBotWpf", "TwitchBotWpf\TwitchBotWpf.csproj", "{FB15F696-A988-4897-9DB7-BF41A6502F89}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -35,10 +33,6 @@ Global
 		{7633DB4D-C143-46A8-9B3E-6D4063D08831}.Debug|x64.Build.0 = Debug|x64
 		{7633DB4D-C143-46A8-9B3E-6D4063D08831}.Release|x64.ActiveCfg = Release|x64
 		{7633DB4D-C143-46A8-9B3E-6D4063D08831}.Release|x64.Build.0 = Release|x64
-		{FB15F696-A988-4897-9DB7-BF41A6502F89}.Debug|x64.ActiveCfg = Debug|x64
-		{FB15F696-A988-4897-9DB7-BF41A6502F89}.Debug|x64.Build.0 = Debug|x64
-		{FB15F696-A988-4897-9DB7-BF41A6502F89}.Release|x64.ActiveCfg = Release|x64
-		{FB15F696-A988-4897-9DB7-BF41A6502F89}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
