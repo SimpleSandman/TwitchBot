@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -39,6 +39,13 @@
   <ItemGroup>
     <ProjectReference Include="..\TwitchBotDb\TwitchBotDb.csproj" />
     <ProjectReference Include="..\TwitchBotUtil\TwitchBotUtil.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="AppConfigSecrets.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
 
 </Project>
