@@ -20,11 +20,11 @@ namespace TwitchBotCore.Commands.Features
     public sealed class LibVLCSharpPlayerFeature : BaseFeature
     {
         private readonly LibVLCSharpPlayer _libVLCSharpPlayer;
-        private readonly System.Configuration.Configuration _appConfig;
+        private readonly Configuration _appConfig;
         private readonly YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public LibVLCSharpPlayerFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig,
+        public LibVLCSharpPlayerFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, Configuration appConfig,
             LibVLCSharpPlayer libVLCSharpPlayer) : base(irc, botConfig)
         {
             _libVLCSharpPlayer = libVLCSharpPlayer;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Threading.Tasks;
 
 using TwitchBotCore.Config;
@@ -16,9 +17,9 @@ namespace TwitchBotCore.Commands.Features
     {
         private readonly TwitterClient _twitterInstance = TwitterClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
-        private readonly System.Configuration.Configuration _appConfig;
+        private readonly Configuration _appConfig;
 
-        public TwitterFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig) : base(irc, botConfig)
+        public TwitterFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, Configuration appConfig) : base(irc, botConfig)
         {
             _appConfig = appConfig;
             _rolePermission.Add("!autotweet", new CommandPermission { General = ChatterType.Broadcaster });

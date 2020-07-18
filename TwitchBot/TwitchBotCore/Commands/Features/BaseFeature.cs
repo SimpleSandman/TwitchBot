@@ -96,7 +96,7 @@ namespace TwitchBotCore.Commands.Features
         /// <param name="savedValue">The new value that is replacing the property's current value</param>
         /// <param name="propertyName">The name of the property that is being modified</param>
         /// <param name="appConfig"></param>
-        protected void SaveAppConfigSettings(string savedValue, string propertyName, System.Configuration.Configuration appConfig)
+        protected void SaveAppConfigSettings(string savedValue, string propertyName, Configuration appConfig)
         {
             appConfig.AppSettings.Settings.Remove(propertyName);
             appConfig.AppSettings.Settings.Add(propertyName, savedValue);

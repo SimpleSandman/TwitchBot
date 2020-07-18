@@ -32,7 +32,7 @@ namespace TwitchBotCore
         private CommandSystem _commandSystem;
         private SpotifyWebClient _spotify;
         private TwitchStreamStatus _twitchStreamStatus;
-        private readonly System.Configuration.Configuration _appConfig;
+        private readonly Configuration _appConfig;
         private readonly TwitchBotConfigurationSection _botConfig;
         private readonly IrcClient _irc;
         private readonly List<string> _greetedUsers;

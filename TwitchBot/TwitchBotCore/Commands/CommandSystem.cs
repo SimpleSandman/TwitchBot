@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Threading.Tasks;
 
 using TwitchBotCore.Commands.Features;
@@ -32,8 +33,8 @@ namespace TwitchBotCore.Commands
         private readonly PartyUpFeature _partyUpFeature;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig, 
-            BankService bank, SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting,
+        public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, Configuration appConfig, BankService bank, 
+            SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting,
             SpotifyWebClient spotify, TwitchInfoService twitchInfo, FollowerService follower, GameDirectoryService gameDirectory, InGameUsernameService ign,
             ManualSongRequestService manualSongRequest, QuoteService quote, PartyUpService partyUp)
         {

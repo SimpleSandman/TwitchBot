@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,11 +19,11 @@ namespace TwitchBotCore.Commands.Features
     public sealed class GeneralFeature : BaseFeature
     {
         private readonly TwitchInfoService _twitchInfo;
-        private readonly System.Configuration.Configuration _appConfig;
+        private readonly Configuration _appConfig;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public GeneralFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo,
-            System.Configuration.Configuration appConfig) : base(irc, botConfig)
+            Configuration appConfig) : base(irc, botConfig)
         {
             _twitchInfo = twitchInfo;
             _appConfig = appConfig;

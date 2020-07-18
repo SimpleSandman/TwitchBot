@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -32,7 +33,7 @@ namespace TwitchBotCore.Commands.Features
         private readonly SongRequestBlacklistService _songRequestBlacklist;
         private readonly LibVLCSharpPlayer _libVLCSharpPlayer;
         private readonly SongRequestSettingService _songRequestSetting;
-        private readonly System.Configuration.Configuration _appConfig;
+        private readonly Configuration _appConfig;
         private readonly ManualSongRequestService _manualSongRequest;
         private readonly BankService _bank;
         private readonly SpotifyWebClient _spotify;
@@ -40,7 +41,7 @@ namespace TwitchBotCore.Commands.Features
         private readonly YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public SongRequestFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, System.Configuration.Configuration appConfig,
+        public SongRequestFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, Configuration appConfig,
             SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting,
             ManualSongRequestService manualSongRequest, BankService bank, SpotifyWebClient spotify) : base(irc, botConfig)
         {
