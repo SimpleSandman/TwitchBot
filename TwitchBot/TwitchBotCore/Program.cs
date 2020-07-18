@@ -25,7 +25,7 @@ namespace TwitchBotCore
             try
             {
                 var appConfig = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                var botConfigSection = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
+                var botConfigSection = appConfig.GetSection("TwitchBotConfig") as TwitchBotConfigurationSection;
 
                 //Create a container builder and register all classes that will be composed for the application
                 var builder = new ContainerBuilder();
@@ -54,8 +54,9 @@ namespace TwitchBotCore
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Local error found: " + ex.Message);
-                Thread.Sleep(3000);
+                Console.WriteLine("Local error found: " + ex.Message + "\n");
+                Console.WriteLine("Local error found: " + ex.InnerException);
+                Thread.Sleep(5000);
                 Environment.Exit(1);
             }
         }

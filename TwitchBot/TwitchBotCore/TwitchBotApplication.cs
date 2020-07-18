@@ -61,13 +61,13 @@ namespace TwitchBotCore
         private readonly BotModeratorSingleton _botModeratorInstance = BotModeratorSingleton.Instance;
         private readonly CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
 
-        public TwitchBotApplication(System.Configuration.Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
+        public TwitchBotApplication(Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
             GameDirectoryService gameDirectory, QuoteService quote, BankHeist bankHeist, TwitchChatterListener twitchChatterListener, IrcClient irc,
             BossFight bossFight, SongRequestSettingService songRequestSetting, InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer)
         {
             _appConfig = appConfig;
-            _botConfig = appConfig.GetSection("TwitchBotConfiguration") as TwitchBotConfigurationSection;
+            _botConfig = appConfig.GetSection("TwitchBotConfig") as TwitchBotConfigurationSection;
             _greetedUsers = new List<string>();
             _twitchInfo = twitchInfo;
             _follower = follower;
