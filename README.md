@@ -3,7 +3,7 @@ Custom chat bot for Twitch TV
 
 This is an open-source console application with a .NET Core Web API that will benefit anyone who wants to have a foundation of making their own Twitch bot. This is primarly written in C#/SQL Server using an Azure SQL database from Microsoft. Currently, this bot is not end-user friendly because I'm concentrating on the logic of the bot first.
 
-This bot has been revamped recently with a new configuration wizard that will allow new users to insert their credentials for the bot. For developers, please read further down for details on manually setting a dev configuration so the information is always saved.
+For developers, please read further down for details on manually setting a dev configuration so the information is always saved.
 
 Check out the wiki for the full list of commands by [clicking here](https://github.com/SimpleSandman/TwitchBot/wiki/List-of-Commands)!
 
@@ -56,6 +56,25 @@ Set file to `copy-if-newer` so it's included in the compilation. For production,
   - Workaround Source: https://stackoverflow.com/a/1453287/2113548
   - File Location Source: https://stackoverflow.com/q/12946476/2113548
 
+## Host Self-Contained ASP.NET Core on Windows with IIS
+- Official Guide: https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/
+- This will be an ongoing doc as to how to publish the Web API so you don't have to run IIS Express
+
+- My settings when publishing this app via "File System":
+  - Configuration:
+    - Release - x64
+  - Target Framework:
+    - netcoreapp3.1
+  - Deployment Mode:
+    - Self-Contained
+  - Target Runtime:
+    - win-x64
+  - File Publish Options (checked):
+    - Delete all existing files prior to publish
+    
+- Remember to give `IIS AppPool\[app_pool_name]` (at least) read & execute permissions to the deployed folder
+  - This will allow the files to be overwritten as needed on deployment
+  - Reference: https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/?application-pool-identity
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSimpleSandman%2FTwitchBot.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FSimpleSandman%2FTwitchBot?ref=badge_large)
