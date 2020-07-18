@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -53,7 +52,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest();
             }
 
-            quotePatch.ApplyTo(quote, ModelState);
+            quotePatch.ApplyTo(quote, (Microsoft.AspNetCore.JsonPatch.Adapters.IObjectAdapter)ModelState);
 
             if (!ModelState.IsValid)
             {

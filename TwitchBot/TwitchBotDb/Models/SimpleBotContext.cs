@@ -1,6 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace TwitchBotDb.Models
 {
@@ -797,11 +795,11 @@ namespace TwitchBotDb.Models
             modelBuilder.Entity<TwitchGameCategory>(entity =>
             {
                 entity.HasKey(e => e.Id)
-                    .ForSqlServerIsClustered(false);
+                    .IsClustered(false);
 
                 entity.HasIndex(e => e.Title)
                     .HasName("CIDX")
-                    .ForSqlServerIsClustered();
+                    .IsClustered();
 
                 entity.Property(e => e.Title)
                     .IsRequired()

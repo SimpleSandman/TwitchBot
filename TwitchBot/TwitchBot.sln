@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchBotDb", "TwitchBotDb\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchBotUtil", "TwitchBotUtil\TwitchBotUtil.csproj", "{7633DB4D-C143-46A8-9B3E-6D4063D08831}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchBotCore", "TwitchBotCore\TwitchBotCore.csproj", "{17A76B96-ED27-4653-9AA9-8639A2B8A24F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchBotCore", "TwitchBotCore\TwitchBotCore.csproj", "{17A76B96-ED27-4653-9AA9-8639A2B8A24F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,8 +55,8 @@ Global
 		{7633DB4D-C143-46A8-9B3E-6D4063D08831}.Release|x64.Build.0 = Release|x64
 		{17A76B96-ED27-4653-9AA9-8639A2B8A24F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{17A76B96-ED27-4653-9AA9-8639A2B8A24F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{17A76B96-ED27-4653-9AA9-8639A2B8A24F}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{17A76B96-ED27-4653-9AA9-8639A2B8A24F}.Debug|x64.Build.0 = Debug|Any CPU
+		{17A76B96-ED27-4653-9AA9-8639A2B8A24F}.Debug|x64.ActiveCfg = Debug|x64
+		{17A76B96-ED27-4653-9AA9-8639A2B8A24F}.Debug|x64.Build.0 = Debug|x64
 		{17A76B96-ED27-4653-9AA9-8639A2B8A24F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17A76B96-ED27-4653-9AA9-8639A2B8A24F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{17A76B96-ED27-4653-9AA9-8639A2B8A24F}.Release|x64.ActiveCfg = Release|Any CPU
