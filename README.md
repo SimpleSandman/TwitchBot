@@ -56,7 +56,7 @@ Set file to `copy-if-newer` so it's included in the compilation. For production,
   - Workaround Source: https://stackoverflow.com/a/1453287/2113548
   - File Location Source: https://stackoverflow.com/q/12946476/2113548
 
-## Host Self-Contained ASP.NET Core on Windows with IIS
+## Host Self-Contained ASP.NET Core Web API on Windows with IIS
 - Official Guide: https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/
 - This will be an ongoing doc as to how to publish the Web API so you don't have to run IIS Express
 
