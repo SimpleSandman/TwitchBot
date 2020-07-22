@@ -7,26 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="SqlScripts\StoredProcedures\dbo.CreateDefaultRanks.sql" />
-    <None Remove="SqlScripts\StoredProcedures\dbo.CreateNewBossesWithDefaultStats.sql" />
-    <None Remove="SqlScripts\StoredProcedures\dbo.GetPartyUpRequestList.sql" />
-    <None Remove="SqlScripts\StoredProcedures\dbo.UpdateCreateBalance.sql" />
-    <None Remove="SqlScripts\Tables\InitialCreation.sql" />
-    <None Remove="SqlScripts\Tables\InsertDefaults.sql" />
-    <None Remove="SqlScripts\UserTableTypes\dbo.Usernames.sql" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="SqlScripts\StoredProcedures\dbo.CreateDefaultRanks.sql" />
-    <Content Include="SqlScripts\StoredProcedures\dbo.CreateNewBossesWithDefaultStats.sql" />
-    <Content Include="SqlScripts\StoredProcedures\dbo.GetPartyUpRequestList.sql" />
-    <Content Include="SqlScripts\StoredProcedures\dbo.UpdateCreateBalance.sql" />
-    <Content Include="SqlScripts\Tables\InitialCreation.sql" />
-    <Content Include="SqlScripts\Tables\InsertDefaults.sql" />
-    <Content Include="SqlScripts\UserTableTypes\dbo.Usernames.sql" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Autofac" Version="5.2.0" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.47.0.2008" />
     <PackageReference Include="LibVLCSharp" Version="3.4.6" />
