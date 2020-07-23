@@ -6,13 +6,13 @@ using Google.Apis.YouTube.v3.Data;
 
 using LibVLCSharp.Shared;
 
-using TwitchBotCore.Config;
-using TwitchBotCore.Enums;
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Models;
-using TwitchBotCore.Threads;
+using TwitchBotConsoleApp.Config;
+using TwitchBotConsoleApp.Enums;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Models;
+using TwitchBotConsoleApp.Threads;
 
-namespace TwitchBotCore.Commands.Features
+namespace TwitchBotConsoleApp.Commands.Features
 {
     /// <summary>
     /// The "Command Subsystem" for the "LibVLCSharp Player" feature

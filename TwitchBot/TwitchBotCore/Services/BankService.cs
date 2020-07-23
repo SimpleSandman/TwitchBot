@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Repositories;
+using TwitchBotConsoleApp.Repositories;
 
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
-namespace TwitchBotCore.Services
+namespace TwitchBotConsoleApp.Services
 {
     public class BankService
     {

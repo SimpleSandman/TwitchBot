@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using TwitchBotCore.Models;
+using TwitchBotConsoleApp.Models;
 
 using TwitchBotUtil.Extensions;
 
-namespace TwitchBotCore.Libraries
+namespace TwitchBotConsoleApp.Libraries
 {
     public class MultiLinkUserSingleton
     {

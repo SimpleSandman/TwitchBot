@@ -1,8 +1,8 @@
 ﻿using System.Threading;
 
-using TwitchBotCore.Libraries;
+using TwitchBotConsoleApp.Libraries;
 
-namespace TwitchBotCore.Threads
+namespace TwitchBotConsoleApp.Threads
 {
     /*
     * Class that sends PING to irc server every 5 minutes

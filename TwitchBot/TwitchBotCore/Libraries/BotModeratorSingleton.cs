@@ -5,7 +5,7 @@ using TwitchBotDb.Models;
 
 using TwitchBotUtil.Libraries;
 
-namespace TwitchBotCore.Libraries
+namespace TwitchBotConsoleApp.Libraries
 {
     public class BotModeratorSingleton
     {

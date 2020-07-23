@@ -2,7 +2,7 @@
 
 using Tweetinvi;
 
-namespace TwitchBotCore.Libraries
+namespace TwitchBotConsoleApp.Libraries
 {
     public class TwitterClient
     {

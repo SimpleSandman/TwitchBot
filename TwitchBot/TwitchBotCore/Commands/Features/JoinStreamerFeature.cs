@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Config;
-using TwitchBotCore.Enums;
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Models;
-using TwitchBotCore.Models.JSON;
-using TwitchBotCore.Services;
+using TwitchBotConsoleApp.Config;
+using TwitchBotConsoleApp.Enums;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Models;
+using TwitchBotConsoleApp.Models.JSON;
+using TwitchBotConsoleApp.Services;
 
 using TwitchBotDb.Models;
 
-namespace TwitchBotCore.Commands.Features
+namespace TwitchBotConsoleApp.Commands.Features
 {
     /// <summary>
     /// The "Command Subsystem" for the "Join Streamer" feature

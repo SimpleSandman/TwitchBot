@@ -11,7 +11,7 @@ using Google.Apis.YouTube.v3;
 using TwitchBotUtil.Extensions;
 using TwitchBotUtil.Libraries;
 
-namespace TwitchBotCore.Libraries
+namespace TwitchBotConsoleApp.Libraries
 {
     public class YoutubeClient : YoutubeClientApi
     {

@@ -6,9 +6,9 @@ using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web.Enums;
 using SpotifyAPI.Web.Models;
 
-using TwitchBotCore.Config;
+using TwitchBotConsoleApp.Config;
 
-namespace TwitchBotCore.Libraries
+namespace TwitchBotConsoleApp.Libraries
 {
     /* Example Code for Web Spotify API */
     // https://github.com/JohnnyCrazy/SpotifyAPI-NET/blob/master/SpotifyAPI.Web.Examples.CLI/Program.cs

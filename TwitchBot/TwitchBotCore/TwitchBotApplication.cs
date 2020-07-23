@@ -13,19 +13,19 @@ using Google.Apis.YouTube.v3.Data;
 using Tweetinvi;
 using Tweetinvi.Models;
 
-using TwitchBotCore.Commands;
-using TwitchBotCore.Config;
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Models;
-using TwitchBotCore.Models.JSON;
-using TwitchBotCore.Services;
-using TwitchBotCore.Threads;
+using TwitchBotConsoleApp.Commands;
+using TwitchBotConsoleApp.Config;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Models;
+using TwitchBotConsoleApp.Models.JSON;
+using TwitchBotConsoleApp.Services;
+using TwitchBotConsoleApp.Threads;
 
 using TwitchBotDb.Models;
 
 using TwitchBotUtil.Extensions;
 
-namespace TwitchBotCore
+namespace TwitchBotConsoleApp
 {
     public class TwitchBotApplication
     {

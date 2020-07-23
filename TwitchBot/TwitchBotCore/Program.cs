@@ -7,12 +7,12 @@ using System.Net.Http;
 
 using Autofac;
 
-using TwitchBotCore.Config;
-using TwitchBotCore.Modules;
-using TwitchBotCore.Models;
-using TwitchBotCore.Libraries;
+using TwitchBotConsoleApp.Config;
+using TwitchBotConsoleApp.Modules;
+using TwitchBotConsoleApp.Models;
+using TwitchBotConsoleApp.Libraries;
 
-namespace TwitchBotCore
+namespace TwitchBotConsoleApp
 {
     class Program
     {

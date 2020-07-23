@@ -5,7 +5,7 @@ using TwitchBotDb.Models;
 
 using TwitchBotUtil.Libraries;
 
-namespace TwitchBotCore.Repositories
+namespace TwitchBotConsoleApp.Repositories
 {
     public class QuoteRepository
     {

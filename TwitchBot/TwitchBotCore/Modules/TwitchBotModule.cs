@@ -2,13 +2,13 @@
 
 using System.Configuration;
 
-using TwitchBotCore.Config;
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Repositories;
-using TwitchBotCore.Services;
-using TwitchBotCore.Threads;
+using TwitchBotConsoleApp.Config;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Repositories;
+using TwitchBotConsoleApp.Services;
+using TwitchBotConsoleApp.Threads;
 
-namespace TwitchBotCore.Modules
+namespace TwitchBotConsoleApp.Modules
 {
     public class TwitchBotModule : Module
     {

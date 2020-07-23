@@ -2,13 +2,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Config;
+using TwitchBotConsoleApp.Config;
 
 using TwitchBotDb.Models;
 
 using TwitchBotUtil.Libraries;
 
-namespace TwitchBotCore.Libraries
+namespace TwitchBotConsoleApp.Libraries
 {
     // Using Singleton design pattern
     public sealed class ErrorHandler

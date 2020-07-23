@@ -2,11 +2,11 @@
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Models.JSON;
+using TwitchBotConsoleApp.Models.JSON;
 
 using TwitchBotUtil.Libraries;
 
-namespace TwitchBotCore.Libraries
+namespace TwitchBotConsoleApp.Libraries
 {
     public class TwitchApi
     {

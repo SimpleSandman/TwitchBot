@@ -5,12 +5,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Config;
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Models;
-using TwitchBotCore.Services;
+using TwitchBotConsoleApp.Config;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Models;
+using TwitchBotConsoleApp.Services;
 
-namespace TwitchBotCore.Threads
+namespace TwitchBotConsoleApp.Threads
 {
     public class BossFight
     {

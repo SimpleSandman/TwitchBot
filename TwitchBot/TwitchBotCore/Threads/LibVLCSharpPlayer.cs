@@ -10,12 +10,12 @@ using Google.Apis.YouTube.v3.Data;
 using LibVLCSharp.Shared;
 using LibVLCSharp.Shared.Structures;
 
-using TwitchBotCore.Config;
-using TwitchBotCore.Libraries;
+using TwitchBotConsoleApp.Config;
+using TwitchBotConsoleApp.Libraries;
 
 using TwitchBotUtil.Extensions;
 
-namespace TwitchBotCore.Threads
+namespace TwitchBotConsoleApp.Threads
 {
     public class LibVLCSharpPlayer
     {

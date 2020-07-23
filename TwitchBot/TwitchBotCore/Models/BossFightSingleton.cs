@@ -2,12 +2,12 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Enums;
+using TwitchBotConsoleApp.Enums;
 
 using TwitchBotDb.Models;
 using TwitchBotUtil.Libraries;
 
-namespace TwitchBotCore.Models
+namespace TwitchBotConsoleApp.Models
 {
     public class BossFightSingleton
     {

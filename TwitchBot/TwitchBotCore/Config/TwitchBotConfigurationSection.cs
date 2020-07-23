@@ -1,6 +1,6 @@
 ﻿using System.Configuration;
 
-namespace TwitchBotCore.Config
+namespace TwitchBotConsoleApp.Config
 {
     public sealed class TwitchBotConfigurationSection : ConfigurationSection
     {

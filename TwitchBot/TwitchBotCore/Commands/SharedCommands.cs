@@ -3,12 +3,12 @@
 using System;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Models;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Models;
 
 using TwitchBotUtil.Extensions;
 
-namespace TwitchBotCore.Commands
+namespace TwitchBotConsoleApp.Commands
 {
     public static class SharedCommands
     {

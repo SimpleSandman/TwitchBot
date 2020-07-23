@@ -3,9 +3,9 @@ using System.Net.Sockets;
 using System.IO;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Models;
+using TwitchBotConsoleApp.Models;
 
-namespace TwitchBotCore.Libraries
+namespace TwitchBotConsoleApp.Libraries
 {
     // Reference: https://www.youtube.com/watch?v=Ss-OzV9aUZg
     public class IrcClient

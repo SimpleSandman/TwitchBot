@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace TwitchBotCore.Models.JSON
+namespace TwitchBotConsoleApp.Models.JSON
 {
     public class ErrMsgJSON
     {

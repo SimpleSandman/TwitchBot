@@ -2,10 +2,10 @@
 using System.Linq;
 using System.Threading;
 
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Models;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Models;
 
-namespace TwitchBotCore.Threads
+namespace TwitchBotConsoleApp.Threads
 {
     public class DelayMsg
     {

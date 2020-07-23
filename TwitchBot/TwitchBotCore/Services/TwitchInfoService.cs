@@ -1,11 +1,11 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Config;
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Models.JSON;
+using TwitchBotConsoleApp.Config;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Models.JSON;
 
-namespace TwitchBotCore.Services
+namespace TwitchBotConsoleApp.Services
 {
     public class TwitchInfoService
     {

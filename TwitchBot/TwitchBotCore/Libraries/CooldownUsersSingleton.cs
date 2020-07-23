@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using TwitchBotCore.Models;
+using TwitchBotConsoleApp.Models;
 
-namespace TwitchBotCore.Libraries
+namespace TwitchBotConsoleApp.Libraries
 {
     public class CooldownUsersSingleton
     {

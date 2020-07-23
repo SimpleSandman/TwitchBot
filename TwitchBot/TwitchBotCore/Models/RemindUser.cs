@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TwitchBotCore.Models
+namespace TwitchBotConsoleApp.Models
 {
     public class RemindUser
     {

@@ -3,14 +3,14 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Config;
-using TwitchBotCore.Enums;
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Models;
-using TwitchBotCore.Services;
-using TwitchBotCore.Threads;
+using TwitchBotConsoleApp.Config;
+using TwitchBotConsoleApp.Enums;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Models;
+using TwitchBotConsoleApp.Services;
+using TwitchBotConsoleApp.Threads;
 
-namespace TwitchBotCore.Commands.Features
+namespace TwitchBotConsoleApp.Commands.Features
 {
     /// <summary>
     /// The "Command Subsystem" for the "Mini Games" feature

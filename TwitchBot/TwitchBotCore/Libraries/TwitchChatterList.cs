@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using TwitchBotCore.Enums;
-using TwitchBotCore.Models;
+using TwitchBotConsoleApp.Enums;
+using TwitchBotConsoleApp.Models;
 
-namespace TwitchBotCore.Libraries
+namespace TwitchBotConsoleApp.Libraries
 {
     public class TwitchChatterList
     {

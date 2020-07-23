@@ -2,14 +2,14 @@
 using System.Configuration;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Commands.Features;
-using TwitchBotCore.Config;
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Models;
-using TwitchBotCore.Services;
-using TwitchBotCore.Threads;
+using TwitchBotConsoleApp.Commands.Features;
+using TwitchBotConsoleApp.Config;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Models;
+using TwitchBotConsoleApp.Services;
+using TwitchBotConsoleApp.Threads;
 
-namespace TwitchBotCore.Commands
+namespace TwitchBotConsoleApp.Commands
 {
     /// <summary>
     /// The "Facade" class for the command system

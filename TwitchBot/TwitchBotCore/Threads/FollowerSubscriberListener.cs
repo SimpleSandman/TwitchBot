@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 
-using TwitchBotCore.Config;
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Models;
-using TwitchBotCore.Models.JSON;
-using TwitchBotCore.Services;
+using TwitchBotConsoleApp.Config;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Models;
+using TwitchBotConsoleApp.Models.JSON;
+using TwitchBotConsoleApp.Services;
 
 using TwitchBotDb.Models;
 
 using TwitchBotUtil.Extensions;
 
-namespace TwitchBotCore.Threads
+namespace TwitchBotConsoleApp.Threads
 {
     public class FollowerSubscriberListener
     {

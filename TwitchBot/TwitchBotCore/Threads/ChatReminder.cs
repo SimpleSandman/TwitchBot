@@ -5,17 +5,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Models;
-using TwitchBotCore.Models.JSON;
-using TwitchBotCore.Services;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Models;
+using TwitchBotConsoleApp.Models.JSON;
+using TwitchBotConsoleApp.Services;
 
 using TwitchBotDb.Models;
 
 using TwitchBotUtil.Extensions;
 using TwitchBotUtil.Libraries;
 
-namespace TwitchBotCore.Threads
+namespace TwitchBotConsoleApp.Threads
 {
     public class ChatReminder
     {

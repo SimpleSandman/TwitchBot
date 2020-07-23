@@ -6,13 +6,13 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Enums;
-using TwitchBotCore.Libraries;
-using TwitchBotCore.Models;
-using TwitchBotCore.Models.JSON;
-using TwitchBotCore.Services;
+using TwitchBotConsoleApp.Enums;
+using TwitchBotConsoleApp.Libraries;
+using TwitchBotConsoleApp.Models;
+using TwitchBotConsoleApp.Models.JSON;
+using TwitchBotConsoleApp.Services;
 
-namespace TwitchBotCore.Threads
+namespace TwitchBotConsoleApp.Threads
 {
     public class TwitchChatterListener
     {

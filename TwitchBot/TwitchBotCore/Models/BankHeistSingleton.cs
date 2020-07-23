@@ -6,7 +6,7 @@ using TwitchBotDb.Models;
 
 using TwitchBotUtil.Libraries;
 
-namespace TwitchBotCore.Models
+namespace TwitchBotConsoleApp.Models
 {
     public class BankHeistSingleton
     {

@@ -2,14 +2,14 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using TwitchBotCore.Repositories;
+using TwitchBotConsoleApp.Repositories;
 
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
 using TwitchBotUtil.Extensions;
 
-namespace TwitchBotCore.Services
+namespace TwitchBotConsoleApp.Services
 {
     public class PartyUpService
     {

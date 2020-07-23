@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
 
-using TwitchBotCore.Repositories;
+using TwitchBotConsoleApp.Repositories;
 
 using TwitchBotDb.Models;
 
-namespace TwitchBotCore.Services
+namespace TwitchBotConsoleApp.Services
 {
     public class GameDirectoryService
     {
