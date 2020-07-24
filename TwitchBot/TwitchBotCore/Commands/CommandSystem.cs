@@ -6,8 +6,9 @@ using TwitchBotConsoleApp.Commands.Features;
 using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models;
-using TwitchBotConsoleApp.Services;
 using TwitchBotConsoleApp.Threads;
+
+using TwitchBotDb.Services;
 
 namespace TwitchBotConsoleApp.Commands
 {

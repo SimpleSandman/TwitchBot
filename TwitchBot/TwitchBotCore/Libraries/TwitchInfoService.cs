@@ -5,7 +5,7 @@ using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models.JSON;
 
-namespace TwitchBotConsoleApp.Services
+namespace TwitchBotDb.Services
 {
     public class TwitchInfoService
     {

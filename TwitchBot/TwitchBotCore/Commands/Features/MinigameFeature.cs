@@ -4,11 +4,13 @@ using System.Net.Http;
 using System.Threading.Tasks;
 
 using TwitchBotConsoleApp.Config;
-using TwitchBotConsoleApp.Enums;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models;
-using TwitchBotConsoleApp.Services;
 using TwitchBotConsoleApp.Threads;
+
+using TwitchBotDb.Services;
+
+using TwitchBotUtil.Enums;
 
 namespace TwitchBotConsoleApp.Commands.Features
 {

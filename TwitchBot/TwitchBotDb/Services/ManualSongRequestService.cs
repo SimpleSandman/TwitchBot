@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using TwitchBotConsoleApp.Repositories;
-
 using TwitchBotDb.Models;
+using TwitchBotDb.Repositories;
+
 
 using TwitchBotUtil.Extensions;
 
-namespace TwitchBotConsoleApp.Services
+namespace TwitchBotDb.Services
 {
     public class ManualSongRequestService
     {

@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models;
-using TwitchBotConsoleApp.Services;
+
+using TwitchBotDb.Services;
 
 namespace TwitchBotConsoleApp.Threads
 {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-using TwitchBotConsoleApp.Enums;
+using TwitchBotUtil.Enums;
 
 namespace TwitchBotConsoleApp.Models
 {

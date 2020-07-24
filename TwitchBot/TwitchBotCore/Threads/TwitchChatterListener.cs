@@ -6,11 +6,11 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-using TwitchBotConsoleApp.Enums;
+using TwitchBotUtil.Enums;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models;
 using TwitchBotConsoleApp.Models.JSON;
-using TwitchBotConsoleApp.Services;
+using TwitchBotDb.Services;
 
 namespace TwitchBotConsoleApp.Threads
 {

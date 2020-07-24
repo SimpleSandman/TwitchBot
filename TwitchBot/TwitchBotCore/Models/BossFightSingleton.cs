@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-using TwitchBotConsoleApp.Enums;
+using TwitchBotUtil.Enums;
 
 using TwitchBotDb.Models;
 using TwitchBotUtil.Libraries;

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using TwitchBotConsoleApp.Repositories;
+using TwitchBotDb.Repositories;
 
 using TwitchBotDb.Models;
 
-namespace TwitchBotConsoleApp.Services
+namespace TwitchBotDb.Services
 {
     public class FollowerService
     {

@@ -4,8 +4,8 @@ using System.Configuration;
 
 using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Libraries;
-using TwitchBotConsoleApp.Repositories;
-using TwitchBotConsoleApp.Services;
+using TwitchBotDb.Repositories;
+using TwitchBotDb.Services;
 using TwitchBotConsoleApp.Threads;
 
 namespace TwitchBotConsoleApp.Modules

@@ -8,7 +8,10 @@ using System.Threading.Tasks;
 using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models;
-using TwitchBotConsoleApp.Services;
+
+using TwitchBotDb.Services;
+
+using TwitchBotUtil.Enums;
 
 namespace TwitchBotConsoleApp.Threads
 {
@@ -268,7 +271,7 @@ namespace TwitchBotConsoleApp.Threads
                     FighterClass = new FighterClass
                     {
                         Attack = 50,
-                        ChatterType = Enums.ChatterType.Moderator,
+                        ChatterType = ChatterType.Moderator,
                         Defense = 12,
                         Evasion = 40,
                         Health = 270
@@ -284,7 +287,7 @@ namespace TwitchBotConsoleApp.Threads
                     FighterClass = new FighterClass
                     {
                         Attack = 20,
-                        ChatterType = Enums.ChatterType.Subscriber,
+                        ChatterType = ChatterType.Subscriber,
                         Defense = 17,
                         Evasion = 25,
                         Health = 400
@@ -300,7 +303,7 @@ namespace TwitchBotConsoleApp.Threads
                     FighterClass = new FighterClass
                     {
                         Attack = 35,
-                        ChatterType = Enums.ChatterType.RegularFollower,
+                        ChatterType = ChatterType.RegularFollower,
                         Defense = 13,
                         Evasion = 27,
                         Health = 250
@@ -316,7 +319,7 @@ namespace TwitchBotConsoleApp.Threads
                     FighterClass = new FighterClass
                     {
                         Attack = 30,
-                        ChatterType = Enums.ChatterType.Follower,
+                        ChatterType = ChatterType.Follower,
                         Defense = 9,
                         Evasion = 22,
                         Health = 180
@@ -332,7 +335,7 @@ namespace TwitchBotConsoleApp.Threads
                     FighterClass = new FighterClass
                     {
                         Attack = 25,
-                        ChatterType = Enums.ChatterType.Viewer,
+                        ChatterType = ChatterType.Viewer,
                         Defense = 6,
                         Evasion = 35,
                         Health = 125
