@@ -6,7 +6,7 @@ using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web.Enums;
 using SpotifyAPI.Web.Models;
 
-using TwitchBotConsoleApp.Config;
+using TwitchBotUtil.Config;
 
 namespace TwitchBotConsoleApp.Libraries
 {

@@ -2,11 +2,11 @@
 using System.Configuration;
 using System.Threading.Tasks;
 
-using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models;
 using TwitchBotConsoleApp.Threads;
 
+using TwitchBotUtil.Config;
 using TwitchBotUtil.Enums;
 
 namespace TwitchBotConsoleApp.Commands.Features

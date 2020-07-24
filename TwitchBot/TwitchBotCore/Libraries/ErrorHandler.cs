@@ -2,10 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using TwitchBotConsoleApp.Config;
-
 using TwitchBotDb.Models;
 
+using TwitchBotUtil.Config;
 using TwitchBotUtil.Libraries;
 
 namespace TwitchBotConsoleApp.Libraries

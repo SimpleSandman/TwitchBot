@@ -6,11 +6,11 @@ using Google.Apis.YouTube.v3.Data;
 
 using LibVLCSharp.Shared;
 
-using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models;
 using TwitchBotConsoleApp.Threads;
 
+using TwitchBotUtil.Config;
 using TwitchBotUtil.Enums;
 
 namespace TwitchBotConsoleApp.Commands.Features

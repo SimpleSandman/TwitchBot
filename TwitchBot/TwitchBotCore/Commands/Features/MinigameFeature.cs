@@ -3,13 +3,13 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models;
 using TwitchBotConsoleApp.Threads;
 
 using TwitchBotDb.Services;
 
+using TwitchBotUtil.Config;
 using TwitchBotUtil.Enums;
 
 namespace TwitchBotConsoleApp.Commands.Features

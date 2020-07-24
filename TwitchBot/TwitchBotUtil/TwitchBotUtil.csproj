@@ -9,6 +9,7 @@
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.47.0.2008" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="RestSharp" Version="106.11.4" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
   </ItemGroup>
 
 </Project>

@@ -10,9 +10,9 @@ using Google.Apis.YouTube.v3.Data;
 using LibVLCSharp.Shared;
 using LibVLCSharp.Shared.Structures;
 
-using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Libraries;
 
+using TwitchBotUtil.Config;
 using TwitchBotUtil.Extensions;
 
 namespace TwitchBotConsoleApp.Threads

@@ -1,9 +1,10 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
 
-using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models.JSON;
+
+using TwitchBotUtil.Config;
 
 namespace TwitchBotDb.Services
 {

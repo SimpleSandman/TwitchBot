@@ -5,11 +5,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models;
 
 using TwitchBotDb.Services;
+
+using TwitchBotUtil.Config;
 
 namespace TwitchBotConsoleApp.Threads
 {

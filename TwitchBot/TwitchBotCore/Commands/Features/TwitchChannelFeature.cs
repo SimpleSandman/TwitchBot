@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 
 using RestSharp;
 
-using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models;
 using TwitchBotConsoleApp.Threads;
@@ -12,6 +11,7 @@ using TwitchBotConsoleApp.Threads;
 using TwitchBotDb.Models;
 using TwitchBotDb.Services;
 
+using TwitchBotUtil.Config;
 using TwitchBotUtil.Enums;
 
 namespace TwitchBotConsoleApp.Commands.Features

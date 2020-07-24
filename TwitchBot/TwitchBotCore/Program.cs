@@ -7,10 +7,11 @@ using System.Net.Http;
 
 using Autofac;
 
-using TwitchBotConsoleApp.Config;
 using TwitchBotConsoleApp.Modules;
 using TwitchBotConsoleApp.Models;
 using TwitchBotConsoleApp.Libraries;
+
+using TwitchBotUtil.Config;
 
 namespace TwitchBotConsoleApp
 {
