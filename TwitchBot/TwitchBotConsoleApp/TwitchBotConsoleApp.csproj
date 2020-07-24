@@ -22,11 +22,4 @@
     <ProjectReference Include="..\TwitchBotUtil\TwitchBotUtil.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="AppConfigSecrets.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-
 </Project>
