@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 
 using TwitchBotConsoleApp.Libraries;
-using TwitchBotConsoleApp.Models.JSON;
 
 using TwitchBotUtil.Config;
+using TwitchBotUtil.Models.JSON;
 
 namespace TwitchBotDb.Services
 {

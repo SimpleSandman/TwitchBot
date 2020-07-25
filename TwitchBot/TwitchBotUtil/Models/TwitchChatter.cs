@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TwitchBotConsoleApp.Models
+namespace TwitchBotUtil.Models
 {
     public class TwitchChatter
     {

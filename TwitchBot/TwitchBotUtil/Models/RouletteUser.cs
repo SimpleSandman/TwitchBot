@@ -1,4 +1,4 @@
-﻿namespace TwitchBotConsoleApp.Models
+﻿namespace TwitchBotUtil.Models
 {
     public class RouletteUser
     {

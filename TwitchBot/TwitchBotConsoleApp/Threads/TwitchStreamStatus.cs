@@ -2,8 +2,10 @@
 using System.Threading.Tasks;
 
 using TwitchBotConsoleApp.Libraries;
-using TwitchBotConsoleApp.Models.JSON;
+
 using TwitchBotDb.Services;
+
+using TwitchBotUtil.Models.JSON;
 
 namespace TwitchBotConsoleApp.Threads
 {

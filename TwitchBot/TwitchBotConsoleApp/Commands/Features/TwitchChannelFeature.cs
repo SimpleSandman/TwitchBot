@@ -13,6 +13,7 @@ using TwitchBotDb.Services;
 
 using TwitchBotUtil.Config;
 using TwitchBotUtil.Enums;
+using TwitchBotUtil.Models;
 
 namespace TwitchBotConsoleApp.Commands.Features
 {

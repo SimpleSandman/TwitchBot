@@ -6,14 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using TwitchBotConsoleApp.Libraries;
-using TwitchBotConsoleApp.Models;
-using TwitchBotConsoleApp.Models.JSON;
 
 using TwitchBotDb.Models;
 using TwitchBotDb.Services;
 
 using TwitchBotUtil.Extensions;
 using TwitchBotUtil.Libraries;
+using TwitchBotUtil.Models;
+using TwitchBotUtil.Models.JSON;
 
 namespace TwitchBotConsoleApp.Threads
 {

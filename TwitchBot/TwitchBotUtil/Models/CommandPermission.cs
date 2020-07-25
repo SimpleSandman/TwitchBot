@@ -1,6 +1,6 @@
 ﻿using TwitchBotUtil.Enums;
 
-namespace TwitchBotConsoleApp.Models
+namespace TwitchBotUtil.Models
 {
     public partial class CommandPermission
     {

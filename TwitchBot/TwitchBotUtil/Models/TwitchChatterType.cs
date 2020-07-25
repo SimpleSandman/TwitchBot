@@ -2,7 +2,7 @@
 
 using TwitchBotUtil.Enums;
 
-namespace TwitchBotConsoleApp.Models
+namespace TwitchBotUtil.Models
 {
     public class TwitchChatterType
     {

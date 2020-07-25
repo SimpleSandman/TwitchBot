@@ -2,7 +2,7 @@
 
 using Newtonsoft.Json;
 
-namespace TwitchBotConsoleApp.Models.JSON
+namespace TwitchBotUtil.Models.JSON
 {
     public class UserJSON
     {

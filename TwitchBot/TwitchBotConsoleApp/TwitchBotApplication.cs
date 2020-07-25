@@ -16,7 +16,6 @@ using Tweetinvi.Models;
 using TwitchBotConsoleApp.Commands;
 using TwitchBotConsoleApp.Libraries;
 using TwitchBotConsoleApp.Models;
-using TwitchBotConsoleApp.Models.JSON;
 using TwitchBotConsoleApp.Threads;
 
 using TwitchBotDb.Models;
@@ -24,6 +23,8 @@ using TwitchBotDb.Services;
 
 using TwitchBotUtil.Config;
 using TwitchBotUtil.Extensions;
+using TwitchBotUtil.Models;
+using TwitchBotUtil.Models.JSON;
 
 namespace TwitchBotConsoleApp
 {

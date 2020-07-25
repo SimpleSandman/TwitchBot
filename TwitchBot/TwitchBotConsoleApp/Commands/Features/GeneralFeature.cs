@@ -5,13 +5,13 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using TwitchBotConsoleApp.Libraries;
-using TwitchBotConsoleApp.Models;
-using TwitchBotConsoleApp.Models.JSON;
 
 using TwitchBotDb.Services;
 
 using TwitchBotUtil.Config;
 using TwitchBotUtil.Enums;
+using TwitchBotUtil.Models;
+using TwitchBotUtil.Models.JSON;
 
 namespace TwitchBotConsoleApp.Commands.Features
 {

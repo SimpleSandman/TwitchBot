@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TwitchBotConsoleApp.Models
+namespace TwitchBotUtil.Models
 {
     public partial class CooldownUser
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using TwitchBotUtil.Enums;
-using TwitchBotConsoleApp.Models;
+using TwitchBotUtil.Models;
 
 namespace TwitchBotConsoleApp.Libraries
 {

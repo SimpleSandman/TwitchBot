@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.IO;
 using System.Threading.Tasks;
 
-using TwitchBotConsoleApp.Models;
+using TwitchBotUtil.Models;
 
 namespace TwitchBotConsoleApp.Libraries
 {

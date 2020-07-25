@@ -2,9 +2,9 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-using TwitchBotUtil.Enums;
-
 using TwitchBotDb.Models;
+
+using TwitchBotUtil.Enums;
 using TwitchBotUtil.Libraries;
 
 namespace TwitchBotConsoleApp.Models
@@ -89,9 +89,6 @@ namespace TwitchBotConsoleApp.Models
         /// <param name="twitchBotApiLink"></param>
         public async Task LoadSettings(int broadcasterId, int? gameId, string twitchBotApiLink)
         {
-            BossFightClassStats bossFightClassStats = null;
-            BossFightBossStats bossFightBossStats = null;
-
             BossFightSetting bossFightSetting = await ApiBotRequest.GetExecuteAsync<BossFightSetting>(twitchBotApiLink + $"bossfightsettings/get/{broadcasterId}");
 
             if (bossFightSetting == null)
@@ -105,7 +102,7 @@ namespace TwitchBotConsoleApp.Models
 
             SettingsId = bossFightSetting.Id;
 
-            bossFightClassStats = await ApiBotRequest.GetExecuteAsync<BossFightClassStats>(twitchBotApiLink + $"bossfightclassstats/get/{SettingsId}");
+            BossFightClassStats bossFightClassStats = await ApiBotRequest.GetExecuteAsync<BossFightClassStats>(twitchBotApiLink + $"bossfightclassstats/get/{SettingsId}");
 
             if (bossFightClassStats == null)
             {
@@ -116,7 +113,7 @@ namespace TwitchBotConsoleApp.Models
             if (bossFightClassStats == null)
                 throw new Exception("Unable to create boss fight class stats");
 
-            bossFightBossStats = await ApiBotRequest.GetExecuteAsync<BossFightBossStats>(twitchBotApiLink + $"bossfightbossstats/get/{SettingsId}?gameId={gameId}");
+            BossFightBossStats bossFightBossStats = await ApiBotRequest.GetExecuteAsync<BossFightBossStats>(twitchBotApiLink + $"bossfightbossstats/get/{SettingsId}?gameId={gameId}");
 
             if (bossFightBossStats == null)
             {

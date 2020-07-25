@@ -4,12 +4,12 @@ using System.Threading.Tasks;
 
 using TwitchBotConsoleApp.Commands.Features;
 using TwitchBotConsoleApp.Libraries;
-using TwitchBotConsoleApp.Models;
 using TwitchBotConsoleApp.Threads;
 
 using TwitchBotDb.Services;
 
 using TwitchBotUtil.Config;
+using TwitchBotUtil.Models;
 
 namespace TwitchBotConsoleApp.Commands
 {
