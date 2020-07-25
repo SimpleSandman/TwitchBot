@@ -6,10 +6,10 @@ using TwitchBotConsoleApp.Libraries;
 using TwitchBotDb.Models;
 using TwitchBotDb.Services;
 
-using TwitchBotUtil.Config;
-using TwitchBotUtil.Enums;
-using TwitchBotUtil.Models;
-using TwitchBotUtil.Models.JSON;
+using TwitchBotShared.Config;
+using TwitchBotShared.Enums;
+using TwitchBotShared.Models;
+using TwitchBotShared.Models.JSON;
 
 namespace TwitchBotConsoleApp.Commands.Features
 {

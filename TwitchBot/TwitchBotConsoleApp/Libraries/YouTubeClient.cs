@@ -8,8 +8,8 @@ using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
 
-using TwitchBotUtil.Extensions;
-using TwitchBotUtil.Libraries;
+using TwitchBotShared.Extensions;
+using TwitchBotShared.Libraries;
 
 namespace TwitchBotConsoleApp.Libraries
 {

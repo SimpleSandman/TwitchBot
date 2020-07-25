@@ -13,7 +13,7 @@ using TwitchBotApi.DTO;
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
-using TwitchBotUtil.Extensions;
+using TwitchBotShared.Extensions;
 
 namespace TwitchBotApi.Controllers
 {

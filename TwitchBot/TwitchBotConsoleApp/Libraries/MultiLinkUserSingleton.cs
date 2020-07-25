@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using TwitchBotUtil.Models;
-using TwitchBotUtil.Extensions;
+using TwitchBotShared.Models;
+using TwitchBotShared.Extensions;
 
 namespace TwitchBotConsoleApp.Libraries
 {

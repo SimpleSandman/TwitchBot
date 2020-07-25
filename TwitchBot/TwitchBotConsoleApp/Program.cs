@@ -10,8 +10,8 @@ using Autofac;
 using TwitchBotConsoleApp.Modules;
 using TwitchBotConsoleApp.Libraries;
 
-using TwitchBotUtil.Config;
-using TwitchBotUtil.Models;
+using TwitchBotShared.Config;
+using TwitchBotShared.Models;
 
 namespace TwitchBotConsoleApp
 {

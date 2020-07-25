@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TwitchBotUtil.Extensions
+namespace TwitchBotShared.Extensions
 {
     public static class IListExtensions
     {

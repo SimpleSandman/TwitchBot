@@ -10,7 +10,7 @@ using TwitchBotConsoleApp.Models;
 
 using TwitchBotDb.Services;
 
-using TwitchBotUtil.Config;
+using TwitchBotShared.Config;
 
 namespace TwitchBotConsoleApp.Threads
 {

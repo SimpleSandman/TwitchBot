@@ -8,8 +8,8 @@ using TwitchBotConsoleApp.Threads;
 
 using TwitchBotDb.Services;
 
-using TwitchBotUtil.Config;
-using TwitchBotUtil.Models;
+using TwitchBotShared.Config;
+using TwitchBotShared.Models;
 
 namespace TwitchBotConsoleApp.Commands
 {

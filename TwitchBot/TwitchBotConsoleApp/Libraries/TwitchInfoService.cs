@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 
 using TwitchBotConsoleApp.Libraries;
 
-using TwitchBotUtil.Config;
-using TwitchBotUtil.Models.JSON;
+using TwitchBotShared.Config;
+using TwitchBotShared.Models.JSON;
 
 namespace TwitchBotDb.Services
 {

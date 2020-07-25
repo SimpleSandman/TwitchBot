@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace TwitchBotUtil.Models.JSON
+namespace TwitchBotShared.Models.JSON
 {
     public class ClipJSON
     {

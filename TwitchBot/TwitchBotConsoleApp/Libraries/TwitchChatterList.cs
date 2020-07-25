@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using TwitchBotUtil.Enums;
-using TwitchBotUtil.Models;
+using TwitchBotShared.Enums;
+using TwitchBotShared.Models;
 
 namespace TwitchBotConsoleApp.Libraries
 {

@@ -2,7 +2,7 @@
 
 using TwitchBotDb.Models;
 
-using TwitchBotUtil.Libraries;
+using TwitchBotShared.Libraries;
 
 namespace TwitchBotDb.Repositories
 {

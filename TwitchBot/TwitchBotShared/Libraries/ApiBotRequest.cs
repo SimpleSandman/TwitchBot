@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 using RestSharp;
 
-namespace TwitchBotUtil.Libraries
+namespace TwitchBotShared.Libraries
 {
     public class ApiBotRequest
     {

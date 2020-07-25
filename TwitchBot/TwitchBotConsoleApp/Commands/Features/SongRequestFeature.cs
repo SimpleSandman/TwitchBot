@@ -18,10 +18,10 @@ using TwitchBotConsoleApp.Threads;
 using TwitchBotDb.Models;
 using TwitchBotDb.Services;
 
-using TwitchBotUtil.Config;
-using TwitchBotUtil.Enums;
-using TwitchBotUtil.Extensions;
-using TwitchBotUtil.Models;
+using TwitchBotShared.Config;
+using TwitchBotShared.Enums;
+using TwitchBotShared.Extensions;
+using TwitchBotShared.Models;
 
 namespace TwitchBotConsoleApp.Commands.Features
 {

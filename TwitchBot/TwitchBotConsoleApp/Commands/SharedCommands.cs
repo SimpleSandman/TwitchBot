@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 using TwitchBotConsoleApp.Libraries;
 
-using TwitchBotUtil.Extensions;
-using TwitchBotUtil.Models;
+using TwitchBotShared.Extensions;
+using TwitchBotShared.Models;
 
 namespace TwitchBotConsoleApp.Commands
 {

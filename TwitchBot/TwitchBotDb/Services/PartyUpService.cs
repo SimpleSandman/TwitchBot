@@ -6,7 +6,7 @@ using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 using TwitchBotDb.Repositories;
 
-using TwitchBotUtil.Extensions;
+using TwitchBotShared.Extensions;
 
 namespace TwitchBotDb.Services
 {

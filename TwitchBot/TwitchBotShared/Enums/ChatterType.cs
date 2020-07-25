@@ -1,4 +1,4 @@
-﻿namespace TwitchBotUtil.Enums
+﻿namespace TwitchBotShared.Enums
 {
     public enum ChatterType
     {

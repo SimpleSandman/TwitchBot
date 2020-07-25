@@ -8,7 +8,7 @@ using TwitchBotConsoleApp.Threads;
 using TwitchBotDb.Repositories;
 using TwitchBotDb.Services;
 
-using TwitchBotUtil.Config;
+using TwitchBotShared.Config;
 
 namespace TwitchBotConsoleApp.Modules
 {

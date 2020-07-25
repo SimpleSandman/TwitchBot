@@ -1,4 +1,4 @@
-﻿namespace TwitchBotUtil.Models
+﻿namespace TwitchBotShared.Models
 {
     public class RouletteUser
     {

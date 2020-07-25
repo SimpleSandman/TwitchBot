@@ -12,8 +12,8 @@ using LibVLCSharp.Shared.Structures;
 
 using TwitchBotConsoleApp.Libraries;
 
-using TwitchBotUtil.Config;
-using TwitchBotUtil.Extensions;
+using TwitchBotShared.Config;
+using TwitchBotShared.Extensions;
 
 namespace TwitchBotConsoleApp.Threads
 {

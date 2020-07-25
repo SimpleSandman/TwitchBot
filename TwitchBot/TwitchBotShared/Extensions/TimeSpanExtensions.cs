@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TwitchBotUtil.Extensions
+namespace TwitchBotShared.Extensions
 {
     public static class TimeSpanExtensions
     {

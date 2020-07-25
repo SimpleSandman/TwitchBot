@@ -10,10 +10,10 @@ using TwitchBotConsoleApp.Libraries;
 using TwitchBotDb.Models;
 using TwitchBotDb.Services;
 
-using TwitchBotUtil.Extensions;
-using TwitchBotUtil.Libraries;
-using TwitchBotUtil.Models;
-using TwitchBotUtil.Models.JSON;
+using TwitchBotShared.Extensions;
+using TwitchBotShared.Libraries;
+using TwitchBotShared.Models;
+using TwitchBotShared.Models.JSON;
 
 namespace TwitchBotConsoleApp.Threads
 {

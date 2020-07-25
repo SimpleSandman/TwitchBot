@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 using TwitchBotDb.Models;
 
-using TwitchBotUtil.Config;
-using TwitchBotUtil.Libraries;
+using TwitchBotShared.Config;
+using TwitchBotShared.Libraries;
 
 namespace TwitchBotConsoleApp.Libraries
 {

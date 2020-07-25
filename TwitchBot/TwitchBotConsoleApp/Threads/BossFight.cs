@@ -10,8 +10,8 @@ using TwitchBotConsoleApp.Models;
 
 using TwitchBotDb.Services;
 
-using TwitchBotUtil.Config;
-using TwitchBotUtil.Enums;
+using TwitchBotShared.Config;
+using TwitchBotShared.Enums;
 
 namespace TwitchBotConsoleApp.Threads
 {

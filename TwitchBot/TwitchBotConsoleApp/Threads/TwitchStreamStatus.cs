@@ -5,7 +5,7 @@ using TwitchBotConsoleApp.Libraries;
 
 using TwitchBotDb.Services;
 
-using TwitchBotUtil.Models.JSON;
+using TwitchBotShared.Models.JSON;
 
 namespace TwitchBotConsoleApp.Threads
 {

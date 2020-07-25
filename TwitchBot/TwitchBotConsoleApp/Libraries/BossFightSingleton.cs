@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 using TwitchBotDb.Models;
 
-using TwitchBotUtil.Enums;
-using TwitchBotUtil.Libraries;
+using TwitchBotShared.Enums;
+using TwitchBotShared.Libraries;
 
 namespace TwitchBotConsoleApp.Models
 {

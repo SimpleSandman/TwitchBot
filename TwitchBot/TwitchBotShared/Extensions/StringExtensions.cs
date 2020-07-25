@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace TwitchBotUtil.Extensions
+namespace TwitchBotShared.Extensions
 {
     public static class StringExtensions
     {

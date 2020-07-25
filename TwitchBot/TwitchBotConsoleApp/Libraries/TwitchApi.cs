@@ -2,8 +2,8 @@
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-using TwitchBotUtil.Models.JSON;
-using TwitchBotUtil.Libraries;
+using TwitchBotShared.Models.JSON;
+using TwitchBotShared.Libraries;
 
 namespace TwitchBotConsoleApp.Libraries
 {

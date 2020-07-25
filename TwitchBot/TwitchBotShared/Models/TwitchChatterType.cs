@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-using TwitchBotUtil.Enums;
+using TwitchBotShared.Enums;
 
-namespace TwitchBotUtil.Models
+namespace TwitchBotShared.Models
 {
     public class TwitchChatterType
     {

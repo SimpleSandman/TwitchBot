@@ -34,7 +34,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TwitchBotDb\TwitchBotDb.csproj" />
-    <ProjectReference Include="..\TwitchBotUtil\TwitchBotUtil.csproj" />
+    <ProjectReference Include="..\TwitchBotShared\TwitchBotShared.csproj" />
   </ItemGroup>
 
 </Project>
