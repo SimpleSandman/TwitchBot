@@ -126,6 +126,9 @@ namespace TwitchBotConsoleApp.Commands.Features
                     string tweetResult = _twitterInstance.SendTweet($"Live on Twitch playing {TwitchStreamStatus.CurrentCategory} "
                         + $"\"{TwitchStreamStatus.CurrentTitle}\" twitch.tv/{_botConfig.Broadcaster}");
 
+                    // clear reminder
+                    Program.DelayedMessages.RemoveAll(m => m.Message == $"Did you remind Twitter you're \"!live\"? @{_botConfig.Broadcaster}");
+
                     _irc.SendPublicChatMessage($"{tweetResult} @{_botConfig.Broadcaster}");
                 }
             }

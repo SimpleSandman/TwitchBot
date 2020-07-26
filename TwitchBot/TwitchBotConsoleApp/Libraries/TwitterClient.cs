@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Tweetinvi;
+using CoreTweet;
 
 namespace TwitchBotConsoleApp.Libraries
 {
@@ -13,6 +13,7 @@ namespace TwitchBotConsoleApp.Libraries
 
         public bool HasCredentials { get; set; } = false;
         public string ScreenName { get; set; }
+        public Tokens Tokens { get; set; }
 
         public static TwitterClient Instance
         {
@@ -33,17 +34,17 @@ namespace TwitchBotConsoleApp.Libraries
             }
         }
 
-        public string SendTweet(string pendingMessage)
+        public string SendTweet(string message)
         {
-            if (pendingMessage.Length <= 280)
+            if (message.Length <= 280)
             {
-                Tweet.PublishTweet(pendingMessage);
+                Tokens.Statuses.Update(new { status = message });
                 return "Tweet successfully published!";
             }
             else
             {
-                int overCharLimit = pendingMessage.Length - 280;
-                return "The message you attempted to tweet had " + overCharLimit +
+                int overCharLimit = message.Length - 280;
+                return $"The message you attempted to tweet had {overCharLimit}" +
                     " characters more than the 280 character limit. Please shorten your message and try again";
             }
         }

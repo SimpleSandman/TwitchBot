@@ -1,10 +1,12 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using TwitchBotConsoleApp.Libraries;
 
 using TwitchBotDb.Services;
 
+using TwitchBotShared.Models;
 using TwitchBotShared.Models.JSON;
 
 namespace TwitchBotConsoleApp.Threads
@@ -14,15 +16,17 @@ namespace TwitchBotConsoleApp.Threads
         private readonly IrcClient _irc;
         private readonly Thread _checkStreamStatus;
         private readonly TwitchInfoService _twitchInfo;
+        private readonly string _broadcasterName;
 
         public static bool IsLive { get; private set; } = false;
         public static string CurrentCategory { get; private set; }
         public static string CurrentTitle { get; private set; }
 
-        public TwitchStreamStatus(IrcClient irc, TwitchInfoService twitchInfo)
+        public TwitchStreamStatus(IrcClient irc, TwitchInfoService twitchInfo, string broadcasterName)
         {
             _irc = irc;
             _twitchInfo = twitchInfo;
+            _broadcasterName = broadcasterName;
             _checkStreamStatus = new Thread(new ThreadStart(this.Run));
         }
 
@@ -66,6 +70,13 @@ namespace TwitchBotConsoleApp.Threads
                     // tell the chat the stream is now live
                     if (!IsLive)
                     {
+                        // ToDo: Add setting if user wants preset reminder
+                        Program.DelayedMessages.Add(new DelayedMessage
+                        {
+                            Message = $"Did you remind Twitter you're \"!live\"? @{_broadcasterName}",
+                            SendDate = DateTime.Now.AddMinutes(5)
+                        });
+
                         _irc.SendPublicChatMessage($"Live on Twitch playing {CurrentCategory} \"{CurrentTitle}\"");
                     }
 
