@@ -8,8 +8,8 @@ using System.Net.Http;
 using Autofac;
 
 using TwitchBotConsoleApp.Modules;
-using TwitchBotConsoleApp.Libraries;
 
+using TwitchBotShared.ClientLibraries;
 using TwitchBotShared.Config;
 using TwitchBotShared.Models;
 
@@ -17,7 +17,6 @@ namespace TwitchBotConsoleApp
 {
     class Program
     {
-        public static List<DelayedMessage> DelayedMessages = new List<DelayedMessage>(); // used to handle delayed msgs
         public static List<RouletteUser> RouletteUsers = new List<RouletteUser>(); // used to handle russian roulette
         public static readonly HttpClient HttpClient = new HttpClient();
 

@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
-using TwitchBotShared.Libraries;
-
 namespace TwitchBotDb.Repositories
 {
     public class BankRepository

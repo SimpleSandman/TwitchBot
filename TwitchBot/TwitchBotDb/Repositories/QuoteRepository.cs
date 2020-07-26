@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 
 using TwitchBotDb.Models;
 
-using TwitchBotShared.Libraries;
-
 namespace TwitchBotDb.Repositories
 {
     public class QuoteRepository

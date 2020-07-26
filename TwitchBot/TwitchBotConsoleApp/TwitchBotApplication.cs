@@ -12,18 +12,17 @@ using CoreTweet;
 
 using Google.Apis.YouTube.v3.Data;
 
-using TwitchBotConsoleApp.Commands;
-using TwitchBotConsoleApp.Libraries;
-using TwitchBotConsoleApp.Models;
-using TwitchBotConsoleApp.Threads;
-
 using TwitchBotDb.Models;
 using TwitchBotDb.Services;
 
+using TwitchBotShared.ClientLibraries;
+using TwitchBotShared.ClientLibraries.Singletons;
+using TwitchBotShared.Commands;
 using TwitchBotShared.Config;
 using TwitchBotShared.Extensions;
 using TwitchBotShared.Models;
 using TwitchBotShared.Models.JSON;
+using TwitchBotShared.Threads;
 
 namespace TwitchBotConsoleApp
 {

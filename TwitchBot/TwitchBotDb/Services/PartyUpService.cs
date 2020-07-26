@@ -6,8 +6,6 @@ using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 using TwitchBotDb.Repositories;
 
-using TwitchBotShared.Extensions;
-
 namespace TwitchBotDb.Services
 {
     public class PartyUpService
@@ -41,7 +39,9 @@ namespace TwitchBotDb.Services
             List<string> partyList = await _partyUpDb.GetPartyList(gameId, broadcasterId);
 
             if (partyList == null || partyList.Count == 0)
+            {
                 return "No party members are set for this game";
+            }
 
             string message = "The available party members are: ";
 
@@ -50,7 +50,9 @@ namespace TwitchBotDb.Services
                 message += member + " >< ";
             }
 
-            return message.ReplaceLastOccurrence(" >< ", "");
+            message = message.Substring(0, message.Length - 4);
+
+            return message;
         }
 
         public async Task<string> GetRequestList(int gameId, int broadcasterId)
@@ -58,7 +60,9 @@ namespace TwitchBotDb.Services
             List<PartyUpRequestResult> partyRequestList = await _partyUpDb.GetRequestList(gameId, broadcasterId);
 
             if (partyRequestList == null || partyRequestList.Count == 0)
+            {
                 return "The party request list is empty. Request a member with !partyup [name]";
+            }
 
             string message = "Here are the requested party members: ";
 
@@ -67,7 +71,9 @@ namespace TwitchBotDb.Services
                 message += member.PartyMemberName + " <-- " + member.Username + " || ";
             }
 
-            return message.ReplaceLastOccurrence(" || ", "");
+            message = message.Substring(0, message.Length - 4);
+
+            return message;
         }
 
         public async Task<string> PopRequestedPartyMember(int gameId, int broadcasterId)

@@ -4,9 +4,6 @@ using System.Threading.Tasks;
 using TwitchBotDb.Models;
 using TwitchBotDb.Repositories;
 
-
-using TwitchBotShared.Extensions;
-
 namespace TwitchBotDb.Services
 {
     public class ManualSongRequestService
@@ -28,7 +25,9 @@ namespace TwitchBotDb.Services
             List<SongRequest> songRequests = await _songRequestDb.ListSongRequests(broadcasterId);
 
             if (songRequests == null || songRequests.Count == 0)
+            {
                 return "No song requests have been made";
+            }
 
             string message = "Current list of requested songs: ";
 
@@ -37,7 +36,9 @@ namespace TwitchBotDb.Services
                 message += $"\"{member.Name}\" ({member.Username}) >< ";
             }
 
-            return message.ReplaceLastOccurrence(" >< ", "");
+            message = message.Substring(0, message.Length - 4);
+
+            return message;
         }
 
         public async Task<SongRequest> PopSongRequest(int broadcasterId)
