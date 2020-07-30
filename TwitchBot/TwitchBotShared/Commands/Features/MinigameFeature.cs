@@ -3,15 +3,14 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-using TwitchBotShared.ClientLibraries;
-using TwitchBotShared.Models;
-using TwitchBotShared.Threads;
-
 using TwitchBotDb.Services;
 
+using TwitchBotShared.ClientLibraries;
+using TwitchBotShared.ClientLibraries.Singletons;
 using TwitchBotShared.Config;
 using TwitchBotShared.Enums;
-using TwitchBotShared.ClientLibraries.Singletons;
+using TwitchBotShared.Models;
+using TwitchBotShared.Threads;
 
 namespace TwitchBotShared.Commands.Features
 {
@@ -37,14 +36,14 @@ namespace TwitchBotShared.Commands.Features
             _bank = bank;
             _follower = follower;
             _twitchInfo = twitchInfo;
-            _rolePermission.Add("!roulette", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!bankheist", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!heist", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!raid", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!bossfight", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!roulette", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!bankheist", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!heist", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!raid", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!bossfight", new CommandPermission { General = ChatterType.Viewer });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -124,17 +123,17 @@ namespace TwitchBotShared.Commands.Features
 
                     if (rouletteUser.ShotsTaken == 6)
                     {
-                        int funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+                        int funds = await _bank.CheckBalanceAsync(chatter.Username, _broadcasterInstance.DatabaseId);
                         int reward = 3000; // ToDo: Make roulette reward deposit config setting
 
                         if (funds > -1)
                         {
                             funds += reward; // deposit 500 stream currency
-                            await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds);
+                            await _bank.UpdateFundsAsync(chatter.Username, _broadcasterInstance.DatabaseId, funds);
                         }
                         else
                         {
-                            await _bank.CreateAccount(chatter.Username, _broadcasterInstance.DatabaseId, reward);
+                            await _bank.CreateAccountAsync(chatter.Username, _broadcasterInstance.DatabaseId, reward);
                         }
 
                         _rouletteSingleton.RouletteUsers.RemoveAll(u => u.Username == chatter.Username);
@@ -161,7 +160,7 @@ namespace TwitchBotShared.Commands.Features
             try
             {
                 BankHeist bankHeist = new BankHeist();
-                int funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+                int funds = await _bank.CheckBalanceAsync(chatter.Username, _broadcasterInstance.DatabaseId);
                 int gambleIndex = chatter.Message.IndexOf(" ");
                 bool isValid = true;
                 int gamble = 0;
@@ -249,7 +248,7 @@ namespace TwitchBotShared.Commands.Features
                     // join bank heist
                     BankRobber robber = new BankRobber { Username = chatter.Username, Gamble = gamble };
                     bankHeist.Produce(robber);
-                    await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds - gamble);
+                    await _bank.UpdateFundsAsync(chatter.Username, _broadcasterInstance.DatabaseId, funds - gamble);
 
                     // display new heist level
                     if (!string.IsNullOrEmpty(bankHeist.NextLevelMessage()))
@@ -281,7 +280,7 @@ namespace TwitchBotShared.Commands.Features
             try
             {
                 BossFight bossFight = new BossFight();
-                int funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+                int funds = await _bank.CheckBalanceAsync(chatter.Username, _broadcasterInstance.DatabaseId);
 
                 if (_bossSettingsInstance.IsBossFightOnCooldown())
                 {
@@ -347,12 +346,12 @@ namespace TwitchBotShared.Commands.Features
                         chatterType = _twitchChatterListInstance.GetUserChatterType(chatter.Username);
                         if (chatterType == ChatterType.DoesNotExist)
                         {
-                            using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(chatter.TwitchId))
+                            using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatusAsync(chatter.TwitchId))
                             {
                                 // check if chatter is a follower
                                 if (!message.IsSuccessStatusCode)
                                 {
-                                    int currentExp = await _follower.CurrentExp(chatter.Username, _broadcasterInstance.DatabaseId);
+                                    int currentExp = await _follower.CurrentExpAsync(chatter.Username, _broadcasterInstance.DatabaseId);
                                     if (_follower.IsRegularFollower(currentExp, _botConfig.RegularFollowerHours))
                                     {
                                         chatterType = ChatterType.RegularFollower;
@@ -380,7 +379,7 @@ namespace TwitchBotShared.Commands.Features
                     FighterClass fighterClass = _bossSettingsInstance.ClassStats.Single(c => c.ChatterType == chatterType);
                     BossFighter fighter = new BossFighter { Username = chatter.Username, FighterClass = fighterClass };
                     bossFight.Produce(fighter);
-                    await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds - _bossSettingsInstance.Cost);
+                    await _bank.UpdateFundsAsync(chatter.Username, _broadcasterInstance.DatabaseId, funds - _bossSettingsInstance.Cost);
 
                     // display new boss level
                     if (!string.IsNullOrEmpty(bossFight.NextLevelMessage()))

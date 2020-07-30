@@ -31,23 +31,23 @@ namespace TwitchBotShared.Commands.Features
         {
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
-            _rolePermission.Add("!refreshreminders", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!refreshbossfight", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!refreshcommands", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!refreshreminders", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!refreshbossfight", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!refreshcommands", new CommandPermission { General = ChatterType.Broadcaster });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!refreshreminders":
-                        return (true, await RefreshReminders());
+                        return (true, await RefreshRemindersAsync());
                     case "!refreshbossfight":
-                        return (true, await RefreshBossFight());
+                        return (true, await RefreshBossFightAsync());
                     case "!refreshcommands":
-                        return (true, await RefreshCommands());
+                        return (true, await RefreshCommandsAsync());
                     default:
                         break;
                 }
@@ -60,11 +60,11 @@ namespace TwitchBotShared.Commands.Features
             return (false, DateTime.Now);
         }
 
-        public async Task<DateTime> RefreshReminders()
+        private async Task<DateTime> RefreshRemindersAsync()
         {
             try
             {
-                await Threads.ChatReminder.RefreshReminders();
+                await Threads.ChatReminder.RefreshRemindersAsync();
             }
             catch (Exception ex)
             {
@@ -74,7 +74,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> RefreshBossFight()
+        private async Task<DateTime> RefreshBossFightAsync()
         {
             try
             {
@@ -86,11 +86,11 @@ namespace TwitchBotShared.Commands.Features
                 }
 
                 // Get current game name
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string gameTitle = json.Game;
 
                 // Grab game id in order to find party member
-                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 
                 // During refresh, make sure no fighters can join
                 _bossFightSettingsInstance.RefreshBossFight = true;
@@ -107,7 +107,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> RefreshCommands()
+        private async Task<DateTime> RefreshCommandsAsync()
         {
             try
             {

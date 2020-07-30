@@ -24,7 +24,7 @@ namespace TwitchBotShared.ClientLibraries
             _botConfig = _botSection;
         }
 
-        public async Task<DateTime> Connect()
+        public async Task<DateTime> ConnectAsync()
         {
             try
             {
@@ -65,9 +65,9 @@ namespace TwitchBotShared.ClientLibraries
             };
         }
 
-        public async Task<DateTime> Play()
+        public async Task<DateTime> PlayAsync()
         {
-            await CheckForConnection();
+            await CheckForConnectionAsync();
 
             if (!string.IsNullOrEmpty(_spotify?.AccessToken))
             {
@@ -75,7 +75,7 @@ namespace TwitchBotShared.ClientLibraries
 
                 if (errorResponse?.Error?.Status == 401)
                 {
-                    await CheckForConnection();
+                    await CheckForConnectionAsync();
                     await _spotify.ResumePlaybackAsync("", "", null, "");
                 }
             }
@@ -83,9 +83,9 @@ namespace TwitchBotShared.ClientLibraries
             return DateTime.Now;
         }
 
-        public async Task<DateTime> Pause()
+        public async Task<DateTime> PauseAsync()
         {
-            await CheckForConnection();
+            await CheckForConnectionAsync();
 
             if (!string.IsNullOrEmpty(_spotify?.AccessToken))
             {
@@ -93,7 +93,7 @@ namespace TwitchBotShared.ClientLibraries
 
                 if (errorResponse?.Error?.Status == 401)
                 {
-                    await CheckForConnection();
+                    await CheckForConnectionAsync();
                     await _spotify.PausePlaybackAsync();
                 }
             }
@@ -101,9 +101,9 @@ namespace TwitchBotShared.ClientLibraries
             return DateTime.Now;
         }
 
-        public async Task<DateTime> SkipToPreviousPlayback()
+        public async Task<DateTime> SkipToPreviousPlaybackAsync()
         {
-            await CheckForConnection();
+            await CheckForConnectionAsync();
 
             if (!string.IsNullOrEmpty(_spotify?.AccessToken))
             {
@@ -111,7 +111,7 @@ namespace TwitchBotShared.ClientLibraries
 
                 if (errorResponse?.Error?.Status == 401)
                 {
-                    await CheckForConnection();
+                    await CheckForConnectionAsync();
                     await _spotify.SkipPlaybackToPreviousAsync();
                 }
             }
@@ -119,9 +119,9 @@ namespace TwitchBotShared.ClientLibraries
             return DateTime.Now;
         }
 
-        public async Task<DateTime> SkipToNextPlayback()
+        public async Task<DateTime> SkipToNextPlaybackAsync()
         {
-            await CheckForConnection();
+            await CheckForConnectionAsync();
 
             if (!string.IsNullOrEmpty(_spotify?.AccessToken))
             {
@@ -129,7 +129,7 @@ namespace TwitchBotShared.ClientLibraries
                 
                 if (errorResponse?.Error?.Status == 401)
                 {
-                    await CheckForConnection();
+                    await CheckForConnectionAsync();
                     await _spotify.SkipPlaybackToNextAsync();
                 }
             }
@@ -137,9 +137,9 @@ namespace TwitchBotShared.ClientLibraries
             return DateTime.Now;
         }
 
-        public async Task<PlaybackContext> GetPlayback()
+        public async Task<PlaybackContext> GetPlaybackAsync()
         {
-            await CheckForConnection();
+            await CheckForConnectionAsync();
 
             if (!string.IsNullOrEmpty(_spotify?.AccessToken))
             {
@@ -147,7 +147,7 @@ namespace TwitchBotShared.ClientLibraries
 
                 if (playbackContext?.Error?.Status == 401)
                 {
-                    await CheckForConnection();
+                    await CheckForConnectionAsync();
                     playbackContext = await _spotify.GetPlaybackAsync();
                 }
 
@@ -157,9 +157,9 @@ namespace TwitchBotShared.ClientLibraries
             return null;
         }
 
-        public async Task<SimpleTrack> GetLastPlayedSong()
+        public async Task<SimpleTrack> GetLastPlayedSongAsync()
         {
-            await CheckForConnection();
+            await CheckForConnectionAsync();
 
             if (!string.IsNullOrEmpty(_spotify?.AccessToken))
             {
@@ -167,7 +167,7 @@ namespace TwitchBotShared.ClientLibraries
 
                 if (playbackHistory.Error == null)
                 {
-                    await CheckForConnection();
+                    await CheckForConnectionAsync();
                     if (playbackHistory.Items.Count > 0)
                     {
                         return playbackHistory.Items[0].Track;
@@ -178,11 +178,11 @@ namespace TwitchBotShared.ClientLibraries
             return null;
         }
 
-        private async Task CheckForConnection()
+        private async Task CheckForConnectionAsync()
         {
             if (HasInitialConfig() && string.IsNullOrEmpty(_spotify?.AccessToken))
             {
-                await Connect();
+                await ConnectAsync();
                 await Task.Delay(1000);
             }
         }

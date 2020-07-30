@@ -61,63 +61,63 @@ namespace TwitchBotShared.Commands
         {
             try
             {
-                if (await _bank.IsRequestExecuted(chatter))
+                if (await _bank.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _followerFeature.IsRequestExecuted(chatter))
+                else if (await _followerFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _generalFeature.IsRequestExecuted(chatter))
+                else if (await _generalFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _inGameNameFeature.IsRequestExecuted(chatter))
+                else if (await _inGameNameFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _joinStreamerFeature.IsRequestExecuted(chatter))
+                else if (await _joinStreamerFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _libVLCSharpPlayerFeature.IsRequestExecuted(chatter))
+                else if (await _libVLCSharpPlayerFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _miniGameFeature.IsRequestExecuted(chatter))
+                else if (await _miniGameFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _multiLinkUserFeature.IsRequestExecuted(chatter))
+                else if (await _multiLinkUserFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _partyUpFeature.IsRequestExecuted(chatter))
+                else if (await _partyUpFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _quoteFeature.IsRequestExecuted(chatter))
+                else if (await _quoteFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _reminderFeature.IsRequestExecuted(chatter))
+                else if (await _reminderFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _songRequestFeature.IsRequestExecuted(chatter))
+                else if (await _songRequestFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _spotifyFeature.IsRequestExecuted(chatter))
+                else if (await _spotifyFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _twitchChannelFeature.IsRequestExecuted(chatter))
+                else if (await _twitchChannelFeature.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }
-                else if (await _twitter.IsRequestExecuted(chatter))
+                else if (await _twitter.IsRequestExecutedAsync(chatter))
                 {
                     return;
                 }

@@ -30,28 +30,28 @@ namespace TwitchBotShared.Commands.Features
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
             _partyUp = partyUp;
-            _rolePermission.Add("!partyup", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!partyuprequestlist", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!partyuplist", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!poppartyup", new CommandPermission { General = ChatterType.VIP });
-            _rolePermission.Add("!poppartyuprequest", new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add("!partyup", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!partyuprequestlist", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!partyuplist", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!poppartyup", new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add("!poppartyuprequest", new CommandPermission { General = ChatterType.VIP });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!partyup":
-                        return (true, await PartyUp(chatter));
+                        return (true, await PartyUpAsync(chatter));
                     case "!partyuprequestlist":
-                        return (true, await PartyUpRequestList());
+                        return (true, await PartyUpRequestListAsync());
                     case "!partyuplist":
-                        return (true, await PartyUpList());
+                        return (true, await PartyUpListAsync());
                     case "!poppartyup":
                     case "!poppartyuprequest":
-                        return (true, await PopPartyUpRequest());
+                        return (true, await PopPartyUpRequestAsync());
                     default:
                         break;
                 }
@@ -68,7 +68,7 @@ namespace TwitchBotShared.Commands.Features
         /// Request party member if game and character exists in party up system
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> PartyUp(TwitchChatter chatter)
+        private async Task<DateTime> PartyUpAsync(TwitchChatter chatter)
         {
             try
             {
@@ -82,10 +82,10 @@ namespace TwitchBotShared.Commands.Features
                 }
 
                 // get current game info
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string gameTitle = json.Game;
                 string partyMemberName = chatter.Message.Substring(inputIndex);
-                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 
                 // attempt to add requested party member into the queue
                 if (string.IsNullOrEmpty(gameTitle))
@@ -102,7 +102,7 @@ namespace TwitchBotShared.Commands.Features
                     return DateTime.Now;
                 }
 
-                PartyUp partyMember = await _partyUp.GetPartyMember(partyMemberName, game.Id, _broadcasterInstance.DatabaseId);
+                PartyUp partyMember = await _partyUp.GetPartyMemberAsync(partyMemberName, game.Id, _broadcasterInstance.DatabaseId);
 
                 if (partyMember == null)
                 {
@@ -111,14 +111,14 @@ namespace TwitchBotShared.Commands.Features
                     return DateTime.Now;
                 }
 
-                if (await _partyUp.HasUserAlreadyRequested(chatter.DisplayName, game.Id, _broadcasterInstance.DatabaseId))
+                if (await _partyUp.HasUserAlreadyRequestedAsync(chatter.DisplayName, game.Id, _broadcasterInstance.DatabaseId))
                 {
                     _irc.SendPublicChatMessage($"You have already requested a party member. "
                         + $"Please wait until your request has been completed @{chatter.DisplayName}");
                     return DateTime.Now;
                 }
 
-                await _partyUp.AddPartyMember(chatter.DisplayName, partyMember.Id);
+                await _partyUp.AddRequestedPartyMemberAsync(chatter.DisplayName, partyMember.Id);
 
                 _irc.SendPublicChatMessage($"@{chatter.DisplayName}: {partyMemberName} has been added to the party queue");
 
@@ -134,14 +134,14 @@ namespace TwitchBotShared.Commands.Features
         /// <summary>
         /// Check what other user's have requested
         /// </summary>
-        public async Task<DateTime> PartyUpRequestList()
+        private async Task<DateTime> PartyUpRequestListAsync()
         {
             try
             {
                 // get current game info
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string gameTitle = json.Game;
-                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 
                 if (string.IsNullOrEmpty(gameTitle))
                 {
@@ -153,7 +153,7 @@ namespace TwitchBotShared.Commands.Features
                 else if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
                 else
-                    _irc.SendPublicChatMessage(await _partyUp.GetRequestList(game.Id, _broadcasterInstance.DatabaseId));
+                    _irc.SendPublicChatMessage(await _partyUp.GetRequestListAsync(game.Id, _broadcasterInstance.DatabaseId));
             }
             catch (Exception ex)
             {
@@ -166,14 +166,14 @@ namespace TwitchBotShared.Commands.Features
         /// <summary>
         /// Check what party members are available (if game is part of the party up system)
         /// </summary>
-        public async Task<DateTime> PartyUpList()
+        private async Task<DateTime> PartyUpListAsync()
         {
             try
             {
                 // get current game info
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string gameTitle = json.Game;
-                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 
                 if (string.IsNullOrEmpty(gameTitle))
                 {
@@ -186,7 +186,7 @@ namespace TwitchBotShared.Commands.Features
                 else if (game == null || game.Id == 0)
                     _irc.SendPublicChatMessage("This game is currently not a part of the \"Party Up\" system");
                 else
-                    _irc.SendPublicChatMessage(await _partyUp.GetPartyList(game.Id, _broadcasterInstance.DatabaseId));
+                    _irc.SendPublicChatMessage(await _partyUp.GetPartyListAsync(game.Id, _broadcasterInstance.DatabaseId));
             }
             catch (Exception ex)
             {
@@ -199,14 +199,14 @@ namespace TwitchBotShared.Commands.Features
         /// <summary>
         /// Removes first party memeber in queue of party up requests
         /// </summary>
-        public async Task<DateTime> PopPartyUpRequest()
+        private async Task<DateTime> PopPartyUpRequestAsync()
         {
             try
             {
                 // get current game info
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string gameTitle = json.Game;
-                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 
                 if (string.IsNullOrEmpty(gameTitle))
                 {
@@ -216,7 +216,7 @@ namespace TwitchBotShared.Commands.Features
                         + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
                 }
                 else if (game?.Id > 0)
-                    _irc.SendPublicChatMessage(await _partyUp.PopRequestedPartyMember(game.Id, _broadcasterInstance.DatabaseId));
+                    _irc.SendPublicChatMessage(await _partyUp.PopRequestedPartyMemberAsync(game.Id, _broadcasterInstance.DatabaseId));
                 else
                     _irc.SendPublicChatMessage("This game is not part of the \"Party Up\" system");
             }

@@ -91,7 +91,7 @@ namespace TwitchBotShared.ClientLibraries
             }
         }
 
-        public async Task<string> ReadMessage()
+        public async Task<string> ReadMessageAsync()
         {
             try
             {

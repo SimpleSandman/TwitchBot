@@ -110,7 +110,7 @@ namespace TwitchBotConsoleApp
                 ErrorHandler.Configure(_broadcasterInstance.DatabaseId, _irc, _botConfig);
 
                 // Get broadcaster ID so the user can only see their data from the db
-                await SetBroadcasterIds();
+                await SetBroadcasterIdsAsync();
 
                 if (_broadcasterInstance.DatabaseId == 0 || string.IsNullOrEmpty(_broadcasterInstance.TwitchId))
                 {
@@ -127,7 +127,7 @@ namespace TwitchBotConsoleApp
 
                 /* Connect to local Spotify client */
                 _spotify = new SpotifyWebClient(_botConfig);
-                await _spotify.Connect();
+                await _spotify.ConnectAsync();
                 
                 /* Load command classes */
                 _commandSystem = new CommandSystem(_irc, _botConfig, _appConfig, _bank, _songRequestBlacklist,
@@ -146,10 +146,10 @@ namespace TwitchBotConsoleApp
                 Console.WriteLine();
 
                 /* Configure YouTube song request from user's YT account (request permission if needed) */
-                await GetYouTubeAuth();
+                await GetYouTubeAuthAsync();
 
                 /* Start listening for delayed messages */
-                DelayMsg delayMsg = new DelayMsg(_irc);
+                DelayMessage delayMsg = new DelayMessage(_irc);
                 delayMsg.Start();
 
                 /* Grab list of chatters from channel */
@@ -157,7 +157,7 @@ namespace TwitchBotConsoleApp
 
                 /* Get the status of the Twitch stream */
                 _twitchStreamStatus = new TwitchStreamStatus(_irc, _twitchInfo, _botConfig.Broadcaster);
-                await _twitchStreamStatus.LoadChannelInfo();
+                await _twitchStreamStatus.LoadChannelInfoAsync();
                 _twitchStreamStatus.Start();
 
                 /* Pull list of followers and check experience points for stream leveling */
@@ -176,7 +176,7 @@ namespace TwitchBotConsoleApp
                 }
 
                 // Grab game id in order to find party member
-                TwitchGameCategory game = await _gameDirectory.GetGameId(TwitchStreamStatus.CurrentCategory);
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(TwitchStreamStatus.CurrentCategory);
 
                 /* Load/create settings and start the queue for the boss fight */
                 await _bossFightInstance.LoadSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
@@ -203,7 +203,7 @@ namespace TwitchBotConsoleApp
                 Console.WriteLine();
 
                 /* Finished setup, time to start */
-                await GetChatBox();
+                await GetChatBoxAsync();
             }
             catch (Exception ex)
             {
@@ -214,7 +214,7 @@ namespace TwitchBotConsoleApp
         /// <summary>
         /// Monitor chat box for commands
         /// </summary>
-        private async Task GetChatBox()
+        private async Task GetChatBoxAsync()
         {
             try
             {
@@ -222,7 +222,7 @@ namespace TwitchBotConsoleApp
                 while (true)
                 {
                     // Read any message inside the chat room
-                    string rawMessage = await _irc.ReadMessage();
+                    string rawMessage = await _irc.ReadMessageAsync();
                     Console.WriteLine(rawMessage); // Print raw irc message
 
                     if (!string.IsNullOrEmpty(rawMessage))
@@ -261,14 +261,14 @@ namespace TwitchBotConsoleApp
                                 // Purge any clips that aren't from the broadcaster that a viewer posts
                                 if (_botConfig.Broadcaster.ToLower() != chatter.Username
                                     && !chatter.Badges.Contains("moderator")
-                                    && !await IsAllowedChatMessage(chatter))
+                                    && !await IsAllowedChatMessageAsync(chatter))
                                 {
                                     _irc.ClearMessage(chatter);
                                     _irc.SendPublicChatMessage($"Please refrain from posting a message that isn't for this channel @{chatter.DisplayName}");
                                     continue;
                                 }
 
-                                await GreetUser(chatter);
+                                await GreetUserAsync(chatter);
 
                                 await _commandSystem.ExecRequest(chatter);
 
@@ -301,11 +301,11 @@ namespace TwitchBotConsoleApp
             }
         }
 
-        private async Task SetBroadcasterIds()
+        private async Task SetBroadcasterIdsAsync()
         {
             try
             {
-                RootUserJSON json = await _twitchInfo.GetUsersByLoginName(_botConfig.Broadcaster);
+                RootUserJSON json = await _twitchInfo.GetUsersByLoginNameAsync(_botConfig.Broadcaster);
 
                 if (json?.Users.Count == 0)
                 {
@@ -350,7 +350,7 @@ namespace TwitchBotConsoleApp
         /// Greet a user (new or returning) with a welcome message and a "thank-you" deposit of stream currency
         /// </summary>
         ///<param name="chatter"></param>
-        private async Task GreetUser(TwitchChatter chatter)
+        private async Task GreetUserAsync(TwitchChatter chatter)
         {
             try
             {
@@ -360,13 +360,13 @@ namespace TwitchBotConsoleApp
                     && TwitchStreamStatus.IsLive)
                 {
                     // check if user has a stream currency account
-                    int funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+                    int funds = await _bank.CheckBalanceAsync(chatter.Username, _broadcasterInstance.DatabaseId);
                     int greetedDeposit = 500; // ToDo: Make greeted deposit config setting
 
                     if (funds > -1 || chatter.Badges.Contains("moderator") || chatter.Badges.Contains("vip") || chatter.Badges.Contains("bits"))
                     {
-                        int currentExp = await _follower.CurrentExp(chatter.Username, _broadcasterInstance.DatabaseId);
-                        IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterInstance.DatabaseId);
+                        int currentExp = await _follower.CurrentExpAsync(chatter.Username, _broadcasterInstance.DatabaseId);
+                        IEnumerable<Rank> rankList = await _follower.GetRankListAsync(_broadcasterInstance.DatabaseId);
                         Rank rank = _follower.GetCurrentRank(rankList, currentExp);
 
                         string rankName = "";
@@ -376,14 +376,14 @@ namespace TwitchBotConsoleApp
                         }
 
                         funds += greetedDeposit; // deposit stream currency
-                        await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds);
+                        await _bank.UpdateFundsAsync(chatter.Username, _broadcasterInstance.DatabaseId, funds);
 
                         _irc.SendPublicChatMessage($"Welcome back {rankName} @{chatter.DisplayName} ! " 
                             + $"Let me reward your return with {greetedDeposit} {_botConfig.CurrencyType}");
                     }
                     else
                     {
-                        await _bank.CreateAccount(chatter.Username, _broadcasterInstance.DatabaseId, greetedDeposit);
+                        await _bank.CreateAccountAsync(chatter.Username, _broadcasterInstance.DatabaseId, greetedDeposit);
 
                         _irc.SendPublicChatMessage($"Welcome to the channel @{chatter.DisplayName} ! Thanks for saying something! "
                             + $"Let me show you my appreciation with {greetedDeposit} {_botConfig.CurrencyType}");
@@ -446,7 +446,7 @@ namespace TwitchBotConsoleApp
                             {
                                 SaveTwitterAccessInfo(tokens.AccessToken, tokens.AccessTokenSecret);
 
-                                if (await VerifyTwitterCredentials(tokens))
+                                if (await VerifyTwitterCredentialsAsync(tokens))
                                 {
                                     Console.WriteLine();
                                     Console.WriteLine("Twitter authentication granted for Twitter account (screen name): "
@@ -471,7 +471,7 @@ namespace TwitchBotConsoleApp
                     }
                     else
                     {
-                        if (await VerifyTwitterCredentials(tokens))
+                        if (await VerifyTwitterCredentialsAsync(tokens))
                         {
                             Console.WriteLine($"Current authenticated Twitter's screen name: {_twitterInstance.ScreenName}");
                             Console.WriteLine();
@@ -490,7 +490,7 @@ namespace TwitchBotConsoleApp
             }
         }
 
-        private async Task<bool> VerifyTwitterCredentials(Tokens tokens)
+        private async Task<bool> VerifyTwitterCredentialsAsync(Tokens tokens)
         {
             // Verify creds
             UserResponse response = await tokens.Account.VerifyCredentialsAsync();
@@ -530,7 +530,7 @@ namespace TwitchBotConsoleApp
             ConfigurationManager.RefreshSection("TwitchBotConfiguration");
         }
 
-        private async Task GetYouTubeAuth()
+        private async Task GetYouTubeAuthAsync()
         {
             try
             {
@@ -540,7 +540,7 @@ namespace TwitchBotConsoleApp
                     Playlist playlist = null;
                     string playlistName = _botConfig.YouTubeBroadcasterPlaylistName;
                     string defaultPlaylistName = "Twitch Song Requests";
-                    SongRequestSetting songRequestSetting = await _songRequestSetting.GetSongRequestSetting(_broadcasterInstance.DatabaseId);
+                    SongRequestSetting songRequestSetting = await _songRequestSetting.GetSongRequestSettingAsync(_broadcasterInstance.DatabaseId);
 
                     if (string.IsNullOrEmpty(playlistName))
                     {
@@ -550,20 +550,20 @@ namespace TwitchBotConsoleApp
                     // Check if YouTube song request playlist still exists
                     if (!string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                     {
-                        playlist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId);
+                        playlist = await _youTubeClientInstance.GetBroadcasterPlaylistByIdAsync(_botConfig.YouTubeBroadcasterPlaylistId);
                     }
 
                     if (playlist?.Id == null)
                     {
-                        playlist = await _youTubeClientInstance.GetBroadcasterPlaylistById(songRequestSetting.RequestPlaylistId);
+                        playlist = await _youTubeClientInstance.GetBroadcasterPlaylistByIdAsync(songRequestSetting.RequestPlaylistId);
 
                         if (playlist?.Id == null)
                         {
-                            playlist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeyword(playlistName);
+                            playlist = await _youTubeClientInstance.GetBroadcasterPlaylistByKeywordAsync(playlistName);
 
                             if (playlist?.Id == null)
                             {
-                                playlist = await _youTubeClientInstance.CreatePlaylist(playlistName,
+                                playlist = await _youTubeClientInstance.CreatePlaylistAsync(playlistName,
                                 "Songs requested via Twitch viewers on https://twitch.tv/" + _botConfig.Broadcaster
                                     + " . Playlist automatically created courtesy of https://github.com/SimpleSandman/TwitchBot");
                             }
@@ -585,12 +585,12 @@ namespace TwitchBotConsoleApp
                     // Check if personal YouTube playlist still exists
                     if (!string.IsNullOrEmpty(_botConfig.YouTubePersonalPlaylistId))
                     {
-                        playlist = await _youTubeClientInstance.GetPlaylistById(_botConfig.YouTubePersonalPlaylistId);
+                        playlist = await _youTubeClientInstance.GetPlaylistByIdAsync(_botConfig.YouTubePersonalPlaylistId);
                     }
 
                     if (playlist?.Id == null && songRequestSetting.PersonalPlaylistId != null)
                     {
-                        playlist = await _youTubeClientInstance.GetPlaylistById(songRequestSetting.PersonalPlaylistId);
+                        playlist = await _youTubeClientInstance.GetPlaylistByIdAsync(songRequestSetting.PersonalPlaylistId);
                     }
 
                     if (playlist?.Id != null && playlist?.Snippet != null)
@@ -613,7 +613,7 @@ namespace TwitchBotConsoleApp
                             || _botConfig.YouTubePersonalPlaylistId != (songRequestSetting.PersonalPlaylistId ?? "")
                             || _broadcasterInstance.DatabaseId != songRequestSetting.BroadcasterId))
                     {
-                        await _songRequestSetting.UpdateSongRequestSetting
+                        await _songRequestSetting.UpdateSongRequestSettingAsync
                         (
                             _botConfig.YouTubeBroadcasterPlaylistId,
                             _botConfig.YouTubePersonalPlaylistId,
@@ -623,7 +623,7 @@ namespace TwitchBotConsoleApp
                     }
                     else if (songRequestSetting?.Id == 0)
                     {
-                        await _songRequestSetting.CreateSongRequestSetting
+                        await _songRequestSetting.CreateSongRequestSettingAsync
                         (
                             _botConfig.YouTubeBroadcasterPlaylistId,
                             _botConfig.YouTubePersonalPlaylistId,
@@ -667,11 +667,11 @@ namespace TwitchBotConsoleApp
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        private async Task<bool> IsAllowedChatMessage(TwitchChatter chatter)
+        private async Task<bool> IsAllowedChatMessageAsync(TwitchChatter chatter)
         {
             if (chatter.Message.Contains("clips.twitch.tv/"))
             {
-                return await IsBroadcasterClip(chatter);
+                return await IsBroadcasterClipAsync(chatter);
             }
             else if (chatter.Message.Contains("twitch.tv/") 
                 && chatter.Message.Contains("/clip/")
@@ -688,7 +688,7 @@ namespace TwitchBotConsoleApp
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        private async Task<bool> IsBroadcasterClip(TwitchChatter chatter)
+        private async Task<bool> IsBroadcasterClipAsync(TwitchChatter chatter)
         {
             string clipUrl = "clips.twitch.tv/";
 
@@ -699,7 +699,7 @@ namespace TwitchBotConsoleApp
                 ? chatter.Message.Substring(slugIndex, endSlugIndex - slugIndex) 
                 : chatter.Message.Substring(slugIndex);
 
-            ClipJSON clip = await _twitchInfo.GetClip(slug);
+            ClipJSON clip = await _twitchInfo.GetClipAsync(slug);
 
             if (clip.Broadcaster.Name == _botConfig.Broadcaster.ToLower())
             {
@@ -738,11 +738,11 @@ namespace TwitchBotConsoleApp
 
                 /* Else use the custom command from the database */
                 // Get current game name
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string gameTitle = json.Game;
 
                 // Grab game id in order to find party member
-                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
                 CustomCommand customCommand = _customCommandInstance.FindCustomCommand(chatter.Message.ToLower(), game?.Id);
 
                 if (customCommand == null || _cooldownUsersInstance.IsCommandOnCooldown(customCommand.Name, chatter, _irc, customCommand.IsGlobalCooldown))
@@ -750,7 +750,7 @@ namespace TwitchBotConsoleApp
                     return;
                 }
 
-                int balance = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+                int balance = await _bank.CheckBalanceAsync(chatter.Username, _broadcasterInstance.DatabaseId);
 
                 if (balance == -1)
                 {
@@ -790,7 +790,7 @@ namespace TwitchBotConsoleApp
                 if (customCommand.CurrencyCost > 0)
                 {
                     balance -= customCommand.CurrencyCost;
-                    await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, balance);
+                    await _bank.UpdateFundsAsync(chatter.Username, _broadcasterInstance.DatabaseId, balance);
 
                     _irc.SendPublicChatMessage($"@{chatter.DisplayName} spent {customCommand.CurrencyCost} " + 
                         $"{_botConfig.CurrencyType} for {customCommand.Name} and now has {balance} {_botConfig.CurrencyType}");

@@ -15,12 +15,12 @@ namespace TwitchBotDb.Repositories
             _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public async Task<PartyUp> GetPartyMember(string partyMember, int gameId, int broadcasterId)
+        public async Task<PartyUp> GetPartyMemberAsync(string partyMember, int gameId, int broadcasterId)
         {
             return await ApiBotRequest.GetExecuteAsync<PartyUp>(_twitchBotApiLink + $"partyups/get/{broadcasterId}?gameId={gameId}&partymember={partyMember}");
         }
 
-        public async Task AddRequestedPartyMember(string username, int partyMemberId)
+        public async Task AddRequestedPartyMemberAsync(string username, int partyMemberId)
         {
             PartyUpRequest requestedPartyMember = new PartyUpRequest
             {
@@ -31,17 +31,17 @@ namespace TwitchBotDb.Repositories
             await ApiBotRequest.PostExecuteAsync(_twitchBotApiLink + $"partyuprequests/create", requestedPartyMember);
         }
 
-        public async Task<List<string>> GetPartyList(int gameId, int broadcasterId)
+        public async Task<List<string>> GetPartyListAsync(int gameId, int broadcasterId)
         {
             return await ApiBotRequest.GetExecuteAsync<List<string>>(_twitchBotApiLink + $"partyups/get/{broadcasterId}?gameId={gameId}");
         }
 
-        public async Task<List<PartyUpRequestResult>> GetRequestList(int gameId, int broadcasterId)
+        public async Task<List<PartyUpRequestResult>> GetRequestListAsync(int gameId, int broadcasterId)
         {
             return await ApiBotRequest.GetExecuteAsync<List<PartyUpRequestResult>>(_twitchBotApiLink + $"partyuprequests/getlist/{broadcasterId}?gameId={gameId}");
         }
 
-        public async Task<PartyUpRequestResult> PopRequestedPartyMember(int gameId, int broadcasterId)
+        public async Task<PartyUpRequestResult> PopRequestedPartyMemberAsync(int gameId, int broadcasterId)
         {
             return await ApiBotRequest.DeleteExecuteAsync<PartyUpRequestResult>(_twitchBotApiLink + $"partyuprequests/deletefirst/{broadcasterId}?gameid={gameId}");
         }

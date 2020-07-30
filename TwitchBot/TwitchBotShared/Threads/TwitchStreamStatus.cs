@@ -17,7 +17,7 @@ namespace TwitchBotShared.Threads
         private readonly Thread _checkStreamStatus;
         private readonly TwitchInfoService _twitchInfo;
         private readonly string _broadcasterName;
-        private readonly DelayedMessagesSingleton _delayedMessagesInstance = DelayedMessagesSingleton.Instance;
+        private readonly DelayedMessageSingleton _delayedMessagesInstance = DelayedMessageSingleton.Instance;
 
         public static bool IsLive { get; private set; } = false;
         public static string CurrentCategory { get; private set; }
@@ -37,9 +37,9 @@ namespace TwitchBotShared.Threads
             _checkStreamStatus.Start();
         }
 
-        public async Task LoadChannelInfo()
+        public async Task LoadChannelInfoAsync()
         {
-            ChannelJSON channelJSON = await _twitchInfo.GetBroadcasterChannelById();
+            ChannelJSON channelJSON = await _twitchInfo.GetBroadcasterChannelByIdAsync();
 
             if (channelJSON != null)
             {
@@ -52,7 +52,7 @@ namespace TwitchBotShared.Threads
         {
             while (true)
             {
-                RootStreamJSON streamJSON = await _twitchInfo.GetBroadcasterStream();
+                RootStreamJSON streamJSON = await _twitchInfo.GetBroadcasterStreamAsync();
 
                 if (streamJSON.Stream == null)
                 {

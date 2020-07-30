@@ -27,20 +27,20 @@ namespace TwitchBotShared.Commands.Features
         public QuoteFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, QuoteService quote) : base(irc, botConfig)
         {
             _quote = quote;
-            _rolePermission.Add("!quote", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!addquote", new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add("!quote", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!addquote", new CommandPermission { General = ChatterType.VIP });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!quote":
-                        return (true, await Quote());
+                        return (true, await QuoteAsync());
                     case "!addquote":
-                        return (true, await AddQuote(chatter));
+                        return (true, await AddQuoteAsync(chatter));
                 }
             }
             catch (Exception ex)
@@ -54,11 +54,11 @@ namespace TwitchBotShared.Commands.Features
         /// <summary>
         /// Display random broadcaster quote
         /// </summary>
-        public async Task<DateTime> Quote()
+        private async Task<DateTime> QuoteAsync()
         {
             try
             {
-                List<Quote> quotes = await _quote.GetQuotes(_broadcasterInstance.DatabaseId);
+                List<Quote> quotes = await _quote.GetQuotesAsync(_broadcasterInstance.DatabaseId);
 
                 // Check if there any quotes inside the system
                 if (quotes == null || quotes.Count == 0)
@@ -90,13 +90,13 @@ namespace TwitchBotShared.Commands.Features
         /// Add a mod/broadcaster quote
         /// </summary>
         /// <param name="chatter"></param>
-        public async Task<DateTime> AddQuote(TwitchChatter chatter)
+        private async Task<DateTime> AddQuoteAsync(TwitchChatter chatter)
         {
             try
             {
                 string quote = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
 
-                await _quote.AddQuote(quote, chatter.DisplayName, _broadcasterInstance.DatabaseId);
+                await _quote.AddQuoteAsync(quote, chatter.DisplayName, _broadcasterInstance.DatabaseId);
 
                 _irc.SendPublicChatMessage($"Quote has been created @{chatter.DisplayName}");
             }

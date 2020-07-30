@@ -13,7 +13,7 @@ namespace TwitchBotDb.Repositories
             _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public async Task<SongRequestSetting> GetSongRequestSetting(int broadcasterId)
+        public async Task<SongRequestSetting> GetSongRequestSettingAsync(int broadcasterId)
         {
             var response = await ApiBotRequest.GetExecuteAsync<SongRequestSetting>(_twitchBotApiLink + $"songrequestsettings/get/{broadcasterId}");
 
@@ -25,7 +25,7 @@ namespace TwitchBotDb.Repositories
             return new SongRequestSetting();
         }
 
-        public async Task<SongRequestSetting> CreateSongRequestSetting(string requestPlaylistId, string personalPlaylistId, int broadcasterId)
+        public async Task<SongRequestSetting> CreateSongRequestSettingAsync(string requestPlaylistId, string personalPlaylistId, int broadcasterId)
         {
             SongRequestSetting setting = new SongRequestSetting
             {
@@ -38,7 +38,7 @@ namespace TwitchBotDb.Repositories
             return await ApiBotRequest.PostExecuteAsync(_twitchBotApiLink + "songrequestsettings/create", setting);
         }
 
-        public async Task UpdateSongRequestSetting(string requestPlaylistId, string personalPlaylistId, int broadcasterId, bool djMode)
+        public async Task UpdateSongRequestSettingAsync(string requestPlaylistId, string personalPlaylistId, int broadcasterId, bool djMode)
         {
             SongRequestSetting updatedSettings = new SongRequestSetting
             {

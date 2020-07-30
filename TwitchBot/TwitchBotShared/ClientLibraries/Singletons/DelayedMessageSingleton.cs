@@ -5,17 +5,17 @@ using TwitchBotShared.Models;
 
 namespace TwitchBotShared.ClientLibraries.Singletons
 {
-    public class DelayedMessagesSingleton
+    public class DelayedMessageSingleton
     {
         /* Singleton Instance */
-        private static volatile DelayedMessagesSingleton _instance;
+        private static volatile DelayedMessageSingleton _instance;
         private static object _syncRoot = new Object();
 
         public List<DelayedMessage> DelayedMessages { get; set; } = new List<DelayedMessage>();
 
-        private DelayedMessagesSingleton() { }
+        private DelayedMessageSingleton() { }
 
-        public static DelayedMessagesSingleton Instance
+        public static DelayedMessageSingleton Instance
         {
             get
             {
@@ -26,7 +26,7 @@ namespace TwitchBotShared.ClientLibraries.Singletons
                     {
                         // second check
                         if (_instance == null)
-                            _instance = new DelayedMessagesSingleton();
+                            _instance = new DelayedMessageSingleton();
                     }
                 }
 

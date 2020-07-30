@@ -14,25 +14,25 @@ namespace TwitchBotDb.Services
             _songRequestSettingDb = songRequestSettingDb;
         }
 
-        public async Task<SongRequestSetting> GetSongRequestSetting(int broadcasterId)
+        public async Task<SongRequestSetting> GetSongRequestSettingAsync(int broadcasterId)
         {
-            return await _songRequestSettingDb.GetSongRequestSetting(broadcasterId);
+            return await _songRequestSettingDb.GetSongRequestSettingAsync(broadcasterId);
         }
 
-        public async Task<SongRequestSetting> CreateSongRequestSetting(string requestPlaylistId, string personalPlaylistId, int broadcasterId)
+        public async Task<SongRequestSetting> CreateSongRequestSettingAsync(string requestPlaylistId, string personalPlaylistId, int broadcasterId)
         {
             if (personalPlaylistId == "")
                 personalPlaylistId = null;
 
-            return await _songRequestSettingDb.CreateSongRequestSetting(requestPlaylistId, personalPlaylistId, broadcasterId);
+            return await _songRequestSettingDb.CreateSongRequestSettingAsync(requestPlaylistId, personalPlaylistId, broadcasterId);
         }
 
-        public async Task UpdateSongRequestSetting(string requestPlaylistId, string personalPlaylistId, int broadcasterId, bool djMode)
+        public async Task UpdateSongRequestSettingAsync(string requestPlaylistId, string personalPlaylistId, int broadcasterId, bool djMode)
         {
             if (personalPlaylistId == "")
                 personalPlaylistId = null;
 
-            await _songRequestSettingDb.UpdateSongRequestSetting(requestPlaylistId, personalPlaylistId, broadcasterId, djMode);
+            await _songRequestSettingDb.UpdateSongRequestSettingAsync(requestPlaylistId, personalPlaylistId, broadcasterId, djMode);
         }
     }
 }

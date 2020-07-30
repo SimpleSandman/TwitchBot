@@ -15,7 +15,7 @@ namespace TwitchBotDb.Repositories
             _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public async Task CreateAccount(string username, int broadcasterId, int deposit)
+        public async Task CreateAccountAsync(string username, int broadcasterId, int deposit)
         {
             Bank freshAccount = new Bank
             {
@@ -27,7 +27,7 @@ namespace TwitchBotDb.Repositories
             await ApiBotRequest.PostExecuteAsync(_twitchBotApiLink + $"banks/createaccount", freshAccount);
         }
 
-        public async Task UpdateAccount(string walletOwner, int broadcasterId, int newWalletBalance)
+        public async Task UpdateAccountAsync(string walletOwner, int broadcasterId, int newWalletBalance)
         {
             await ApiBotRequest.PutExecuteAsync<Bank>(_twitchBotApiLink + $"banks/updateaccount/{broadcasterId}?updatedwallet={newWalletBalance}&username={walletOwner}");
         }
@@ -37,7 +37,7 @@ namespace TwitchBotDb.Repositories
             return await ApiBotRequest.PutExecuteAsync<List<BalanceResult>>(_twitchBotApiLink + $"banks/updatecreateaccount/{broadcasterId}?deposit={deposit}&showOutput={showOutput}", usernameList);
         }
 
-        public async Task<int> CheckBalance(string username, int broadcasterId)
+        public async Task<int> CheckBalanceAsync(string username, int broadcasterId)
         {
             var response = await ApiBotRequest.GetExecuteAsync<List<Bank>>(_twitchBotApiLink + $"banks/get/{broadcasterId}?username={username}");
 
@@ -49,7 +49,7 @@ namespace TwitchBotDb.Repositories
             return -1;
         }
 
-        public async Task<List<Bank>> GetCurrencyLeaderboard(string broadcasterName, int broadcasterId, string botName)
+        public async Task<List<Bank>> GetCurrencyLeaderboardAsync(string broadcasterName, int broadcasterId, string botName)
         {
             var response = await ApiBotRequest.GetExecuteAsync<List<Bank>>(_twitchBotApiLink + $"banks/getleaderboard/{broadcasterId}?broadcastername={broadcasterName}&botname={botName}&topnumber=3");
 

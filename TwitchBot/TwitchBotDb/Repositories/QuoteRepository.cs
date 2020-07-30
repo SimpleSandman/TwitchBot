@@ -14,12 +14,12 @@ namespace TwitchBotDb.Repositories
             _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public async Task<List<Quote>> GetQuotes(int broadcasterId)
+        public async Task<List<Quote>> GetQuotesAsync(int broadcasterId)
         {
             return await ApiBotRequest.GetExecuteAsync<List<Quote>>(_twitchBotApiLink + $"quotes/get/{broadcasterId}");
         }
 
-        public async Task AddQuote(string quote, string username, int broadcasterId)
+        public async Task AddQuoteAsync(string quote, string username, int broadcasterId)
         {
             Quote freshQuote = new Quote
             {

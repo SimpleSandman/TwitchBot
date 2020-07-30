@@ -52,79 +52,79 @@ namespace TwitchBotShared.Commands.Features
             _manualSongRequest = manualSongRequest;
             _bank = bank;
             _spotify = spotify;
-            _rolePermission.Add("!srbl", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!delsrbl", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!resetsrbl", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!showsrbl", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!resetytsr", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!setpersonalplaylistid", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!djmode", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!msrmode", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!ytsrmode", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!displaysongs", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!resetmsr", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermission.Add("!sr", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!ytsr", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!songrequest", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!sl", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!ytsl", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!songlist", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!rsl", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!rsr", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!song", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!wrongsong", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!lastsong", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!poprsr", new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add("!srbl", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!delsrbl", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!resetsrbl", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!showsrbl", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!resetytsr", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!setpersonalplaylistid", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!djmode", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!msrmode", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!ytsrmode", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!displaysongs", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!resetmsr", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add("!sr", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!ytsr", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!songrequest", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!sl", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!ytsl", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!songlist", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!rsl", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!rsr", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!song", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!wrongsong", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!lastsong", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!poprsr", new CommandPermission { General = ChatterType.VIP });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!resetsrbl":
-                        return (true, await ResetSongRequestBlacklist());
+                        return (true, await ResetSongRequestBlacklistAsync());
                     case "!showsrbl":
-                        return (true, await ListSongRequestBlacklist());
+                        return (true, await ListSongRequestBlacklistAsync());
                     case "!resetytsr":
-                        return (true, await ResetYoutubeSongRequestList());
+                        return (true, await ResetYoutubeSongRequestListAsync());
                     case "!msrmode":
-                        return (true, await SetManualSongRequestMode(chatter));
+                        return (true, await SetManualSongRequestModeAsync(chatter));
                     case "!ytsrmode":
-                        return (true, await SetYouTubeSongRequestMode(chatter));
+                        return (true, await SetYouTubeSongRequestModeAsync(chatter));
                     case "!displaysongs":
-                        return (true, await SetAutoDisplaySongs(chatter));
+                        return (true, await SetAutoDisplaySongsAsync(chatter));
                     case "!djmode":
-                        return (true, await SetDjMode(chatter));
+                        return (true, await SetDjModeAsync(chatter));
                     case "!srbl":
-                        return (true, await AddSongRequestBlacklist(chatter));
+                        return (true, await AddSongRequestBlacklistAsync(chatter));
                     case "!delsrbl":
-                        return (true, await RemoveSongRequestBlacklist(chatter));
+                        return (true, await RemoveSongRequestBlacklistAsync(chatter));
                     case "!setpersonalplaylistid":
-                        return (true, await SetPersonalYoutubePlaylistById(chatter));
+                        return (true, await SetPersonalYoutubePlaylistByIdAsync(chatter));
                     case "!resetmsr":
-                        return (true, await ResetManualSongRequest());
+                        return (true, await ResetManualSongRequestAsync());
                     case "!sr":
                     case "!ytsr":
                     case "!songrequest":
-                        return (true, await YouTubeSongRequest(chatter));
+                        return (true, await YouTubeSongRequestAsync(chatter));
                     case "!sl":
                     case "!ytsl":
                     case "!songlist":
-                        return (true, await YouTubeSongRequestList());
+                        return (true, await YouTubeSongRequestListAsync());
                     case "!rsl":
-                        return (true, await ManuallyRequestedSongRequestList(chatter));
+                        return (true, await ManuallyRequestedSongRequestListAsync(chatter));
                     case "!rsr":
-                        return (true, await ManuallyRequestedSongRequest(chatter));
+                        return (true, await ManuallyRequestedSongRequestAsync(chatter));
                     case "!song":
-                        return (true, await YouTubeCurrentSong(chatter));
+                        return (true, await YouTubeCurrentSongAsync(chatter));
                     case "!wrongsong":
-                        return (true, await YoutubeRemoveWrongSong(chatter));
+                        return (true, await YoutubeRemoveWrongSongAsync(chatter));
                     case "!lastsong":
-                        return (true, await YouTubeLastSong(chatter));
+                        return (true, await YouTubeLastSongAsync(chatter));
                     case "!poprsr":
-                        return (true, await PopManuallyRequestedSongRequest());
+                        return (true, await PopManuallyRequestedSongRequestAsync());
                     default:
                         break;
                 }
@@ -137,7 +137,7 @@ namespace TwitchBotShared.Commands.Features
             return (false, DateTime.Now);
         }
 
-        private async Task<DateTime> AddSongRequestBlacklist(TwitchChatter chatter)
+        private async Task<DateTime> AddSongRequestBlacklistAsync(TwitchChatter chatter)
         {
             try
             {
@@ -165,14 +165,14 @@ namespace TwitchBotShared.Commands.Features
                         return DateTime.Now;
                     }
 
-                    List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
+                    List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnoreAsync(_broadcasterInstance.DatabaseId);
                     if (blacklist.Count > 0 && blacklist.Exists(b => b.Artist.Equals(request, StringComparison.CurrentCultureIgnoreCase)))
                     {
                         _irc.SendPublicChatMessage($"This artist/video is already on the blacklist @{chatter.DisplayName}");
                         return DateTime.Now;
                     }
 
-                    SongRequestIgnore response = await _songRequestBlacklist.IgnoreArtist(request, _broadcasterInstance.DatabaseId);
+                    SongRequestIgnore response = await _songRequestBlacklist.IgnoreArtistAsync(request, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
                         _irc.SendPublicChatMessage($"The artist/video \"{response.Artist}\" has been added to the blacklist @{chatter.DisplayName}");
@@ -199,7 +199,7 @@ namespace TwitchBotShared.Commands.Features
                     string artist = message.Substring(artistStartIndex + 1, artistEndIndex - artistStartIndex - 1);
 
                     // check if the request's exact song or artist-wide blackout-restriction has already been added
-                    List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
+                    List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnoreAsync(_broadcasterInstance.DatabaseId);
 
                     if (blacklist.Count > 0)
                     {
@@ -211,7 +211,7 @@ namespace TwitchBotShared.Commands.Features
                         }
                     }
 
-                    SongRequestIgnore response = await _songRequestBlacklist.IgnoreSong(songTitle, artist, _broadcasterInstance.DatabaseId);
+                    SongRequestIgnore response = await _songRequestBlacklist.IgnoreSongAsync(songTitle, artist, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
                         _irc.SendPublicChatMessage($"The song \"{response.Title}\" by \"{response.Artist}\" has been added to the blacklist @{chatter.DisplayName}");
@@ -232,7 +232,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> RemoveSongRequestBlacklist(TwitchChatter chatter)
+        private async Task<DateTime> RemoveSongRequestBlacklistAsync(TwitchChatter chatter)
         {
             try
             {
@@ -252,7 +252,7 @@ namespace TwitchBotShared.Commands.Features
                 if (requestType == "1") // remove blackout for any song by this artist
                 {
                     // remove artist from db
-                    List<SongRequestIgnore> response = await _songRequestBlacklist.AllowArtist(request, _broadcasterInstance.DatabaseId);
+                    List<SongRequestIgnore> response = await _songRequestBlacklist.AllowArtistAsync(request, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
                         _irc.SendPublicChatMessage($"The artist \"{request}\" can now be requested @{chatter.DisplayName}");
@@ -279,7 +279,7 @@ namespace TwitchBotShared.Commands.Features
                     string artist = message.Substring(artistStartIndex + 1, artistEndIndex - artistStartIndex - 1);
 
                     // remove artist from db
-                    SongRequestIgnore response = await _songRequestBlacklist.AllowSong(songTitle, artist, _broadcasterInstance.DatabaseId);
+                    SongRequestIgnore response = await _songRequestBlacklist.AllowSongAsync(songTitle, artist, _broadcasterInstance.DatabaseId);
 
                     if (response != null)
                         _irc.SendPublicChatMessage($"The song \"{response.Title} by {response.Artist}\" can now requested @{chatter.DisplayName}");
@@ -300,11 +300,11 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> ResetSongRequestBlacklist()
+        private async Task<DateTime> ResetSongRequestBlacklistAsync()
         {
             try
             {
-                List<SongRequestIgnore> response = await _songRequestBlacklist.ResetIgnoreList(_broadcasterInstance.DatabaseId);
+                List<SongRequestIgnore> response = await _songRequestBlacklist.ResetIgnoreListAsync(_broadcasterInstance.DatabaseId);
 
                 if (response?.Count > 0)
                     _irc.SendPublicChatMessage($"Song Request Blacklist has been reset @{_botConfig.Broadcaster}");
@@ -319,11 +319,11 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> ListSongRequestBlacklist()
+        private async Task<DateTime> ListSongRequestBlacklistAsync()
         {
             try
             {
-                List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
+                List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnoreAsync(_broadcasterInstance.DatabaseId);
 
                 if (blacklist.Count == 0)
                 {
@@ -355,7 +355,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> ResetYoutubeSongRequestList()
+        private async Task<DateTime> ResetYoutubeSongRequestListAsync()
         {
             try
             {
@@ -379,15 +379,15 @@ namespace TwitchBotShared.Commands.Features
                 // Check for existing playlist id
                 if (!string.IsNullOrEmpty(_botConfig.YouTubeBroadcasterPlaylistId))
                 {
-                    broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistById(_botConfig.YouTubeBroadcasterPlaylistId);
+                    broadcasterPlaylist = await _youTubeClientInstance.GetBroadcasterPlaylistByIdAsync(_botConfig.YouTubeBroadcasterPlaylistId);
                 }
 
                 if (broadcasterPlaylist?.Id != null)
                 {
-                    await _youTubeClientInstance.DeletePlaylist(broadcasterPlaylist.Id);
+                    await _youTubeClientInstance.DeletePlaylistAsync(broadcasterPlaylist.Id);
                 }
 
-                broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylist(playlistName,
+                broadcasterPlaylist = await _youTubeClientInstance.CreatePlaylistAsync(playlistName,
                     "Songs requested via Twitch viewers on https://twitch.tv/" + _botConfig.Broadcaster
                         + " . Playlist automatically created courtesy of https://github.com/SimpleSandman/TwitchBot");
 
@@ -398,10 +398,10 @@ namespace TwitchBotShared.Commands.Features
                 _botConfig.YouTubeBroadcasterPlaylistName = broadcasterPlaylist.Snippet.Title;                
                 SaveAppConfigSettings(broadcasterPlaylist.Snippet.Title, "youTubeBroadcasterPlaylistName", _appConfig);
 
-                SongRequestSetting songRequestSetting = await _songRequestSetting.GetSongRequestSetting(_broadcasterInstance.DatabaseId);
+                SongRequestSetting songRequestSetting = await _songRequestSetting.GetSongRequestSettingAsync(_broadcasterInstance.DatabaseId);
 
                 // ToDo: Make HTTP PATCH request instead of full PUT
-                await _songRequestSetting.UpdateSongRequestSetting
+                await _songRequestSetting.UpdateSongRequestSettingAsync
                 (
                     _botConfig.YouTubeBroadcasterPlaylistId, _botConfig.YouTubePersonalPlaylistId,
                     _broadcasterInstance.DatabaseId, songRequestSetting.DjMode
@@ -420,7 +420,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> SetPersonalYoutubePlaylistById(TwitchChatter chatter)
+        private async Task<DateTime> SetPersonalYoutubePlaylistByIdAsync(TwitchChatter chatter)
         {
             try
             {
@@ -432,7 +432,7 @@ namespace TwitchBotShared.Commands.Features
                     return DateTime.Now;
                 }
 
-                Playlist playlist = await _youTubeClientInstance.GetPlaylistById(personalPlaylistId);
+                Playlist playlist = await _youTubeClientInstance.GetPlaylistByIdAsync(personalPlaylistId);
 
                 if (playlist?.Id == null)
                 {
@@ -441,13 +441,13 @@ namespace TwitchBotShared.Commands.Features
                     return DateTime.Now;
                 }
 
-                SongRequestSetting songRequestSetting = await _songRequestSetting.GetSongRequestSetting(_broadcasterInstance.DatabaseId);
+                SongRequestSetting songRequestSetting = await _songRequestSetting.GetSongRequestSettingAsync(_broadcasterInstance.DatabaseId);
 
                 // Save song request info into database
                 if (songRequestSetting?.BroadcasterId == _broadcasterInstance.DatabaseId)
                 {
                     // ToDo: Make HTTP PATCH request instead of full PUT
-                    await _songRequestSetting.UpdateSongRequestSetting(
+                    await _songRequestSetting.UpdateSongRequestSettingAsync(
                         _botConfig.YouTubeBroadcasterPlaylistId,
                         _botConfig.YouTubePersonalPlaylistId,
                         _broadcasterInstance.DatabaseId,
@@ -478,7 +478,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        private async Task<DateTime> SetDjMode(TwitchChatter chatter)
+        private async Task<DateTime> SetDjModeAsync(TwitchChatter chatter)
         {
             try
             {
@@ -486,7 +486,7 @@ namespace TwitchBotShared.Commands.Features
                 bool hasDjModeEnabled = SetBooleanFromMessage(message);
 
                 // ToDo: Make HTTP PATCH request instead of full PUT
-                await _songRequestSetting.UpdateSongRequestSetting(
+                await _songRequestSetting.UpdateSongRequestSettingAsync(
                     _botConfig.YouTubeBroadcasterPlaylistId, 
                     _botConfig.YouTubePersonalPlaylistId,
                     _broadcasterInstance.DatabaseId, 
@@ -508,7 +508,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        private async Task<DateTime> SetManualSongRequestMode(TwitchChatter chatter)
+        private async Task<DateTime> SetManualSongRequestModeAsync(TwitchChatter chatter)
         {
             try
             {
@@ -534,7 +534,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        private async Task<DateTime> SetYouTubeSongRequestMode(TwitchChatter chatter)
+        private async Task<DateTime> SetYouTubeSongRequestModeAsync(TwitchChatter chatter)
         {
             try
             {
@@ -560,7 +560,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        private async Task<DateTime> SetAutoDisplaySongs(TwitchChatter chatter)
+        private async Task<DateTime> SetAutoDisplaySongsAsync(TwitchChatter chatter)
         {
             try
             {
@@ -584,11 +584,11 @@ namespace TwitchBotShared.Commands.Features
         /// <summary>
         /// Resets the song request queue
         /// </summary>
-        private async Task<DateTime> ResetManualSongRequest()
+        private async Task<DateTime> ResetManualSongRequestAsync()
         {
             try
             {
-                List<SongRequest> removedSong = await _manualSongRequest.ResetSongRequests(_broadcasterInstance.DatabaseId);
+                List<SongRequest> removedSong = await _manualSongRequest.ResetSongRequestsAsync(_broadcasterInstance.DatabaseId);
 
                 if (removedSong != null && removedSong.Count > 0)
                     _irc.SendPublicChatMessage($"The song request queue has been reset @{_botConfig.Broadcaster}");
@@ -610,7 +610,7 @@ namespace TwitchBotShared.Commands.Features
         /// <param name="hasYouTubeAuth">Checks if broadcaster allowed this bot to post videos to the playlist</param>
         /// <param name="isYouTubeSongRequestAvail">Checks if users can request songs</param>
         /// <returns></returns>
-        private async Task<DateTime> YouTubeSongRequest(TwitchChatter chatter)
+        private async Task<DateTime> YouTubeSongRequestAsync(TwitchChatter chatter)
         {
             try
             {
@@ -626,7 +626,7 @@ namespace TwitchBotShared.Commands.Features
                     return DateTime.Now;
                 }
 
-                if (await _libVLCSharpPlayer.HasUserRequestedTooMany(chatter.DisplayName, 3))
+                if (await _libVLCSharpPlayer.HasUserRequestedTooManyAsync(chatter.DisplayName, 3))
                 {
                     _irc.SendPublicChatMessage("You already have at least 3 song requests!"
                         + $" Please wait until there are less than 3 of your song requests in the queue before requesting more @{chatter.DisplayName}");
@@ -645,7 +645,7 @@ namespace TwitchBotShared.Commands.Features
                 }
                 else // Make the song request free for the mentioned chatter types above
                 {
-                    funds = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+                    funds = await _bank.CheckBalanceAsync(chatter.Username, _broadcasterInstance.DatabaseId);
                 }
 
                 if (funds < cost)
@@ -663,14 +663,14 @@ namespace TwitchBotShared.Commands.Features
                     // Try to get video info using the parsed video ID
                     if (!string.IsNullOrEmpty(videoId))
                     {
-                        video = await _youTubeClientInstance.GetVideoById(videoId);
+                        video = await _youTubeClientInstance.GetVideoByIdAsync(videoId);
                     }
 
                     // Default to search by keyword if parsed video ID was null or not available
                     if (video == null || video.Id == null)
                     {
                         string videoKeyword = chatter.Message.Substring(spaceIndex + 1);
-                        videoId = await _youTubeClientInstance.SearchVideoByKeyword(videoKeyword);
+                        videoId = await _youTubeClientInstance.SearchVideoByKeywordAsync(videoKeyword);
 
                         if (string.IsNullOrEmpty(videoId))
                         {
@@ -678,7 +678,7 @@ namespace TwitchBotShared.Commands.Features
                             return DateTime.Now;
                         }
 
-                        video = await _youTubeClientInstance.GetVideoById(videoId);
+                        video = await _youTubeClientInstance.GetVideoByIdAsync(videoId);
 
                         if (video == null || video.Id == null)
                         {
@@ -688,14 +688,14 @@ namespace TwitchBotShared.Commands.Features
                     }
 
                     // Confirm if video ID has been found and is a new song request
-                    if (await _youTubeClientInstance.HasDuplicatePlaylistItem(_botConfig.YouTubeBroadcasterPlaylistId, videoId))
+                    if (await _youTubeClientInstance.HasDuplicatePlaylistItemAsync(_botConfig.YouTubeBroadcasterPlaylistId, videoId))
                     {
                         _irc.SendPublicChatMessage($"Song has already been requested @{chatter.DisplayName}");
                         return DateTime.Now;
                     }
 
                     // Check if video's title and account match song request blacklist
-                    List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnore(_broadcasterInstance.DatabaseId);
+                    List<SongRequestIgnore> blacklist = await _songRequestBlacklist.GetSongRequestIgnoreAsync(_broadcasterInstance.DatabaseId);
 
                     if (blacklist.Count > 0)
                     {
@@ -777,14 +777,14 @@ namespace TwitchBotShared.Commands.Features
                             return DateTime.Now;
                         }
 
-                        PlaylistItem playlistItem = await _youTubeClientInstance.AddVideoToPlaylist(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.DisplayName);
+                        PlaylistItem playlistItem = await _youTubeClientInstance.AddVideoToPlaylistAsync(videoId, _botConfig.YouTubeBroadcasterPlaylistId, chatter.DisplayName);
 
                         if (cost > 0)
                         {
-                            await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, funds - cost);
+                            await _bank.UpdateFundsAsync(chatter.Username, _broadcasterInstance.DatabaseId, funds - cost);
                         }
 
-                        int position = await _libVLCSharpPlayer.AddSongRequest(playlistItem);
+                        int position = await _libVLCSharpPlayer.AddSongRequestAsync(playlistItem);
 
                         string response = $"@{chatter.DisplayName} spent {cost} {_botConfig.CurrencyType} "
                             + $"and \"{video.Snippet.Title}\" by {video.Snippet.ChannelTitle} ({videoMin}M{videoSec}S) "
@@ -822,7 +822,7 @@ namespace TwitchBotShared.Commands.Features
         /// <summary>
         /// Display's link to broadcaster's YouTube song request playlist
         /// </summary>
-        private async Task<DateTime> YouTubeSongRequestList()
+        private async Task<DateTime> YouTubeSongRequestListAsync()
         {
             try
             {
@@ -848,14 +848,14 @@ namespace TwitchBotShared.Commands.Features
         /// Display list of requested songs
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> ManuallyRequestedSongRequestList(TwitchChatter chatter)
+        private async Task<DateTime> ManuallyRequestedSongRequestListAsync(TwitchChatter chatter)
         {
             try
             {
                 if (!_botConfig.IsManualSongRequestAvail)
                     _irc.SendPublicChatMessage($"Song requests are not available at this time @{chatter.DisplayName}");
                 else
-                    _irc.SendPublicChatMessage(await _manualSongRequest.ListSongRequests(_broadcasterInstance.DatabaseId));
+                    _irc.SendPublicChatMessage(await _manualSongRequest.ListSongRequestsAsync(_broadcasterInstance.DatabaseId));
             }
             catch (Exception ex)
             {
@@ -869,7 +869,7 @@ namespace TwitchBotShared.Commands.Features
         /// Request a song for the host to play
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> ManuallyRequestedSongRequest(TwitchChatter chatter)
+        private async Task<DateTime> ManuallyRequestedSongRequestAsync(TwitchChatter chatter)
         {
             try
             {
@@ -889,7 +889,7 @@ namespace TwitchBotShared.Commands.Features
                     }
                     else
                     {
-                        await _manualSongRequest.AddSongRequest(songRequest, chatter.DisplayName, _broadcasterInstance.DatabaseId);
+                        await _manualSongRequest.AddSongRequestAsync(songRequest, chatter.DisplayName, _broadcasterInstance.DatabaseId);
 
                         _irc.SendPublicChatMessage($"The song \"{songRequest}\" has been successfully requested @{chatter.DisplayName}");
                     }
@@ -905,14 +905,14 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> YouTubeCurrentSong(TwitchChatter chatter)
+        private async Task<DateTime> YouTubeCurrentSongAsync(TwitchChatter chatter)
         {
             try
             {
                 if (_libVLCSharpPlayer.MediaPlayerStatus() != VLCState.Playing)
                 {
                     // fall back to see if Spotify is playing anything
-                    _irc.SendPublicChatMessage(await SharedCommands.SpotifyCurrentSong(chatter, _spotify));
+                    _irc.SendPublicChatMessage(await SharedCommands.SpotifyCurrentSongAsync(chatter, _spotify));
                     return DateTime.Now;
                 }
 
@@ -922,7 +922,7 @@ namespace TwitchBotShared.Commands.Features
 
                 if (!string.IsNullOrEmpty(songRequest))
                 {
-                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest} Currently {await _libVLCSharpPlayer.GetVideoTime()}");
+                    _irc.SendPublicChatMessage($"@{chatter.DisplayName} <-- Now playing: {songRequest} Currently {await _libVLCSharpPlayer.GetVideoTimeAsync()}");
                 }
                 else
                 {
@@ -937,11 +937,11 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> YoutubeRemoveWrongSong(TwitchChatter chatter)
+        private async Task<DateTime> YoutubeRemoveWrongSongAsync(TwitchChatter chatter)
         {
             try
             {
-                PlaylistItem removedWrongSong = await _libVLCSharpPlayer.RemoveWrongSong(chatter.DisplayName);
+                PlaylistItem removedWrongSong = await _libVLCSharpPlayer.RemoveWrongSongAsync(chatter.DisplayName);
 
                 if (removedWrongSong == null)
                 {
@@ -949,7 +949,7 @@ namespace TwitchBotShared.Commands.Features
                     return DateTime.Now;
                 }
 
-                await _youTubeClientInstance.DeleteVideoFromPlaylist(removedWrongSong.Id);
+                await _youTubeClientInstance.DeleteVideoFromPlaylistAsync(removedWrongSong.Id);
                 _irc.SendPublicChatMessage($"Successfully removed the wrong song request \"{removedWrongSong.Snippet.Title}\" @{chatter.DisplayName}");
 
                 return DateTime.Now.AddMinutes(10);
@@ -962,14 +962,14 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> YouTubeLastSong(TwitchChatter chatter)
+        private async Task<DateTime> YouTubeLastSongAsync(TwitchChatter chatter)
         {
             try
             {
                 if (_libVLCSharpPlayer.MediaPlayerStatus() != VLCState.Playing)
                 {
                     // fall back to see if Spotify had something playing recently
-                    _irc.SendPublicChatMessage(await SharedCommands.SpotifyLastPlayedSong(chatter, _spotify));
+                    _irc.SendPublicChatMessage(await SharedCommands.SpotifyLastPlayedSongAsync(chatter, _spotify));
                     return DateTime.Now;
                 }
 
@@ -1003,11 +1003,11 @@ namespace TwitchBotShared.Commands.Features
         /// <summary>
         /// Removes the first song in the queue of song requests
         /// </summary>
-        private async Task<DateTime> PopManuallyRequestedSongRequest()
+        private async Task<DateTime> PopManuallyRequestedSongRequestAsync()
         {
             try
             {
-                SongRequest removedSong = await _manualSongRequest.PopSongRequest(_broadcasterInstance.DatabaseId);
+                SongRequest removedSong = await _manualSongRequest.PopSongRequestAsync(_broadcasterInstance.DatabaseId);
 
                 if (removedSong != null)
                     _irc.SendPublicChatMessage($"The first song in the queue, \"{removedSong.Name}\" ({removedSong.Username}), has been removed");

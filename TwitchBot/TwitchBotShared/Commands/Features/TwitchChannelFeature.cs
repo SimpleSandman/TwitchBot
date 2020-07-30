@@ -7,9 +7,9 @@ using RestSharp;
 using TwitchBotDb.Models;
 using TwitchBotDb.Services;
 
-using TwitchBotShared.Config;
 using TwitchBotShared.ClientLibraries;
 using TwitchBotShared.ClientLibraries.Singletons;
+using TwitchBotShared.Config;
 using TwitchBotShared.Enums;
 using TwitchBotShared.Models;
 using TwitchBotShared.Threads;
@@ -30,13 +30,13 @@ namespace TwitchBotShared.Commands.Features
         public TwitchChannelFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, GameDirectoryService gameDirectory) : base(irc, botConfig)
         {
             _gameDirectory = gameDirectory;
-            _rolePermission.Add("!game", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!title", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!updategame", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermission.Add("!updatetitle", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add("!game", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!title", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!updategame", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add("!updatetitle", new CommandPermission { General = ChatterType.Moderator });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -45,25 +45,25 @@ namespace TwitchBotShared.Commands.Features
                     case "!updategame":
                     case "!game":
                         if ((chatter.Message.StartsWith("!game ") || chatter.Message.StartsWith("!updategame ")) 
-                            && HasPermission("!updategame", DetermineChatterPermissions(chatter), _rolePermission))
+                            && HasPermission("!updategame", DetermineChatterPermissions(chatter), _rolePermissions))
                         {
-                            return (true, await UpdateGame(chatter));
+                            return (true, await UpdateGameAsync(chatter));
                         }
                         else if (chatter.Message == "!game")
                         {
-                            return (true, await ShowCurrentTwitchGame(chatter));
+                            return (true, await ShowCurrentTwitchGameAsync(chatter));
                         }
                         break;
                     case "!updatetitle":
                     case "!title":
                         if ((chatter.Message.StartsWith("!title ") || chatter.Message.StartsWith("!updatetitle ")) 
-                            && HasPermission("!updatetitle", DetermineChatterPermissions(chatter), _rolePermission))
+                            && HasPermission("!updatetitle", DetermineChatterPermissions(chatter), _rolePermissions))
                         {
-                            return (true, await UpdateTitle(chatter));
+                            return (true, await UpdateTitleAsync(chatter));
                         }
                         else if (chatter.Message == "!title")
                         {
-                            return (true, await ShowCurrentTwitchTitle(chatter));
+                            return (true, await ShowCurrentTwitchTitleAsync(chatter));
                         }
                         break;
                     default:
@@ -83,7 +83,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task<DateTime> ShowCurrentTwitchGame(TwitchChatter chatter)
+        private async Task<DateTime> ShowCurrentTwitchGameAsync(TwitchChatter chatter)
         {
             try
             {
@@ -102,7 +102,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        public async Task<DateTime> ShowCurrentTwitchTitle(TwitchChatter chatter)
+        private async Task<DateTime> ShowCurrentTwitchTitleAsync(TwitchChatter chatter)
         {
             try
             {
@@ -120,7 +120,7 @@ namespace TwitchBotShared.Commands.Features
         /// Update the title of the Twitch channel
         /// </summary>
         /// <param name="chatter"></param>
-        public async Task<DateTime> UpdateTitle(TwitchChatter chatter)
+        private async Task<DateTime> UpdateTitleAsync(TwitchChatter chatter)
         {
             try
             {
@@ -172,7 +172,7 @@ namespace TwitchBotShared.Commands.Features
         /// Updates the game being played on the Twitch channel
         /// </summary>
         /// <param name="chatter"></param>
-        public async Task<DateTime> UpdateGame(TwitchChatter chatter)
+        private async Task<DateTime> UpdateGameAsync(TwitchChatter chatter)
         {
             try
             {
@@ -199,12 +199,12 @@ namespace TwitchBotShared.Commands.Features
                     {
                         _irc.SendPublicChatMessage($"Twitch channel game status updated to \"{gameTitle}\"");
 
-                        await ChatReminder.RefreshReminders();
+                        await ChatReminder.RefreshRemindersAsync();
                         await _customCommandInstance.LoadCustomCommands(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
                         _irc.SendPublicChatMessage($"Your commands have been refreshed @{chatter.DisplayName}");
 
                         // Grab game id in order to find party member
-                        TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                        TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 
                         // During refresh, make sure no fighters can join
                         _bossFightSettingsInstance.RefreshBossFight = true;

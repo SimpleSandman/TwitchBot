@@ -27,86 +27,86 @@ namespace TwitchBotShared.Commands.Features
         {
             _twitchInfo = twitchInfo;
             _appConfig = appConfig;
-            _rolePermission.Add("!settings", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!exit", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!streamer", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!so", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!shoutout", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!caster", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!cmds", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!help", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!commands", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!hello", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!hi", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!utctime", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!hosttime", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!uptime", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!setlatency", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermission.Add("!latency", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermission.Add("!support", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!bot", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!lurk", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!unlurk", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!sub", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!subscribe", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!8ball", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!slap", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!stab", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!shoot", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!throw", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!settings", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!exit", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!streamer", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!so", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!shoutout", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!caster", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!cmds", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!help", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!commands", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!hello", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!hi", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!utctime", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!hosttime", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!uptime", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!setlatency", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add("!latency", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add("!support", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!bot", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!lurk", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!unlurk", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!sub", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!subscribe", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!8ball", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!slap", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!stab", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!shoot", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!throw", new CommandPermission { General = ChatterType.Viewer });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!settings":
-                        return (true, await BotSettings());
+                        return (true, await BotSettingsAsync());
                     case "!exit":
-                        return (true, await ExitBot());
+                        return (true, await ExitBotAsync());
                     case "!streamer":
                     case "!shoutout":
                     case "!caster":
                     case "!so":
-                        return (true, await PromoteStreamer(chatter));
+                        return (true, await PromoteStreamerAsync(chatter));
                     case "!cmds":
                     case "!help":
                     case "!commands":
-                        return (true, await Displays());
+                        return (true, await DisplayCommandsAsync());
                     case "!hello":
                     case "!hi":
-                        return (true, await Hello(chatter));
+                        return (true, await HelloAsync(chatter));
                     case "!utctime":
-                        return (true, await UtcTime());
+                        return (true, await UtcTimeAsync());
                     case "!hosttime":
-                        return (true, await HostTime());
+                        return (true, await HostTimeAsync());
                     case "!uptime":
-                        return (true, await Uptime());
+                        return (true, await UptimeAsync());
                     case "!setlatency":
                     case "!latency":
-                        return (true, await SetLatency(chatter));
+                        return (true, await SetLatencyAsync(chatter));
                     case "!support":
                     case "!bot":
-                        return (true, await Support());
+                        return (true, await SupportAsync());
                     case "!lurk":
-                        return (true, await Lurk(chatter));
+                        return (true, await LurkAsync(chatter));
                     case "!unlurk":
-                        return (true, await Unlurk(chatter));
+                        return (true, await UnlurkAsync(chatter));
                     case "!sub":
                     case "!subscribe":
-                        return (true, await Subscribe());
+                        return (true, await SubscribeAsync());
                     case "!8ball":
-                        return (true, await Magic8Ball(chatter));
+                        return (true, await Magic8BallAsync(chatter));
                     case "!slap":
-                        return (true, await Slap(chatter));
+                        return (true, await SlapAsync(chatter));
                     case "!stab":
-                        return (true, await Stab(chatter));
+                        return (true, await StabAsync(chatter));
                     case "!shoot":
-                        return (true, await Shoot(chatter));
+                        return (true, await ShootAsync(chatter));
                     case "!throw":
-                        return (true, await Throw(chatter));
+                        return (true, await ThrowAsync(chatter));
                     default:
                         break;
                 }
@@ -122,7 +122,7 @@ namespace TwitchBotShared.Commands.Features
         /// <summary>
         /// Display bot settings
         /// </summary>
-        private async Task<DateTime> BotSettings()
+        private async Task<DateTime> BotSettingsAsync()
         {
             try
             {
@@ -143,7 +143,7 @@ namespace TwitchBotShared.Commands.Features
         /// <summary>
         /// Stop running the bot
         /// </summary>
-        private async Task<DateTime> ExitBot()
+        private async Task<DateTime> ExitBotAsync()
         {
             try
             {
@@ -158,7 +158,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> Displays()
+        private async Task<DateTime> DisplayCommandsAsync()
         {
             try
             {
@@ -175,7 +175,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> Hello(TwitchChatter chatter)
+        private async Task<DateTime> HelloAsync(TwitchChatter chatter)
         {
             try
             {
@@ -190,7 +190,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> UtcTime()
+        private async Task<DateTime> UtcTimeAsync()
         {
             try
             {
@@ -204,7 +204,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> HostTime()
+        private async Task<DateTime> HostTimeAsync()
         {
             try
             {
@@ -225,11 +225,11 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> Uptime()
+        private async Task<DateTime> UptimeAsync()
         {
             try
             {
-                RootStreamJSON streamJson = await _twitchInfo.GetBroadcasterStream();
+                RootStreamJSON streamJson = await _twitchInfo.GetBroadcasterStreamAsync();
 
                 // Check if the channel is live
                 if (streamJson.Stream != null)
@@ -254,7 +254,7 @@ namespace TwitchBotShared.Commands.Features
         /// Set delay for messages based on the latency of the stream
         /// </summary>
         /// <param name="chatter"></param>
-        private async Task<DateTime> SetLatency(TwitchChatter chatter)
+        private async Task<DateTime> SetLatencyAsync(TwitchChatter chatter)
         {
             try
             {
@@ -279,7 +279,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> Support()
+        private async Task<DateTime> SupportAsync()
         {
             try
             {
@@ -301,7 +301,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        private async Task<DateTime> Lurk(TwitchChatter chatter)
+        private async Task<DateTime> LurkAsync(TwitchChatter chatter)
         {
             try
             {
@@ -321,7 +321,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        private async Task<DateTime> Unlurk(TwitchChatter chatter)
+        private async Task<DateTime> UnlurkAsync(TwitchChatter chatter)
         {
             try
             {
@@ -340,12 +340,12 @@ namespace TwitchBotShared.Commands.Features
         /// Display the broadcaster's subscriber link (if they're an Affiliate/Partner)
         /// </summary>
         /// <returns></returns>
-        private async Task<DateTime> Subscribe()
+        private async Task<DateTime> SubscribeAsync()
         {
             try
             {
                 // Get broadcaster type and check if they can have subscribers
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string broadcasterType = json.BroadcasterType;
 
                 if (broadcasterType == "partner" || broadcasterType == "affiliate")
@@ -370,7 +370,7 @@ namespace TwitchBotShared.Commands.Features
         /// Ask any question and the Magic 8 Ball will give a fortune
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> Magic8Ball(TwitchChatter chatter)
+        private async Task<DateTime> Magic8BallAsync(TwitchChatter chatter)
         {
             try
             {
@@ -416,7 +416,7 @@ namespace TwitchBotShared.Commands.Features
         /// Slaps a user and rates its effectiveness
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> Slap(TwitchChatter chatter)
+        private async Task<DateTime> SlapAsync(TwitchChatter chatter)
         {
             try
             {
@@ -436,7 +436,7 @@ namespace TwitchBotShared.Commands.Features
         /// Stabs a user and rates its effectiveness
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> Stab(TwitchChatter chatter)
+        private async Task<DateTime> StabAsync(TwitchChatter chatter)
         {
             try
             {
@@ -456,7 +456,7 @@ namespace TwitchBotShared.Commands.Features
         /// Shoots a viewer's random body part
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> Shoot(TwitchChatter chatter)
+        private async Task<DateTime> ShootAsync(TwitchChatter chatter)
         {
             try
             {
@@ -523,7 +523,7 @@ namespace TwitchBotShared.Commands.Features
         /// Throws an item at a viewer and rates its effectiveness against the victim
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> Throw(TwitchChatter chatter)
+        private async Task<DateTime> ThrowAsync(TwitchChatter chatter)
         {
             try
             {
@@ -548,13 +548,13 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> PromoteStreamer(TwitchChatter chatter)
+        private async Task<DateTime> PromoteStreamerAsync(TwitchChatter chatter)
         {
             try
             {
                 string streamerUsername = ParseChatterMessageUsername(chatter);
 
-                RootUserJSON userInfo = await _twitchInfo.GetUsersByLoginName(streamerUsername);
+                RootUserJSON userInfo = await _twitchInfo.GetUsersByLoginNameAsync(streamerUsername);
                 if (userInfo.Users == null || userInfo.Users.Count == 0)
                 {
                     _irc.SendPublicChatMessage($"Cannot find the requested user @{chatter.DisplayName}");
@@ -565,11 +565,11 @@ namespace TwitchBotShared.Commands.Features
                 string promotionMessage = $"Hey everyone! Check out {streamerUsername}'s channel at https://www.twitch.tv/"
                     + $"{streamerUsername} and slam that follow button!";
 
-                RootStreamJSON userStreamInfo = await _twitchInfo.GetUserStream(userId);
+                RootStreamJSON userStreamInfo = await _twitchInfo.GetUserStreamAsync(userId);
 
                 if (userStreamInfo.Stream == null)
                 {
-                    ChannelJSON channelInfo = await _twitchInfo.GetUserChannelById(userId);
+                    ChannelJSON channelInfo = await _twitchInfo.GetUserChannelByIdAsync(userId);
 
                     if (!string.IsNullOrEmpty(channelInfo.Game))
                         promotionMessage += $" They were last seen playing \"{channelInfo.Game}\"";

@@ -16,29 +16,29 @@ namespace TwitchBotDb.Services
             _bank = bank;
         }
 
-        public async Task CreateAccount(string recipient, int broadcasterId, int deposit)
+        public async Task CreateAccountAsync(string recipient, int broadcasterId, int deposit)
         {
-            await _bank.CreateAccount(recipient, broadcasterId, deposit);
+            await _bank.CreateAccountAsync(recipient, broadcasterId, deposit);
         }
 
-        public async Task UpdateFunds(string walletOwner, int broadcasterId, int newWalletBalance)
+        public async Task UpdateFundsAsync(string walletOwner, int broadcasterId, int newWalletBalance)
         {
-            await _bank.UpdateAccount(walletOwner, broadcasterId, newWalletBalance);
+            await _bank.UpdateAccountAsync(walletOwner, broadcasterId, newWalletBalance);
         }
 
-        public async Task<List<BalanceResult>> UpdateCreateBalance(List<string> usernameList, int broadcasterId, int deposit, bool showOutput = false)
+        public async Task<List<BalanceResult>> UpdateCreateBalanceAsync(List<string> usernameList, int broadcasterId, int deposit, bool showOutput = false)
         {
             return await _bank.UpdateCreateBalance(usernameList, broadcasterId, deposit, showOutput);
         }
 
-        public async Task<int> CheckBalance(string username, int broadcasterId)
+        public async Task<int> CheckBalanceAsync(string username, int broadcasterId)
         {
-            return await _bank.CheckBalance(username, broadcasterId);
+            return await _bank.CheckBalanceAsync(username, broadcasterId);
         }
 
-        public async Task<List<Bank>> GetCurrencyLeaderboard(string broadcasterName, int broadcasterId, string botName)
+        public async Task<List<Bank>> GetCurrencyLeaderboardAsync(string broadcasterName, int broadcasterId, string botName)
         {
-            return await _bank.GetCurrencyLeaderboard(broadcasterName, broadcasterId, botName);
+            return await _bank.GetCurrencyLeaderboardAsync(broadcasterName, broadcasterId, botName);
         }
     }
 }

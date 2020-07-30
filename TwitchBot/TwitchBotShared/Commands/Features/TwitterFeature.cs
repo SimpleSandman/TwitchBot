@@ -3,12 +3,11 @@ using System.Configuration;
 using System.Threading.Tasks;
 
 using TwitchBotShared.ClientLibraries;
-using TwitchBotShared.Threads;
-
 using TwitchBotShared.ClientLibraries.Singletons;
 using TwitchBotShared.Config;
 using TwitchBotShared.Enums;
 using TwitchBotShared.Models;
+using TwitchBotShared.Threads;
 
 namespace TwitchBotShared.Commands.Features
 {
@@ -17,7 +16,7 @@ namespace TwitchBotShared.Commands.Features
     /// </summary>
     public sealed class TwitterFeature : BaseFeature
     {
-        private readonly DelayedMessagesSingleton _delayedMessagesInstance = DelayedMessagesSingleton.Instance;
+        private readonly DelayedMessageSingleton _delayedMessagesInstance = DelayedMessageSingleton.Instance;
         private readonly TwitterClient _twitterInstance = TwitterClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private readonly Configuration _appConfig;
@@ -25,26 +24,26 @@ namespace TwitchBotShared.Commands.Features
         public TwitterFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, Configuration appConfig) : base(irc, botConfig)
         {
             _appConfig = appConfig;
-            _rolePermission.Add("!autotweet", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!tweet", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!live", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!twitter", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!autotweet", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!tweet", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!live", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!twitter", new CommandPermission { General = ChatterType.Viewer });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!autotweet":
-                        return (true, await SetAutoTweet(chatter));
+                        return (true, await SetAutoTweetAsync(chatter));
                     case "!tweet":
-                        return (true, await Tweet(chatter));
+                        return (true, await TweetAsync(chatter));
                     case "!live":
-                        return (true, await Live());
+                        return (true, await LiveAsync());
                     case "!twitter":
-                        return (true, await TwitterLink());
+                        return (true, await TwitterLinkAsync());
                     default:
                         break;
                 }
@@ -60,7 +59,7 @@ namespace TwitchBotShared.Commands.Features
         /// <summary>
         /// Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets)
         /// </summary>
-        public async Task<DateTime> SetAutoTweet(TwitchChatter chatter)
+        private async Task<DateTime> SetAutoTweetAsync(TwitchChatter chatter)
         {
             try
             {
@@ -92,7 +91,7 @@ namespace TwitchBotShared.Commands.Features
         /// Manually send a tweet
         /// </summary>
         /// <param name="message">Chat message from the user</param>
-        public async Task<DateTime> Tweet(TwitchChatter chatter)
+        private async Task<DateTime> TweetAsync(TwitchChatter chatter)
         {
             try
             {
@@ -113,7 +112,7 @@ namespace TwitchBotShared.Commands.Features
         /// Tweet that the stream is live on the broadcaster's behalf
         /// </summary>
         /// <returns></returns>
-        public async Task<DateTime> Live()
+        private async Task<DateTime> LiveAsync()
         {
             try
             {
@@ -142,7 +141,11 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        public async Task<DateTime> TwitterLink()
+        /// <summary>
+        /// Post the broadcaster's Twitter link if given permission
+        /// </summary>
+        /// <returns></returns>
+        private async Task<DateTime> TwitterLinkAsync()
         {
             try
             {

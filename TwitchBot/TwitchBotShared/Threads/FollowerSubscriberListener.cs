@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 
-using TwitchBotShared.ClientLibraries;
-
 using TwitchBotDb.Models;
 using TwitchBotDb.Services;
 
+using TwitchBotShared.ClientLibraries;
 using TwitchBotShared.Config;
 using TwitchBotShared.Extensions;
 using TwitchBotShared.Models;
@@ -59,8 +58,8 @@ namespace TwitchBotShared.Threads
         {
             while (true)
             {
-                CheckNewFollowersSubscribers().Wait();
-                CheckChatterFollowersSubscribers().Wait();
+                CheckNewFollowersSubscribersAsync().Wait();
+                CheckChatterFollowersSubscribersAsync().Wait();
                 Thread.Sleep(60000); // 1 minute
             }
         }
@@ -69,18 +68,18 @@ namespace TwitchBotShared.Threads
         /// Check broadcaster's info via API for newest followers or subscribers
         /// </summary>
         /// <returns></returns>
-        private async Task CheckNewFollowersSubscribers()
+        private async Task CheckNewFollowersSubscribersAsync()
         {
             try
             {
                 // Get broadcaster type and check if they can have subscribers
-                ChannelJSON channelJson = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON channelJson = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string broadcasterType = channelJson.BroadcasterType;
 
                 if (broadcasterType == "partner" || broadcasterType == "affiliate")
                 {
                     /* Check for new subscribers */
-                    RootSubscriptionJSON rootSubscriptionJson = await _twitchInfo.GetSubscribersByChannel();
+                    RootSubscriptionJSON rootSubscriptionJson = await _twitchInfo.GetSubscribersByChannelAsync();
                     IEnumerable<string> freshSubscribers = rootSubscriptionJson.Subscriptions
                         ?.Where(u => Convert.ToDateTime(u.CreatedAt).ToLocalTime() > DateTime.Now.AddSeconds(-60))
                         .Select(u => u.User.Name);
@@ -143,7 +142,7 @@ namespace TwitchBotShared.Threads
                 }
 
                 /* Check for new followers */
-                RootFollowerJSON rootFollowerJson = await _twitchInfo.GetFollowersByChannel();
+                RootFollowerJSON rootFollowerJson = await _twitchInfo.GetFollowersByChannelAsync();
                 IEnumerable<string> freshFollowers = rootFollowerJson.Followers
                     ?.Where(u => Convert.ToDateTime(u.CreatedAt).ToLocalTime() > DateTime.Now.AddSeconds(-60))
                     .Select(u => u.User.Name);
@@ -185,7 +184,7 @@ namespace TwitchBotShared.Threads
         /// Check the chatter list for any followers or subscribers
         /// </summary>
         /// <returns></returns>
-        private async Task CheckChatterFollowersSubscribers()
+        private async Task CheckChatterFollowersSubscribersAsync()
         {
             try
             {
@@ -203,11 +202,11 @@ namespace TwitchBotShared.Threads
                     return;
                 }
 
-                _rankList = await _follower.GetRankList(_broadcasterId);
+                _rankList = await _follower.GetRankListAsync(_broadcasterId);
 
                 if (_rankList == null)
                 {
-                    _rankList = await _follower.CreateDefaultRanks(_broadcasterId);
+                    _rankList = await _follower.CreateDefaultRanksAsync(_broadcasterId);
                 }
 
                 // Check for existing or new followers/subscribers
@@ -223,7 +222,7 @@ namespace TwitchBotShared.Threads
                     }
 
                     // get chatter info
-                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(chatter);
+                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginNameAsync(chatter);
                     string userTwitchId = rootUserJSON.Users.FirstOrDefault()?.Id;
 
                     // skip chatter if Twitch ID is missing
@@ -233,8 +232,8 @@ namespace TwitchBotShared.Threads
                     }
 
                     // check for follower and/or subscriber and add then to their respective lists
-                    await CheckFollower(chatter, userTwitchId);
-                    await CheckSubscriber(chatter, userTwitchId);
+                    await CheckFollowerAsync(chatter, userTwitchId);
+                    await CheckSubscriberAsync(chatter, userTwitchId);
                 }
             }
             catch (Exception ex)
@@ -247,28 +246,28 @@ namespace TwitchBotShared.Threads
             }
         }
 
-        private async Task CheckFollower(string chatter, string userTwitchId)
+        private async Task CheckFollowerAsync(string chatter, string userTwitchId)
         {
             try
             {
-                TwitchChatter follower = await GetTwitchFollowerInfo(chatter, userTwitchId);
+                TwitchChatter follower = await GetTwitchFollowerInfoAsync(chatter, userTwitchId);
 
                 if (follower == null)
                     return;
 
                 /* Manage follower experience */
-                int currentExp = await _follower.CurrentExp(chatter, _broadcasterId);
+                int currentExp = await _follower.CurrentExpAsync(chatter, _broadcasterId);
 
                 if (TwitchStreamStatus.IsLive)
                 {
                     if (currentExp > -1)
                     {
-                        await _follower.UpdateExp(chatter, _broadcasterId, ++currentExp);
+                        await _follower.UpdateExpAsync(chatter, _broadcasterId, ++currentExp);
                     }
                     else
                     {
                         // add new user to the ranks
-                        await _follower.EnlistRecruit(chatter, _broadcasterId);
+                        await _follower.EnlistRecruitAsync(chatter, _broadcasterId);
                     }
                 }
 
@@ -286,16 +285,16 @@ namespace TwitchBotShared.Threads
                 /* Manage follower streaming currency */
                 if (TwitchStreamStatus.IsLive)
                 {
-                    int funds = await _bank.CheckBalance(chatter, _broadcasterId);
+                    int funds = await _bank.CheckBalanceAsync(chatter, _broadcasterId);
 
                     if (funds > -1)
                     {
                         funds += setIncrementFunds;
-                        await _bank.UpdateFunds(chatter, _broadcasterId, funds);
+                        await _bank.UpdateFundsAsync(chatter, _broadcasterId, funds);
                     }
                     else // ToDo: Make currency auto-increment setting
                     {
-                        await _bank.CreateAccount(chatter, _broadcasterId, setIncrementFunds);
+                        await _bank.CreateAccountAsync(chatter, _broadcasterId, setIncrementFunds);
                     }
                 }
             }
@@ -309,13 +308,13 @@ namespace TwitchBotShared.Threads
             }
         }
 
-        private async Task<TwitchChatter> GetTwitchFollowerInfo(string chatter, string userTwitchId)
+        private async Task<TwitchChatter> GetTwitchFollowerInfoAsync(string chatter, string userTwitchId)
         {
             TwitchChatter follower = null;
 
             try
             {
-                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(userTwitchId))
+                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatusAsync(userTwitchId))
                 {
                     // check if chatter is a follower
                     if (!message.IsSuccessStatusCode)
@@ -352,11 +351,11 @@ namespace TwitchBotShared.Threads
             return follower;
         }
 
-        private async Task CheckSubscriber(string chatter, string userTwitchId)
+        private async Task CheckSubscriberAsync(string chatter, string userTwitchId)
         {
             try
             {
-                await GetTwitchSubscriberInfo(chatter, userTwitchId);
+                await GetTwitchSubscriberInfoAsync(chatter, userTwitchId);
             }
             catch (Exception ex)
             {
@@ -368,7 +367,7 @@ namespace TwitchBotShared.Threads
             }
         }
 
-        private async Task<TwitchChatter> GetTwitchSubscriberInfo(string chatter, string userTwitchId)
+        private async Task<TwitchChatter> GetTwitchSubscriberInfoAsync(string chatter, string userTwitchId)
         {
             TwitchChatter subscriber = null;
 

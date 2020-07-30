@@ -19,12 +19,12 @@ namespace TwitchBotShared.Commands.Features
 
         public MultiLinkUserFeature(IrcClient irc, TwitchBotConfigurationSection botConfig) : base(irc, botConfig)
         {
-            _rolePermission.Add("!msl", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!addmsl", new CommandPermission { General = ChatterType.VIP });
-            _rolePermission.Add("!resetmsl", new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add("!msl", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!addmsl", new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add("!resetmsl", new CommandPermission { General = ChatterType.VIP });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -33,17 +33,17 @@ namespace TwitchBotShared.Commands.Features
                     case "!msl":
                     case "!addmsl":
                         if ((chatter.Message.StartsWith("!msl ") || chatter.Message.StartsWith("!addmsl "))
-                            && HasPermission("!addmsl", DetermineChatterPermissions(chatter), _rolePermission))
+                            && HasPermission("!addmsl", DetermineChatterPermissions(chatter), _rolePermissions))
                         {
-                            return (true, await AddUser(chatter));
+                            return (true, await AddUsersAsync(chatter));
                         }
                         else if (chatter.Message == "!msl")
                         {
-                            return (true, await ShowLink(chatter));
+                            return (true, await ShowLinkAsync(chatter));
                         }
                         break;
                     case "!resetmsl":
-                        return (true, await ResetLink(chatter));
+                        return (true, await ResetLinkAsync(chatter));
                     default:
                         break;
                 }
@@ -60,7 +60,7 @@ namespace TwitchBotShared.Commands.Features
         /// Displays MultiStream link so multiple streamers can be watched at once
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> ShowLink(TwitchChatter chatter)
+        private async Task<DateTime> ShowLinkAsync(TwitchChatter chatter)
         {
             try
             {
@@ -78,7 +78,7 @@ namespace TwitchBotShared.Commands.Features
         /// Add user(s) to a MultiStream link so viewers can watch multiple streamers at the same time
         /// </summary>
         /// <param name="chatter"></param>
-        private async Task<DateTime> AddUser(TwitchChatter chatter)
+        private async Task<DateTime> AddUsersAsync(TwitchChatter chatter)
         {
             try
             {
@@ -96,7 +96,7 @@ namespace TwitchBotShared.Commands.Features
         /// Reset the MultiStream link to allow the link to be reconfigured
         /// </summary>
         /// <param name="chatter"></param>
-        private async Task<DateTime> ResetLink(TwitchChatter chatter)
+        private async Task<DateTime> ResetLinkAsync(TwitchChatter chatter)
         {
             try
             {

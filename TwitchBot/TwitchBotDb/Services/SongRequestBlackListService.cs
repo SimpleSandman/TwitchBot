@@ -16,34 +16,34 @@ namespace TwitchBotDb.Services
             _songRequestDb = songRequestDb;
         }
 
-        public async Task<List<SongRequestIgnore>> GetSongRequestIgnore(int broadcasterId)
+        public async Task<List<SongRequestIgnore>> GetSongRequestIgnoreAsync(int broadcasterId)
         {
-            return await _songRequestDb.GetSongRequestIgnore(broadcasterId);
+            return await _songRequestDb.GetSongRequestIgnoreAsync(broadcasterId);
         }
 
-        public async Task<SongRequestIgnore> IgnoreArtist(string artist, int broadcasterId)
+        public async Task<SongRequestIgnore> IgnoreArtistAsync(string artist, int broadcasterId)
         {
-            return await _songRequestDb.IgnoreArtist(artist, broadcasterId);
+            return await _songRequestDb.IgnoreArtistAsync(artist, broadcasterId);
         }
 
-        public async Task<SongRequestIgnore> IgnoreSong(string title, string artist, int broadcasterId)
+        public async Task<SongRequestIgnore> IgnoreSongAsync(string title, string artist, int broadcasterId)
         {
-            return await _songRequestDb.IgnoreSong(title, artist, broadcasterId);
+            return await _songRequestDb.IgnoreSongAsync(title, artist, broadcasterId);
         }
 
-        public async Task<List<SongRequestIgnore>> AllowArtist(string artist, int broadcasterId)
+        public async Task<List<SongRequestIgnore>> AllowArtistAsync(string artist, int broadcasterId)
         {
-            return await _songRequestDb.AllowArtist(artist, broadcasterId);
+            return await _songRequestDb.AllowArtistAsync(artist, broadcasterId);
         }
 
-        public async Task<SongRequestIgnore> AllowSong(string title, string artist, int broadcasterId)
+        public async Task<SongRequestIgnore> AllowSongAsync(string title, string artist, int broadcasterId)
         {
-            return await _songRequestDb.AllowSong(title, artist, broadcasterId);
+            return await _songRequestDb.AllowSongAsync(title, artist, broadcasterId);
         }
 
-        public async Task<List<SongRequestIgnore>> ResetIgnoreList(int broadcasterId)
+        public async Task<List<SongRequestIgnore>> ResetIgnoreListAsync(int broadcasterId)
         {
-            return await _songRequestDb.ResetIgnoreList(broadcasterId);
+            return await _songRequestDb.ResetIgnoreListAsync(broadcasterId);
         }
     }
 }

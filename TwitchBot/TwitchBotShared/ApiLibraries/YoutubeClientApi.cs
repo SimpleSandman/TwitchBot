@@ -13,7 +13,7 @@ namespace TwitchBotShared.ApiLibraries
 
         public abstract Task<bool> GetAuthAsync(string youTubeClientId, string youTubeClientSecret);
 
-        public virtual async Task<Playlist> CreatePlaylist(string title, string desc, string privacyStatus = "public")
+        public virtual async Task<Playlist> CreatePlaylistAsync(string title, string desc, string privacyStatus = "public")
         {
             var newPlaylist = new Playlist();
             newPlaylist.Snippet = new PlaylistSnippet();
@@ -24,12 +24,12 @@ namespace TwitchBotShared.ApiLibraries
             return await YouTubeService.Playlists.Insert(newPlaylist, GetPartParam(4)).ExecuteAsync();
         }
 
-        public virtual async Task DeletePlaylist(string playlistId)
+        public virtual async Task DeletePlaylistAsync(string playlistId)
         {
             await YouTubeService.Playlists.Delete(playlistId).ExecuteAsync();
         }
 
-        public virtual async Task<PlaylistItem> AddVideoToPlaylist(string videoId, string playlistId, string username, long position = -1)
+        public virtual async Task<PlaylistItem> AddVideoToPlaylistAsync(string videoId, string playlistId, string username, long position = -1)
         {
             PlaylistItem newPlaylistItem = new PlaylistItem();
             newPlaylistItem.Snippet = new PlaylistItemSnippet();
@@ -48,7 +48,7 @@ namespace TwitchBotShared.ApiLibraries
             return newPlaylistItem;
         }
 
-        public virtual async Task<string> DeleteVideoFromPlaylist(string playlistItemId)
+        public virtual async Task<string> DeleteVideoFromPlaylistAsync(string playlistItemId)
         {
             return await YouTubeService.PlaylistItems.Delete(playlistItemId).ExecuteAsync();
         }
@@ -58,7 +58,7 @@ namespace TwitchBotShared.ApiLibraries
         /// </summary>
         /// <param name="searchQuery">Requested keywords for video search</param>
         /// <returns></returns>
-        public virtual async Task<string> SearchVideoByKeyword(string searchQuery)
+        public virtual async Task<string> SearchVideoByKeywordAsync(string searchQuery)
         {
             var searchListRequest = YouTubeService.Search.List(GetPartParam(3));
             searchListRequest.Q = searchQuery;
@@ -79,7 +79,7 @@ namespace TwitchBotShared.ApiLibraries
         /// </summary>
         /// <param name="videoId">Video ID</param>
         /// <returns></returns>
-        public virtual async Task<Video> GetVideoById(string videoId)
+        public virtual async Task<Video> GetVideoByIdAsync(string videoId)
         {
             var videoListRequest = YouTubeService.Videos.List(GetPartParam(2));
             videoListRequest.Id = videoId;
@@ -102,7 +102,7 @@ namespace TwitchBotShared.ApiLibraries
         /// </summary>
         /// <param name="playlistTitle">Title of playlist</param>
         /// <returns></returns>
-        public virtual async Task<Playlist> GetBroadcasterPlaylistByKeyword(string playlistTitle)
+        public virtual async Task<Playlist> GetBroadcasterPlaylistByKeywordAsync(string playlistTitle)
         {
             string nextPageToken = "";
 
@@ -132,7 +132,7 @@ namespace TwitchBotShared.ApiLibraries
         /// </summary>
         /// <param name="playlistId">Playlist ID</param>
         /// <returns></returns>
-        public virtual async Task<Playlist> GetBroadcasterPlaylistById(string playlistId)
+        public virtual async Task<Playlist> GetBroadcasterPlaylistByIdAsync(string playlistId)
         {
             string nextPageToken = "";
 
@@ -164,7 +164,7 @@ namespace TwitchBotShared.ApiLibraries
         /// </summary>
         /// <param name="playlistId">Playlist ID</param>
         /// <returns></returns>
-        public virtual async Task<Playlist> GetPlaylistById(string playlistId)
+        public virtual async Task<Playlist> GetPlaylistByIdAsync(string playlistId)
         {
             var userPlaylistRequest = YouTubeService.Playlists.List(GetPartParam(0));
             userPlaylistRequest.Id = playlistId;
@@ -188,7 +188,7 @@ namespace TwitchBotShared.ApiLibraries
         /// <param name="playlistId">Playlist ID</param>
         /// <param name="playlistItemVideoId">Requested video's ID</param>
         /// <returns></returns>
-        public virtual async Task<bool> HasDuplicatePlaylistItem(string playlistId, string playlistItemVideoId)
+        public virtual async Task<bool> HasDuplicatePlaylistItemAsync(string playlistId, string playlistItemVideoId)
         {
             string nextPageToken = "";
             while (nextPageToken != null)
@@ -219,7 +219,7 @@ namespace TwitchBotShared.ApiLibraries
         /// </summary>
         /// <param name="playlistId">Playlist ID</param>
         /// <returns></returns>
-        public virtual async Task<List<PlaylistItem>> GetPlaylistItems(string playlistId)
+        public virtual async Task<List<PlaylistItem>> GetPlaylistItemsAsync(string playlistId)
         {
             List<PlaylistItem> playlistVideoIds = new List<PlaylistItem>();
 

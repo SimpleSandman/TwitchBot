@@ -16,14 +16,14 @@ namespace TwitchBotDb.Services
             _quoteDb = quote;
         }
 
-        public async Task<List<Quote>> GetQuotes(int broadcasterId)
+        public async Task<List<Quote>> GetQuotesAsync(int broadcasterId)
         {
-            return await _quoteDb.GetQuotes(broadcasterId);
+            return await _quoteDb.GetQuotesAsync(broadcasterId);
         }
 
-        public async Task AddQuote(string quote, string username, int broadcasterId)
+        public async Task AddQuoteAsync(string quote, string username, int broadcasterId)
         {
-            await _quoteDb.AddQuote(quote, username, broadcasterId);
+            await _quoteDb.AddQuoteAsync(quote, username, broadcasterId);
         }
     }
 }

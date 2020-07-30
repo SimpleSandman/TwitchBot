@@ -1,15 +1,12 @@
-﻿using Newtonsoft.Json;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json;
+
 using TwitchBotShared.ClientLibraries;
-
-using TwitchBotDb.Services;
-
 using TwitchBotShared.Enums;
 using TwitchBotShared.Models;
 using TwitchBotShared.Models.JSON;
@@ -43,17 +40,17 @@ namespace TwitchBotShared.Threads
         {
             while (true)
             {
-                CheckChatters().Wait();
+                CheckChattersAsync().Wait();
                 Thread.Sleep(15000); // 15 seconds
             }
         }
 
-        private async Task CheckChatters()
+        private async Task CheckChattersAsync()
         {
             try
             {
                 _twitchChatterListInstance.AreListsAvailable = false;
-                await ResetChatterLists();
+                await ResetChatterListsAsync();
                 _twitchChatterListInstance.AreListsAvailable = true;
             }
             catch (Exception ex)
@@ -69,12 +66,12 @@ namespace TwitchBotShared.Threads
         /// <summary>
         /// Set a full list of chatters broken up by each type
         /// </summary>
-        private async Task ResetChatterLists()
+        private async Task ResetChatterListsAsync()
         {
             try
             {
                 // Grab user's chatter info (viewers, mods, etc.)
-                using (HttpResponseMessage message = await _twitchInfo.GetChatters())
+                using (HttpResponseMessage message = await _twitchInfo.GetChattersAsync())
                 {
                     if (!message.IsSuccessStatusCode)
                     {

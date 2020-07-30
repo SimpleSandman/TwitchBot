@@ -15,7 +15,7 @@ namespace TwitchBotDb.Services
             _gameDirectoryDb = gameDirectoryDb;
         }
 
-        public async Task<TwitchGameCategory> GetGameId(string gameTitle)
+        public async Task<TwitchGameCategory> GetGameIdAsync(string gameTitle)
         {
             gameTitle = gameTitle.TrimEnd();
 
@@ -24,7 +24,7 @@ namespace TwitchBotDb.Services
                 return null;
             }
 
-            return await _gameDirectoryDb.GetGameId(gameTitle);
+            return await _gameDirectoryDb.GetGameIdAsync(gameTitle);
         }
     }
 }

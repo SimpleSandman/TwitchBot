@@ -28,26 +28,26 @@ namespace TwitchBotShared.Commands.Features
         {
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
-            _rolePermission.Add("!resetjoin", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermission.Add("!listjoin", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!invite", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!popjoin", new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add("!resetjoin", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add("!listjoin", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!invite", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!popjoin", new CommandPermission { General = ChatterType.VIP });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!resetjoin":
-                        return (true, await ResetJoin(chatter));
+                        return (true, await ResetJoinAsync(chatter));
                     case "!listjoin":
-                        return (true, await ListJoin(chatter));
+                        return (true, await ListJoinAsync(chatter));
                     case "!invite":
-                        return (true, await Invite(chatter));
+                        return (true, await InviteAsync(chatter));
                     case "!popjoin":
-                        return (true, await PopJoin(chatter));
+                        return (true, await PopJoinAsync(chatter));
                     default:
                         break;
                 }
@@ -60,7 +60,7 @@ namespace TwitchBotShared.Commands.Features
             return (true, DateTime.Now);
         }
 
-        private async Task<DateTime> ResetJoin(TwitchChatter chatter)
+        private async Task<DateTime> ResetJoinAsync(TwitchChatter chatter)
         {
             try
             {
@@ -80,11 +80,11 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
         /// <param name="gameQueueUsers">List of users that are queued to play with the broadcaster</param>
-        private async Task<DateTime> ListJoin(TwitchChatter chatter)
+        private async Task<DateTime> ListJoinAsync(TwitchChatter chatter)
         {
             try
             {
-                if (!await IsMultiplayerGame(chatter.Username))
+                if (!await IsMultiplayerGameAsync(chatter.Username))
                 {
                     return DateTime.Now;
                 }
@@ -105,11 +105,11 @@ namespace TwitchBotShared.Commands.Features
         /// Add a user to the queue of users that want to play with the broadcaster
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> Invite(TwitchChatter chatter)
+        private async Task<DateTime> InviteAsync(TwitchChatter chatter)
         {
             try
             {
-                if (await IsMultiplayerGame(chatter.Username))
+                if (await IsMultiplayerGameAsync(chatter.Username))
                 {
                     _joinStreamerInstance.Invite(chatter);
                 }
@@ -122,7 +122,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> PopJoin(TwitchChatter chatter)
+        private async Task<DateTime> PopJoinAsync(TwitchChatter chatter)
         {
             try
             {
@@ -137,14 +137,14 @@ namespace TwitchBotShared.Commands.Features
         }
 
         #region Private Methods
-        private async Task<bool> IsMultiplayerGame(string username)
+        private async Task<bool> IsMultiplayerGameAsync(string username)
         {
             // Get current game name
-            ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+            ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
             string gameTitle = json.Game;
 
             // Grab game id in order to find party member
-            TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+            TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 
             if (string.IsNullOrEmpty(gameTitle))
             {

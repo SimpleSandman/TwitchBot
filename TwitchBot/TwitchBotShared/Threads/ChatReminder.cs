@@ -29,7 +29,7 @@ namespace TwitchBotShared.Threads
         private readonly IrcClient _irc;
         private readonly GameDirectoryService _gameDirectory;
         private readonly TwitchInfoService _twitchInfo;
-        private readonly DelayedMessagesSingleton _delayedMessagesInstance = DelayedMessagesSingleton.Instance;
+        private readonly DelayedMessageSingleton _delayedMessagesInstance = DelayedMessageSingleton.Instance;
 
         public ChatReminder(IrcClient irc, int broadcasterId, string twitchBotApiLink, TwitchInfoService twitchInfo, GameDirectoryService gameDirectory)
         {
@@ -51,15 +51,15 @@ namespace TwitchBotShared.Threads
 
         private async void Run()
         {
-            await LoadReminderContext(); // initial load
+            await LoadReminderContextAsync(); // initial load
             DateTime midnightNextDay = DateTime.Today.AddDays(1);
 
             while (true)
             {
-                ChannelJSON channelJSON = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON channelJSON = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string gameTitle = channelJSON.Game;
 
-                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 
                 if (game == null || game.Id == 0)
                     _gameId = null;
@@ -96,16 +96,16 @@ namespace TwitchBotShared.Threads
         /// Manual refresh of reminders
         /// </summary>
         /// <returns></returns>
-        public static async Task RefreshReminders()
+        public static async Task RefreshRemindersAsync()
         {
-            await LoadReminderContext();
+            await LoadReminderContextAsync();
             _refreshReminders = true;
         }
 
         /// <summary>
         /// Load reminders from database
         /// </summary>
-        private static async Task LoadReminderContext()
+        private static async Task LoadReminderContextAsync()
         {
             _reminders = new List<RemindUser>();
             List<Reminder> reminders = await ApiBotRequest.GetExecuteAsync<List<Reminder>>(_twitchBotApiLink + $"reminders/get/{_broadcasterId}");

@@ -30,24 +30,24 @@ namespace TwitchBotShared.Commands.Features
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
             _ign = ign;
-            _rolePermission.Add("!setgameign", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!setgameid", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!setgamefc", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!setgenericign", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!setgenericid", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!setgenericfc", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!deleteign", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!deleteid", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!deletefc", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermission.Add("!ign", new CommandPermission { General = ChatterType.Viewer }); // Display the broadcaster's in-game (user) name based on what they're streaming
-            _rolePermission.Add("!fc", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!gt", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!allign", new CommandPermission { General = ChatterType.Viewer }); // Display all of the broadcaster's in-game (user) names
-            _rolePermission.Add("!allfc", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!allgt", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!setgameign", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!setgameid", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!setgamefc", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!setgenericign", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!setgenericid", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!setgenericfc", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!deleteign", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!deleteid", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!deletefc", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!ign", new CommandPermission { General = ChatterType.Viewer }); // Display the broadcaster's in-game (user) name based on what they're streaming
+            _rolePermissions.Add("!fc", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!gt", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!allign", new CommandPermission { General = ChatterType.Viewer }); // Display all of the broadcaster's in-game (user) names
+            _rolePermissions.Add("!allfc", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!allgt", new CommandPermission { General = ChatterType.Viewer });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
@@ -56,22 +56,22 @@ namespace TwitchBotShared.Commands.Features
                     case "!setgameign":
                     case "!setgameid":
                     case "!setgamefc":
-                        return (true, await SetGameIgn(chatter));
+                        return (true, await SetGameIgnAsync(chatter));
                     case "!setgenericign":
                     case "!setgenericid":
                     case "!setgenericfc":
-                        return (true, await SetGenericIgn(chatter));
+                        return (true, await SetGenericIgnAsync(chatter));
                     case "!deleteign":
                     case "!deleteid":
                     case "!deletefc":
-                        return (true, await DeleteIgn(chatter));
+                        return (true, await DeleteIgnAsync(chatter));
                     case "!ign":
                     case "!fc":
                     case "!gt":
                     case "!allign":
                     case "!allfc":
                     case "!allgt":
-                        return (true, await InGameUsername(chatter));
+                        return (true, await InGameUsernameAsync(chatter));
                     default:
                         break;
                 }
@@ -84,7 +84,7 @@ namespace TwitchBotShared.Commands.Features
             return (false, DateTime.Now);
         }
 
-        private async Task<DateTime> SetGameIgn(TwitchChatter chatter)
+        private async Task<DateTime> SetGameIgnAsync(TwitchChatter chatter)
         {
             try
             {
@@ -92,11 +92,11 @@ namespace TwitchBotShared.Commands.Features
                 string gameIgn = message.Substring(message.IndexOf(" ") + 1);
 
                 // Get current game name
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string gameTitle = json.Game;
 
-                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
-                InGameUsername ign = await _ign.GetInGameUsername(_broadcasterInstance.DatabaseId, game);
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
+                InGameUsername ign = await _ign.GetInGameUsernameAsync(_broadcasterInstance.DatabaseId, game);
 
                 if (game == null)
                 {
@@ -107,14 +107,14 @@ namespace TwitchBotShared.Commands.Features
 
                 if (ign == null || (ign != null && ign.GameId == null))
                 {
-                    await _ign.CreateInGameUsername(game.Id, _broadcasterInstance.DatabaseId, gameIgn);
+                    await _ign.CreateInGameUsernameAsync(game.Id, _broadcasterInstance.DatabaseId, gameIgn);
 
                     _irc.SendPublicChatMessage($"Yay! You've set your IGN for {gameTitle} to \"{gameIgn}\" @{chatter.DisplayName}");
                 }
                 else
                 {
                     ign.Message = gameIgn;
-                    await _ign.UpdateInGameUsername(ign.Id, _broadcasterInstance.DatabaseId, ign);
+                    await _ign.UpdateInGameUsernameAsync(ign.Id, _broadcasterInstance.DatabaseId, ign);
 
                     _irc.SendPublicChatMessage($"Yay! You've updated your IGN for {gameTitle} to \"{gameIgn}\" @{chatter.DisplayName}");
                 }
@@ -127,7 +127,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> SetGenericIgn(TwitchChatter chatter)
+        private async Task<DateTime> SetGenericIgnAsync(TwitchChatter chatter)
         {
             try
             {
@@ -135,21 +135,21 @@ namespace TwitchBotShared.Commands.Features
                 string gameIgn = message.Substring(message.IndexOf(" ") + 1);
 
                 // Get current game name
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string gameTitle = json.Game;
 
-                InGameUsername ign = await _ign.GetInGameUsername(_broadcasterInstance.DatabaseId);
+                InGameUsername ign = await _ign.GetInGameUsernameAsync(_broadcasterInstance.DatabaseId);
 
                 if (ign == null)
                 {
-                    await _ign.CreateInGameUsername(null, _broadcasterInstance.DatabaseId, gameIgn);
+                    await _ign.CreateInGameUsernameAsync(null, _broadcasterInstance.DatabaseId, gameIgn);
 
                     _irc.SendPublicChatMessage($"Yay! You've set your generic IGN to \"{gameIgn}\" @{chatter.DisplayName}");
                 }
                 else
                 {
                     ign.Message = gameIgn;
-                    await _ign.UpdateInGameUsername(ign.Id, _broadcasterInstance.DatabaseId, ign);
+                    await _ign.UpdateInGameUsernameAsync(ign.Id, _broadcasterInstance.DatabaseId, ign);
 
                     _irc.SendPublicChatMessage($"Yay! You've updated your generic IGN to \"{gameIgn}\" @{chatter.DisplayName}");
                 }
@@ -162,16 +162,16 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> DeleteIgn(TwitchChatter chatter)
+        private async Task<DateTime> DeleteIgnAsync(TwitchChatter chatter)
         {
             try
             {
                 // Get current game name
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string gameTitle = json.Game;
 
-                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
-                InGameUsername ign = await _ign.GetInGameUsername(_broadcasterInstance.DatabaseId, game);
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
+                InGameUsername ign = await _ign.GetInGameUsernameAsync(_broadcasterInstance.DatabaseId, game);
 
                 if (game == null)
                 {
@@ -181,7 +181,7 @@ namespace TwitchBotShared.Commands.Features
 
                 if (ign != null && ign.GameId != null)
                 {
-                    await _ign.DeleteInGameUsername(ign.Id, _broadcasterInstance.DatabaseId);
+                    await _ign.DeleteInGameUsernameAsync(ign.Id, _broadcasterInstance.DatabaseId);
 
                     _irc.SendPublicChatMessage($"Successfully deleted IGN set for the category, \"{game.Title}\" @{chatter.DisplayName}");
                 }
@@ -198,21 +198,21 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> InGameUsername(TwitchChatter chatter)
+        private async Task<DateTime> InGameUsernameAsync(TwitchChatter chatter)
         {
             try
             {
                 // Get current game name
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelById();
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
                 string gameTitle = json.Game;
 
-                TwitchGameCategory game = await _gameDirectory.GetGameId(gameTitle);
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
                 InGameUsername ign = null;
 
                 if (chatter.Message.StartsWith("!all"))
-                    ign = await _ign.GetInGameUsername(_broadcasterInstance.DatabaseId); // return generic IGN
+                    ign = await _ign.GetInGameUsernameAsync(_broadcasterInstance.DatabaseId); // return generic IGN
                 else
-                    ign = await _ign.GetInGameUsername(_broadcasterInstance.DatabaseId, game); // return specified IGN (if available)
+                    ign = await _ign.GetInGameUsernameAsync(_broadcasterInstance.DatabaseId, game); // return specified IGN (if available)
 
                 if (ign != null && !string.IsNullOrEmpty(ign.Message))
                     _irc.SendPublicChatMessage($"{ign.Message} @{chatter.DisplayName}");

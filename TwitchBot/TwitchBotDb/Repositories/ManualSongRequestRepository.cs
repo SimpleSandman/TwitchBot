@@ -14,7 +14,7 @@ namespace TwitchBotDb.Repositories
             _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public async Task<SongRequest> AddSongRequest(string songRequestName, string username, int broadcasterId)
+        public async Task<SongRequest> AddSongRequestAsync(string songRequestName, string username, int broadcasterId)
         {
             SongRequest songRequest = new SongRequest
             {
@@ -26,17 +26,17 @@ namespace TwitchBotDb.Repositories
             return await ApiBotRequest.PostExecuteAsync(_twitchBotApiLink + $"songrequests/create", songRequest);
         }
 
-        public async Task<List<SongRequest>> ListSongRequests(int broadcasterId)
+        public async Task<List<SongRequest>> ListSongRequestsAsync(int broadcasterId)
         {
             return await ApiBotRequest.GetExecuteAsync<List<SongRequest>>(_twitchBotApiLink + $"songrequests/get/{broadcasterId}");
         }
 
-        public async Task<SongRequest> PopSongRequest(int broadcasterId)
+        public async Task<SongRequest> PopSongRequestAsync(int broadcasterId)
         {
             return await ApiBotRequest.DeleteExecuteAsync<SongRequest>(_twitchBotApiLink + $"songrequests/delete/{broadcasterId}?popone=true");
         }
 
-        public async Task<List<SongRequest>> ResetSongRequests(int broadcasterId)
+        public async Task<List<SongRequest>> ResetSongRequestsAsync(int broadcasterId)
         {
             return await ApiBotRequest.DeleteExecuteAsync<List<SongRequest>>(_twitchBotApiLink + $"songrequests/delete/{broadcasterId}");
         }

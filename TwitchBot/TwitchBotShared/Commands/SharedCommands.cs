@@ -1,10 +1,9 @@
-﻿using SpotifyAPI.Web.Models;
-
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
-using TwitchBotShared.ClientLibraries;
+using SpotifyAPI.Web.Models;
 
+using TwitchBotShared.ClientLibraries;
 using TwitchBotShared.Extensions;
 using TwitchBotShared.Models;
 
@@ -16,9 +15,9 @@ namespace TwitchBotShared.Commands
         /// Displays the last song played from Spotify
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public static async Task<string> SpotifyLastPlayedSong(TwitchChatter chatter, SpotifyWebClient spotify)
+        public static async Task<string> SpotifyLastPlayedSongAsync(TwitchChatter chatter, SpotifyWebClient spotify)
         {
-            SimpleTrack simpleTrack = await spotify.GetLastPlayedSong();
+            SimpleTrack simpleTrack = await spotify.GetLastPlayedSongAsync();
             if (simpleTrack != null)
             {
                 string artistName = "";
@@ -44,9 +43,9 @@ namespace TwitchBotShared.Commands
         /// Displays the current song being played from Spotify
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public static async Task<string> SpotifyCurrentSong(TwitchChatter chatter, SpotifyWebClient spotify)
+        public static async Task<string> SpotifyCurrentSongAsync(TwitchChatter chatter, SpotifyWebClient spotify)
         {
-            PlaybackContext playbackContext = await spotify.GetPlayback();
+            PlaybackContext playbackContext = await spotify.GetPlaybackAsync();
             if (playbackContext != null && playbackContext.IsPlaying)
             {
                 string artistName = "";

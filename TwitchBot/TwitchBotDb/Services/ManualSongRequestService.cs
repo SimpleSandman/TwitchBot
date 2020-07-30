@@ -15,14 +15,14 @@ namespace TwitchBotDb.Services
             _songRequestDb = songRequestDb;
         }
 
-        public async Task<SongRequest> AddSongRequest(string songRequestName, string username, int broadcasterId)
+        public async Task<SongRequest> AddSongRequestAsync(string songRequestName, string username, int broadcasterId)
         {
-            return await _songRequestDb.AddSongRequest(songRequestName, username, broadcasterId);
+            return await _songRequestDb.AddSongRequestAsync(songRequestName, username, broadcasterId);
         }
 
-        public async Task<string> ListSongRequests(int broadcasterId)
+        public async Task<string> ListSongRequestsAsync(int broadcasterId)
         {
-            List<SongRequest> songRequests = await _songRequestDb.ListSongRequests(broadcasterId);
+            List<SongRequest> songRequests = await _songRequestDb.ListSongRequestsAsync(broadcasterId);
 
             if (songRequests == null || songRequests.Count == 0)
             {
@@ -41,14 +41,14 @@ namespace TwitchBotDb.Services
             return message;
         }
 
-        public async Task<SongRequest> PopSongRequest(int broadcasterId)
+        public async Task<SongRequest> PopSongRequestAsync(int broadcasterId)
         {
-            return await _songRequestDb.PopSongRequest(broadcasterId);
+            return await _songRequestDb.PopSongRequestAsync(broadcasterId);
         }
 
-        public async Task<List<SongRequest>> ResetSongRequests(int broadcasterId)
+        public async Task<List<SongRequest>> ResetSongRequestsAsync(int broadcasterId)
         {
-            return await _songRequestDb.ResetSongRequests(broadcasterId);
+            return await _songRequestDb.ResetSongRequestsAsync(broadcasterId);
         }
     }
 }

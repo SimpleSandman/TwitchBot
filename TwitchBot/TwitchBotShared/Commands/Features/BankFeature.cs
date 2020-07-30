@@ -29,46 +29,46 @@ namespace TwitchBotShared.Commands.Features
         public BankFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, BankService bank) : base(irc, botConfig)
         {
             _bank = bank;
-            _rolePermission.Add("!deposit", new CommandPermission { General = ChatterType.Moderator});
-            _rolePermission.Add("!charge", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermission.Add("!points", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!pointstop3", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add($"!{_botConfig.CurrencyType.ToLower()}top3", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!bonusall", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermission.Add("!give", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!gamble", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!deposit", new CommandPermission { General = ChatterType.Moderator});
+            _rolePermissions.Add("!charge", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add("!points", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add($"!{_botConfig.CurrencyType.ToLower()}", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!pointstop3", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add($"!{_botConfig.CurrencyType.ToLower()}top3", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!bonusall", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add("!give", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!gamble", new CommandPermission { General = ChatterType.Viewer });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!deposit":
-                        return (true, await Deposit(chatter));
+                        return (true, await DepositAsync(chatter));
                     case "!charge":
-                        return (true, await Charge(chatter));
+                        return (true, await ChargeAsync(chatter));
                     case "!bonusall":
-                        return (true, await BonusAll(chatter));
+                        return (true, await BonusAllAsync(chatter));
                     case "!points":
-                        return (true, await CheckFunds(chatter));
+                        return (true, await CheckFundsAsync(chatter));
                     case "!pointstop3":
-                        return (true, await LeaderboardCurrency(chatter));
+                        return (true, await LeaderboardCurrencyAsync(chatter));
                     case "!give":
-                        return (true, await GiveFunds(chatter));
+                        return (true, await GiveFundsAsync(chatter));
                     case "!gamble":
-                        return (true, await Gamble(chatter));
+                        return (true, await GambleAsync(chatter));
                     default:
                         if (requestedCommand == $"!{_botConfig.CurrencyType.ToLower()}")
                         {
-                            return (true, await CheckFunds(chatter));
+                            return (true, await CheckFundsAsync(chatter));
                         }
 
                         else if (requestedCommand == $"!{_botConfig.CurrencyType.ToLower()}top3")
                         {
-                            return (true, await LeaderboardCurrency(chatter));
+                            return (true, await LeaderboardCurrencyAsync(chatter));
                         }
 
                         break;
@@ -86,7 +86,7 @@ namespace TwitchBotShared.Commands.Features
         /// Gives a set amount of stream currency to user
         /// </summary>
         /// <param name="chatter"></param>
-        private async Task<DateTime> Deposit(TwitchChatter chatter)
+        private async Task<DateTime> DepositAsync(TwitchChatter chatter)
         {
             try
             {
@@ -136,7 +136,7 @@ namespace TwitchBotShared.Commands.Features
                     {
                         if (userList.Count > 0)
                         {
-                            List<BalanceResult> balResultList = await _bank.UpdateCreateBalance(userList, _broadcasterInstance.DatabaseId, deposit, true);
+                            List<BalanceResult> balResultList = await _bank.UpdateCreateBalanceAsync(userList, _broadcasterInstance.DatabaseId, deposit, true);
 
                             string responseMsg = $"Gave {deposit} {_botConfig.CurrencyType} to ";
 
@@ -180,7 +180,7 @@ namespace TwitchBotShared.Commands.Features
         /// Takes money away from a user
         /// </summary>
         /// <param name="chatter"></param>
-        private async Task<DateTime> Charge(TwitchChatter chatter)
+        private async Task<DateTime> ChargeAsync(TwitchChatter chatter)
         {
             try
             {
@@ -192,7 +192,7 @@ namespace TwitchBotShared.Commands.Features
                     int fee = -1;
                     bool isValidFee = int.TryParse(chatter.Message.Substring(indexAction, chatter.Message.IndexOf("@") - indexAction - 1), out fee);
                     string recipient = chatter.Message.Substring(chatter.Message.IndexOf("@") + 1).ToLower();
-                    int wallet = await _bank.CheckBalance(recipient, _broadcasterInstance.DatabaseId);
+                    int wallet = await _bank.CheckBalanceAsync(recipient, _broadcasterInstance.DatabaseId);
 
                     // Check user's bank account exist or has currency
                     if (wallet == -1)
@@ -215,7 +215,7 @@ namespace TwitchBotShared.Commands.Features
                         if (wallet < 0)
                             wallet = 0;
 
-                        await _bank.UpdateFunds(recipient, _broadcasterInstance.DatabaseId, wallet);
+                        await _bank.UpdateFundsAsync(recipient, _broadcasterInstance.DatabaseId, wallet);
 
                         // Prompt user's balance
                         if (wallet == 0)
@@ -239,11 +239,11 @@ namespace TwitchBotShared.Commands.Features
         /// Check user's account balance
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> CheckFunds(TwitchChatter chatter)
+        private async Task<DateTime> CheckFundsAsync(TwitchChatter chatter)
         {
             try
             {
-                int balance = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+                int balance = await _bank.CheckBalanceAsync(chatter.Username, _broadcasterInstance.DatabaseId);
 
                 if (balance == -1)
                     _irc.SendPublicChatMessage($"You are not currently banking with us at the moment. Please talk to a moderator about acquiring {_botConfig.CurrencyType}");
@@ -262,7 +262,7 @@ namespace TwitchBotShared.Commands.Features
         /// Gives every viewer currently watching a set amount of currency
         /// </summary>
         /// <param name="chatter"></param>
-        private async Task<DateTime> BonusAll(TwitchChatter chatter)
+        private async Task<DateTime> BonusAllAsync(TwitchChatter chatter)
         {
             try
             {
@@ -306,7 +306,7 @@ namespace TwitchBotShared.Commands.Features
 
                         if (chatterList != null && chatterList.Count > 0)
                         {
-                            await _bank.UpdateCreateBalance(chatterList, _broadcasterInstance.DatabaseId, deposit);
+                            await _bank.UpdateCreateBalanceAsync(chatterList, _broadcasterInstance.DatabaseId, deposit);
 
                             _irc.SendPublicChatMessage($"{deposit} {_botConfig.CurrencyType} for everyone! "
                                 + $"Check your stream bank account with !{_botConfig.CurrencyType.ToLower()}");
@@ -330,7 +330,7 @@ namespace TwitchBotShared.Commands.Features
         /// Let a user give an amount of their funds to another chatter
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> GiveFunds(TwitchChatter chatter)
+        private async Task<DateTime> GiveFundsAsync(TwitchChatter chatter)
         {
             try
             {
@@ -369,7 +369,7 @@ namespace TwitchBotShared.Commands.Features
                 }
 
                 // Get and check wallet balance
-                int balance = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+                int balance = await _bank.CheckBalanceAsync(chatter.Username, _broadcasterInstance.DatabaseId);
 
                 if (giftMessage == "all")
                 {
@@ -385,14 +385,14 @@ namespace TwitchBotShared.Commands.Features
                 else
                 {
                     // make sure the user exists in the database to prevent fake accounts from being created
-                    int recipientBalance = await _bank.CheckBalance(recipient, _broadcasterInstance.DatabaseId);
+                    int recipientBalance = await _bank.CheckBalanceAsync(recipient, _broadcasterInstance.DatabaseId);
 
                     if (recipientBalance == -1)
                         _irc.SendPublicChatMessage($"The user \"{recipient}\" is currently not banking with us. Please talk to a moderator about creating their account @{chatter.DisplayName}");
                     else
                     {
-                        await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, balance - giftAmount); // take away from sender
-                        await _bank.UpdateFunds(recipient, _broadcasterInstance.DatabaseId, giftAmount + recipientBalance); // give to recipient
+                        await _bank.UpdateFundsAsync(chatter.Username, _broadcasterInstance.DatabaseId, balance - giftAmount); // take away from sender
+                        await _bank.UpdateFundsAsync(recipient, _broadcasterInstance.DatabaseId, giftAmount + recipientBalance); // give to recipient
 
                         _irc.SendPublicChatMessage($"@{chatter.DisplayName} gave {giftAmount} {_botConfig.CurrencyType} to @{recipient}");
                         return DateTime.Now.AddSeconds(20);
@@ -411,11 +411,11 @@ namespace TwitchBotShared.Commands.Features
         /// Disply the top 3 richest users (if available)
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> LeaderboardCurrency(TwitchChatter chatter)
+        private async Task<DateTime> LeaderboardCurrencyAsync(TwitchChatter chatter)
         {
             try
             {
-                List<Bank> richestUsers = await _bank.GetCurrencyLeaderboard(_botConfig.Broadcaster, _broadcasterInstance.DatabaseId, _botConfig.BotName);
+                List<Bank> richestUsers = await _bank.GetCurrencyLeaderboardAsync(_botConfig.Broadcaster, _broadcasterInstance.DatabaseId, _botConfig.BotName);
 
                 if (richestUsers.Count == 0)
                 {
@@ -454,7 +454,7 @@ namespace TwitchBotShared.Commands.Features
         /// Gamble away currency
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> Gamble(TwitchChatter chatter)
+        private async Task<DateTime> GambleAsync(TwitchChatter chatter)
         {
             try
             {
@@ -472,7 +472,7 @@ namespace TwitchBotShared.Commands.Features
                     return DateTime.Now;
                 }
 
-                int walletBalance = await _bank.CheckBalance(chatter.Username, _broadcasterInstance.DatabaseId);
+                int walletBalance = await _bank.CheckBalanceAsync(chatter.Username, _broadcasterInstance.DatabaseId);
 
                 // Check if user wants to gamble all of their wallet
                 if (gambleMessage.Equals("all", StringComparison.CurrentCultureIgnoreCase))
@@ -522,7 +522,7 @@ namespace TwitchBotShared.Commands.Features
                         result += $"won {gambledMoney * 3} {_botConfig.CurrencyType}";
                     }
 
-                    await _bank.UpdateFunds(chatter.Username, _broadcasterInstance.DatabaseId, newBalance);
+                    await _bank.UpdateFundsAsync(chatter.Username, _broadcasterInstance.DatabaseId, newBalance);
 
                     // Show how much the user has left if they didn't gamble all of their currency or gambled all and lost
                     if (allResponse != "ALL " || (allResponse == "ALL " && diceRoll < 61))

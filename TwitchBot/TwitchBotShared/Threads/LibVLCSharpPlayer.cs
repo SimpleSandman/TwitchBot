@@ -60,7 +60,7 @@ namespace TwitchBotShared.Threads
 
         public LibVLC LibVlc { get; private set; }
 
-        public async Task Start()
+        public async Task StartAsync()
         {
             try
             {
@@ -76,7 +76,7 @@ namespace TwitchBotShared.Threads
                         AspectRatio = "16:9"
                     };
 
-                    await SetAudioOutputDevice(_botConfig.LibVLCAudioOutputDevice);
+                    await SetAudioOutputDeviceAsync(_botConfig.LibVLCAudioOutputDevice);
                     _playerStatus = true;
 
                     _vlcPlayerThread.IsBackground = true;
@@ -108,20 +108,20 @@ namespace TwitchBotShared.Threads
         {
             try
             {
-                _songRequestPlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubeBroadcasterPlaylistId);
+                _songRequestPlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItemsAsync(_botConfig.YouTubeBroadcasterPlaylistId);
 
                 if (!string.IsNullOrEmpty(_botConfig.YouTubePersonalPlaylistId))
                 {
                     if (_botConfig.EnablePersonalPlaylistShuffle)
                     {
-                        List<PlaylistItem> shuffledList = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
+                        List<PlaylistItem> shuffledList = await _youTubeClientInstance.GetPlaylistItemsAsync(_botConfig.YouTubePersonalPlaylistId);
                         shuffledList.Shuffle();
 
                         _personalYoutubePlaylistVideoIds = shuffledList;
                     }
                     else
                     {
-                        _personalYoutubePlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
+                        _personalYoutubePlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItemsAsync(_botConfig.YouTubePersonalPlaylistId);
                     }
                 }
 
@@ -139,7 +139,7 @@ namespace TwitchBotShared.Threads
                 {
                     if (CurrentSongRequestPlaylistItem != null)
                     {
-                        await PlayMedia();
+                        await PlayMediaAsync();
 
                         if (_mediaPlayer?.Media?.State != VLCState.Ended)
                         {
@@ -225,7 +225,7 @@ namespace TwitchBotShared.Threads
             }
         }
 
-        private async Task PlayMedia(int recursiveCount = 0)
+        private async Task PlayMediaAsync(int recursiveCount = 0)
         {
             try
             {
@@ -250,7 +250,7 @@ namespace TwitchBotShared.Threads
 
                             if (recursiveCount < 2)
                             {
-                                await PlayMedia(++recursiveCount);
+                                await PlayMediaAsync(++recursiveCount);
                             }
                             else
                             {
@@ -273,13 +273,13 @@ namespace TwitchBotShared.Threads
             }
         }
 
-        public async Task Play()
+        public async Task PlayAsync()
         {
             try
             {
                 if (_mediaPlayer != null)
                 {
-                    await PlayMedia();
+                    await PlayMediaAsync();
                 }
             }
             catch (Exception ex)
@@ -303,7 +303,7 @@ namespace TwitchBotShared.Threads
             }
         }
 
-        public async Task Skip(int songSkipCount = 0)
+        public async Task SkipAsync(int songSkipCount = 0)
         {
             try
             {
@@ -327,7 +327,7 @@ namespace TwitchBotShared.Threads
             }
         }
 
-        public async Task<bool> SetVolume(int volumePercentage)
+        public async Task<bool> SetVolumeAsync(int volumePercentage)
         {
             try
             {
@@ -345,7 +345,7 @@ namespace TwitchBotShared.Threads
             return false;
         }
 
-        public async Task<int> GetVolume()
+        public async Task<int> GetVolumeAsync()
         {
             try
             {
@@ -367,7 +367,7 @@ namespace TwitchBotShared.Threads
             _songRequestPlaylistVideoIds = new List<PlaylistItem>();
         }
 
-        public async Task<string> SetAudioOutputDevice(string audioOutputDeviceName)
+        public async Task<string> SetAudioOutputDeviceAsync(string audioOutputDeviceName)
         {
             try
             {
@@ -404,11 +404,11 @@ namespace TwitchBotShared.Threads
             return "I cannot find the song request media player";
         }
 
-        public async Task<int> AddSongRequest(PlaylistItem playlistItem)
+        public async Task<int> AddSongRequestAsync(PlaylistItem playlistItem)
         {
             try
             {
-                await WaitForInitialPlaylistLoad();
+                await WaitForInitialPlaylistLoadAsync();
 
                 if (_songRequestPlaylistVideoIds != null)
                 {
@@ -434,7 +434,7 @@ namespace TwitchBotShared.Threads
             return _mediaPlayer != null ? _mediaPlayer.State : VLCState.Error;
         }
 
-        public async Task<bool> SetVideoTime(int timeInSec)
+        public async Task<bool> SetVideoTimeAsync(int timeInSec)
         {
             try
             {
@@ -453,7 +453,7 @@ namespace TwitchBotShared.Threads
             return false;
         }
 
-        public async Task<string> GetVideoTime()
+        public async Task<string> GetVideoTimeAsync()
         {
             try
             {
@@ -474,7 +474,7 @@ namespace TwitchBotShared.Threads
             return "A YouTube video hasn't been loaded yet";
         }
 
-        public async Task SetPersonalPlaylistShuffle(bool shuffle)
+        public async Task SetPersonalPlaylistShuffleAsync(bool shuffle)
         {
             try
             {
@@ -484,7 +484,7 @@ namespace TwitchBotShared.Threads
 
                     if (!shuffle)
                     {
-                        personalPlaylist = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubePersonalPlaylistId);
+                        personalPlaylist = await _youTubeClientInstance.GetPlaylistItemsAsync(_botConfig.YouTubePersonalPlaylistId);
                         int lastPlayedItemIndex = personalPlaylist.FindIndex(p => p.Id == CurrentSongRequestPlaylistItem.Id);
 
                         if (lastPlayedItemIndex > -1)
@@ -505,7 +505,7 @@ namespace TwitchBotShared.Threads
             }
         }
 
-        public async Task<PlaylistItem> RemoveWrongSong(string username)
+        public async Task<PlaylistItem> RemoveWrongSongAsync(string username)
         {
             try
             {
@@ -524,16 +524,16 @@ namespace TwitchBotShared.Threads
             return null;
         }
 
-        public async Task<bool> HasUserRequestedTooMany(string username, int songRequestLimit)
+        public async Task<bool> HasUserRequestedTooManyAsync(string username, int songRequestLimit)
         {
             try
             {
                 if (_songRequestPlaylistVideoIds == null && !_initialLoadYoutubePlaylist)
                 {
-                    _songRequestPlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItems(_botConfig.YouTubeBroadcasterPlaylistId);
+                    _songRequestPlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItemsAsync(_botConfig.YouTubeBroadcasterPlaylistId);
                 }
 
-                await WaitForInitialPlaylistLoad();
+                await WaitForInitialPlaylistLoadAsync();
 
                 if (_songRequestPlaylistVideoIds?.FindAll(p => p.ContentDetails.Note.Contains(username))?.Count >= songRequestLimit)
                 {
@@ -580,7 +580,7 @@ namespace TwitchBotShared.Threads
             }
         }
 
-        private async Task WaitForInitialPlaylistLoad()
+        private async Task WaitForInitialPlaylistLoadAsync()
         {
             if (_initialLoadYoutubePlaylist)
             {

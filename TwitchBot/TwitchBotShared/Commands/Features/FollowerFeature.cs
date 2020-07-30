@@ -38,26 +38,26 @@ namespace TwitchBotShared.Commands.Features
             _follower = follower;
             _twitchInfo = twitchInfo;
             _appConfig = appConfig;
-            _rolePermission.Add("!followsince", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!rank", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!ranktop3", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermission.Add("!setregularhours", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add("!followsince", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!rank", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!ranktop3", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!setregularhours", new CommandPermission { General = ChatterType.Broadcaster });
         }
 
-        public override async Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand)
+        public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
             try
             {
                 switch (requestedCommand)
                 {
                     case "!followsince":
-                        return (true, await FollowSince(chatter));
+                        return (true, await FollowSinceAsync(chatter));
                     case "!rank":
-                        return (true, await ViewRank(chatter));
+                        return (true, await ViewRankAsync(chatter));
                     case "!setregularhours":
-                        return (true, await SetRegularFollowerHours(chatter));
+                        return (true, await SetRegularFollowerHoursAsync(chatter));
                     case "!ranktop3":
-                        return (true, await LeaderboardRank(chatter));
+                        return (true, await LeaderboardRankAsync(chatter));
                     default:
                         break;
                 }
@@ -75,7 +75,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        private async Task<DateTime> FollowSince(TwitchChatter chatter)
+        private async Task<DateTime> FollowSinceAsync(TwitchChatter chatter)
         {
             try
             {
@@ -90,9 +90,9 @@ namespace TwitchBotShared.Commands.Features
                 if (chatter.CreatedAt == null)
                 {
                     // get chatter info manually
-                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginName(chatter.Username);
+                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginNameAsync(chatter.Username);
 
-                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(rootUserJSON.Users.First().Id))
+                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatusAsync(rootUserJSON.Users.First().Id))
                     {
                         string body = await message.Content.ReadAsStringAsync();
                         FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
@@ -129,7 +129,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
         /// <returns></returns>
-        private async Task<DateTime> ViewRank(TwitchChatter chatter)
+        private async Task<DateTime> ViewRankAsync(TwitchChatter chatter)
         {
             try
             {
@@ -143,7 +143,7 @@ namespace TwitchBotShared.Commands.Features
 
                 if (createdAt == null)
                 {
-                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatus(chatter.TwitchId))
+                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatusAsync(chatter.TwitchId))
                     {
                         string body = await message.Content.ReadAsStringAsync();
                         FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
@@ -157,12 +157,12 @@ namespace TwitchBotShared.Commands.Features
 
                 if (createdAt != null)
                 {
-                    int currExp = await _follower.CurrentExp(chatter.Username, _broadcasterInstance.DatabaseId);
+                    int currExp = await _follower.CurrentExpAsync(chatter.Username, _broadcasterInstance.DatabaseId);
 
                     // Grab the follower's associated rank
                     if (currExp > -1)
                     {
-                        IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterInstance.DatabaseId);
+                        IEnumerable<Rank> rankList = await _follower.GetRankListAsync(_broadcasterInstance.DatabaseId);
                         Rank currFollowerRank = _follower.GetCurrentRank(rankList, currExp);
                         decimal hoursWatched = _follower.GetHoursWatched(currExp);
 
@@ -171,7 +171,7 @@ namespace TwitchBotShared.Commands.Features
                     }
                     else
                     {
-                        await _follower.EnlistRecruit(chatter.Username, _broadcasterInstance.DatabaseId);
+                        await _follower.EnlistRecruitAsync(chatter.Username, _broadcasterInstance.DatabaseId);
 
                         _irc.SendPublicChatMessage($"Welcome to the army @{chatter.DisplayName}. View your new rank using !rank");
                     }
@@ -189,7 +189,7 @@ namespace TwitchBotShared.Commands.Features
             return DateTime.Now;
         }
 
-        private async Task<DateTime> SetRegularFollowerHours(TwitchChatter chatter)
+        private async Task<DateTime> SetRegularFollowerHoursAsync(TwitchChatter chatter)
         {
             try
             {
@@ -227,11 +227,11 @@ namespace TwitchBotShared.Commands.Features
         /// Display the top 3 highest ranking members (if available)
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        private async Task<DateTime> LeaderboardRank(TwitchChatter chatter)
+        private async Task<DateTime> LeaderboardRankAsync(TwitchChatter chatter)
         {
             try
             {
-                IEnumerable<RankFollower> highestRankedFollowers = await _follower.GetFollowersLeaderboard(_broadcasterInstance.DatabaseId);
+                IEnumerable<RankFollower> highestRankedFollowers = await _follower.GetFollowersLeaderboardAsync(_broadcasterInstance.DatabaseId);
 
                 if (highestRankedFollowers.Count() == 0)
                 {
@@ -239,7 +239,7 @@ namespace TwitchBotShared.Commands.Features
                     return DateTime.Now;
                 }
 
-                IEnumerable<Rank> rankList = await _follower.GetRankList(_broadcasterInstance.DatabaseId);
+                IEnumerable<Rank> rankList = await _follower.GetRankListAsync(_broadcasterInstance.DatabaseId);
 
                 string resultMsg = "";
                 foreach (RankFollower follower in highestRankedFollowers)

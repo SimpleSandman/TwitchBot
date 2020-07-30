@@ -8,14 +8,14 @@ using TwitchBotShared.Models;
 
 namespace TwitchBotShared.Threads
 {
-    public class DelayMsg
+    public class DelayMessage
     {
         private Thread _msgSender;
         private IrcClient _irc;
-        private DelayedMessagesSingleton _delayedMessagesInstance = DelayedMessagesSingleton.Instance;
+        private DelayedMessageSingleton _delayedMessagesInstance = DelayedMessageSingleton.Instance;
         private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public DelayMsg(IrcClient irc)
+        public DelayMessage(IrcClient irc)
         {
             _irc = irc;
             _msgSender = new Thread(new ThreadStart(this.Run));

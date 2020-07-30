@@ -10,7 +10,6 @@ using TwitchBotDb.Services;
 using TwitchBotShared.ClientLibraries;
 using TwitchBotShared.ClientLibraries.Singletons;
 using TwitchBotShared.Config;
-using TwitchBotShared.Enums;
 
 namespace TwitchBotShared.Threads
 {
@@ -59,7 +58,7 @@ namespace TwitchBotShared.Threads
                 {
                     //AddTestFighters(); // debugging only
                     _bossSettings.Fighters.CompleteAdding();
-                    await Consume();
+                    await ConsumeAsync();
 
                     // refresh the list and reset the cooldown time period
                     _bossSettings.Fighters = new BlockingCollection<BossFighter>();
@@ -76,7 +75,53 @@ namespace TwitchBotShared.Threads
             _bossSettings.Fighters.Add(fighter);
         }
 
-        public async Task Consume()
+        public bool HasFighterAlreadyEntered(string username)
+        {
+            return _bossSettings.Fighters.Any(u => u.Username == username) ? true : false;
+        }
+
+        public bool IsEntryPeriodOver()
+        {
+            return _bossSettings.Fighters.IsAddingCompleted ? true : false;
+        }
+
+        public int BossLevel()
+        {
+            if (_bossSettings.Fighters.Count <= _bossSettings.Bosses[0].MaxUsers)
+                return 1;
+            else if (_bossSettings.Fighters.Count <= _bossSettings.Bosses[1].MaxUsers)
+                return 2;
+            else if (_bossSettings.Fighters.Count <= _bossSettings.Bosses[2].MaxUsers)
+                return 3;
+            else if (_bossSettings.Fighters.Count <= _bossSettings.Bosses[3].MaxUsers)
+                return 4;
+            else
+                return 5;
+        }
+
+        public string NextLevelMessage()
+        {
+            if (_bossSettings.Fighters.Count == _bossSettings.Bosses[0].MaxUsers + 1)
+                return _bossSettings.NextLevelMessages[0]
+                    .Replace("@bossname@", _bossSettings.Bosses[1].Name)
+                    .Replace("@nextbossname@", _bossSettings.Bosses[2].Name);
+            else if (_bossSettings.Fighters.Count == _bossSettings.Bosses[1].MaxUsers + 1)
+                return _bossSettings.NextLevelMessages[1]
+                    .Replace("@bossname@", _bossSettings.Bosses[2].Name)
+                    .Replace("@nextbossname@", _bossSettings.Bosses[3].Name);
+            else if (_bossSettings.Fighters.Count == _bossSettings.Bosses[2].MaxUsers + 1)
+                return _bossSettings.NextLevelMessages[2]
+                    .Replace("@bossname@", _bossSettings.Bosses[3].Name)
+                    .Replace("@nextbossname@", _bossSettings.Bosses[4].Name);
+            else if (_bossSettings.Fighters.Count == _bossSettings.Bosses[3].MaxUsers + 1)
+                return _bossSettings.NextLevelMessages[3]
+                    .Replace("@bossname@", _bossSettings.Bosses[4].Name)
+                    .Replace("@nextbossname@", _bossSettings.Bosses[5].Name);
+
+            return "";
+        }
+
+        private async Task ConsumeAsync()
         {
             Boss boss = _bossSettings.Bosses[BossLevel() - 1];
 
@@ -153,7 +198,7 @@ namespace TwitchBotShared.Threads
             int numSurvivors = survivors.Count();
             foreach (BossFighter champion in survivors)
             {
-                int funds = await _bank.CheckBalance(champion.Username.ToLower(), _broadcasterId);
+                int funds = await _bank.CheckBalanceAsync(champion.Username.ToLower(), _broadcasterId);
 
                 decimal earnings = Math.Ceiling(boss.Loot / (decimal)numSurvivors);
 
@@ -163,7 +208,7 @@ namespace TwitchBotShared.Threads
                     earnings += boss.LastAttackBonus;
                 }
 
-                await _bank.UpdateFunds(champion.Username.ToLower(), _broadcasterId, (int)earnings + funds);
+                await _bank.UpdateFundsAsync(champion.Username.ToLower(), _broadcasterId, (int)earnings + funds);
 
                 _resultMessage += $" {champion.Username} ({(int)earnings} {_botConfig.CurrencyType}),";
             }
@@ -202,146 +247,6 @@ namespace TwitchBotShared.Threads
 
             // show in case Twitch deletes the message because of exceeding character length
             Console.WriteLine("\n" + _resultMessage + "\n");
-        }
-
-        public bool HasFighterAlreadyEntered(string username)
-        {
-            return _bossSettings.Fighters.Any(u => u.Username == username) ? true : false;
-        }
-
-        public bool IsEntryPeriodOver()
-        {
-            return _bossSettings.Fighters.IsAddingCompleted ? true : false;
-        }
-
-        public int BossLevel()
-        {
-            if (_bossSettings.Fighters.Count <= _bossSettings.Bosses[0].MaxUsers)
-                return 1;
-            else if (_bossSettings.Fighters.Count <= _bossSettings.Bosses[1].MaxUsers)
-                return 2;
-            else if (_bossSettings.Fighters.Count <= _bossSettings.Bosses[2].MaxUsers)
-                return 3;
-            else if (_bossSettings.Fighters.Count <= _bossSettings.Bosses[3].MaxUsers)
-                return 4;
-            else
-                return 5;
-        }
-
-        public string NextLevelMessage()
-        {
-            if (_bossSettings.Fighters.Count == _bossSettings.Bosses[0].MaxUsers + 1)
-                return _bossSettings.NextLevelMessages[0]
-                    .Replace("@bossname@", _bossSettings.Bosses[1].Name)
-                    .Replace("@nextbossname@", _bossSettings.Bosses[2].Name);
-            else if (_bossSettings.Fighters.Count == _bossSettings.Bosses[1].MaxUsers + 1)
-                return _bossSettings.NextLevelMessages[1]
-                    .Replace("@bossname@", _bossSettings.Bosses[2].Name)
-                    .Replace("@nextbossname@", _bossSettings.Bosses[3].Name);
-            else if (_bossSettings.Fighters.Count == _bossSettings.Bosses[2].MaxUsers + 1)
-                return _bossSettings.NextLevelMessages[2]
-                    .Replace("@bossname@", _bossSettings.Bosses[3].Name)
-                    .Replace("@nextbossname@", _bossSettings.Bosses[4].Name);
-            else if (_bossSettings.Fighters.Count == _bossSettings.Bosses[3].MaxUsers + 1)
-                return _bossSettings.NextLevelMessages[3]
-                    .Replace("@bossname@", _bossSettings.Bosses[4].Name)
-                    .Replace("@nextbossname@", _bossSettings.Bosses[5].Name);
-
-            return "";
-        }
-
-        /// <summary>
-        /// Used for debugging/testing only
-        /// </summary>
-        public void AddTestFighters()
-        {
-            _bossSettings.Fighters.Take();
-
-            int numMods = 2;
-            int numSubs = 1;
-            int numRegFols = 0;
-            int numFols = 2;
-            int numVews = 2;
-
-            for (int i = 0; i < numMods; i++)
-            {
-                _bossSettings.Fighters.Add(new BossFighter
-                {
-                    FighterClass = new FighterClass
-                    {
-                        Attack = 50,
-                        ChatterType = ChatterType.Moderator,
-                        Defense = 12,
-                        Evasion = 40,
-                        Health = 270
-                    },
-                    Username = "testMod" + (i + 1)
-                });
-            }
-
-            for (int i = 0; i < numSubs; i++)
-            {
-                _bossSettings.Fighters.Add(new BossFighter
-                {
-                    FighterClass = new FighterClass
-                    {
-                        Attack = 20,
-                        ChatterType = ChatterType.Subscriber,
-                        Defense = 17,
-                        Evasion = 25,
-                        Health = 400
-                    },
-                    Username = "testSub" + (i + 1)
-                });
-            }
-
-            for (int i = 0; i < numRegFols; i++)
-            {
-                _bossSettings.Fighters.Add(new BossFighter
-                {
-                    FighterClass = new FighterClass
-                    {
-                        Attack = 35,
-                        ChatterType = ChatterType.RegularFollower,
-                        Defense = 13,
-                        Evasion = 27,
-                        Health = 250
-                    },
-                    Username = "testRegFol" + (i + 1)
-                });
-            }
-
-            for (int i = 0; i < numFols; i++)
-            {
-                _bossSettings.Fighters.Add(new BossFighter
-                {
-                    FighterClass = new FighterClass
-                    {
-                        Attack = 30,
-                        ChatterType = ChatterType.Follower,
-                        Defense = 9,
-                        Evasion = 22,
-                        Health = 180
-                    },
-                    Username = "testFol" + (i + 1)
-                });
-            }
-
-            for (int i = 0; i < numVews; i++)
-            {
-                _bossSettings.Fighters.Add(new BossFighter
-                {
-                    FighterClass = new FighterClass
-                    {
-                        Attack = 25,
-                        ChatterType = ChatterType.Viewer,
-                        Defense = 6,
-                        Evasion = 35,
-                        Health = 125
-                    },
-                    Username = "testVewr" + (i + 1)
-                });
-            }
         }
     }
 }

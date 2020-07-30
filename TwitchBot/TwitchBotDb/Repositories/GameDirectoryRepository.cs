@@ -13,7 +13,7 @@ namespace TwitchBotDb.Repositories
             _twitchBotApiLink = twitchBotApiLink;
         }
 
-        public async Task<TwitchGameCategory> GetGameId(string gameTitle)
+        public async Task<TwitchGameCategory> GetGameIdAsync(string gameTitle)
         {
             return await ApiBotRequest.GetExecuteAsync<TwitchGameCategory>(_twitchBotApiLink + $"twitchgamecategories/get?title={gameTitle}");
         }

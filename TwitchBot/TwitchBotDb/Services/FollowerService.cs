@@ -18,29 +18,29 @@ namespace TwitchBotDb.Services
             _followerDb = followerDb;
         }
 
-        public async Task<int> CurrentExp(string chatter, int broadcasterId)
+        public async Task<int> CurrentExpAsync(string chatter, int broadcasterId)
         {
-            return await _followerDb.CurrentExp(chatter, broadcasterId);
+            return await _followerDb.CurrentExpAsync(chatter, broadcasterId);
         }
 
-        public async Task UpdateExp(string chatter, int broadcasterId, int exp)
+        public async Task UpdateExpAsync(string chatter, int broadcasterId, int exp)
         {
-            await _followerDb.UpdateExp(chatter, broadcasterId, exp);
+            await _followerDb.UpdateExpAsync(chatter, broadcasterId, exp);
         }
 
-        public async Task EnlistRecruit(string chatter, int broadcasterId)
+        public async Task EnlistRecruitAsync(string chatter, int broadcasterId)
         {
-            await _followerDb.EnlistRecruit(chatter, broadcasterId);
+            await _followerDb.EnlistRecruitAsync(chatter, broadcasterId);
         }
 
-        public async Task<IEnumerable<Rank>> GetRankList(int broadcasterId)
+        public async Task<IEnumerable<Rank>> GetRankListAsync(int broadcasterId)
         {
-            return await _followerDb.GetRankList(broadcasterId);
+            return await _followerDb.GetRankListAsync(broadcasterId);
         }
 
-        public async Task<IEnumerable<Rank>> CreateDefaultRanks(int broadcasterId)
+        public async Task<IEnumerable<Rank>> CreateDefaultRanksAsync(int broadcasterId)
         {
-            return await _followerDb.CreateDefaultRanks(broadcasterId);
+            return await _followerDb.CreateDefaultRanksAsync(broadcasterId);
         }
 
         public Rank GetCurrentRank(IEnumerable<Rank> rankList, int currentExp)
@@ -76,9 +76,9 @@ namespace TwitchBotDb.Services
             return GetHoursWatched(currentExp) >= regularFollowerHours;
         }
 
-        public async Task<IEnumerable<RankFollower>> GetFollowersLeaderboard(int broadcasterId)
+        public async Task<IEnumerable<RankFollower>> GetFollowersLeaderboardAsync(int broadcasterId)
         {
-            return await _followerDb.GetFollowersLeaderboard(broadcasterId);
+            return await _followerDb.GetFollowersLeaderboardAsync(broadcasterId);
         }
     }
 }

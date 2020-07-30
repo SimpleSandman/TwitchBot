@@ -21,25 +21,25 @@ namespace TwitchBotShared.Commands.Features
 
         protected IrcClient _irc;
         protected TwitchBotConfigurationSection _botConfig;
-        protected readonly Dictionary<string, CommandPermission> _rolePermission;
+        protected readonly Dictionary<string, CommandPermission> _rolePermissions;
 
         public BaseFeature(IrcClient irc, TwitchBotConfigurationSection botConfig)
         {
             _irc = irc;
             _botConfig = botConfig;
-            _rolePermission = new Dictionary<string, CommandPermission>();
+            _rolePermissions = new Dictionary<string, CommandPermission>();
         }
 
-        public async Task<bool> IsRequestExecuted(TwitchChatter chatter) 
+        public async Task<bool> IsRequestExecutedAsync(TwitchChatter chatter) 
         {
             string requestedCommand = ParseChatterCommandName(chatter);
-            bool validCommand = _rolePermission.TryGetValue(requestedCommand, out CommandPermission permission);
+            bool validCommand = _rolePermissions.TryGetValue(requestedCommand, out CommandPermission permission);
 
             if (validCommand 
                 && DetermineChatterPermissions(chatter) >= permission.General
                 && !_cooldownUsersInstance.IsCommandOnCooldown(requestedCommand, chatter, _irc))
             {
-                (bool, DateTime) commandResult = await ExecCommand(chatter, requestedCommand);
+                (bool, DateTime) commandResult = await ExecCommandAsync(chatter, requestedCommand);
                 _cooldownUsersInstance.AddCooldown(chatter, commandResult.Item2, ParseChatterCommandName(chatter));
                 return commandResult.Item1;
             }
@@ -196,6 +196,6 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter">The user in the chat</param>
         /// <param name="requestedCommand">The command that is being requested</param>
-        public abstract Task<(bool, DateTime)> ExecCommand(TwitchChatter chatter, string requestedCommand);
+        public abstract Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand);
     }
 }
