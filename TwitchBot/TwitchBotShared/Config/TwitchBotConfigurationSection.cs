@@ -37,9 +37,6 @@ namespace TwitchBotShared.Config
         private static readonly ConfigurationProperty _twitterAccessSecret =
             new ConfigurationProperty("twitterAccessSecret", typeof(string), "", ConfigurationPropertyOptions.None);
 
-        private static readonly ConfigurationProperty _discordLink =
-            new ConfigurationProperty("discordLink", typeof(string), "", ConfigurationPropertyOptions.None);
-
         private static readonly ConfigurationProperty _currencyType =
             new ConfigurationProperty("currencyType", typeof(string), "", ConfigurationPropertyOptions.None);
 
@@ -108,7 +105,6 @@ namespace TwitchBotShared.Config
                 _twitterConsumerSecret,
                 _twitterAccessToken,
                 _twitterAccessSecret,
-                _discordLink,
                 _currencyType,
                 _enableTweet,
                 _enableDisplaySong,
@@ -266,17 +262,6 @@ namespace TwitchBotShared.Config
             {
                 ThrowIfReadOnly("TwitterAccessSecret");
                 this["twitterAccessSecret"] = value;
-            }
-        }
-
-        [StringValidator(InvalidCharacters = " ~!@#$%^&*()[]{}/;'\"|\\")]
-        public string DiscordLink
-        {
-            get { return (string)this["discordLink"]; }
-            set
-            {
-                ThrowIfReadOnly("DiscordLink");
-                this["discordLink"] = value;
             }
         }
 

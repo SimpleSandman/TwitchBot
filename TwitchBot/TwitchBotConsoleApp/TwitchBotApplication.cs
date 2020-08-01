@@ -137,7 +137,6 @@ namespace TwitchBotConsoleApp
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine();
                 Console.WriteLine("---> Extra Bot Settings <---");
-                Console.WriteLine($"Discord link: {_botConfig.DiscordLink}");
                 Console.WriteLine($"Currency type: {_botConfig.CurrencyType}");
                 Console.WriteLine($"Enable Auto Tweets: {_botConfig.EnableTweets}");
                 Console.WriteLine($"Enable Auto Display Songs: {_botConfig.EnableDisplaySong}");
