@@ -259,7 +259,7 @@ namespace TwitchBotConsoleApp
                             {
                                 // Purge any clips that aren't from the broadcaster that a viewer posts
                                 if (_botConfig.Broadcaster.ToLower() != chatter.Username
-                                    && !chatter.Badges.Contains("moderator")
+                                    && !chatter.Badges.Contains("moderator") 
                                     && !await IsAllowedChatMessageAsync(chatter))
                                 {
                                     _irc.ClearMessage(chatter);
@@ -271,7 +271,7 @@ namespace TwitchBotConsoleApp
 
                                 await _commandSystem.ExecRequest(chatter);
 
-                                UseCustomCommand(chatter);
+                                FindCustomCommand(chatter);
                             }
                             catch (Exception ex)
                             {
@@ -672,9 +672,17 @@ namespace TwitchBotConsoleApp
             {
                 return await IsBroadcasterClipAsync(chatter);
             }
-            else if (chatter.Message.Contains("twitch.tv/") 
+            else if (chatter.Message.Contains("twitch.tv/videos/"))
+            {
+                return await IsBroadcasterVideoAsync(chatter);
+            }
+            else if ((chatter.Message.Contains("twitch.tv/") // find username in clip link
                 && chatter.Message.Contains("/clip/")
                 && !chatter.Message.ToLower().Contains(_botConfig.Broadcaster.ToLower()))
+                ||
+                (chatter.Message.Contains("twitch.tv/") // find username in video link
+                && chatter.Message.Contains("/v/")
+                && !chatter.Message.ToLower().Contains(_botConfig.Broadcaster.ToLower())))
             {
                 return false;
             }
@@ -709,10 +717,36 @@ namespace TwitchBotConsoleApp
         }
 
         /// <summary>
+        /// Check if broadcaster clip or not
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <returns></returns>
+        private async Task<bool> IsBroadcasterVideoAsync(TwitchChatter chatter)
+        {
+            string videoUrl = "twitch.tv/videos/";
+
+            int videoIndex = chatter.Message.IndexOf(videoUrl) + videoUrl.Length;
+            int endVideoIndex = chatter.Message.IndexOf(" ", videoIndex);
+
+            string videoId = endVideoIndex > 0
+                ? chatter.Message.Substring(videoIndex, endVideoIndex - videoIndex)
+                : chatter.Message.Substring(videoIndex);
+
+            VideoJSON video = await _twitchInfo.GetVideoAsync(videoId);
+
+            if (video.Channel.Name == _botConfig.Broadcaster.ToLower())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Load a custom command made by the broadcaster
         /// </summary>
         /// <param name="chatter"></param>
-        private async void UseCustomCommand(TwitchChatter chatter)
+        private async void FindCustomCommand(TwitchChatter chatter)
         {
             try
             {

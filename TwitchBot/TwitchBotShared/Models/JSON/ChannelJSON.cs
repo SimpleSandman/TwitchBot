@@ -2,7 +2,7 @@
 
 namespace TwitchBotShared.Models.JSON
 {
-    public class ChannelJSON
+    public partial class ChannelJSON
     {
         //public bool mature { get; set; }
         [JsonProperty("status")]
@@ -13,7 +13,8 @@ namespace TwitchBotShared.Models.JSON
         public string Game { get; set; }
         //public string language { get; set; }
         //public int _id { get; set; }
-        //public string name { get; set; }
+        [JsonProperty("name")]
+        public string Name { get; set; }
         //public DateTime created_at { get; set; }
         //public DateTime updated_at { get; set; }
         //public bool partner { get; set; }

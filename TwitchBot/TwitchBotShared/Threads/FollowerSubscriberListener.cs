@@ -373,7 +373,7 @@ namespace TwitchBotShared.Threads
 
             try
             {
-                using (HttpResponseMessage message = await _twitchInfo.CheckSubscriberStatus(userTwitchId))
+                using (HttpResponseMessage message = await _twitchInfo.CheckSubscriberStatusAsync(userTwitchId))
                 {
                     // check if chatter is a subscriber
                     if (!message.IsSuccessStatusCode)

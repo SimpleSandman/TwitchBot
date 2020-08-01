@@ -55,6 +55,11 @@ namespace TwitchBotShared.ClientLibraries
             return await TwitchApi.GetClipAsync(_botConfig.TwitchClientId, slug);
         }
 
+        public async Task<VideoJSON> GetVideoAsync(string videoId)
+        {
+            return await TwitchApi.GetVideoAsync(_botConfig.TwitchClientId, videoId);
+        }
+
         public async Task<HttpResponseMessage> CheckFollowerStatusAsync(string chatterTwitchId)
         {
             return await TwitchApi.GetFollowerStatusAsync(chatterTwitchId, _botConfig.TwitchClientId);
@@ -65,7 +70,7 @@ namespace TwitchBotShared.ClientLibraries
             return await TwitchApi.GetChattersAsync(_botConfig.TwitchClientId);
         }
 
-        public async Task<HttpResponseMessage> CheckSubscriberStatus(string userId)
+        public async Task<HttpResponseMessage> CheckSubscriberStatusAsync(string userId)
         {
             return await TwitchApi.CheckSubscriberStatusAsync(userId, _botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
         }
