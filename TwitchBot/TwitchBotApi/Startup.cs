@@ -24,7 +24,8 @@ namespace TwitchBotApi
             services.AddDbContext<SimpleBotContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("SimpleBotContext")));
 
-            services.AddControllers();
+            services.AddControllers()
+                .AddNewtonsoftJson();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
