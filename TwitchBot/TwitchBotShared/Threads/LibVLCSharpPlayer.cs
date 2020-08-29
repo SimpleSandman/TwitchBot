@@ -535,7 +535,7 @@ namespace TwitchBotShared.Threads
 
                 await WaitForInitialPlaylistLoadAsync();
 
-                if (_songRequestPlaylistVideoIds?.FindAll(p => p.ContentDetails.Note.Contains(username))?.Count >= songRequestLimit)
+                if (_songRequestPlaylistVideoIds?.FindAll(p => !string.IsNullOrEmpty(p.ContentDetails.Note) && p.ContentDetails.Note.Contains(username))?.Count >= songRequestLimit)
                 {
                     return true;
                 }
