@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.IO;
 using System.Threading.Tasks;
@@ -8,43 +9,45 @@ using TwitchBotShared.Models;
 
 namespace TwitchBotShared.ClientLibraries
 {
-    // Reference: https://www.youtube.com/watch?v=Ss-OzV9aUZg
     public class IrcClient
     {
-        public string username;
-        private string channel;
-
-        private TcpClient tcpClient;
-        private StreamReader inputStream;
-        private StreamWriter outputStream;
-
-        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+        private readonly string _username;
+        private readonly string _channel;
+        private readonly TcpClient _tcpClient;
+        private readonly SslStream _sslStream;
+        private readonly StreamReader _inputStream;
+        private readonly StreamWriter _outputStream;
+        private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public IrcClient(string username, string password, string channel)
         {
-            this.username = username;
-            this.channel = channel;
+            _username = username;
+            _channel = channel;
 
-            tcpClient = new TcpClient("irc.chat.twitch.tv", 6667);
-            inputStream = new StreamReader(tcpClient.GetStream());
-            outputStream = new StreamWriter(tcpClient.GetStream());
+            _tcpClient = new TcpClient("irc.chat.twitch.tv", 6697);
 
-            outputStream.WriteLine("CAP REQ :twitch.tv/tags"); // Reference: https://dev.twitch.tv/docs/irc/tags/
-            outputStream.WriteLine("CAP REQ :twitch.tv/commands"); // Reference: https://dev.twitch.tv/docs/irc/commands/
-            outputStream.WriteLine("CAP REQ :twitch.tv/membership"); // Reference: https://dev.twitch.tv/docs/irc/membership/
-            outputStream.WriteLine("PASS " + password);
-            outputStream.WriteLine("NICK " + username);
-            outputStream.WriteLine("USER " + username + " 8 * :" + username);
-            outputStream.WriteLine("JOIN #" + channel);
-            outputStream.Flush();
+            _sslStream = new SslStream(_tcpClient.GetStream());
+            _sslStream.AuthenticateAsClient("irc.chat.twitch.tv");
+
+            _inputStream = new StreamReader(_sslStream);
+            _outputStream = new StreamWriter(_sslStream);
+
+            _outputStream.WriteLine("CAP REQ :twitch.tv/tags"); // Reference: https://dev.twitch.tv/docs/irc/tags/
+            _outputStream.WriteLine("CAP REQ :twitch.tv/commands"); // Reference: https://dev.twitch.tv/docs/irc/commands/
+            _outputStream.WriteLine("CAP REQ :twitch.tv/membership"); // Reference: https://dev.twitch.tv/docs/irc/membership/
+            _outputStream.WriteLine($"PASS {password}");
+            _outputStream.WriteLine($"NICK {username}");
+            _outputStream.WriteLine($"USER {username} 8 * :{username}");
+            _outputStream.WriteLine($"JOIN #{channel}");
+            _outputStream.Flush();
         }
 
         public async void SendIrcMessage(string message)
         {
             try
             {
-                outputStream.WriteLine(message);
-                outputStream.Flush();
+                _outputStream.WriteLine(message);
+                _outputStream.Flush();
             }
             catch (Exception ex)
             {
@@ -56,8 +59,8 @@ namespace TwitchBotShared.ClientLibraries
         {
             try
             {
-                SendIrcMessage(":" + username + "!" + username + "@" + username +
-                    ".tmi.twitch.tv PRIVMSG #" + channel + " :" + message);
+                SendIrcMessage(":" + _username + "!" + _username + "@" + _username +
+                    ".tmi.twitch.tv PRIVMSG #" + _channel + " :" + message);
             }
             catch (Exception ex)
             {
@@ -69,8 +72,8 @@ namespace TwitchBotShared.ClientLibraries
         {
             try
             {
-                SendIrcMessage(":" + username + "!" + username + "@" + username +
-                    ".tmi.twitch.tv PRIVMSG #" + channel + " :/delete " + chatter.MessageId);
+                SendIrcMessage(":" + _username + "!" + _username + "@" + _username +
+                    ".tmi.twitch.tv PRIVMSG #" + _channel + " :/delete " + chatter.MessageId);
             }
             catch (Exception ex)
             {
@@ -82,8 +85,8 @@ namespace TwitchBotShared.ClientLibraries
         {
             try
             {
-                SendIrcMessage(":" + username + "!" + username + "@" + username +
-                    ".tmi.twitch.tv PRIVMSG #" + channel + " :/timeout " + offender + " " + timeout);
+                SendIrcMessage(":" + _username + "!" + _username + "@" + _username +
+                    ".tmi.twitch.tv PRIVMSG #" + _channel + " :/timeout " + offender + " " + timeout);
             }
             catch (Exception ex)
             {
@@ -95,11 +98,11 @@ namespace TwitchBotShared.ClientLibraries
         {
             try
             {
-                return inputStream.ReadLine(); // chat message
+                return _inputStream.ReadLine(); // chat message
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "IrcClient", "ReadMessage()", true);
+                await _errHndlrInstance.LogError(ex, "IrcClient", "ReadMessageAsync()", true);
             }
 
             return "";
