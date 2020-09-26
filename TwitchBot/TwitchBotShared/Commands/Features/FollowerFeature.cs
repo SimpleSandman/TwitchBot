@@ -39,6 +39,7 @@ namespace TwitchBotShared.Commands.Features
             _twitchInfo = twitchInfo;
             _appConfig = appConfig;
             _rolePermissions.Add("!followsince", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!followage", new CommandPermission { General = ChatterType.Viewer });
             _rolePermissions.Add("!rank", new CommandPermission { General = ChatterType.Viewer });
             _rolePermissions.Add("!ranktop3", new CommandPermission { General = ChatterType.Viewer });
             _rolePermissions.Add("!setregularhours", new CommandPermission { General = ChatterType.Broadcaster });
@@ -51,6 +52,7 @@ namespace TwitchBotShared.Commands.Features
                 switch (requestedCommand)
                 {
                     case "!followsince":
+                    case "!followage":
                         return (true, await FollowSinceAsync(chatter));
                     case "!rank":
                         return (true, await ViewRankAsync(chatter));
