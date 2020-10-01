@@ -148,7 +148,7 @@ namespace TwitchBotShared.Commands.Features
             {
                 string audioOutputDevice = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
 
-                _irc.SendPublicChatMessage($"{_libVLCSharpPlayer.SetAudioOutputDeviceAsync(audioOutputDevice)} @{_botConfig.Broadcaster}");
+                _irc.SendPublicChatMessage($"{await _libVLCSharpPlayer.SetAudioOutputDeviceAsync(audioOutputDevice)} @{_botConfig.Broadcaster}");
             }
             catch (Exception ex)
             {
