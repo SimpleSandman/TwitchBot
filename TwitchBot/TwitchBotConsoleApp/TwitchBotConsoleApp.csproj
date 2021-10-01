@@ -7,15 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="6.0.0" />
+    <PackageReference Include="Autofac" Version="6.2.0" />
     <PackageReference Include="CoreTweet" Version="1.0.0.483" />
-    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.49.0.2092" />
-    <PackageReference Include="LibVLCSharp" Version="3.4.8" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.55.0.2449" />
+    <PackageReference Include="LibVLCSharp" Version="3.6.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="SpotifyAPI.Web" Version="5.1.1" />
     <PackageReference Include="SpotifyAPI.Web.Auth" Version="5.1.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
-    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.11" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.16" />
   </ItemGroup>
 
   <ItemGroup>
