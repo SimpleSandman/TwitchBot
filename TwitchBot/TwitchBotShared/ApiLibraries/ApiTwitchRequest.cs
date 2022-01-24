@@ -16,17 +16,18 @@ namespace TwitchBotShared.ApiLibraries
             try
             {
                 RestClient client = new RestClient(basicUrl);
-                RestRequest request = new RestRequest(Method.GET);
+                RestRequest request = new RestRequest();
                 request.AddHeader("Cache-Control", "no-cache");
                 request.AddHeader("Content-Type", "application/json");
                 request.AddHeader("Accept", "application/vnd.twitchtv.v5+json");
                 request.AddHeader("Client-ID", clientId);
+                request.Method = Method.Get;
 
                 var cancellationToken = new CancellationTokenSource();
 
                 try
                 {
-                    IRestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
+                    RestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
 
                     return JsonConvert.DeserializeObject<T>(response.Content);
                 }
@@ -48,18 +49,19 @@ namespace TwitchBotShared.ApiLibraries
             try
             {
                 RestClient client = new RestClient(basicUrl);
-                RestRequest request = new RestRequest(Method.GET);
+                RestRequest request = new RestRequest();
                 request.AddHeader("Cache-Control", "no-cache");
                 request.AddHeader("Content-Type", "application/json");
                 request.AddHeader("Authorization", "OAuth " + accessToken);
                 request.AddHeader("Accept", "application/vnd.twitchtv.v5+json");
                 request.AddHeader("Client-ID", clientId);
+                request.Method = Method.Get;
 
                 var cancellationToken = new CancellationTokenSource();
 
                 try
                 {
-                    IRestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
+                    RestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
 
                     return JsonConvert.DeserializeObject<T>(response.Content);
                 }

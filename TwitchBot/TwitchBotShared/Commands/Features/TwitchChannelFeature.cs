@@ -129,7 +129,7 @@ namespace TwitchBotShared.Commands.Features
 
                 // Send HTTP method PUT to base URI in order to change the title
                 RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId);
-                RestRequest request = new RestRequest(Method.PUT);
+                RestRequest request = new RestRequest();
                 request.AddHeader("Cache-Control", "no-cache");
                 request.AddHeader("Content-Type", "application/json");
                 request.AddHeader("Authorization", "OAuth " + _botConfig.TwitchAccessToken);
@@ -137,8 +137,9 @@ namespace TwitchBotShared.Commands.Features
                 request.AddHeader("Client-ID", _botConfig.TwitchClientId);
                 request.AddParameter("application/json", "{\"channel\":{\"status\":\"" + title + "\"}}",
                     ParameterType.RequestBody);
+                request.Method = Method.Put;
 
-                IRestResponse response = null;
+                RestResponse response = null;
                 try
                 {
                     response = await client.ExecuteAsync<Task>(request);
@@ -156,8 +157,9 @@ namespace TwitchBotShared.Commands.Features
                     {
                         Console.WriteLine("Error 400 detected!");
                     }
-                    response = (IRestResponse)ex.Response;
-                    Console.WriteLine("Error: " + response);
+                    //response = (RestResponse)ex.Response;
+                    //Console.WriteLine("Error: " + response);
+                    Console.WriteLine($"Error: {ex.Message}");
                 }
             }
             catch (Exception ex)
@@ -181,7 +183,7 @@ namespace TwitchBotShared.Commands.Features
 
                 // Send HTTP method PUT to base URI in order to change the game
                 RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId);
-                RestRequest request = new RestRequest(Method.PUT);
+                RestRequest request = new RestRequest();
                 request.AddHeader("Cache-Control", "no-cache");
                 request.AddHeader("Content-Type", "application/json");
                 request.AddHeader("Authorization", "OAuth " + _botConfig.TwitchAccessToken);
@@ -189,8 +191,9 @@ namespace TwitchBotShared.Commands.Features
                 request.AddHeader("Client-ID", _botConfig.TwitchClientId);
                 request.AddParameter("application/json", "{\"channel\":{\"game\":\"" + gameTitle + "\"}}",
                     ParameterType.RequestBody);
+                request.Method = Method.Put;
 
-                IRestResponse response = null;
+                RestResponse response = null;
                 try
                 {
                     response = await client.ExecuteAsync<Task>(request);
@@ -222,8 +225,9 @@ namespace TwitchBotShared.Commands.Features
                     {
                         Console.WriteLine("Error 400 detected!!");
                     }
-                    response = (IRestResponse)ex.Response;
-                    Console.WriteLine("Error: " + response);
+                    //response = (RestResponse)ex.Response;
+                    //Console.WriteLine("Error: " + response);
+                    Console.WriteLine($"Error: {ex.Message}");
                 }
             }
             catch (Exception ex)

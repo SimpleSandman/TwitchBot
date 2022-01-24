@@ -3,27 +3,28 @@ using System.Threading.Tasks;
 
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
-using SpotifyAPI.Web.Enums;
-using SpotifyAPI.Web.Models;
 
 using TwitchBotShared.ClientLibraries.Singletons;
 using TwitchBotShared.Config;
 
 namespace TwitchBotShared.ClientLibraries
 {
-    /* Example Code for Web Spotify API */
-    // https://github.com/JohnnyCrazy/SpotifyAPI-NET/blob/master/SpotifyAPI.Web.Examples.CLI/Program.cs
+    // Reference: https://github.com/JohnnyCrazy/SpotifyAPI-NET/tree/master/SpotifyAPI.Docs/docs
     public class SpotifyWebClient
     {
-        private TwitchBotConfigurationSection _botConfig;
-        private SpotifyWebAPI _spotify;
-        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+        private SpotifyClient _spotify;
+        private SpotifyClientConfig _spotifyConfig = SpotifyClientConfig.CreateDefault();
+        private readonly EmbedIOAuthServer _server;
+        private readonly TwitchBotConfigurationSection _botConfig;
+        private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public SpotifyWebClient(TwitchBotConfigurationSection _botSection)
         {
             _botConfig = _botSection;
+            _server = new EmbedIOAuthServer(new Uri(_botConfig.SpotifyRedirectUri), 5000);
         }
 
+        #region Public Methods
         public async Task<DateTime> ConnectAsync()
         {
             try
@@ -33,51 +34,57 @@ namespace TwitchBotShared.ClientLibraries
                     return DateTime.Now;
                 }
 
-                ImplicitGrantAuth auth = new ImplicitGrantAuth(
-                    _botConfig.SpotifyClientId,
-                    _botConfig.SpotifyRedirectUri, 
-                    _botConfig.SpotifyServerUri,
-                    Scope.UserReadCurrentlyPlaying
-                        | Scope.UserReadPlaybackState
-                        | Scope.UserModifyPlaybackState);
+                await _server.Start();
 
-                auth.AuthReceived += OnAuthReceived;
-                auth.Start();
-                auth.OpenBrowser();
+                _server.ImplictGrantReceived += OnImplicitGrantReceived;
+                _server.ErrorReceived += OnErrorReceived;
+
+                LoginRequest request = new LoginRequest(_server.BaseUri, _botConfig.SpotifyClientId, LoginRequest.ResponseType.Token)
+                {
+                    Scope = new string[]
+                    {
+                        Scopes.UserReadCurrentlyPlaying,
+                        Scopes.UserReadPlaybackState,
+                        Scopes.UserModifyPlaybackState
+                    }
+                };
+
+                BrowserUtil.Open(request.ToUri());
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "Connect()", false);
+                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "ConnectAsync()", false);
             }
 
             return DateTime.Now;
         }
 
-        private void OnAuthReceived(object sender, Token token)
-        {
-            ImplicitGrantAuth auth = (ImplicitGrantAuth)sender;
-            auth.Stop();
-
-            _spotify = new SpotifyWebAPI
-            {
-                AccessToken = token.AccessToken,
-                TokenType = token.TokenType
-            };
-        }
-
         public async Task<DateTime> PlayAsync()
         {
-            await CheckForConnectionAsync();
-
-            if (!string.IsNullOrEmpty(_spotify?.AccessToken))
+            try
             {
-                ErrorResponse errorResponse = await _spotify.ResumePlaybackAsync("", "", null, "");
-
-                if (errorResponse?.Error?.Status == 401)
+                if (!await _spotify.Player.ResumePlayback())
                 {
-                    await CheckForConnectionAsync();
-                    await _spotify.ResumePlaybackAsync("", "", null, "");
+                    Console.WriteLine("WARN: Unable to resume playback");
                 }
+            }
+            catch (APIUnauthorizedException ex)
+            {
+                Console.WriteLine($"Error Message: {ex.Message}");
+                RetryAccess();
+            }
+            catch (APITooManyRequestsException ex)
+            {
+                Console.WriteLine($"Retry after {ex.RetryAfter.TotalSeconds} second(s)");
+            }
+            catch (APIException ex)
+            {
+                Console.WriteLine($"Error Message: {ex.Message}");
+                Console.WriteLine($"Error Status Code: {ex.Response?.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "PlayAsync()", false);
             }
 
             return DateTime.Now;
@@ -85,17 +92,30 @@ namespace TwitchBotShared.ClientLibraries
 
         public async Task<DateTime> PauseAsync()
         {
-            await CheckForConnectionAsync();
-
-            if (!string.IsNullOrEmpty(_spotify?.AccessToken))
+            try
             {
-                ErrorResponse errorResponse = await _spotify.PausePlaybackAsync();
-
-                if (errorResponse?.Error?.Status == 401)
+                if (!await _spotify.Player.PausePlayback())
                 {
-                    await CheckForConnectionAsync();
-                    await _spotify.PausePlaybackAsync();
+                    Console.WriteLine("WARN: Unable to pause playback");
                 }
+            }
+            catch (APIUnauthorizedException ex)
+            {
+                Console.WriteLine($"Error Message: {ex.Message}");
+                RetryAccess();
+            }
+            catch (APITooManyRequestsException ex)
+            {
+                Console.WriteLine($"Retry after {ex.RetryAfter.TotalSeconds} second(s)");
+            }
+            catch (APIException ex)
+            {
+                Console.WriteLine($"Error Message: {ex.Message}");
+                Console.WriteLine($"Error Status Code: {ex.Response?.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "PauseAsync()", false);
             }
 
             return DateTime.Now;
@@ -103,17 +123,30 @@ namespace TwitchBotShared.ClientLibraries
 
         public async Task<DateTime> SkipToPreviousPlaybackAsync()
         {
-            await CheckForConnectionAsync();
-
-            if (!string.IsNullOrEmpty(_spotify?.AccessToken))
+            try
             {
-                ErrorResponse errorResponse = await _spotify.SkipPlaybackToPreviousAsync();
-
-                if (errorResponse?.Error?.Status == 401)
+                if (!await _spotify.Player.SkipPrevious())
                 {
-                    await CheckForConnectionAsync();
-                    await _spotify.SkipPlaybackToPreviousAsync();
+                    Console.WriteLine("WARN: Unable to skip to previous playback");
                 }
+            }
+            catch (APIUnauthorizedException ex)
+            {
+                Console.WriteLine($"Error Message: {ex.Message}");
+                RetryAccess();
+            }
+            catch (APITooManyRequestsException ex)
+            {
+                Console.WriteLine($"Retry after {ex.RetryAfter.TotalSeconds} second(s)");
+            }
+            catch (APIException ex)
+            {
+                Console.WriteLine($"Error Message: {ex.Message}");
+                Console.WriteLine($"Error Status Code: {ex.Response?.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "SkipToPreviousPlaybackAsync()", false);
             }
 
             return DateTime.Now;
@@ -121,84 +154,143 @@ namespace TwitchBotShared.ClientLibraries
 
         public async Task<DateTime> SkipToNextPlaybackAsync()
         {
-            await CheckForConnectionAsync();
-
-            if (!string.IsNullOrEmpty(_spotify?.AccessToken))
+            try
             {
-                ErrorResponse errorResponse = await _spotify.SkipPlaybackToNextAsync();
-                
-                if (errorResponse?.Error?.Status == 401)
+                if (!await _spotify.Player.SkipNext())
                 {
-                    await CheckForConnectionAsync();
-                    await _spotify.SkipPlaybackToNextAsync();
+                    Console.WriteLine("WARN: Unable to skip to next playback");
                 }
+            }
+            catch (APIUnauthorizedException ex)
+            {
+                Console.WriteLine($"Error Message: {ex.Message}");
+                RetryAccess();
+            }
+            catch (APITooManyRequestsException ex)
+            {
+                Console.WriteLine($"Retry after {ex.RetryAfter.TotalSeconds} second(s)");
+            }
+            catch (APIException ex)
+            {
+                Console.WriteLine($"Error Message: {ex.Message}");
+                Console.WriteLine($"Error Status Code: {ex.Response?.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "SkipToNextPlaybackAsync()", false);
             }
 
             return DateTime.Now;
         }
 
-        public async Task<PlaybackContext> GetPlaybackAsync()
+        public async Task<CurrentlyPlayingContext> GetPlaybackAsync()
         {
-            await CheckForConnectionAsync();
-
-            if (!string.IsNullOrEmpty(_spotify?.AccessToken))
+            try
             {
-                PlaybackContext playbackContext = await _spotify.GetPlaybackAsync();
+                CurrentlyPlayingContext playbackContext = await _spotify.Player.GetCurrentPlayback();
 
-                if (playbackContext?.Error?.Status == 401)
+                if (playbackContext != null)
                 {
-                    await CheckForConnectionAsync();
-                    playbackContext = await _spotify.GetPlaybackAsync();
+                    return playbackContext;
                 }
-
-                return playbackContext;
+            }
+            catch (APIUnauthorizedException ex)
+            {
+                Console.WriteLine($"Error Message: {ex.Message}");
+                RetryAccess();
+            }
+            catch (APITooManyRequestsException ex)
+            {
+                Console.WriteLine($"Retry after {ex.RetryAfter.TotalSeconds} second(s)");
+            }
+            catch (APIException ex)
+            {
+                Console.WriteLine($"Error Message: {ex.Message}");
+                Console.WriteLine($"Error Status Code: {ex.Response?.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "GetPlaybackAsync()", false);
             }
 
             return null;
         }
 
-        public async Task<SimpleTrack> GetLastPlayedSongAsync()
+        public async Task<FullTrack> GetLastPlayedSongAsync()
         {
-            await CheckForConnectionAsync();
-
-            if (!string.IsNullOrEmpty(_spotify?.AccessToken))
+            try
             {
-                CursorPaging<PlayHistory> playbackHistory = await _spotify.GetUsersRecentlyPlayedTracksAsync(1);
+                CursorPaging<PlayHistoryItem> playbackHistory = await _spotify.Player.GetRecentlyPlayed();
 
-                if (playbackHistory.Error == null)
+                if (playbackHistory != null && playbackHistory.Items.Count > 0)
                 {
-                    await CheckForConnectionAsync();
-                    if (playbackHistory.Items.Count > 0)
-                    {
-                        return playbackHistory.Items[0].Track;
-                    }
+                    return playbackHistory.Items[0].Track;
                 }
+            }
+            catch (APIUnauthorizedException ex)
+            {
+                Console.WriteLine($"Error Message: {ex.Message}");
+                RetryAccess();
+            }
+            catch (APITooManyRequestsException ex)
+            {
+                Console.WriteLine($"Retry after {ex.RetryAfter.TotalSeconds} second(s)");
+            }
+            catch (APIException ex)
+            {
+                Console.WriteLine($"Error Message: {ex.Message}");
+                Console.WriteLine($"Error Status Code: {ex.Response?.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "GetLastPlayedSongAsync()", false);
             }
 
             return null;
         }
+        #endregion
 
-        private async Task CheckForConnectionAsync()
+        #region Private Methods
+        private async Task OnImplicitGrantReceived(object sender, ImplictGrantResponse response)
         {
-            if (HasInitialConfig() && string.IsNullOrEmpty(_spotify?.AccessToken))
+            try
             {
-                await ConnectAsync();
-                await Task.Delay(1000);
+                await _server.Stop();
+                _spotifyConfig = _spotifyConfig.WithToken(response.AccessToken);
+                _spotify = new SpotifyClient(_spotifyConfig);
             }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "OnImplicitGrantReceived(object, ImplictGrantResponse)", false);
+            }
+        }
+
+        private async Task OnErrorReceived(object sender, string error, string state)
+        {
+            Console.WriteLine($"Aborting authorization, error received: {error}");
+            await _server.Stop();
+        }
+
+        private void RetryAccess()
+        {
+            // Renew access token with retry
+            _spotifyConfig = _spotifyConfig
+                .WithRetryHandler(new SimpleRetryHandler() { RetryAfter = TimeSpan.FromSeconds(1) });
+
+            _spotify = new SpotifyClient(_spotifyConfig);
         }
 
         private bool HasInitialConfig()
         {
-            if (string.IsNullOrEmpty(_botConfig.SpotifyClientId)
-                || string.IsNullOrEmpty(_botConfig.SpotifyRedirectUri)
-                || string.IsNullOrEmpty(_botConfig.SpotifyServerUri))
+            if (string.IsNullOrEmpty(_botConfig.SpotifyClientId) || string.IsNullOrEmpty(_botConfig.SpotifyRedirectUri))
             {
                 Console.WriteLine("Warning: Spotify hasn't been set up for this bot.");
-                Console.WriteLine("Please insert a Spotify client Id, redirect URI, and server URI in bot config\n");
+                Console.WriteLine("Please insert a Spotify client Id and redirect URI in the bot config\n");
                 return false;
             }
 
             return true;
         }
+        #endregion
     }
 }

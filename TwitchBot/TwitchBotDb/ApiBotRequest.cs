@@ -17,15 +17,16 @@ namespace TwitchBotDb
             try
             {
                 RestClient client = new RestClient(apiUrlCall);
-                RestRequest request = new RestRequest(Method.GET);
+                RestRequest request = new RestRequest();
                 request.AddHeader("Cache-Control", "no-cache");
                 request.AddHeader("Content-Type", "application/json");
+                request.Method = Method.Get;
 
                 var cancellationToken = new CancellationTokenSource();
 
                 try
                 {
-                    IRestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
+                    RestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
                     string statResponse = response.StatusCode.ToString();
 
                     if (statResponse.Contains("OK") || statResponse.Contains("NoContent"))
@@ -54,9 +55,10 @@ namespace TwitchBotDb
         {
             // Send HTTP method PUT to base URI in order to change the game
             RestClient client = new RestClient(apiUrlCall);
-            RestRequest request = new RestRequest(Method.PUT);
+            RestRequest request = new RestRequest();
             request.AddHeader("Cache-Control", "no-cache");
             request.AddHeader("Content-Type", "application/json");
+            request.Method = Method.Put;
 
             if (updateListString?.Count > 0)
             {
@@ -64,7 +66,7 @@ namespace TwitchBotDb
             }
 
             var cancellationToken = new CancellationTokenSource();
-            IRestResponse response;
+            RestResponse response;
 
             try
             {
@@ -86,8 +88,9 @@ namespace TwitchBotDb
                 {
                     Console.WriteLine("Error 400 detected!!");
                 }
-                response = (IRestResponse)ex.Response;
-                Console.WriteLine("Error: " + response);
+                //response = (RestResponse)ex.Response;
+                //Console.WriteLine("Error: " + response);
+                Console.WriteLine($"Error: {ex.Message}");
             }
 
             return default;
@@ -97,13 +100,14 @@ namespace TwitchBotDb
         {
             // Send HTTP method PUT to base URI in order to change the game
             RestClient client = new RestClient(apiUrlCall);
-            RestRequest request = new RestRequest(Method.PUT);
+            RestRequest request = new RestRequest();
             request.AddHeader("Cache-Control", "no-cache");
             request.AddHeader("Content-Type", "application/json");
             request.AddParameter("application/json", JsonConvert.SerializeObject(updateObject), ParameterType.RequestBody);
+            request.Method = Method.Put;
 
             var cancellationToken = new CancellationTokenSource();
-            IRestResponse response;
+            RestResponse response;
 
             try
             {
@@ -125,8 +129,9 @@ namespace TwitchBotDb
                 {
                     Console.WriteLine("Error 400 detected!!");
                 }
-                response = (IRestResponse)ex.Response;
-                Console.WriteLine("Error: " + response);
+                //response = (RestResponse)ex.Response;
+                //Console.WriteLine("Error: " + response);
+                Console.WriteLine($"Error: {ex.Message}");
             }
 
             return default;
@@ -136,13 +141,14 @@ namespace TwitchBotDb
         {
             // Send HTTP method POST to base URI in order to change the game
             RestClient client = new RestClient(apiUrlCall);
-            RestRequest request = new RestRequest(Method.POST);
+            RestRequest request = new RestRequest();
             request.AddHeader("Cache-Control", "no-cache");
             request.AddHeader("Content-Type", "application/json");
             request.AddParameter("application/json", JsonConvert.SerializeObject(createObject), ParameterType.RequestBody);
+            request.Method = Method.Post;
 
             var cancellationToken = new CancellationTokenSource();
-            IRestResponse response;
+            RestResponse response;
 
             try
             {
@@ -164,8 +170,9 @@ namespace TwitchBotDb
                 {
                     Console.WriteLine("Error 400 detected!!");
                 }
-                response = (IRestResponse)ex.Response;
-                Console.WriteLine("Error: " + response);
+                //response = (RestResponse)ex.Response;
+                //Console.WriteLine("Error: " + response);
+                Console.WriteLine($"Error: {ex.Message}");
             }
 
             return default;
@@ -175,13 +182,14 @@ namespace TwitchBotDb
         {
             // Send HTTP method PATCH to base URI in order to change the game
             RestClient client = new RestClient(apiUrlCall);
-            RestRequest request = new RestRequest(Method.PATCH);
+            RestRequest request = new RestRequest();
             request.AddHeader("Cache-Control", "no-cache");
             request.AddHeader("Content-Type", "application/json");
             request.AddParameter("application/json", "[{" + $"\"op\": \"replace\", \"path\": \"/{path}\", \"value\": \"{value}\"" + "}]", ParameterType.RequestBody);
+            request.Method = Method.Patch;
 
             var cancellationToken = new CancellationTokenSource();
-            IRestResponse response;
+            RestResponse response;
 
             try
             {
@@ -203,8 +211,9 @@ namespace TwitchBotDb
                 {
                     Console.WriteLine("Error 400 detected!!");
                 }
-                response = (IRestResponse)ex.Response;
-                Console.WriteLine("Error: " + response);
+                //response = (RestResponse)ex.Response;
+                //Console.WriteLine("Error: " + response);
+                Console.WriteLine($"Error: {ex.Message}");
             }
 
             return default;
@@ -215,15 +224,16 @@ namespace TwitchBotDb
             try
             {
                 RestClient client = new RestClient(apiUrlCall);
-                RestRequest request = new RestRequest(Method.DELETE);
+                RestRequest request = new RestRequest();
                 request.AddHeader("Cache-Control", "no-cache");
                 request.AddHeader("Content-Type", "application/json");
+                request.Method = Method.Delete;
 
                 var cancellationToken = new CancellationTokenSource();
 
                 try
                 {
-                    IRestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
+                    RestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
 
                     return JsonConvert.DeserializeObject<T>(response.Content);
                 }

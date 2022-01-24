@@ -76,9 +76,6 @@ namespace TwitchBotShared.Config
         private static readonly ConfigurationProperty _spotifyRedirectUri =
             new ConfigurationProperty("spotifyRedirectUri", typeof(string), "", ConfigurationPropertyOptions.None);
 
-        private static readonly ConfigurationProperty _spotifyServerUri =
-            new ConfigurationProperty("spotifyServerUri", typeof(string), "", ConfigurationPropertyOptions.None);
-
         private static readonly ConfigurationProperty _libVLCAudioOutputDevice =
             new ConfigurationProperty("libVLCAudioOutputDevice", typeof(string), "", ConfigurationPropertyOptions.None);
 
@@ -118,7 +115,6 @@ namespace TwitchBotShared.Config
                 _regularFollowerHours,
                 _spotifyClientId,
                 _spotifyRedirectUri,
-                _spotifyServerUri,
                 _libVLCAudioOutputDevice,
                 _enablePersonalPlaylistShuffle,
                 _isManualSongRequestAvail,
@@ -373,16 +369,6 @@ namespace TwitchBotShared.Config
             {
                 ThrowIfReadOnly("SpotifyRedirectUri");
                 this["spotifyRedirectUri"] = value;
-            }
-        }
-
-        public string SpotifyServerUri
-        {
-            get { return (string)this["spotifyServerUri"]; }
-            set
-            {
-                ThrowIfReadOnly("SpotifyServerUri");
-                this["spotifyServerUri"] = value;
             }
         }
 
