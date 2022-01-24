@@ -45,9 +45,9 @@ Set file to `copy-if-newer` so it's included in the compilation. For production,
 
 Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/) and create a new app with these settings below:
 
-- Website
+- Website:
   - `http://localhost:5000`
-- Redirect URL
+- Redirect URL:
   - `http://localhost:5000/callback`
 
 Of course if you're using your own web server, replace `localhost` with your domain. Here we're using HTTP for local reasons. Always use HTTPS outside of a local environment.
