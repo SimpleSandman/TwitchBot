@@ -58,7 +58,7 @@ namespace TwitchBotShared.ClientLibraries.Singletons
                 using (Stream stream = clientSecrets.ToStream())
                 {
                     credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                        GoogleClientSecrets.Load(stream).Secrets,
+                        GoogleClientSecrets.FromStream(stream).Secrets,
                         new[] { YouTubeService.Scope.Youtube },
                         "user",
                         CancellationToken.None,
