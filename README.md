@@ -24,7 +24,6 @@ For a development environment (testing), create an `AppConfigSecrets.config` in 
     regularFollowerHours="30"
     spotifyClientId=""
     spotifyRedirectUri=""
-    spotifyServerUri=""
     streamLatency="10" 
     twitchBotApiLink=""
     twitchOAuth="" 
