@@ -26,7 +26,6 @@ For a development environment (testing), create an `AppConfigSecrets.config` in 
     regularFollowerHours="30"
     spotifyClientId=""
     spotifyRedirectUri=""
-    spotifyServerUri=""
     streamLatency="10" 
     twitchBotApiLink=""
     twitchOAuth="" 
@@ -43,6 +42,17 @@ For a development environment (testing), create an `AppConfigSecrets.config` in 
 ```
 
 Set file to `copy-if-newer` so it's included in the compilation. For production, this file is not needed and the bot will ask for configuration on first run
+
+## Spotify Example Setup
+
+Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/) and create a new app with these settings below:
+
+- Website:
+  - `http://localhost:5000`
+- Redirect URL:
+  - `http://localhost:5000/callback`
+
+Of course if you're using your own web server, replace `localhost` with your domain. Here we're using HTTP for local reasons. Always use HTTPS outside of a local environment.
 
 ## Possible Setup Issues:
 - IIS HTTP Error 404.11 - Not Found `The request filtering module is configured to deny a request that contains a double escape sequence`
