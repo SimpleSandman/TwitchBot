@@ -78,7 +78,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "InGameNameFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -121,7 +121,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "InGameNameFeature", "SetGameIgn(TwitchChatter)", false, "!setgameign", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "SetGameIgn(TwitchChatter)", false, "!setgameign", chatter.Message);
             }
 
             return DateTime.Now;
@@ -156,7 +156,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "InGameNameFeature", "SetGenericIgn(TwitchChatter)", false, "!setgenericign", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "SetGenericIgn(TwitchChatter)", false, "!setgenericign", chatter.Message);
             }
 
             return DateTime.Now;
@@ -192,7 +192,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "InGameNameFeature", "DeleteIgn(TwitchChatter)", false, "!deleteign", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "DeleteIgn(TwitchChatter)", false, "!deleteign", chatter.Message);
             }
 
             return DateTime.Now;
@@ -221,7 +221,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "InGameNameFeature", "InGameUsername(TwitchChatter)", false, "!ign");
+                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "InGameUsername(TwitchChatter)", false, "!ign");
             }
 
             return DateTime.Now;

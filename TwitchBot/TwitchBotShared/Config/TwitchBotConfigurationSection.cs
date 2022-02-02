@@ -88,6 +88,12 @@ namespace TwitchBotShared.Config
         private static readonly ConfigurationProperty _isYouTubeSongRequestAvail =
             new ConfigurationProperty("isYouTubeSongRequestAvail", typeof(bool), false, ConfigurationPropertyOptions.None);
 
+        private static readonly ConfigurationProperty _discordToken =
+            new ConfigurationProperty("discordToken", typeof(string), "", ConfigurationPropertyOptions.None);
+
+        private static readonly ConfigurationProperty _discordServerName =
+            new ConfigurationProperty("discordServerName", typeof(string), "", ConfigurationPropertyOptions.None);
+
         public TwitchBotConfigurationSection()
         {
             _properties = new ConfigurationPropertyCollection
@@ -118,7 +124,9 @@ namespace TwitchBotShared.Config
                 _libVLCAudioOutputDevice,
                 _enablePersonalPlaylistShuffle,
                 _isManualSongRequestAvail,
-                _isYouTubeSongRequestAvail
+                _isYouTubeSongRequestAvail,
+                _discordToken,
+                _discordServerName
             };
         }
 
@@ -429,6 +437,26 @@ namespace TwitchBotShared.Config
             {
                 ThrowIfReadOnly("IsYouTubeSongRequestAvail");
                 this["isYouTubeSongRequestAvail"] = value;
+            }
+        }
+
+        public string DiscordToken
+        {
+            get { return (string)this["discordToken"]; }
+            set
+            {
+                ThrowIfReadOnly("DiscordToken");
+                this["discordToken"] = value;
+            }
+        }
+
+        public string DiscordServerName
+        {
+            get { return (string)this["discordServerName"]; }
+            set
+            {
+                ThrowIfReadOnly("DiscordServerName");
+                this["discordServerName"] = value;
             }
         }
     }

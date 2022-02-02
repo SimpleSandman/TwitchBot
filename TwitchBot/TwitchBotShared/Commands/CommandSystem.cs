@@ -33,12 +33,13 @@ namespace TwitchBotShared.Commands
         private readonly MinigameFeature _miniGameFeature;
         private readonly MultiLinkUserFeature _multiLinkUserFeature;
         private readonly PartyUpFeature _partyUpFeature;
+        private readonly DiscordFeature _discordFeature;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, Configuration appConfig, BankService bank, 
             SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting,
             SpotifyWebClient spotify, TwitchInfoService twitchInfo, FollowerService follower, GameDirectoryService gameDirectory, InGameUsernameService ign,
-            ManualSongRequestService manualSongRequest, QuoteService quote, PartyUpService partyUp)
+            ManualSongRequestService manualSongRequest, QuoteService quote, PartyUpService partyUp, DiscordNetClient discord)
         {
             _bank = new BankFeature(irc, botConfig, bank);
             _followerFeature = new FollowerFeature(irc, botConfig, twitchInfo, follower, appConfig);
@@ -55,9 +56,10 @@ namespace TwitchBotShared.Commands
             _spotifyFeature = new SpotifyFeature(irc, botConfig, spotify);
             _twitchChannelFeature = new TwitchChannelFeature(irc, botConfig, gameDirectory);
             _twitter = new TwitterFeature(irc, botConfig, appConfig);
+            _discordFeature = new DiscordFeature(irc, botConfig, discord);
         }
 
-        public async Task ExecRequest(TwitchChatter chatter)
+        public async Task ExecRequestAsync(TwitchChatter chatter)
         {
             try
             {
@@ -121,10 +123,14 @@ namespace TwitchBotShared.Commands
                 {
                     return;
                 }
+                else if (await _discordFeature.IsRequestExecutedAsync(chatter))
+                {
+                    return;
+                }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "CommandSystem", "ExecRequest(TwitchChatter)", false, "N/A", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "CommandSystem", "ExecRequest(TwitchChatter)", false, "N/A", chatter.Message);
             }
         }
     }

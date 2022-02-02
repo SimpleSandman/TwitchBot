@@ -50,7 +50,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitterFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -81,7 +81,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitterFeature", "EnableTweet()", false, "!sendtweet on");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "EnableTweet()", false, "!sendtweet on");
             }
 
             return DateTime.Now;
@@ -102,7 +102,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitterFeature", "Tweet(TwitchChatter)", false, "!tweet");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "Tweet(TwitchChatter)", false, "!tweet");
             }
 
             return DateTime.Now;
@@ -135,7 +135,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitterFeature", "Live()", false, "!live");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "Live()", false, "!live");
             }
 
             return DateTime.Now;
@@ -158,7 +158,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "Gen", "TwitterLink(bool, string)", false, "!twitter");
+                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "TwitterLink(bool, string)", false, "!twitter");
             }
 
             return DateTime.Now;

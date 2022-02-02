@@ -66,7 +66,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "DelayMsg", "Run()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "DelayMsg", "Run()", false);
             }
         }
     }

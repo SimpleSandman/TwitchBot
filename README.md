@@ -18,6 +18,8 @@ For a development environment (testing), create an `AppConfigSecrets.config` in 
     botName="" 
     broadcaster="" 
     currencyType=""
+	discordServerName=""
+	discordToken=""
     enableDisplaySong="false"
     enableTweets="false" 
     libVLCAudioOutputDevice=""

@@ -30,6 +30,7 @@ namespace TwitchBotConsoleApp
     {
         private CommandSystem _commandSystem;
         private SpotifyWebClient _spotify;
+        private DiscordNetClient _discord;
         private TwitchStreamStatus _twitchStreamStatus;
         private readonly Configuration _appConfig;
         private readonly TwitchBotConfigurationSection _botConfig;
@@ -128,11 +129,15 @@ namespace TwitchBotConsoleApp
                 /* Connect to local Spotify client */
                 _spotify = new SpotifyWebClient(_botConfig);
                 await _spotify.ConnectAsync();
+
+                /* Connect to Discord */
+                _discord = new DiscordNetClient(_botConfig);
+                await _discord.ConnectAsync();
                 
                 /* Load command classes */
                 _commandSystem = new CommandSystem(_irc, _botConfig, _appConfig, _bank, _songRequestBlacklist,
                     _libVLCSharpPlayer, _songRequestSetting, _spotify, _twitchInfo, _follower, _gameDirectory, 
-                    _ign, _manualSongRequest, _quote, _partyUp);
+                    _ign, _manualSongRequest, _quote, _partyUp, _discord);
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine();
@@ -206,7 +211,7 @@ namespace TwitchBotConsoleApp
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "RunAsync()", true);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "RunAsync()", true);
             }
         }        
 
@@ -269,13 +274,13 @@ namespace TwitchBotConsoleApp
 
                                 await GreetUserAsync(chatter);
 
-                                await _commandSystem.ExecRequest(chatter);
+                                await _commandSystem.ExecRequestAsync(chatter);
 
                                 FindCustomCommand(chatter);
                             }
                             catch (Exception ex)
                             {
-                                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox()", false, "N/A", chatter.Message);
+                                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetChatBox()", false, "N/A", chatter.Message);
                             }
                         }
                         else if (rawMessage.Contains("NOTICE"))
@@ -296,7 +301,7 @@ namespace TwitchBotConsoleApp
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetChatBox()", true);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetChatBox()", true);
             }
         }
 
@@ -341,7 +346,7 @@ namespace TwitchBotConsoleApp
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "SetBroadcasterIds()", true);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "SetBroadcasterIds()", true);
             }
         }
 
@@ -393,7 +398,7 @@ namespace TwitchBotConsoleApp
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GreetUser(TwitchChatter)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GreetUser(TwitchChatter)", false);
             }
         }
 
@@ -485,7 +490,7 @@ namespace TwitchBotConsoleApp
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetTwitterAuth()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetTwitterAuth()", false);
             }
         }
 
@@ -644,7 +649,7 @@ namespace TwitchBotConsoleApp
             catch (Exception ex)
             {
                 _youTubeClientInstance.HasCredentials = false; // do not allow any YouTube features for this bot until error has been resolved
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "GetYouTubeAuth()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetYouTubeAuth()", false);
             }
         }
 
@@ -831,7 +836,7 @@ namespace TwitchBotConsoleApp
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "TwitchBotApplication", "FindCustomCommand(TwitchChatter)", false, "N/A", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "FindCustomCommand(TwitchChatter)", false, "N/A", chatter.Message);
             }
         }
     }

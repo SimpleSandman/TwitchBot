@@ -53,7 +53,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "ConnectAsync()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyWebClient", "ConnectAsync()", false);
             }
 
             return DateTime.Now;
@@ -84,7 +84,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "PlayAsync()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyWebClient", "PlayAsync()", false);
             }
 
             return DateTime.Now;
@@ -115,7 +115,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "PauseAsync()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyWebClient", "PauseAsync()", false);
             }
 
             return DateTime.Now;
@@ -146,7 +146,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "SkipToPreviousPlaybackAsync()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyWebClient", "SkipToPreviousPlaybackAsync()", false);
             }
 
             return DateTime.Now;
@@ -177,7 +177,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "SkipToNextPlaybackAsync()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyWebClient", "SkipToNextPlaybackAsync()", false);
             }
 
             return DateTime.Now;
@@ -210,7 +210,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "GetPlaybackAsync()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyWebClient", "GetPlaybackAsync()", false);
             }
 
             return null;
@@ -243,7 +243,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "GetLastPlayedSongAsync()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyWebClient", "GetLastPlayedSongAsync()", false);
             }
 
             return null;
@@ -261,7 +261,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SpotifyWebClient", "OnImplicitGrantReceived(object, ImplictGrantResponse)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyWebClient", "OnImplicitGrantReceived(object, ImplictGrantResponse)", false);
             }
         }
 

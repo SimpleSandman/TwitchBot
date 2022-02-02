@@ -76,7 +76,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "BankFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "BankFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -170,7 +170,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "BankFeature", "Deposit(TwitchChatter)", false, "!deposit");
+                await _errHndlrInstance.LogErrorAsync(ex, "BankFeature", "Deposit(TwitchChatter)", false, "!deposit");
             }
 
             return DateTime.Now;
@@ -229,7 +229,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "BankFeature", "Charge(TwitchChatter)", false, "!charge");
+                await _errHndlrInstance.LogErrorAsync(ex, "BankFeature", "Charge(TwitchChatter)", false, "!charge");
             }
 
             return DateTime.Now;
@@ -252,7 +252,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "BankFeature", "CheckFunds(TwitchChatter)", false, "![currency name]");
+                await _errHndlrInstance.LogErrorAsync(ex, "BankFeature", "CheckFunds(TwitchChatter)", false, "![currency name]");
             }
 
             return DateTime.Now;
@@ -320,7 +320,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "BankFeature", "BonusAll(TwitchChatter)", false, "!bonusall");
+                await _errHndlrInstance.LogErrorAsync(ex, "BankFeature", "BonusAll(TwitchChatter)", false, "!bonusall");
             }
 
             return DateTime.Now;
@@ -401,7 +401,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "BankFeature", "GiveFunds(TwitchChatter)", false, "!give", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "BankFeature", "GiveFunds(TwitchChatter)", false, "!give", chatter.Message);
             }
 
             return DateTime.Now;
@@ -444,7 +444,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "BankFeature", "LeaderboardCurrency(TwitchChatter)", false, "![currency name]top3");
+                await _errHndlrInstance.LogErrorAsync(ex, "BankFeature", "LeaderboardCurrency(TwitchChatter)", false, "![currency name]top3");
             }
 
             return DateTime.Now;
@@ -541,7 +541,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "BankFeature", "Gamble(TwitchChatter)", false, "!gamble", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "BankFeature", "Gamble(TwitchChatter)", false, "!gamble", chatter.Message);
             }
 
             return DateTime.Now;

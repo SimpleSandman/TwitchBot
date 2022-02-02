@@ -54,7 +54,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "ReminderFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "ReminderFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -68,7 +68,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "ReminderFeature", "RefreshReminders()", false, "!refreshreminders");
+                await _errHndlrInstance.LogErrorAsync(ex, "ReminderFeature", "RefreshReminders()", false, "!refreshreminders");
             }
 
             return DateTime.Now;
@@ -101,7 +101,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "ReminderFeature", "RefreshBossFight()", false, "!refreshbossfight");
+                await _errHndlrInstance.LogErrorAsync(ex, "ReminderFeature", "RefreshBossFight()", false, "!refreshbossfight");
             }
 
             return DateTime.Now;
@@ -117,7 +117,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "ReminderFeature", "RefreshCommands()", false, "!refreshcommands");
+                await _errHndlrInstance.LogErrorAsync(ex, "ReminderFeature", "RefreshCommands()", false, "!refreshcommands");
             }
 
             return DateTime.Now;

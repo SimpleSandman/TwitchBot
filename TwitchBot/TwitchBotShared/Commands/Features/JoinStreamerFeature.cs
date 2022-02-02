@@ -54,7 +54,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "JoinStreamerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (true, DateTime.Now);
@@ -69,7 +69,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "JoinStreamerFeature", "ResetJoin(TwitchChatter)", false, "!resetjoin");
+                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "ResetJoin(TwitchChatter)", false, "!resetjoin");
             }
 
             return DateTime.Now;
@@ -95,7 +95,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "JoinStreamerFeature", "ListJoin(TwitchChatter)", false, "!listjoin");
+                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "ListJoin(TwitchChatter)", false, "!listjoin");
             }
 
             return DateTime.Now;
@@ -116,7 +116,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "JoinStreamerFeature", "Invite(TwitchChatter)", false, "!join");
+                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "Invite(TwitchChatter)", false, "!join");
             }
 
             return DateTime.Now;
@@ -130,7 +130,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "JoinStreamerFeature", "PopJoin(TwitchChatter)", false, "!popjoin");
+                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "PopJoin(TwitchChatter)", false, "!popjoin");
             }
 
             return DateTime.Now;

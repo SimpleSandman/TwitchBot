@@ -66,7 +66,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "FollowerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "FollowerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -120,7 +120,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "FollowerFeature", "FollowSince(TwitchChatter)", false, "!followsince");
+                await _errHndlrInstance.LogErrorAsync(ex, "FollowerFeature", "FollowSince(TwitchChatter)", false, "!followsince");
             }
 
             return DateTime.Now;
@@ -185,7 +185,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "FollowerFeature", "ViewRank(TwitchChatter)", false, "!rank");
+                await _errHndlrInstance.LogErrorAsync(ex, "FollowerFeature", "ViewRank(TwitchChatter)", false, "!rank");
             }
 
             return DateTime.Now;
@@ -219,7 +219,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "FollowerFeature", "SetRegularFollowerHours(TwitchChatter)", false, "!setregularhours");
+                await _errHndlrInstance.LogErrorAsync(ex, "FollowerFeature", "SetRegularFollowerHours(TwitchChatter)", false, "!setregularhours");
             }
 
             return DateTime.Now;
@@ -267,7 +267,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "FollowerFeature", "LeaderboardRank(TwitchChatter)", false, "!ranktop3");
+                await _errHndlrInstance.LogErrorAsync(ex, "FollowerFeature", "LeaderboardRank(TwitchChatter)", false, "!ranktop3");
             }
 
             return DateTime.Now;

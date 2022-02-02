@@ -58,7 +58,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "PartyUpFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -125,7 +125,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "PartyUpFeature", "PartyUp(TwitchChatter)", false, "!partyup", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "PartyUp(TwitchChatter)", false, "!partyup", chatter.Message);
             }
 
             return DateTime.Now;
@@ -157,7 +157,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "PartyUpFeature", "PartyUpRequestList()", false, "!partyuprequestlist");
+                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "PartyUpRequestList()", false, "!partyuprequestlist");
             }
 
             return DateTime.Now;
@@ -190,7 +190,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "PartyUpFeature", "PartyUpList()", false, "!partyuplist");
+                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "PartyUpList()", false, "!partyuplist");
             }
 
             return DateTime.Now;
@@ -222,7 +222,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "PartyUpFeature", "PopPartyUpRequest()", false, "!poppartyuprequest");
+                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "PopPartyUpRequest()", false, "!poppartyuprequest");
             }
 
             return DateTime.Now;

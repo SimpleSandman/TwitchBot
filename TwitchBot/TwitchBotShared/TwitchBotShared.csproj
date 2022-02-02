@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Autofac" Version="6.3.0" />
     <PackageReference Include="CoreTweet" Version="1.0.0.483" />
+    <PackageReference Include="Discord.Net" Version="3.2.1" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.55.0.2449" />
     <PackageReference Include="LibVLCSharp" Version="3.6.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />

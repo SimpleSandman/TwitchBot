@@ -63,7 +63,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "MinigameFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "MinigameFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -145,7 +145,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "MinigameFeature", "RussianRoulette(TwitchChatter)", false, "!roulette");
+                await _errHndlrInstance.LogErrorAsync(ex, "MinigameFeature", "RussianRoulette(TwitchChatter)", false, "!roulette");
             }
 
             return DateTime.Now;
@@ -265,7 +265,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "MinigameFeature", "BankHeist(TwitchChatter)", false, "!bankheist", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "MinigameFeature", "BankHeist(TwitchChatter)", false, "!bankheist", chatter.Message);
             }
 
             return DateTime.Now;
@@ -390,7 +390,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "MinigameFeature", "BossFight(TwitchChatter)", false, "!raid");
+                await _errHndlrInstance.LogErrorAsync(ex, "MinigameFeature", "BossFight(TwitchChatter)", false, "!raid");
             }
 
             return DateTime.Now;

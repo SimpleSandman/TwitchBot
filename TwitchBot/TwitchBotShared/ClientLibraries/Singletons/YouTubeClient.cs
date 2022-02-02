@@ -77,7 +77,7 @@ namespace TwitchBotShared.ClientLibraries.Singletons
             catch (Exception ex)
             {
                 if (!ex.Message.Contains("access_denied")) // record unknown error
-                    await _errHndlrInstance.LogError(ex, "YouTubeClient", "GetAuth(string, string)", false);
+                    await _errHndlrInstance.LogErrorAsync(ex, "YouTubeClient", "GetAuth(string, string)", false);
 
                 return false;
             }

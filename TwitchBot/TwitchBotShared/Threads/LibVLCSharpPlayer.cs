@@ -85,7 +85,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Start()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "Start()", false);
             }
         }
 
@@ -100,7 +100,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Stop()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "Stop()", false);
             }
         }
 
@@ -169,7 +169,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Run()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "Run()", false);
             }
         }
 
@@ -221,7 +221,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "SetNextVideoId()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "SetNextVideoId()", false);
             }
         }
 
@@ -269,7 +269,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "PlayMedia(int)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "PlayMedia(int)", false);
             }
         }
 
@@ -284,7 +284,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Play()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "Play()", false);
             }
         }
 
@@ -299,7 +299,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Pause()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "Pause()", false);
             }
         }
 
@@ -323,7 +323,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "Skip(int)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "Skip(int)", false);
             }
         }
 
@@ -339,7 +339,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "SetVolume(int)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "SetVolume(int)", false);
             }
 
             return false;
@@ -356,7 +356,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "GetVolume()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "GetVolume()", false);
             }
 
             return 0;
@@ -398,7 +398,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "SetAudioOutputDevice(string)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "SetAudioOutputDevice(string)", false);
             }
 
             return "I cannot find the song request media player";
@@ -423,7 +423,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "AddSongRequest(PlaylistItem)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "AddSongRequest(PlaylistItem)", false);
             }
 
             return 0;
@@ -447,7 +447,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "SetVideoTime(int)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "SetVideoTime(int)", false);
             }
 
             return false;
@@ -468,7 +468,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "GetVideoTime()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "GetVideoTime()", false);
             }
 
             return "A YouTube video hasn't been loaded yet";
@@ -501,7 +501,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "SetPersonalPlaylistShuffle(bool)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "SetPersonalPlaylistShuffle(bool)", false);
             }
         }
 
@@ -518,7 +518,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "RemoveWrongSong(string)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "RemoveWrongSong(string)", false);
             }
 
             return null;
@@ -542,7 +542,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayer", "HasUserRequestedTooMany(string, int)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "HasUserRequestedTooMany(string, int)", false);
             }
 
             return false;

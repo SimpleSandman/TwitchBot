@@ -50,7 +50,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "MultiLinkUserFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "MultiLinkUserFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -68,7 +68,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "MultiLinkUserFeature", "ShowLink(TwitchChatter)", false, "!msl");
+                await _errHndlrInstance.LogErrorAsync(ex, "MultiLinkUserFeature", "ShowLink(TwitchChatter)", false, "!msl");
             }
 
             return DateTime.Now;
@@ -86,7 +86,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "MultiLinkUserFeature", "AddUser(TwitchChatter)", false, "!addmsl", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "MultiLinkUserFeature", "AddUser(TwitchChatter)", false, "!addmsl", chatter.Message);
             }
 
             return DateTime.Now;
@@ -107,7 +107,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "MultiLinkUserFeature", "ResetLink(TwitchChatter)", false, "!resetmsl");
+                await _errHndlrInstance.LogErrorAsync(ex, "MultiLinkUserFeature", "ResetLink(TwitchChatter)", false, "!resetmsl");
             }
 
             return DateTime.Now;

@@ -59,7 +59,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SpotifyFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -77,7 +77,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SpotifyFeature", "SpotifyCurrentSong(TwitchChatter)", false, "!spotifysong");
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyFeature", "SpotifyCurrentSong(TwitchChatter)", false, "!spotifysong");
             }
 
             return DateTime.Now;
@@ -91,7 +91,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "SpotifyFeature", "SpotifyLastLong(TwitchChatter)", false, "!spotifylastsong");
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyFeature", "SpotifyLastLong(TwitchChatter)", false, "!spotifylastsong");
             }
 
             return DateTime.Now;

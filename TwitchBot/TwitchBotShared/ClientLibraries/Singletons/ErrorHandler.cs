@@ -35,7 +35,7 @@ namespace TwitchBotShared.ClientLibraries.Singletons
             _botConfig = botConfig;
         }
 
-        public async Task LogError(Exception ex, string className, string methodName, bool hasToExit, string botCmd = "N/A", string userMsg = "N/A")
+        public async Task LogErrorAsync(Exception ex, string className, string methodName, bool hasToExit, string botCmd = "N/A", string userMsg = "N/A")
         {
             Console.WriteLine("Error: " + ex.Message);
 

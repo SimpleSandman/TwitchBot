@@ -51,7 +51,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "IrcClient", "SendIrcMessage(string)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "IrcClient", "SendIrcMessage(string)", false);
             }
         }
 
@@ -64,7 +64,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "IrcClient", "SendPublicChatMessage(string)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "IrcClient", "SendPublicChatMessage(string)", false);
             }
         }
 
@@ -77,7 +77,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "IrcClient", "ClearMessage(TwitchChatter)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "IrcClient", "ClearMessage(TwitchChatter)", false);
             }
         }
 
@@ -90,7 +90,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "IrcClient", "SendChatTimeout(string, int)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "IrcClient", "SendChatTimeout(string, int)", false);
             }
         }
 
@@ -102,7 +102,7 @@ namespace TwitchBotShared.ClientLibraries
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "IrcClient", "ReadMessageAsync()", true);
+                await _errHndlrInstance.LogErrorAsync(ex, "IrcClient", "ReadMessageAsync()", true);
             }
 
             return "";

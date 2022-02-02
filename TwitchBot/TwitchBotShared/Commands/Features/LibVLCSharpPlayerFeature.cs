@@ -87,7 +87,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -101,7 +101,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Start()", false, "!srstart");
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayerFeature", "Start()", false, "!srstart");
             }
 
             return DateTime.Now;
@@ -115,7 +115,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Stop()", false, "!srstop");
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayerFeature", "Stop()", false, "!srstop");
             }
 
             return DateTime.Now;
@@ -136,7 +136,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Pause()", false, "!srpause");
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayerFeature", "Pause()", false, "!srpause");
             }
 
             return DateTime.Now;
@@ -152,7 +152,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "SetAudioOutputDevice(string)", false, "!sraod");
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayerFeature", "SetAudioOutputDevice(string)", false, "!sraod");
             }
 
             return DateTime.Now;
@@ -200,7 +200,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "PersonalPlaylistShuffle(bool)", false, "!srshuffle");
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayerFeature", "PersonalPlaylistShuffle(bool)", false, "!srshuffle");
             }
 
             return DateTime.Now;
@@ -233,7 +233,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Play()", false, "!srplay");
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayerFeature", "Play()", false, "!srplay");
             }
 
             return DateTime.Now;
@@ -264,7 +264,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "SetVolume(TwitchChatter)", false, "!srvolume", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayerFeature", "SetVolume(TwitchChatter)", false, "!srvolume", chatter.Message);
             }
 
             return DateTime.Now;
@@ -295,7 +295,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "Skip(TwitchChatter)", false, "!srskip", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayerFeature", "Skip(TwitchChatter)", false, "!srskip", chatter.Message);
             }
 
             return DateTime.Now;
@@ -319,7 +319,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "SetTime(TwitchChatter)", false, "!srtime", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayerFeature", "SetTime(TwitchChatter)", false, "!srtime", chatter.Message);
             }
 
             return DateTime.Now;
@@ -333,7 +333,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "ShowVolume(TwitchChatter)", false, "!srvolume");
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayerFeature", "ShowVolume(TwitchChatter)", false, "!srvolume");
             }
 
             return DateTime.Now;
@@ -347,7 +347,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "LibVLCSharpPlayerFeature", "ShowTime(TwitchChatter)", false, "!srtime");
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayerFeature", "ShowTime(TwitchChatter)", false, "!srtime");
             }
 
             return DateTime.Now;

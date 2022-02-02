@@ -6,6 +6,13 @@ namespace TwitchBotShared.Extensions
 {
     public static class StringExtensions
     {
+        /// <summary>
+        /// Get the index of a character based on the Nth occurrence
+        /// </summary>
+        /// <param name="s">The expression to be searched</param>
+        /// <param name="findChar">The character in question</param>
+        /// <param name="n">Nth index (zero-based)</param>
+        /// <returns></returns>
         public static int GetNthCharIndex(this string s, char findChar, int n)
         {
             int count = 0;

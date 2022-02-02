@@ -113,7 +113,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "GeneralFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -134,7 +134,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "GeneralFeature", "BotSettings()", false, "!settings");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "BotSettings()", false, "!settings");
             }
 
             return DateTime.Now;
@@ -152,7 +152,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "GeneralFeature", "ExitBot()", false, "!exit");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "ExitBot()", false, "!exit");
             }
 
             return DateTime.Now;
@@ -169,7 +169,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "GeneralFeature", "Displays()", false, "!cmds");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "Displays()", false, "!cmds");
             }
 
             return DateTime.Now;
@@ -184,7 +184,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "GeneralFeature", "Hello(TwitchChatter)", false, "!hello");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "Hello(TwitchChatter)", false, "!hello");
             }
 
             return DateTime.Now;
@@ -198,7 +198,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "GeneralFeature", "UtcTime()", false, "!utctime");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "UtcTime()", false, "!utctime");
             }
 
             return DateTime.Now;
@@ -219,7 +219,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "GeneralFeature", "HostTime()", false, "!hosttime");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "HostTime()", false, "!hosttime");
             }
 
             return DateTime.Now;
@@ -244,7 +244,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "GeneralFeature", "Uptime()", false, "!uptime");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "Uptime()", false, "!uptime");
             }
 
             return DateTime.Now;
@@ -273,7 +273,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "GeneralFeature", "SetLatency(TwitchChatter)", false, "!setlatency");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "SetLatency(TwitchChatter)", false, "!setlatency");
             }
 
             return DateTime.Now;
@@ -290,7 +290,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "Gen", "Support()", false, "!support");
+                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "Support()", false, "!support");
             }
 
             return DateTime.Now;
@@ -310,7 +310,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "Gen", "Lurk(TwitchChatter)", false, "!lurk");
+                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "Lurk(TwitchChatter)", false, "!lurk");
             }
 
             return DateTime.Now;
@@ -330,7 +330,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "Gen", "Unlurk(TwitchChatter)", false, "!unlurk");
+                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "Unlurk(TwitchChatter)", false, "!unlurk");
             }
 
             return DateTime.Now;
@@ -360,7 +360,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "Gen", "Subscribe()", false, "!sub");
+                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "Subscribe()", false, "!sub");
             }
 
             return DateTime.Now;
@@ -406,7 +406,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "Gen", "Magic8Ball(TwitchChatter)", false, "!8ball");
+                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "Magic8Ball(TwitchChatter)", false, "!8ball");
             }
 
             return DateTime.Now;
@@ -426,7 +426,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "Gen", "Slap(TwitchChatter)", false, "!slap", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "Slap(TwitchChatter)", false, "!slap", chatter.Message);
             }
 
             return DateTime.Now;
@@ -446,7 +446,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "Gen", "Stab(TwitchChatter)", false, "!stab", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "Stab(TwitchChatter)", false, "!stab", chatter.Message);
             }
 
             return DateTime.Now;
@@ -513,7 +513,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "Gen", "Shoot(TwitchChatter)", false, "!shoot", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "Shoot(TwitchChatter)", false, "!shoot", chatter.Message);
             }
 
             return DateTime.Now;
@@ -542,7 +542,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "Gen", "Throw(TwitchChatter)", false, "!throw", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "Throw(TwitchChatter)", false, "!throw", chatter.Message);
             }
 
             return DateTime.Now;
@@ -584,7 +584,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogError(ex, "Vip", "PromoteStreamer(TwitchChatter)", false, "!streamer");
+                await _errHndlrInstance.LogErrorAsync(ex, "Vip", "PromoteStreamer(TwitchChatter)", false, "!streamer");
             }
 
             return DateTime.Now;
