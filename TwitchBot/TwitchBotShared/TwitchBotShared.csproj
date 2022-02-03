@@ -12,7 +12,7 @@
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.55.0.2449" />
     <PackageReference Include="LibVLCSharp" Version="3.6.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="RestSharp" Version="107.1.1" />
+    <PackageReference Include="RestSharp" Version="107.1.2" />
     <PackageReference Include="SpotifyAPI.Web" Version="6.2.2" />
     <PackageReference Include="SpotifyAPI.Web.Auth" Version="6.2.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
