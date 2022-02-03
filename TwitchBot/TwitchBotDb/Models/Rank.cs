@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace TwitchBotDb.Models
+﻿namespace TwitchBotDb.Models
 {
     public partial class Rank
     {

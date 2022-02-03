@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
@@ -33,9 +35,9 @@ namespace TwitchBotApi.Controllers
             var songRequestIgnore = new object();
 
             if (id > 0)
-                songRequestIgnore = await _context.SongRequestIgnore.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Id == id);
+                songRequestIgnore = await _context.SongRequestIgnores.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Id == id);
             else
-                songRequestIgnore = await _context.SongRequestIgnore.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+                songRequestIgnore = await _context.SongRequestIgnores.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
 
             if (songRequestIgnore == null)
             {
@@ -93,7 +95,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.SongRequestIgnore.Add(songRequestIgnore);
+            _context.SongRequestIgnores.Add(songRequestIgnore);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("Get", new { broadcasterId = songRequestIgnore.BroadcasterId, id = songRequestIgnore.Id }, songRequestIgnore);
@@ -119,7 +121,7 @@ namespace TwitchBotApi.Controllers
 
             if (!string.IsNullOrEmpty(artist) && !string.IsNullOrEmpty(title))
             {
-                SongRequestIgnore songRequestIgnoredItem = await _context.SongRequestIgnore
+                SongRequestIgnore songRequestIgnoredItem = await _context.SongRequestIgnores
                     .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId 
                         && m.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase) 
                         && m.Title.Equals(title, StringComparison.CurrentCultureIgnoreCase));
@@ -127,7 +129,7 @@ namespace TwitchBotApi.Controllers
                 if (songRequestIgnoredItem == null)
                     return NotFound();
 
-                _context.SongRequestIgnore.Remove(songRequestIgnoredItem);
+                _context.SongRequestIgnores.Remove(songRequestIgnoredItem);
 
                 songRequestIgnore = songRequestIgnoredItem;
             }
@@ -137,14 +139,14 @@ namespace TwitchBotApi.Controllers
 
                 if (!string.IsNullOrEmpty(artist))
                 {
-                    songRequestBlacklistItems = await _context.SongRequestIgnore
+                    songRequestBlacklistItems = await _context.SongRequestIgnores
                         .Where(m => m.BroadcasterId == broadcasterId 
                             && m.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase))
                         .ToListAsync();
                 }
                 else
                 {
-                    songRequestBlacklistItems = await _context.SongRequestIgnore
+                    songRequestBlacklistItems = await _context.SongRequestIgnores
                         .Where(m => m.BroadcasterId == broadcasterId)
                         .ToListAsync();
                 }
@@ -152,7 +154,7 @@ namespace TwitchBotApi.Controllers
                 if (songRequestBlacklistItems == null || songRequestBlacklistItems.Count == 0)
                     return NotFound();
 
-                _context.SongRequestIgnore.RemoveRange(songRequestBlacklistItems);
+                _context.SongRequestIgnores.RemoveRange(songRequestBlacklistItems);
 
                 songRequestIgnore = songRequestBlacklistItems;
             }
@@ -164,7 +166,7 @@ namespace TwitchBotApi.Controllers
 
         private bool SongRequestBlacklistExists(int id)
         {
-            return _context.SongRequestIgnore.Any(e => e.Id == id);
+            return _context.SongRequestIgnores.Any(e => e.Id == id);
         }
     }
 }

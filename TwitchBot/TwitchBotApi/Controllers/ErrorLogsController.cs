@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class ErrorLogsController : Controller
+    public class ErrorLogsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -42,7 +41,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.ErrorLog.Add(errorLog);
+            _context.ErrorLogs.Add(errorLog);
             await _context.SaveChangesAsync();
 
             return NoContent();

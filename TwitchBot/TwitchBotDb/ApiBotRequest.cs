@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 using RestSharp;
+using RestSharp.Serializers;
 
 namespace TwitchBotDb
 {
@@ -62,7 +63,7 @@ namespace TwitchBotDb
 
             if (updateListString?.Count > 0)
             {
-                request.AddParameter("application/json", JsonConvert.SerializeObject(updateListString), ParameterType.RequestBody);
+                request.AddJsonBody(updateListString);
             }
 
             var cancellationToken = new CancellationTokenSource();
@@ -103,7 +104,7 @@ namespace TwitchBotDb
             RestRequest request = new RestRequest();
             request.AddHeader("Cache-Control", "no-cache");
             request.AddHeader("Content-Type", "application/json");
-            request.AddParameter("application/json", JsonConvert.SerializeObject(updateObject), ParameterType.RequestBody);
+            request.AddStringBody(JsonConvert.SerializeObject(updateObject), ContentType.Json);
             request.Method = Method.Put;
 
             var cancellationToken = new CancellationTokenSource();
@@ -144,7 +145,7 @@ namespace TwitchBotDb
             RestRequest request = new RestRequest();
             request.AddHeader("Cache-Control", "no-cache");
             request.AddHeader("Content-Type", "application/json");
-            request.AddParameter("application/json", JsonConvert.SerializeObject(createObject), ParameterType.RequestBody);
+            request.AddStringBody(JsonConvert.SerializeObject(createObject), ContentType.Json);
             request.Method = Method.Post;
 
             var cancellationToken = new CancellationTokenSource();
@@ -185,7 +186,7 @@ namespace TwitchBotDb
             RestRequest request = new RestRequest();
             request.AddHeader("Cache-Control", "no-cache");
             request.AddHeader("Content-Type", "application/json");
-            request.AddParameter("application/json", "[{" + $"\"op\": \"replace\", \"path\": \"/{path}\", \"value\": \"{value}\"" + "}]", ParameterType.RequestBody);
+            request.AddStringBody("[{" + $"\"op\": \"replace\", \"path\": \"/{path}\", \"value\": \"{value}\"" + "}]", ContentType.Json);
             request.Method = Method.Patch;
 
             var cancellationToken = new CancellationTokenSource();

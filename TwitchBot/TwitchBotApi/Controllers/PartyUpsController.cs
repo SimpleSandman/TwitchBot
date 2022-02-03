@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-using TwitchBotDb.Models;
+using TwitchBotDb.Context;
 
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class PartyUpsController : Controller
+    public class PartyUpsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -34,7 +35,7 @@ namespace TwitchBotApi.Controllers
 
             if (gameId > 0 && !string.IsNullOrEmpty(partyMember))
             {
-                partyUp = await _context.PartyUp
+                partyUp = await _context.PartyUps
                     .SingleOrDefaultAsync(m =>
                         m.BroadcasterId == broadcasterId
                             && m.GameId == gameId
@@ -42,13 +43,13 @@ namespace TwitchBotApi.Controllers
             }
             else if (gameId > 0)
             {
-                partyUp = await _context.PartyUp.Where(m => m.BroadcasterId == broadcasterId && m.GameId == gameId)
+                partyUp = await _context.PartyUps.Where(m => m.BroadcasterId == broadcasterId && m.GameId == gameId)
                     .Select(m => m.PartyMemberName)
                     .ToListAsync();
             }
             else
             {
-                partyUp = await _context.PartyUp.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+                partyUp = await _context.PartyUps.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
             }
 
             if (partyUp == null)

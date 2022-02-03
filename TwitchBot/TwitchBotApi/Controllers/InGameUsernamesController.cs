@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class InGameUsernamesController : Controller
+    public class InGameUsernamesController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -34,16 +33,16 @@ namespace TwitchBotApi.Controllers
             var inGameUsername = new object();
 
             if (gameId == 0)
-                inGameUsername = await _context.InGameUsername.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+                inGameUsername = await _context.InGameUsernames.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
             else if (gameId != null)
-                inGameUsername = await _context.InGameUsername.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == gameId);
+                inGameUsername = await _context.InGameUsernames.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == gameId);
             else if (gameId == null)
-                inGameUsername = await _context.InGameUsername.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == null);
+                inGameUsername = await _context.InGameUsernames.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == null);
 
             if (inGameUsername == null && gameId != null)
             {
                 // try getting the generic username message
-                inGameUsername = await _context.InGameUsername.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == null);
+                inGameUsername = await _context.InGameUsernames.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == null);
 
                 if (inGameUsername == null)
                 {
@@ -102,7 +101,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.InGameUsername.Add(inGameUsername);
+            _context.InGameUsernames.Add(inGameUsername);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("Get", new { broadcasterId = inGameUsername.BroadcasterId, gameId = inGameUsername.Game }, inGameUsername);
@@ -117,13 +116,13 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            InGameUsername inGameUsername = await _context.InGameUsername.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
+            InGameUsername inGameUsername = await _context.InGameUsernames.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
             if (inGameUsername == null)
             {
                 return NotFound();
             }
 
-            _context.InGameUsername.Remove(inGameUsername);
+            _context.InGameUsernames.Remove(inGameUsername);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -131,7 +130,7 @@ namespace TwitchBotApi.Controllers
 
         private bool InGameUsernameExists(int id)
         {
-            return _context.InGameUsername.Any(e => e.Id == id);
+            return _context.InGameUsernames.Any(e => e.Id == id);
         }
     }
 }

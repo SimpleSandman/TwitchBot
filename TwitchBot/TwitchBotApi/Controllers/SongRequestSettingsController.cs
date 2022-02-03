@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
@@ -30,7 +29,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            SongRequestSetting songRequestSetting = await _context.SongRequestSetting.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
+            SongRequestSetting songRequestSetting = await _context.SongRequestSettings.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
 
             if (songRequestSetting == null)
             {
@@ -54,7 +53,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest();
             }
 
-            SongRequestSetting updatedSongRequestSetting = await _context.SongRequestSetting.FirstOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
+            SongRequestSetting updatedSongRequestSetting = await _context.SongRequestSettings.FirstOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
             if (updatedSongRequestSetting == null)
             {
                 return NotFound();
@@ -63,7 +62,7 @@ namespace TwitchBotApi.Controllers
             updatedSongRequestSetting.PersonalPlaylistId = songRequestSetting.PersonalPlaylistId;
             updatedSongRequestSetting.RequestPlaylistId = songRequestSetting.RequestPlaylistId;
             updatedSongRequestSetting.DjMode = songRequestSetting.DjMode;
-            _context.SongRequestSetting.Update(updatedSongRequestSetting);
+            _context.SongRequestSettings.Update(updatedSongRequestSetting);
 
             try
             {
@@ -94,7 +93,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.SongRequestSetting.Add(songRequestSetting);
+            _context.SongRequestSettings.Add(songRequestSetting);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("Get", new { broadcasterId = songRequestSetting.BroadcasterId }, songRequestSetting);
@@ -102,7 +101,7 @@ namespace TwitchBotApi.Controllers
 
         private bool SongRequestSettingExists(int broadcasterId)
         {
-            return _context.SongRequestSetting.Any(e => e.BroadcasterId == broadcasterId);
+            return _context.SongRequestSettings.Any(e => e.BroadcasterId == broadcasterId);
         }
     }
 }

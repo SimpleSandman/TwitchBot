@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace TwitchBotDb.Models
 {
@@ -7,7 +6,7 @@ namespace TwitchBotDb.Models
     {
         public PartyUp()
         {
-            PartyUpRequest = new HashSet<PartyUpRequest>();
+            PartyUpRequests = new HashSet<PartyUpRequest>();
         }
 
         public int Id { get; set; }
@@ -17,6 +16,6 @@ namespace TwitchBotDb.Models
 
         public virtual Broadcaster Broadcaster { get; set; }
         public virtual TwitchGameCategory Game { get; set; }
-        public virtual ICollection<PartyUpRequest> PartyUpRequest { get; set; }
+        public virtual ICollection<PartyUpRequest> PartyUpRequests { get; set; }
     }
 }

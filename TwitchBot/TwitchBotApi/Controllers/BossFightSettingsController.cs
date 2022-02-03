@@ -1,15 +1,17 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class BossFightSettingsController : Controller
+    public class BossFightSettingsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -27,7 +29,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            BossFightSetting bossFightSetting = await _context.BossFightSetting.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
+            BossFightSetting bossFightSetting = await _context.BossFightSettings.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
 
             if (bossFightSetting == null)
             {
@@ -82,7 +84,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.BossFightSetting.Add(bossFightSetting);
+            _context.BossFightSettings.Add(bossFightSetting);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("Get", new { broadcasterId = bossFightSetting.BroadcasterId }, bossFightSetting);
@@ -90,7 +92,7 @@ namespace TwitchBotApi.Controllers
 
         private bool BossFightSettingExists(int broadcasterId)
         {
-            return _context.BossFightSetting.Any(e => e.BroadcasterId == broadcasterId);
+            return _context.BossFightSettings.Any(e => e.BroadcasterId == broadcasterId);
         }
     }
 }

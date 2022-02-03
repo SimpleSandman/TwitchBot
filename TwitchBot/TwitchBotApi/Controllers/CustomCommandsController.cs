@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class CustomCommandsController : Controller
+    public class CustomCommandsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -34,9 +33,9 @@ namespace TwitchBotApi.Controllers
             var customCommands = new object();
 
             if (string.IsNullOrEmpty(name))
-                customCommands = await _context.CustomCommand.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+                customCommands = await _context.CustomCommands.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
             else
-                customCommands = await _context.CustomCommand.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Name == name);
+                customCommands = await _context.CustomCommands.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Name == name);
 
             if (customCommands == null)
             {
@@ -90,7 +89,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.CustomCommand.Add(customCommand);
+            _context.CustomCommands.Add(customCommand);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("Get", new { id = customCommand.Id }, customCommand);
@@ -105,13 +104,13 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var customCommand = await _context.CustomCommand.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Name == name);
+            var customCommand = await _context.CustomCommands.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Name == name);
             if (customCommand == null)
             {
                 return NotFound();
             }
 
-            _context.CustomCommand.Remove(customCommand);
+            _context.CustomCommands.Remove(customCommand);
             await _context.SaveChangesAsync();
 
             return Ok(customCommand);
@@ -119,7 +118,7 @@ namespace TwitchBotApi.Controllers
 
         private bool CustomCommandExists(int id)
         {
-            return _context.CustomCommand.Any(e => e.Id == id);
+            return _context.CustomCommands.Any(e => e.Id == id);
         }
     }
 }

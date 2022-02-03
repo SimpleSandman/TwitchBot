@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class RemindersController : Controller
+    public class RemindersController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -32,9 +33,9 @@ namespace TwitchBotApi.Controllers
             var reminders = new object();
 
             if (id == 0)
-                reminders = await _context.Reminder.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+                reminders = await _context.Reminders.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
             else
-                reminders = await _context.Reminder.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Id == id);
+                reminders = await _context.Reminders.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Id == id);
 
             if (reminders == null)
             {
@@ -88,7 +89,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.Reminder.Add(reminder);
+            _context.Reminders.Add(reminder);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -103,13 +104,13 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            Reminder reminder = await _context.Reminder.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
+            Reminder reminder = await _context.Reminders.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
             if (reminder == null)
             {
                 return NotFound();
             }
 
-            _context.Reminder.Remove(reminder);
+            _context.Reminders.Remove(reminder);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -117,7 +118,7 @@ namespace TwitchBotApi.Controllers
 
         private bool RemindersExists(int id)
         {
-            return _context.Reminder.Any(e => e.Id == id);
+            return _context.Reminders.Any(e => e.Id == id);
         }
     }
 }

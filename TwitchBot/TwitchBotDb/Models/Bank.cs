@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace TwitchBotDb.Models
+﻿namespace TwitchBotDb.Models
 {
-    public partial class Bank
+    public class Bank
     {
         public int Id { get; set; }
         public string Username { get; set; }

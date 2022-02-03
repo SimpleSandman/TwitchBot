@@ -7,21 +7,21 @@ namespace TwitchBotDb.Models
     {
         public Broadcaster()
         {
-            Bank = new HashSet<Bank>();
-            BankHeistSetting = new HashSet<BankHeistSetting>();
-            BossFightSetting = new HashSet<BossFightSetting>();
-            BotModerator = new HashSet<BotModerator>();
-            CustomCommand = new HashSet<CustomCommand>();
-            ErrorLog = new HashSet<ErrorLog>();
-            InGameUsername = new HashSet<InGameUsername>();
-            PartyUp = new HashSet<PartyUp>();
-            Quote = new HashSet<Quote>();
-            Rank = new HashSet<Rank>();
-            RankFollower = new HashSet<RankFollower>();
-            Reminder = new HashSet<Reminder>();
-            SongRequest = new HashSet<SongRequest>();
-            SongRequestIgnore = new HashSet<SongRequestIgnore>();
-            SongRequestSetting = new HashSet<SongRequestSetting>();
+            BankHeistSettings = new HashSet<BankHeistSetting>();
+            Banks = new HashSet<Bank>();
+            BossFightSettings = new HashSet<BossFightSetting>();
+            BotModerators = new HashSet<BotModerator>();
+            CustomCommands = new HashSet<CustomCommand>();
+            ErrorLogs = new HashSet<ErrorLog>();
+            InGameUsernames = new HashSet<InGameUsername>();
+            PartyUps = new HashSet<PartyUp>();
+            Quotes = new HashSet<Quote>();
+            RankFollowers = new HashSet<RankFollower>();
+            Ranks = new HashSet<Rank>();
+            Reminders = new HashSet<Reminder>();
+            SongRequestIgnores = new HashSet<SongRequestIgnore>();
+            SongRequestSettings = new HashSet<SongRequestSetting>();
+            SongRequests = new HashSet<SongRequest>();
         }
 
         public int Id { get; set; }
@@ -29,20 +29,20 @@ namespace TwitchBotDb.Models
         public int TwitchId { get; set; }
         public DateTime LastUpdated { get; set; }
 
-        public virtual ICollection<Bank> Bank { get; set; }
-        public virtual ICollection<BankHeistSetting> BankHeistSetting { get; set; }
-        public virtual ICollection<BossFightSetting> BossFightSetting { get; set; }
-        public virtual ICollection<BotModerator> BotModerator { get; set; }
-        public virtual ICollection<CustomCommand> CustomCommand { get; set; }
-        public virtual ICollection<ErrorLog> ErrorLog { get; set; }
-        public virtual ICollection<InGameUsername> InGameUsername { get; set; }
-        public virtual ICollection<PartyUp> PartyUp { get; set; }
-        public virtual ICollection<Quote> Quote { get; set; }
-        public virtual ICollection<Rank> Rank { get; set; }
-        public virtual ICollection<RankFollower> RankFollower { get; set; }
-        public virtual ICollection<Reminder> Reminder { get; set; }
-        public virtual ICollection<SongRequest> SongRequest { get; set; }
-        public virtual ICollection<SongRequestIgnore> SongRequestIgnore { get; set; }
-        public virtual ICollection<SongRequestSetting> SongRequestSetting { get; set; }
+        public virtual ICollection<BankHeistSetting> BankHeistSettings { get; set; }
+        public virtual ICollection<Bank> Banks { get; set; }
+        public virtual ICollection<BossFightSetting> BossFightSettings { get; set; }
+        public virtual ICollection<BotModerator> BotModerators { get; set; }
+        public virtual ICollection<CustomCommand> CustomCommands { get; set; }
+        public virtual ICollection<ErrorLog> ErrorLogs { get; set; }
+        public virtual ICollection<InGameUsername> InGameUsernames { get; set; }
+        public virtual ICollection<PartyUp> PartyUps { get; set; }
+        public virtual ICollection<Quote> Quotes { get; set; }
+        public virtual ICollection<RankFollower> RankFollowers { get; set; }
+        public virtual ICollection<Rank> Ranks { get; set; }
+        public virtual ICollection<Reminder> Reminders { get; set; }
+        public virtual ICollection<SongRequestIgnore> SongRequestIgnores { get; set; }
+        public virtual ICollection<SongRequestSetting> SongRequestSettings { get; set; }
+        public virtual ICollection<SongRequest> SongRequests { get; set; }
     }
 }

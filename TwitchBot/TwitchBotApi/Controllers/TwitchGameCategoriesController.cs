@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Net;
+﻿using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
@@ -26,7 +27,7 @@ namespace TwitchBotApi.Controllers
         {
             if (string.IsNullOrEmpty(title))
             {
-                return Ok(_context.TwitchGameCategory);
+                return Ok(_context.TwitchGameCategories);
             }
 
             if (!ModelState.IsValid)
@@ -34,7 +35,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            TwitchGameCategory gameList = await _context.TwitchGameCategory.FirstOrDefaultAsync(m => m.Title == title);
+            TwitchGameCategory gameList = await _context.TwitchGameCategories.FirstOrDefaultAsync(m => m.Title == title);
 
             if (gameList == null)
             {

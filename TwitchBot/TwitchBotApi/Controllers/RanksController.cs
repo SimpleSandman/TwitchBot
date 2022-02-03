@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using Snickler.EFCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class RanksController : Controller
+    public class RanksController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -32,7 +32,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            List<Rank> rank = await _context.Rank.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+            List<Rank> rank = await _context.Ranks.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
 
             if (rank == null || rank.Count == 0)
             {
@@ -110,7 +110,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.Rank.Add(rank);
+            _context.Ranks.Add(rank);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -125,13 +125,13 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            Rank rank = await _context.Rank.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
+            Rank rank = await _context.Ranks.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
             if (rank == null)
             {
                 return NotFound();
             }
 
-            _context.Rank.Remove(rank);
+            _context.Ranks.Remove(rank);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -139,7 +139,7 @@ namespace TwitchBotApi.Controllers
 
         private bool RankExists(int id)
         {
-            return _context.Rank.Any(e => e.Id == id);
+            return _context.Ranks.Any(e => e.Id == id);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace TwitchBotDb.Models
 {
@@ -7,7 +6,7 @@ namespace TwitchBotDb.Models
     {
         public CustomCommand()
         {
-            Whitelist = new HashSet<Whitelist>();
+            Whitelists = new HashSet<Whitelist>();
         }
 
         public int Id { get; set; }
@@ -22,6 +21,6 @@ namespace TwitchBotDb.Models
 
         public virtual Broadcaster Broadcaster { get; set; }
         public virtual TwitchGameCategory Game { get; set; }
-        public virtual ICollection<Whitelist> Whitelist { get; set; }
+        public virtual ICollection<Whitelist> Whitelists { get; set; }
     }
 }

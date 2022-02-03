@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using Snickler.EFCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
@@ -13,7 +15,7 @@ namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class PartyUpRequestsController : Controller
+    public class PartyUpRequestsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -31,7 +33,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            PartyUpRequest partyUpRequests = await _context.PartyUpRequest.SingleOrDefaultAsync(m => m.PartyMemberId == partyMemberId && m.Username == username);
+            PartyUpRequest partyUpRequests = await _context.PartyUpRequests.SingleOrDefaultAsync(m => m.PartyMemberId == partyMemberId && m.Username == username);
 
             if (partyUpRequests == null)
             {
@@ -78,7 +80,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest();
             }
 
-            _context.PartyUpRequest.Add(partyUpRequest);
+            _context.PartyUpRequests.Add(partyUpRequest);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -121,7 +123,7 @@ namespace TwitchBotApi.Controllers
                 return NotFound();
             }
 
-            _context.PartyUpRequest.Remove(requestToBeDeleted);
+            _context.PartyUpRequests.Remove(requestToBeDeleted);
             await _context.SaveChangesAsync();
 
             return Ok(result);
@@ -129,7 +131,7 @@ namespace TwitchBotApi.Controllers
 
         private bool PartyUpRequestExists(string username, int partyMemberId)
         {
-            return _context.PartyUpRequest.Any(e => e.Username == username && e.PartyMemberId == partyMemberId);
+            return _context.PartyUpRequests.Any(e => e.Username == username && e.PartyMemberId == partyMemberId);
         }
     }
 }

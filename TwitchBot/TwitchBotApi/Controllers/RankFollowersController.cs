@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-using TwitchBotApi.DTO;
-
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class RankFollowersController : Controller
+    public class RankFollowersController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -32,7 +30,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            RankFollower rankFollower = await _context.RankFollower.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Username == username);
+            RankFollower rankFollower = await _context.RankFollowers.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Username == username);
 
             if (rankFollower == null)
             {
@@ -51,7 +49,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            IEnumerable<RankFollower> topFollowers = await _context.RankFollower
+            IEnumerable<RankFollower> topFollowers = await _context.RankFollowers
                 .Where(m => m.BroadcasterId == broadcasterId)
                 .OrderByDescending(m => m.Experience)
                 .Take(topNumber)
@@ -74,14 +72,14 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            RankFollower follower = _context.RankFollower.FirstOrDefault(t => t.BroadcasterId == broadcasterId && t.Username == username);
+            RankFollower follower = _context.RankFollowers.FirstOrDefault(t => t.BroadcasterId == broadcasterId && t.Username == username);
             if (follower == null)
             {
                 return NotFound();
             }
 
             follower.Experience = exp;
-            _context.RankFollower.Update(follower);
+            _context.RankFollowers.Update(follower);
 
             try
             {
@@ -112,7 +110,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.RankFollower.Add(rankFollowers);
+            _context.RankFollowers.Add(rankFollowers);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -120,7 +118,7 @@ namespace TwitchBotApi.Controllers
 
         private bool RankFollowersExists(int broadcasterId, string username)
         {
-            return _context.RankFollower.Any(e => e.BroadcasterId == broadcasterId && e.Username == username);
+            return _context.RankFollowers.Any(e => e.BroadcasterId == broadcasterId && e.Username == username);
         }
     }
 }

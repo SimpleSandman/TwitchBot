@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class BotModeratorsController : Controller
+    public class BotModeratorsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -34,9 +33,9 @@ namespace TwitchBotApi.Controllers
             var botModerators = new object();
 
             if (string.IsNullOrEmpty(username))
-                botModerators = await _context.BotModerator.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+                botModerators = await _context.BotModerators.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
             else
-                botModerators = await _context.BotModerator.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Username == username);
+                botModerators = await _context.BotModerators.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Username == username);
 
             if (botModerators == null)
             {
@@ -90,7 +89,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.BotModerator.Add(botModerator);
+            _context.BotModerators.Add(botModerator);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("Get", new { broadcasterId = botModerator.BroadcasterId, username = botModerator.Username }, botModerator);
@@ -105,13 +104,13 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            BotModerator botModerator = await _context.BotModerator.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Username == username);
+            BotModerator botModerator = await _context.BotModerators.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Username == username);
             if (botModerator == null)
             {
                 return NotFound();
             }
 
-            _context.BotModerator.Remove(botModerator);
+            _context.BotModerators.Remove(botModerator);
             await _context.SaveChangesAsync();
 
             return Ok(botModerator);
@@ -119,7 +118,7 @@ namespace TwitchBotApi.Controllers
 
         private bool BotModeratorExists(int id)
         {
-            return _context.BotModerator.Any(e => e.Id == id);
+            return _context.BotModerators.Any(e => e.Id == id);
         }
     }
 }

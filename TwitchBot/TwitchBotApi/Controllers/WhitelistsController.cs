@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
@@ -24,14 +25,14 @@ namespace TwitchBotApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Whitelist>>> GetWhitelist()
         {
-            return await _context.Whitelist.ToListAsync();
+            return await _context.Whitelists.ToListAsync();
         }
 
         // GET: api/Whitelists/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Whitelist>> GetWhitelist(int id)
         {
-            var whitelist = await _context.Whitelist.FindAsync(id);
+            var whitelist = await _context.Whitelists.FindAsync(id);
 
             if (whitelist == null)
             {
@@ -75,7 +76,7 @@ namespace TwitchBotApi.Controllers
         [HttpPost]
         public async Task<ActionResult<Whitelist>> PostWhitelist(Whitelist whitelist)
         {
-            _context.Whitelist.Add(whitelist);
+            _context.Whitelists.Add(whitelist);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetWhitelist", new { id = whitelist.Id }, whitelist);
@@ -85,13 +86,13 @@ namespace TwitchBotApi.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Whitelist>> DeleteWhitelist(int id)
         {
-            var whitelist = await _context.Whitelist.FindAsync(id);
+            var whitelist = await _context.Whitelists.FindAsync(id);
             if (whitelist == null)
             {
                 return NotFound();
             }
 
-            _context.Whitelist.Remove(whitelist);
+            _context.Whitelists.Remove(whitelist);
             await _context.SaveChangesAsync();
 
             return whitelist;
@@ -99,7 +100,7 @@ namespace TwitchBotApi.Controllers
 
         private bool WhitelistExists(int id)
         {
-            return _context.Whitelist.Any(e => e.Id == id);
+            return _context.Whitelists.Any(e => e.Id == id);
         }
     }
 }

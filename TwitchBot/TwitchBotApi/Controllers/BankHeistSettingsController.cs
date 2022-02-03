@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class BankHeistSettingsController : Controller
+    public class BankHeistSettingsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -30,7 +29,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            BankHeistSetting bankHeistSetting = await _context.BankHeistSetting.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
+            BankHeistSetting bankHeistSetting = await _context.BankHeistSettings.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
 
             if (bankHeistSetting == null)
             {
@@ -85,7 +84,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.BankHeistSetting.Add(bankHeistSetting);
+            _context.BankHeistSettings.Add(bankHeistSetting);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("Get", new { broadcasterId = bankHeistSetting.BroadcasterId }, bankHeistSetting);
@@ -93,7 +92,7 @@ namespace TwitchBotApi.Controllers
 
         private bool BankHeistSettingExists(int broadcasterId)
         {
-            return _context.BankHeistSetting.Any(e => e.BroadcasterId == broadcasterId);
+            return _context.BankHeistSettings.Any(e => e.BroadcasterId == broadcasterId);
         }
     }
 }

@@ -6,13 +6,14 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
 namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class QuotesController : Controller
+    public class QuotesController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -30,7 +31,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            List<Quote> quote = await _context.Quote.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+            List<Quote> quote = await _context.Quotes.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
 
             if (quote == null || quote.Count == 0)
             {
@@ -45,7 +46,7 @@ namespace TwitchBotApi.Controllers
         [HttpPatch("{id:int}")]
         public async Task<IActionResult> Patch([FromRoute] int id, [FromQuery] int broadcasterId, [FromBody]JsonPatchDocument<Quote> quotePatch)
         {
-            Quote quote = _context.Quote.SingleOrDefault(m => m.Id == id && m.BroadcasterId == broadcasterId);
+            Quote quote = _context.Quotes.SingleOrDefault(m => m.Id == id && m.BroadcasterId == broadcasterId);
 
             if (quote == null)
             {
@@ -59,7 +60,7 @@ namespace TwitchBotApi.Controllers
                 return new BadRequestObjectResult(ModelState);
             }
 
-            _context.Quote.Update(quote);
+            _context.Quotes.Update(quote);
 
             try
             {
@@ -90,7 +91,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.Quote.Add(quote);
+            _context.Quotes.Add(quote);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -105,13 +106,13 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            Quote quote = await _context.Quote.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
+            Quote quote = await _context.Quotes.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
             if (quote == null)
             {
                 return NotFound();
             }
 
-            _context.Quote.Remove(quote);
+            _context.Quotes.Remove(quote);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -119,7 +120,7 @@ namespace TwitchBotApi.Controllers
 
         private bool QuoteExists(int id)
         {
-            return _context.Quote.Any(e => e.Id == id);
+            return _context.Quotes.Any(e => e.Id == id);
         }
     }
 }

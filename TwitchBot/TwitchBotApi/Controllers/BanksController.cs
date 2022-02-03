@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +9,7 @@ using Snickler.EFCore;
 
 using TwitchBotApi.DTO;
 
+using TwitchBotDb.Context;
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
@@ -19,7 +19,7 @@ namespace TwitchBotApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]/[action]")]
-    public class BanksController : Controller
+    public class BanksController : ControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -41,9 +41,9 @@ namespace TwitchBotApi.Controllers
             List<Bank> bank = new List<Bank>();
 
             if (!string.IsNullOrEmpty(username))
-                bank = await _context.Bank.Where(m => m.Broadcaster == broadcasterId && m.Username == username).ToListAsync();
+                bank = await _context.Banks.Where(m => m.Broadcaster == broadcasterId && m.Username == username).ToListAsync();
             else
-                bank = await _context.Bank.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
+                bank = await _context.Banks.Where(m => m.Broadcaster == broadcasterId).ToListAsync();
 
             if (bank == null || bank.Count == 0)
             {
@@ -62,7 +62,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest();
             }
 
-            Bank bankAccount = _context.Bank.FirstOrDefault(t => t.Broadcaster == broadcasterId && t.Username == username);
+            Bank bankAccount = _context.Banks.FirstOrDefault(t => t.Broadcaster == broadcasterId && t.Username == username);
             if (bankAccount == null)
             {
                 return NotFound();
@@ -70,7 +70,7 @@ namespace TwitchBotApi.Controllers
 
             bankAccount.Wallet = updatedWallet;
 
-            _context.Bank.Update(bankAccount);
+            _context.Banks.Update(bankAccount);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -116,7 +116,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest();
             }
 
-            _context.Bank.Add(bank);
+            _context.Banks.Add(bank);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -131,7 +131,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            List<Bank> bank = await _context.Bank
+            List<Bank> bank = await _context.Banks
                 .Where(m => m.Broadcaster == broadcasterId
                     && m.Username != broadcasterConfig.BroadcasterName
                     && m.Username != broadcasterConfig.BotName)
@@ -149,7 +149,7 @@ namespace TwitchBotApi.Controllers
 
         private bool BankExists(string username, int broadcasterId)
         {
-            return _context.Bank.Any(e => e.Username == username && e.Broadcaster == broadcasterId);
+            return _context.Banks.Any(e => e.Username == username && e.Broadcaster == broadcasterId);
         }
     }
 }
