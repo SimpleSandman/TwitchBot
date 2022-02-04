@@ -87,5 +87,17 @@ Of course if you're using your own web server, replace `localhost` with your dom
   - This will allow the files to be overwritten as needed on deployment
   - Reference: https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/?application-pool-identity
 
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSimpleSandman%2FTwitchBot.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FSimpleSandman%2FTwitchBot?ref=badge_large)
+# Scaffold Commands
+*In case if you need to scaffold anything, here are some commands that may be useful*
+
+## Models and DbContext
+
+This is a single-line command using the "Package Manager Console" in Visual Studio that allows you to generate **ALL** of the models and the DbContext class.
+```powershell
+Scaffold-DbContext 'Data Source=;Initial Catalog=;User ID=;Password=;' Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -ContextDir Context
+```
+
+If you only need the model and context of a **SINGLE** table, here's the single-line command for that.
+```powershell
+Scaffold-DbContext 'Data Source=;Initial Catalog=;User ID=;Password=;' Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -ContextDir Context -T <TABLE_NAME_HERE>
+```
