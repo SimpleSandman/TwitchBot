@@ -39,7 +39,7 @@ namespace TwitchBotShared.Commands
         public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, Configuration appConfig, BankService bank, 
             SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting,
             SpotifyWebClient spotify, TwitchInfoService twitchInfo, FollowerService follower, GameDirectoryService gameDirectory, InGameUsernameService ign,
-            ManualSongRequestService manualSongRequest, QuoteService quote, PartyUpService partyUp, DiscordNetClient discord)
+            ManualSongRequestService manualSongRequest, QuoteService quote, PartyUpService partyUp, DiscordNetClient discordClient, DiscordSelfAssignRoleService discordService)
         {
             _bank = new BankFeature(irc, botConfig, bank);
             _followerFeature = new FollowerFeature(irc, botConfig, twitchInfo, follower, appConfig);
@@ -56,7 +56,7 @@ namespace TwitchBotShared.Commands
             _spotifyFeature = new SpotifyFeature(irc, botConfig, spotify);
             _twitchChannelFeature = new TwitchChannelFeature(irc, botConfig, gameDirectory);
             _twitter = new TwitterFeature(irc, botConfig, appConfig);
-            _discordFeature = new DiscordFeature(irc, botConfig, discord);
+            _discordFeature = new DiscordFeature(irc, botConfig, discordClient, discordService);
         }
 
         public async Task ExecRequestAsync(TwitchChatter chatter)

@@ -47,6 +47,8 @@ namespace TwitchBotConsoleApp.Modules
                 .WithParameter(TwitchBotApiLink);
             builder.RegisterType<InGameUsernameRepository>()
                 .WithParameter(TwitchBotApiLink);
+            builder.RegisterType<DiscordSelfAssignRoleRepository>()
+                .WithParameter(TwitchBotApiLink);
 
             // services
             builder.RegisterType<BankService>();
@@ -59,6 +61,7 @@ namespace TwitchBotConsoleApp.Modules
             builder.RegisterType<TwitchInfoService>();
             builder.RegisterType<SongRequestSettingService>();
             builder.RegisterType<InGameUsernameService>();
+            builder.RegisterType<DiscordSelfAssignRoleService>();
 
             // threads
             builder.RegisterType<FollowerSubscriberListener>()

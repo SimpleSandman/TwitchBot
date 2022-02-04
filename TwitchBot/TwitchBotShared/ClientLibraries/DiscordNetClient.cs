@@ -54,50 +54,37 @@ namespace TwitchBotShared.ClientLibraries
         /// <summary>
         /// Add a Discord role to the requested user within a guild (Discord server)
         /// </summary>
-        /// <param name="requestedUser">The requested Discord user with discriminator (#XXXX)</param>
+        /// <param name="requestedUser">The requested Discord user</param>
+        /// <param name="discriminator">The disciminator (#XXXX after the username)</param>
         /// <param name="roleName">The name of the role</param>
         /// <param name="guildName">The name of the Discord server</param>
-        /// <returns></returns>
-        public async Task AddRoleAsync(string requestedUser, int discriminator, string roleName, string guildName)
+        /// <returns>Response to adding role to the server if successful; otherwise return an error message</returns>
+        public async Task<string> AddRoleAsync(string requestedUser, string discriminator, string roleName, string guildName)
         {
             try
             {
-                // Validate guild (Discord server)
-                IReadOnlyCollection<RestGuild> guilds = await _restClient.GetGuildsAsync().ConfigureAwait(false);
-                RestGuild guild = guilds.SingleOrDefault(g => g.Name == guildName);
+                (RestGuild, RestGuildUser, RestRole, string) validInfo = 
+                    await GetValidDiscordInfoAsync(requestedUser, discriminator, roleName, guildName);
 
-                if (guild == null)
+                if (!string.IsNullOrEmpty(validInfo.Item4))
                 {
-                    Console.WriteLine($"Cannot find the Discord server, \"{guildName}\" that's tied to your Discord token");
-                    return;
+                    if (validInfo.Item4 == "Unknown error")
+                    {
+                        return ""; // error has already been thrown
+                    }
+
+                    return validInfo.Item4; // send error message
                 }
 
-                // Validate Discord user
-                IEnumerable<RestGuildUser> users = await guild.GetUsersAsync().FlattenAsync().ConfigureAwait(false);
-                RestGuildUser user = users.SingleOrDefault(u => u.Username == requestedUser && u.DiscriminatorValue == discriminator);
-
-                if (user == null)
-                {
-                    Console.WriteLine($"Cannot find the user, \"{requestedUser}\" in the server, \"{guildName}\"");
-                    return;
-                }
-
-                // Validate role
-                RestRole role = guild.Roles.SingleOrDefault(r => r.Name == roleName);
-
-                if (role == null)
-                {
-                    Console.WriteLine($"Cannot find the role, \"{roleName}\" in the server, \"{guildName}\"");
-                    return;
-                }
-
-                await _restClient.AddRoleAsync(guild.Id, user.Id, role.Id).ConfigureAwait(false);
-                return;
+                await _restClient.AddRoleAsync(validInfo.Item1.Id, validInfo.Item2.Id, validInfo.Item3.Id).ConfigureAwait(false);
+                return $"{requestedUser}#{discriminator} has the role, \"{roleName}\" for the discord server, \"{guildName}\"";
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "DiscordNetClient", "AddRoleAsync(string, string, string)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "DiscordNetClient", "AddRoleAsync(string, string, string, string)", false);
             }
+
+            return "";
         }
 
         public async Task LogOut()
@@ -114,6 +101,49 @@ namespace TwitchBotShared.ClientLibraries
         #endregion
 
         #region Private Methods
+        private async Task<(RestGuild, RestGuildUser, RestRole, string)> GetValidDiscordInfoAsync(string requestedUser, string discriminator, string roleName, string guildName)
+        {
+            try
+            {
+                // Validate guild (Discord server)
+                IReadOnlyCollection<RestGuild> guilds = await _restClient.GetGuildsAsync().ConfigureAwait(false);
+                RestGuild guild = guilds.SingleOrDefault(g => g.Name == guildName);
+
+                if (guild == null)
+                {
+                    string errorMessage = $"Cannot find the Discord server, \"{guildName}\" that's tied to your Discord token";
+                    return (null, null, null, errorMessage);
+                }
+
+                // Validate Discord user
+                IEnumerable<RestGuildUser> users = await guild.GetUsersAsync().FlattenAsync().ConfigureAwait(false);
+                RestGuildUser user = users.SingleOrDefault(u => u.Username == requestedUser && u.Discriminator == discriminator);
+
+                if (user == null)
+                {
+                    string errorMessage = $"Cannot find the user, \"{requestedUser}\" in the server, \"{guildName}\"";
+                    return (null, null, null, errorMessage);
+                }
+
+                // Validate role
+                RestRole role = guild.Roles.SingleOrDefault(r => r.Name == roleName);
+
+                if (role == null)
+                {
+                    string errorMessage = $"Cannot find the role, \"{roleName}\" in the server, \"{guildName}\"";
+                    return (null, null, null, errorMessage);
+                }
+
+                return (guild, user, role, "");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "DiscordNetClient", "GetValidDiscordInfoAsync(string, int, string, string)", false);
+            }
+
+            return (null, null, null, "Unknown error");
+        }
+
         private async Task<Task> LoggedOut()
         {
             if (_restClient != null)

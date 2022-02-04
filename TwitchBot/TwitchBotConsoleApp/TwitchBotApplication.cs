@@ -30,7 +30,7 @@ namespace TwitchBotConsoleApp
     {
         private CommandSystem _commandSystem;
         private SpotifyWebClient _spotify;
-        private DiscordNetClient _discord;
+        private DiscordNetClient _discordClient;
         private TwitchStreamStatus _twitchStreamStatus;
         private readonly Configuration _appConfig;
         private readonly TwitchBotConfigurationSection _botConfig;
@@ -51,6 +51,7 @@ namespace TwitchBotConsoleApp
         private readonly LibVLCSharpPlayer _libVLCSharpPlayer;
         private readonly TwitchChatterListener _twitchChatterListener;
         private readonly PartyUpService _partyUp;
+        private readonly DiscordSelfAssignRoleService _discordService;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private readonly TwitterClient _twitterInstance = TwitterClient.Instance;
         private readonly YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
@@ -63,7 +64,8 @@ namespace TwitchBotConsoleApp
         public TwitchBotApplication(Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
             GameDirectoryService gameDirectory, QuoteService quote, BankHeist bankHeist, TwitchChatterListener twitchChatterListener, IrcClient irc,
-            BossFight bossFight, SongRequestSettingService songRequestSetting, InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer)
+            BossFight bossFight, SongRequestSettingService songRequestSetting, InGameUsernameService ign, LibVLCSharpPlayer libVLCSharpPlayer,
+            DiscordSelfAssignRoleService discordService)
         {
             _appConfig = appConfig;
             _botConfig = appConfig.GetSection("TwitchBotConfig") as TwitchBotConfigurationSection;
@@ -84,6 +86,7 @@ namespace TwitchBotConsoleApp
             _libVLCSharpPlayer = libVLCSharpPlayer;
             _irc = irc;
             _partyUp = partyUp;
+            _discordService = discordService;
         }
 
         public async Task RunAsync()
@@ -130,13 +133,13 @@ namespace TwitchBotConsoleApp
                 await _spotify.ConnectAsync();
 
                 /* Connect to Discord */
-                _discord = new DiscordNetClient(_botConfig);
-                await _discord.ConnectAsync();
+                _discordClient = new DiscordNetClient(_botConfig);
+                await _discordClient.ConnectAsync();
                 
                 /* Load command classes */
                 _commandSystem = new CommandSystem(_irc, _botConfig, _appConfig, _bank, _songRequestBlacklist,
                     _libVLCSharpPlayer, _songRequestSetting, _spotify, _twitchInfo, _follower, _gameDirectory, 
-                    _ign, _manualSongRequest, _quote, _partyUp, _discord);
+                    _ign, _manualSongRequest, _quote, _partyUp, _discordClient, _discordService);
 
                 /* Whisper broadcaster bot settings */
                 Console.WriteLine();
