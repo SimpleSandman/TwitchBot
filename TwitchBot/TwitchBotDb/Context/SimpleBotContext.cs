@@ -17,6 +17,7 @@ namespace TwitchBotDb.Context
         public virtual DbSet<BossFightSetting> BossFightSettings { get; set; }
         public virtual DbSet<Broadcaster> Broadcasters { get; set; }
         public virtual DbSet<CustomCommand> CustomCommands { get; set; }
+        public virtual DbSet<DiscordSelfRoleAssign> DiscordSelfRoleAssigns { get; set; }
         public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
         public virtual DbSet<InGameUsername> InGameUsernames { get; set; }
         public virtual DbSet<PartyUp> PartyUps { get; set; }
@@ -562,6 +563,27 @@ namespace TwitchBotDb.Context
                     .WithMany(p => p.CustomCommands)
                     .HasForeignKey(d => d.GameId)
                     .HasConstraintName("FK_Cmd_CustomCommand_TwitchGameCategory");
+            });
+
+            modelBuilder.Entity<DiscordSelfRoleAssign>(entity =>
+            {
+                entity.ToTable("DiscordSelfRoleAssign");
+
+                entity.Property(e => e.RoleName)
+                    .IsRequired()
+                    .HasMaxLength(127)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ServerName)
+                    .IsRequired()
+                    .HasMaxLength(127)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Broadcaster)
+                    .WithMany(p => p.DiscordSelfRoleAssigns)
+                    .HasForeignKey(d => d.BroadcasterId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_DiscordSelfRoleAssign_Broadcaster");
             });
 
             modelBuilder.Entity<ErrorLog>(entity =>

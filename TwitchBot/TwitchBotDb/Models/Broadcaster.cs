@@ -11,6 +11,7 @@ namespace TwitchBotDb.Models
             Banks = new HashSet<Bank>();
             BossFightSettings = new HashSet<BossFightSetting>();
             CustomCommands = new HashSet<CustomCommand>();
+            DiscordSelfRoleAssigns = new HashSet<DiscordSelfRoleAssign>();
             ErrorLogs = new HashSet<ErrorLog>();
             InGameUsernames = new HashSet<InGameUsername>();
             PartyUps = new HashSet<PartyUp>();
@@ -32,6 +33,7 @@ namespace TwitchBotDb.Models
         public virtual ICollection<Bank> Banks { get; set; }
         public virtual ICollection<BossFightSetting> BossFightSettings { get; set; }
         public virtual ICollection<CustomCommand> CustomCommands { get; set; }
+        public virtual ICollection<DiscordSelfRoleAssign> DiscordSelfRoleAssigns { get; set; }
         public virtual ICollection<ErrorLog> ErrorLogs { get; set; }
         public virtual ICollection<InGameUsername> InGameUsernames { get; set; }
         public virtual ICollection<PartyUp> PartyUps { get; set; }
