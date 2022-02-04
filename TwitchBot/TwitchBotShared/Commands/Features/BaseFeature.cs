@@ -17,7 +17,6 @@ namespace TwitchBotShared.Commands.Features
     public abstract class BaseFeature
     {
         private readonly CooldownUsersSingleton _cooldownUsersInstance = CooldownUsersSingleton.Instance;
-        private readonly BotModeratorSingleton _botModeratorInstance = BotModeratorSingleton.Instance;
 
         protected IrcClient _irc;
         protected TwitchBotConfigurationSection _botConfig;
@@ -58,7 +57,7 @@ namespace TwitchBotShared.Commands.Features
             {
                 return ChatterType.Broadcaster;
             }
-            else if ((chatter.Badges.Contains("moderator") || _botModeratorInstance.IsBotModerator(chatter.TwitchId)))
+            else if (chatter.Badges.Contains("moderator"))
             {
                 return ChatterType.Moderator;
             }

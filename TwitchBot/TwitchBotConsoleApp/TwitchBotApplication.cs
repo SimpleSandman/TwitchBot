@@ -58,7 +58,6 @@ namespace TwitchBotConsoleApp
         private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private readonly BankHeistSingleton _bankHeistInstance = BankHeistSingleton.Instance;
         private readonly BossFightSingleton _bossFightInstance = BossFightSingleton.Instance;
-        private readonly BotModeratorSingleton _botModeratorInstance = BotModeratorSingleton.Instance;
         private readonly CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
 
         public TwitchBotApplication(Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
@@ -193,9 +192,6 @@ namespace TwitchBotConsoleApp
                 /* Send reminders of certain events */
                 ChatReminder chatReminder = new ChatReminder(_irc, _broadcasterInstance.DatabaseId, _botConfig.TwitchBotApiLink, _twitchInfo, _gameDirectory);
                 chatReminder.Start();
-
-                /* Load in Twitch users that have bot moderation privileges (separate from channel moderators) */
-                await _botModeratorInstance.LoadExistingModerators(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
 
                 /* Load in custom commands */
                 await _customCommandInstance.LoadCustomCommands(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);

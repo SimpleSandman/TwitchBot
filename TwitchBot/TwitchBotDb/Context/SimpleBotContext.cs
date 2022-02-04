@@ -15,7 +15,6 @@ namespace TwitchBotDb.Context
         public virtual DbSet<BossFightBossStats> BossFightBossStats { get; set; }
         public virtual DbSet<BossFightClassStats> BossFightClassStats { get; set; }
         public virtual DbSet<BossFightSetting> BossFightSettings { get; set; }
-        public virtual DbSet<BotModerator> BotModerators { get; set; }
         public virtual DbSet<Broadcaster> Broadcasters { get; set; }
         public virtual DbSet<CustomCommand> CustomCommands { get; set; }
         public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
@@ -525,22 +524,6 @@ namespace TwitchBotDb.Context
                     .HasForeignKey(d => d.BroadcasterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_BossFightSetting_Broadcaster");
-            });
-
-            modelBuilder.Entity<BotModerator>(entity =>
-            {
-                entity.ToTable("BotModerator");
-
-                entity.Property(e => e.Username)
-                    .IsRequired()
-                    .HasMaxLength(30)
-                    .IsUnicode(false);
-
-                entity.HasOne(d => d.Broadcaster)
-                    .WithMany(p => p.BotModerators)
-                    .HasForeignKey(d => d.BroadcasterId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_BotModerator_Broadcaster");
             });
 
             modelBuilder.Entity<Broadcaster>(entity =>
