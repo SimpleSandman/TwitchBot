@@ -24,14 +24,18 @@ namespace TwitchBotShared.Commands.Features
         private readonly TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        private const string DISCORD_CONNECT = "!discordconnect";
+        private const string DISCORD_ADD_ROLE = "!discordaddrole";
+        private const string DISCORD_SELF_ROLE = "!discordselfrole";
+
         public DiscordFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, DiscordNetClient discordClient, DiscordSelfAssignRoleService discordService)
             : base(irc, botConfig)
         {
             _discordClient = discordClient;
             _discordService = discordService;
-            _rolePermissions.Add("!discordconnect", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!discordaddrole", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!discordselfrole", new CommandPermission { General = ChatterType.Follower });
+            _rolePermissions.Add(DISCORD_CONNECT, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(DISCORD_ADD_ROLE, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(DISCORD_SELF_ROLE, new CommandPermission { General = ChatterType.Follower });
         }
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
@@ -40,11 +44,11 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!discordconnect": // Manually connect to Discord
+                    case DISCORD_CONNECT: // Manually connect to Discord
                         return (true, await _discordClient.ConnectAsync());
-                    case "!discordaddrole":
+                    case DISCORD_ADD_ROLE: // Add Discord roles without checking if the user is a follower
                         return (true, await AddRoleAsync(chatter));
-                    case "!discordselfrole":
+                    case DISCORD_SELF_ROLE: // Add Discord roles to followed Twitch chatters
                         return (true, await AddSelfRoleAsync(chatter));
                     default:
                         break;
@@ -66,6 +70,13 @@ namespace TwitchBotShared.Commands.Features
         {
             try
             {
+                // Provide command usage info
+                if (twitchChatter.Message == DISCORD_ADD_ROLE)
+                {
+                    _irc.SendPublicChatMessage($"Usage: {DISCORD_ADD_ROLE} discord_username#0000 discord_role");
+                    return DateTime.Now;
+                }
+
                 (string, string, string, string) parsedMessage = ParseMessage(twitchChatter);
 
                 string responseMessage = await _discordClient.AddRoleAsync(parsedMessage.Item1, parsedMessage.Item2, parsedMessage.Item3, _botConfig.DiscordServerName);
@@ -77,7 +88,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "DiscordFeature", "AddRoleAsync(TwitchChatter)", false, "!discordaddrole", twitchChatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "DiscordFeature", "AddRoleAsync(TwitchChatter)", false, DISCORD_ADD_ROLE, twitchChatter.Message);
             }
 
             return DateTime.Now;
@@ -97,12 +108,19 @@ namespace TwitchBotShared.Commands.Features
                     return DateTime.Now;
                 }
 
+                // Provide command usage info
+                if (twitchChatter.Message == DISCORD_SELF_ROLE)
+                {
+                    _irc.SendPublicChatMessage($"Usage: {DISCORD_SELF_ROLE} discord_username#0000 discord_role");
+                    return DateTime.Now;
+                }
+
                 // Check how long the user has been following the channel
                 twitchChatter.CreatedAt = _twitchChatterListInstance.TwitchFollowers.FirstOrDefault(c => c.Username == twitchChatter.Username).CreatedAt;
 
                 if (twitchChatter.CreatedAt == null)
                 {
-                    _irc.SendPublicChatMessage($"Cannot find you in the following list {twitchChatter.DisplayName}. Please try again later");
+                    _irc.SendPublicChatMessage($"Cannot find you in the Twitch following list {twitchChatter.DisplayName}. Please try again later");
                     return DateTime.Now;
                 }
 
@@ -140,7 +158,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "DiscordFeature", "AddSelfRoleAsync(TwitchChatter)", false, "!discordselfrole", twitchChatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "DiscordFeature", "AddSelfRoleAsync(TwitchChatter)", false, DISCORD_SELF_ROLE, twitchChatter.Message);
             }
 
             return DateTime.Now;
