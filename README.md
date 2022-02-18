@@ -24,6 +24,7 @@ In order for the chat bot to run correctly, we need a few permissions:
 - `channel:read:subscriptions`
 - `moderation:read`
 - `user:read:email`
+- `user:read:subscriptions`
 
 For more information on the permissions above, please refer to the scope documentation [here](https://dev.twitch.tv/docs/authentication#scopes).
 
@@ -32,7 +33,7 @@ NOTE: You'll need to add your own Client-ID since this will be based on a proxy 
 This is the "complete" request URL you'll paste into your browser and allow the chat bot access to your channel.
 
 ```
-https://id.twitch.tv/oauth2/authorize?client_id=<client id goes here>&redirect_uri=http://localhost&response_type=token&scope=user:read:email+channel:read:subscriptions+channel:manage:broadcast+moderation:read
+https://id.twitch.tv/oauth2/authorize?client_id=<client id goes here>&redirect_uri=http://localhost&response_type=token&scope=user:read:email+channel:read:subscriptions+channel:manage:broadcast+moderation:read+user:read:subscriptions
 ```
 
 This is the "complete" response URL you'll see in your browser once you authenticate implicitly. Copy the access token from the response URL and paste it into the `twitchAccessToken` config variable.
