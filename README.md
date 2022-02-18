@@ -39,7 +39,7 @@ https://id.twitch.tv/oauth2/authorize?client_id=<client id goes here>&redirect_u
 This is the "complete" response URL you'll see in your browser once you authenticate implicitly. Copy the access token from the response URL and paste it into the `twitchAccessToken` config variable.
 
 ```
-http://localhost/#access_token=<copy access token from here>&scope=user%3Aread%3Aemail+channel%3Aread%3Asubscriptions+channel%3Amanage%3Abroadcast+moderation%3Aread&token_type=bearer
+http://localhost/#access_token=<copy access token from here>&scope=<scopes assigned from above>&token_type=bearer
 ```
 
 For further documentation on "OAuth Implicit Code Flow", please refer to [this link here](https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#oauth-implicit-code-flow).
