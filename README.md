@@ -11,6 +11,38 @@ The bot itself is an account on Twitch that I have made in order to have a custo
 
 For a development environment (testing), create an `AppConfigSecrets.config` in the same folder as `App.config`. If you have any issues setting up this bot, please look further below for possible solutions.
 
+## Twitch Chat OAuth Password Generator
+
+The chat bot needs access to the IRC chat in order to communicate with the broadcaster and their viewers.
+
+While you're signed into the chat bot account on Twitch, connect to the [Twitch Chat OAuth Password Generator](https://www.twitchapps.com/tmi/) site and grab the `oauth:XXXXXXXXXXXXXX` string for the `twitchOAuth` config variable.
+
+## Twitch OAuth Implicit Access Token
+
+In order for the chat bot to run correctly, we need a few permissions:
+- `channel:manage:broadcast`
+- `channel:read:subscriptions`
+- `moderation:read`
+- `user:read:email`
+
+For more information on the permissions above, please refer to the scope documentation [here](https://dev.twitch.tv/docs/authentication#scopes).
+
+NOTE: You'll need to add your own Client-ID since this will be based on a proxy Twitch account for the chat bot. Also, we will be utilizing `http://localhost` for development purposes.
+
+This is the "complete" request URL you'll paste into your browser and allow the chat bot access to your channel.
+
+```
+https://id.twitch.tv/oauth2/authorize?client_id=<client id goes here>&redirect_uri=http://localhost&response_type=token&scope=user:read:email+channel:read:subscriptions+channel:manage:broadcast+moderation:read
+```
+
+This is the "complete" response URL you'll see in your browser once you authenticate implicitly. Copy the access token from the response URL and paste it into the `twitchAccessToken` config variable.
+
+```
+http://localhost/#access_token=<copy access token from here>&scope=user%3Aread%3Aemail+channel%3Aread%3Asubscriptions+channel%3Amanage%3Abroadcast+moderation%3Aread&token_type=bearer
+```
+
+For further documentation on "OAuth Implicit Code Flow", please refer to [this link here](https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#oauth-implicit-code-flow).
+
 ## AppConfigSecrets.config
 
 ```xml
