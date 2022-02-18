@@ -93,7 +93,7 @@ namespace TwitchBotShared.Commands.Features
 
                 // Get current game name
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-                string gameTitle = json.Game;
+                string gameTitle = json.GameName;
 
                 TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
                 InGameUsername ign = await _ign.GetInGameUsernameAsync(_broadcasterInstance.DatabaseId, game);
@@ -136,7 +136,7 @@ namespace TwitchBotShared.Commands.Features
 
                 // Get current game name
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-                string gameTitle = json.Game;
+                string gameTitle = json.GameName;
 
                 InGameUsername ign = await _ign.GetInGameUsernameAsync(_broadcasterInstance.DatabaseId);
 
@@ -168,7 +168,7 @@ namespace TwitchBotShared.Commands.Features
             {
                 // Get current game name
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-                string gameTitle = json.Game;
+                string gameTitle = json.GameName;
 
                 TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
                 InGameUsername ign = await _ign.GetInGameUsernameAsync(_broadcasterInstance.DatabaseId, game);
@@ -204,7 +204,7 @@ namespace TwitchBotShared.Commands.Features
             {
                 // Get current game name
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-                string gameTitle = json.Game;
+                string gameTitle = json.GameName;
 
                 TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
                 InGameUsername ign = null;

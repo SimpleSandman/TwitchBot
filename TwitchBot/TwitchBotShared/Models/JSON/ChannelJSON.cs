@@ -1,32 +1,44 @@
 ﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 
 namespace TwitchBotShared.Models.JSON
 {
-    public partial class ChannelJSON
+    public class ChannelJSON
     {
-        //public bool mature { get; set; }
-        [JsonProperty("status")]
-        public string Status { get; set; }
-        //public string broadcaster_language { get; set; }
-        //public string display_name { get; set; }
-        [JsonProperty("game")]
-        public string Game { get; set; }
-        //public string language { get; set; }
-        //public int _id { get; set; }
-        [JsonProperty("name")]
-        public string Name { get; set; }
-        //public DateTime created_at { get; set; }
-        //public DateTime updated_at { get; set; }
-        //public bool partner { get; set; }
-        //public string logo { get; set; }
-        //public string video_banner { get; set; }
-        //public string profile_banner { get; set; }
-        //public string profile_banner_background_color { get; set; }
-        //public string url { get; set; }
-        //public int views { get; set; }
-        //public int followers { get; set; }
-        [JsonProperty("broadcaster_type")]
-        public string BroadcasterType { get; set; }
-        //public string description { get; set; }
+        //[JsonProperty("broadcaster_id")]
+        //public string BroadcasterId { get; set; }
+
+        //[JsonProperty("broadcaster_login")]
+        //public string BroadcasterLogin { get; set; }
+
+        //[JsonProperty("broadcaster_name")]
+        //public string BroadcasterName { get; set; }
+
+        //[JsonProperty("broadcaster_language")]
+        //public string BroadcasterLanguage { get; set; }
+
+        //[JsonProperty("game_id")]
+        //public string GameId { get; set; }
+
+        [JsonProperty("game_name")]
+        public string GameName { get; set; }
+
+        [JsonProperty("title")]
+        public string Title { get; set; }
+
+        internal ChannelJSON First()
+        {
+            throw new NotImplementedException();
+        }
+
+        //[JsonProperty("delay")]
+        //public int Delay { get; set; }
+    }
+
+    public class RootChannelJSON
+    {
+        [JsonProperty("data")]
+        public List<ChannelJSON> Channels { get; set; }
     }
 }

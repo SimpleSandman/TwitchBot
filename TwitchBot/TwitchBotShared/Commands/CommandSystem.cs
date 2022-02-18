@@ -54,7 +54,7 @@ namespace TwitchBotShared.Commands
             _reminderFeature = new RefreshFeature(irc, botConfig, twitchInfo, gameDirectory);
             _songRequestFeature = new SongRequestFeature(irc, botConfig, appConfig, songRequestBlacklist, libVLCSharpPlayer, songRequestSetting, manualSongRequest, bank, spotify);
             _spotifyFeature = new SpotifyFeature(irc, botConfig, spotify);
-            _twitchChannelFeature = new TwitchChannelFeature(irc, botConfig, gameDirectory);
+            _twitchChannelFeature = new TwitchChannelFeature(irc, botConfig, gameDirectory, twitchInfo);
             _twitter = new TwitterFeature(irc, botConfig, appConfig);
             _discordFeature = new DiscordFeature(irc, botConfig, discordClient, discordService);
         }

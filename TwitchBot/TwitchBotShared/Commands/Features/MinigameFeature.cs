@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 using TwitchBotDb.Services;
@@ -10,6 +9,7 @@ using TwitchBotShared.ClientLibraries.Singletons;
 using TwitchBotShared.Config;
 using TwitchBotShared.Enums;
 using TwitchBotShared.Models;
+using TwitchBotShared.Models.JSON;
 using TwitchBotShared.Threads;
 
 namespace TwitchBotShared.Commands.Features
@@ -346,25 +346,24 @@ namespace TwitchBotShared.Commands.Features
                         chatterType = _twitchChatterListInstance.GetUserChatterType(chatter.Username);
                         if (chatterType == ChatterType.DoesNotExist)
                         {
-                            using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatusAsync(chatter.TwitchId))
+                            FollowerJSON response = await _twitchInfo.CheckFollowerStatusAsync(chatter.TwitchId);
+
+                            // check if chatter is a follower
+                            if (response != null)
                             {
-                                // check if chatter is a follower
-                                if (!message.IsSuccessStatusCode)
+                                int currentExp = await _follower.CurrentExpAsync(chatter.Username, _broadcasterInstance.DatabaseId);
+                                if (_follower.IsRegularFollower(currentExp, _botConfig.RegularFollowerHours))
                                 {
-                                    int currentExp = await _follower.CurrentExpAsync(chatter.Username, _broadcasterInstance.DatabaseId);
-                                    if (_follower.IsRegularFollower(currentExp, _botConfig.RegularFollowerHours))
-                                    {
-                                        chatterType = ChatterType.RegularFollower;
-                                    }
-                                    else
-                                    {
-                                        chatterType = ChatterType.Follower;
-                                    }
+                                    chatterType = ChatterType.RegularFollower;
                                 }
                                 else
                                 {
-                                    chatterType = ChatterType.Viewer;
+                                    chatterType = ChatterType.Follower;
                                 }
+                            }
+                            else
+                            {
+                                chatterType = ChatterType.Viewer;
                             }
                         }
                     }

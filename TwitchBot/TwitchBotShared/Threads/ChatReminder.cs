@@ -57,7 +57,7 @@ namespace TwitchBotShared.Threads
             while (true)
             {
                 ChannelJSON channelJSON = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-                string gameTitle = channelJSON.Game;
+                string gameTitle = channelJSON.GameName;
 
                 TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 

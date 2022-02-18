@@ -83,7 +83,7 @@ namespace TwitchBotShared.Commands.Features
 
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-                string gameTitle = json.Game;
+                string gameTitle = json.GameName;
                 string partyMemberName = chatter.Message.Substring(inputIndex);
                 TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 
@@ -140,7 +140,7 @@ namespace TwitchBotShared.Commands.Features
             {
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-                string gameTitle = json.Game;
+                string gameTitle = json.GameName;
                 TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 
                 if (string.IsNullOrEmpty(gameTitle))
@@ -172,7 +172,7 @@ namespace TwitchBotShared.Commands.Features
             {
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-                string gameTitle = json.Game;
+                string gameTitle = json.GameName;
                 TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 
                 if (string.IsNullOrEmpty(gameTitle))
@@ -205,7 +205,7 @@ namespace TwitchBotShared.Commands.Features
             {
                 // get current game info
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-                string gameTitle = json.Game;
+                string gameTitle = json.GameName;
                 TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
 
                 if (string.IsNullOrEmpty(gameTitle))

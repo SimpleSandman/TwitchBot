@@ -87,7 +87,7 @@ namespace TwitchBotShared.Commands.Features
 
                 // Get current game name
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-                string gameTitle = json.Game;
+                string gameTitle = json.GameName;
 
                 // Grab game id in order to find party member
                 TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);

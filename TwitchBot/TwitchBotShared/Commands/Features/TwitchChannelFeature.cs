@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ using TwitchBotShared.ClientLibraries.Singletons;
 using TwitchBotShared.Config;
 using TwitchBotShared.Enums;
 using TwitchBotShared.Models;
+using TwitchBotShared.Models.JSON;
 using TwitchBotShared.Threads;
 
 namespace TwitchBotShared.Commands.Features
@@ -22,13 +24,17 @@ namespace TwitchBotShared.Commands.Features
     public sealed class TwitchChannelFeature : BaseFeature
     {
         private readonly GameDirectoryService _gameDirectory;
+        private readonly TwitchInfoService _twitchInfo;
+
         private readonly BossFightSingleton _bossFightSettingsInstance = BossFightSingleton.Instance;
         private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private readonly CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
-        public TwitchChannelFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, GameDirectoryService gameDirectory) : base(irc, botConfig)
+        public TwitchChannelFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, GameDirectoryService gameDirectory,
+            TwitchInfoService twitchInfo) : base(irc, botConfig)
         {
+            _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
             _rolePermissions.Add("!game", new CommandPermission { General = ChatterType.Viewer });
             _rolePermissions.Add("!title", new CommandPermission { General = ChatterType.Viewer });
@@ -72,7 +78,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -91,7 +97,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "ShowCurrentTwitchGame(TwitchChatter)", false, "!game");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "ShowCurrentTwitchGameAsync(TwitchChatter)", false, "!game");
             }
 
             return DateTime.Now;
@@ -110,14 +116,14 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "ShowCurrentTwitchTitle(TwitchChatter)", false, "!title");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "ShowCurrentTwitchTitleAsync(TwitchChatter)", false, "!title");
             }
 
             return DateTime.Now;
         }
 
         /// <summary>
-        /// Update the title of the Twitch channel
+        /// Update the stream title of the Twitch channel
         /// </summary>
         /// <param name="chatter"></param>
         private async Task<DateTime> UpdateTitleAsync(TwitchChatter chatter)
@@ -125,46 +131,15 @@ namespace TwitchBotShared.Commands.Features
             try
             {
                 // Get title from command parameter
-                string title = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+                string streamTitle = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
 
-                // Send HTTP method PUT to base URI in order to change the title
-                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId);
-                RestRequest request = new RestRequest();
-                request.AddHeader("Cache-Control", "no-cache");
-                request.AddHeader("Content-Type", "application/json");
-                request.AddHeader("Authorization", "OAuth " + _botConfig.TwitchAccessToken);
-                request.AddHeader("Accept", "application/vnd.twitchtv.v5+json");
-                request.AddHeader("Client-ID", _botConfig.TwitchClientId);
-                request.AddParameter("application/json", "{\"channel\":{\"status\":\"" + title + "\"}}",
-                    ParameterType.RequestBody);
-                request.Method = Method.Put;
+                await _twitchInfo.UpdateChannelInfoAsync(new ChannelUpdateJSON { Title = streamTitle });
 
-                RestResponse response = null;
-                try
-                {
-                    response = await client.ExecuteAsync<Task>(request);
-                    string statResponse = response.StatusCode.ToString();
-                    if (statResponse.Contains("OK"))
-                    {
-                        _irc.SendPublicChatMessage($"Twitch channel title updated to \"{title}\"");
-                    }
-                    else
-                        Console.WriteLine(response.ErrorMessage);
-                }
-                catch (WebException ex)
-                {
-                    if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.BadRequest)
-                    {
-                        Console.WriteLine("Error 400 detected!");
-                    }
-                    //response = (RestResponse)ex.Response;
-                    //Console.WriteLine("Error: " + response);
-                    Console.WriteLine($"Error: {ex.Message}");
-                }
+                _irc.SendPublicChatMessage($"Twitch channel title updated to \"{streamTitle}\"");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "UpdateTitle(TwitchChatter)", false, "!updatetitle");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "UpdateTitleAsync(TwitchChatter)", false, "!updatetitle");
             }
 
             return DateTime.Now;
@@ -181,58 +156,38 @@ namespace TwitchBotShared.Commands.Features
                 // Get game from command parameter
                 string gameTitle = chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
 
-                // Send HTTP method PUT to base URI in order to change the game
-                RestClient client = new RestClient("https://api.twitch.tv/kraken/channels/" + _broadcasterInstance.TwitchId);
-                RestRequest request = new RestRequest();
-                request.AddHeader("Cache-Control", "no-cache");
-                request.AddHeader("Content-Type", "application/json");
-                request.AddHeader("Authorization", "OAuth " + _botConfig.TwitchAccessToken);
-                request.AddHeader("Accept", "application/vnd.twitchtv.v5+json");
-                request.AddHeader("Client-ID", _botConfig.TwitchClientId);
-                request.AddParameter("application/json", "{\"channel\":{\"game\":\"" + gameTitle + "\"}}",
-                    ParameterType.RequestBody);
-                request.Method = Method.Put;
-
-                RestResponse response = null;
-                try
+                RootGameJSON gameJson = await _twitchInfo.GetGameInfoAsync(WebUtility.HtmlEncode(gameTitle));
+                if (gameJson == null || gameJson.Games.Count == 0)
                 {
-                    response = await client.ExecuteAsync<Task>(request);
-                    string statResponse = response.StatusCode.ToString();
-                    if (statResponse.Contains("OK"))
-                    {
-                        _irc.SendPublicChatMessage($"Twitch channel game status updated to \"{gameTitle}\"");
-
-                        await ChatReminder.RefreshRemindersAsync();
-                        await _customCommandInstance.LoadCustomCommands(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
-                        _irc.SendPublicChatMessage($"Your commands have been refreshed @{chatter.DisplayName}");
-
-                        // Grab game id in order to find party member
-                        TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
-
-                        // During refresh, make sure no fighters can join
-                        _bossFightSettingsInstance.RefreshBossFight = true;
-                        await _bossFightSettingsInstance.LoadSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
-                        _bossFightSettingsInstance.RefreshBossFight = false;
-                    }
-                    else
-                    {
-                        Console.WriteLine(response.Content);
-                    }
+                    // TODO: Give invalid response
+                    return DateTime.Now;
                 }
-                catch (WebException ex)
+                else if (gameJson.Games.Count > 1)
                 {
-                    if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.BadRequest)
-                    {
-                        Console.WriteLine("Error 400 detected!!");
-                    }
-                    //response = (RestResponse)ex.Response;
-                    //Console.WriteLine("Error: " + response);
-                    Console.WriteLine($"Error: {ex.Message}");
+                    // TODO: Give "too many games found on Twitch" response.
+                    //       List possible games.
+                    return DateTime.Now;
                 }
+
+                await _twitchInfo.UpdateChannelInfoAsync(new ChannelUpdateJSON { GameId = gameJson.Games.First().Id });
+
+                _irc.SendPublicChatMessage($"Twitch channel game status updated to \"{gameTitle}\"");
+
+                await ChatReminder.RefreshRemindersAsync();
+                await _customCommandInstance.LoadCustomCommands(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
+                _irc.SendPublicChatMessage($"Your commands have been refreshed @{chatter.DisplayName}");
+
+                // Grab game id in order to find party member
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
+
+                // During refresh, make sure no fighters can join
+                _bossFightSettingsInstance.RefreshBossFight = true;
+                await _bossFightSettingsInstance.LoadSettings(_broadcasterInstance.DatabaseId, game?.Id, _botConfig.TwitchBotApiLink);
+                _bossFightSettingsInstance.RefreshBossFight = false;
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "UpdateGame(TwitchChatter)", false, "!updategame");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "UpdateGameAsync(TwitchChatter)", false, "!updategame");
             }
 
             return DateTime.Now;

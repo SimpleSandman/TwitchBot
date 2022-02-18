@@ -229,12 +229,12 @@ namespace TwitchBotShared.Commands.Features
         {
             try
             {
-                RootStreamJSON streamJson = await _twitchInfo.GetBroadcasterStreamAsync();
+                StreamJSON streamJson = await _twitchInfo.GetBroadcasterStreamAsync();
 
                 // Check if the channel is live
-                if (streamJson.Stream != null)
+                if (streamJson != null)
                 {
-                    string duration = streamJson.Stream.CreatedAt;
+                    string duration = streamJson.StartedAt;
                     TimeSpan ts = DateTime.UtcNow - DateTime.Parse(duration, new DateTimeFormatInfo(), DateTimeStyles.AdjustToUniversal);
                     string resultDuration = string.Format("{0:h\\:mm\\:ss}", ts);
                     _irc.SendPublicChatMessage($"This channel's current uptime (length of current stream) is {resultDuration}");
@@ -345,7 +345,7 @@ namespace TwitchBotShared.Commands.Features
             try
             {
                 // Get broadcaster type and check if they can have subscribers
-                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
+                UserJSON json = await _twitchInfo.GetUserByLoginNameAsync(_botConfig.Broadcaster);
                 string broadcasterType = json.BroadcasterType;
 
                 if (broadcasterType == "partner" || broadcasterType == "affiliate")
@@ -554,30 +554,32 @@ namespace TwitchBotShared.Commands.Features
             {
                 string streamerUsername = ParseChatterMessageUsername(chatter);
 
-                RootUserJSON userInfo = await _twitchInfo.GetUsersByLoginNameAsync(streamerUsername);
-                if (userInfo.Users == null || userInfo.Users.Count == 0)
+                UserJSON userInfo = await _twitchInfo.GetUserByLoginNameAsync(streamerUsername);
+                if (userInfo == null)
                 {
                     _irc.SendPublicChatMessage($"Cannot find the requested user @{chatter.DisplayName}");
                     return DateTime.Now;
                 }
 
-                string userId = userInfo.Users.First().Id;
+                string userId = userInfo.Id;
                 string promotionMessage = $"Hey everyone! Check out {streamerUsername}'s channel at https://www.twitch.tv/"
                     + $"{streamerUsername} and slam that follow button!";
 
-                RootStreamJSON userStreamInfo = await _twitchInfo.GetUserStreamAsync(userId);
+                StreamJSON userStreamInfo = await _twitchInfo.GetUserStreamAsync(userId);
 
-                if (userStreamInfo.Stream == null)
+                if (userStreamInfo == null)
                 {
                     ChannelJSON channelInfo = await _twitchInfo.GetUserChannelByIdAsync(userId);
 
-                    if (!string.IsNullOrEmpty(channelInfo.Game))
-                        promotionMessage += $" They were last seen playing \"{channelInfo.Game}\"";
+                    if (!string.IsNullOrEmpty(channelInfo.GameName))
+                        promotionMessage += $" They were last seen playing \"{channelInfo.GameName}\"";
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(userStreamInfo.Stream.Game))
-                        promotionMessage += $" Right now, they're playing \"{userStreamInfo.Stream.Game}\"";
+                    if (!string.IsNullOrEmpty(userStreamInfo.GameName))
+                    {
+                        promotionMessage += $" Right now, they're playing \"{userStreamInfo.GameName}\"";
+                    }
                 }
 
                 _irc.SendPublicChatMessage(promotionMessage);

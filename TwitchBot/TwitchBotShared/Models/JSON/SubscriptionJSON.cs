@@ -6,22 +6,55 @@ namespace TwitchBotShared.Models.JSON
 {
     public class SubscriptionJSON
     {
-        [JsonProperty("created_at")]
-        public string CreatedAt { get; set; }
-        //public string _id { get; set; }
-        //public string sub_plan { get; set; }
-        [JsonProperty("sub_plan_name")]
-        public string SubPlanName { get; set; }
-        //public bool is_gift { get; set; }
-        [JsonProperty("user")]
-        public UserJSON User { get; set; }
-        //public object sender { get; set; }
+        [JsonProperty("broadcaster_id")]
+        public string BroadcasterId { get; set; }
+
+        [JsonProperty("broadcaster_login")]
+        public string BroadcasterLogin { get; set; }
+
+        [JsonProperty("broadcaster_name")]
+        public string BroadcasterName { get; set; }
+
+        [JsonProperty("gifter_id")]
+        public string GifterId { get; set; }
+
+        [JsonProperty("gifter_login")]
+        public string GifterLogin { get; set; }
+
+        [JsonProperty("gifter_name")]
+        public string GifterName { get; set; }
+
+        [JsonProperty("is_gift")]
+        public bool IsGift { get; set; }
+
+        [JsonProperty("plan_name")]
+        public string PlanName { get; set; }
+
+        [JsonProperty("tier")]
+        public string Tier { get; set; }
+
+        [JsonProperty("user_id")]
+        public string UserId { get; set; }
+
+        [JsonProperty("user_name")]
+        public string UserName { get; set; }
+
+        [JsonProperty("user_login")]
+        public string UserLogin { get; set; }
     }
 
     public class RootSubscriptionJSON
     {
-        //public int _total { get; set; }
-        [JsonProperty("subscriptions")]
+        [JsonProperty("data")]
         public List<SubscriptionJSON> Subscriptions { get; set; }
+
+        [JsonProperty("pagination")]
+        public Pagination Pagination { get; set; }
+
+        [JsonProperty("points")]
+        public int Points { get; set; }
+
+        [JsonProperty("total")]
+        public int Total { get; set; }
     }
 }

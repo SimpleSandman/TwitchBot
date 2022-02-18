@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-
-using Newtonsoft.Json;
 
 using TwitchBotDb.Models;
 using TwitchBotDb.Services;
@@ -73,79 +70,84 @@ namespace TwitchBotShared.Threads
             try
             {
                 // Get broadcaster type and check if they can have subscribers
-                ChannelJSON channelJson = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-                string broadcasterType = channelJson.BroadcasterType;
+                UserJSON broadcasterJson = await _twitchInfo.GetBroadcasterUserByIdAsync();
+                string broadcasterType = broadcasterJson.BroadcasterType;
 
-                if (broadcasterType == "partner" || broadcasterType == "affiliate")
-                {
-                    /* Check for new subscribers */
-                    RootSubscriptionJSON rootSubscriptionJson = await _twitchInfo.GetSubscribersByChannelAsync();
-                    IEnumerable<string> freshSubscribers = rootSubscriptionJson.Subscriptions
-                        ?.Where(u => Convert.ToDateTime(u.CreatedAt).ToLocalTime() > DateTime.Now.AddSeconds(-60))
-                        .Select(u => u.User.Name);
+                // NOTE: Twitch's Helix endpoint doesn't currently support subscription created date.
+                //       Leave commented new subscriber code below for possible future use.
+                // References: https://dev.twitch.tv/docs/api/reference#check-user-subscription
+                //             https://dev.twitch.tv/docs/api/reference#get-broadcaster-subscriptions
+                #region New Subscriber Check
+                //if (broadcasterType == "partner" || broadcasterType == "affiliate")
+                //{
+                //    RootSubscriptionJSON rootSubscriptionJson = await _twitchInfo.GetSubscribersByChannelAsync();
+                //    IEnumerable<string> freshSubscribers = rootSubscriptionJson.Subscriptions
+                //        ?.Where(u => Convert.ToDateTime(u.CreatedAt).ToLocalTime() > DateTime.Now.AddSeconds(-60))
+                //        .Select(u => u.UserName);
 
-                    if (freshSubscribers?.Count() > 0)
-                    {
-                        string subscriberUsername = "";
-                        string subscriberRoleplayName = "";
+                //    if (freshSubscribers?.Count() > 0)
+                //    {
+                //        string subscriberUsername = "";
+                //        string subscriberRoleplayName = "";
 
-                        if (freshSubscribers.Count() == 1)
-                        {
-                            subscriberUsername = $"@{freshSubscribers.First()}";
-                            subscriberRoleplayName = "a NaCl agent";
-                        }
-                        else if (freshSubscribers.Count() > 1)
-                        {
-                            subscriberRoleplayName = "NaCl agents";
+                //        if (freshSubscribers.Count() == 1)
+                //        {
+                //            subscriberUsername = $"@{freshSubscribers.First()}";
+                //            subscriberRoleplayName = "a NaCl agent";
+                //        }
+                //        else if (freshSubscribers.Count() > 1)
+                //        {
+                //            subscriberRoleplayName = "NaCl agents";
 
-                            foreach (string subscriber in freshSubscribers)
-                            {
-                                subscriberUsername += $"{subscriber}, ";
-                            }
+                //            foreach (string subscriber in freshSubscribers)
+                //            {
+                //                subscriberUsername += $"{subscriber}, ";
+                //            }
 
-                            subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", ""); // replace trailing ","
-                            subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", " & "); // replace last ","
-                        }
+                //            subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", ""); // replace trailing ","
+                //            subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", " & "); // replace last ","
+                //        }
 
-                        string welcomeMessage = $"Congrats {subscriberUsername} on becoming @{_botConfig.Broadcaster} 's {subscriberRoleplayName}!";
+                //        string welcomeMessage = $"Congrats {subscriberUsername} on becoming @{_botConfig.Broadcaster} 's {subscriberRoleplayName}!";
 
-                        // Break up welcome message if it's too big
-                        if (welcomeMessage.Count() > 500)
-                        {
-                            string[] separators = new string[] { ", ", " & " };
-                            List<string> subscribers = subscriberUsername.Split(separators, StringSplitOptions.RemoveEmptyEntries).ToList();
+                //        // Break up welcome message if it's too big
+                //        if (welcomeMessage.Count() > 500)
+                //        {
+                //            string[] separators = new string[] { ", ", " & " };
+                //            List<string> subscribers = subscriberUsername.Split(separators, StringSplitOptions.RemoveEmptyEntries).ToList();
 
-                            while (subscribers.Count > 0)
-                            {
-                                int popCount = 14;
+                //            while (subscribers.Count > 0)
+                //            {
+                //                int popCount = 14;
 
-                                if (subscribers.Count < popCount)
-                                {
-                                    popCount = subscribers.Count;
-                                }
+                //                if (subscribers.Count < popCount)
+                //                {
+                //                    popCount = subscribers.Count;
+                //                }
 
-                                subscriberUsername = string.Join(", ", subscribers.Take(popCount));
-                                subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", ""); // replace trailing ","
-                                subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", " & "); // replace last ","
+                //                subscriberUsername = string.Join(", ", subscribers.Take(popCount));
+                //                subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", ""); // replace trailing ","
+                //                subscriberUsername = subscriberUsername.ReplaceLastOccurrence(", ", " & "); // replace last ","
 
-                                subscribers.RemoveRange(0, popCount);
+                //                subscribers.RemoveRange(0, popCount);
 
-                                _irc.SendPublicChatMessage($"Congrats {subscriberUsername} on becoming @{_botConfig.Broadcaster} 's {subscriberRoleplayName}!");
-                                await Task.Delay(750);
-                            }
-                        }
-                        else
-                        {
-                            _irc.SendPublicChatMessage(welcomeMessage);
-                        }
-                    }
-                }
+                //                _irc.SendPublicChatMessage($"Congrats {subscriberUsername} on becoming @{_botConfig.Broadcaster} 's {subscriberRoleplayName}!");
+                //                await Task.Delay(750);
+                //            }
+                //        }
+                //        else
+                //        {
+                //            _irc.SendPublicChatMessage(welcomeMessage);
+                //        }
+                //    }
+                //}
+                #endregion
 
-                /* Check for new followers */
+                #region New Follower Check
                 RootFollowerJSON rootFollowerJson = await _twitchInfo.GetFollowersByChannelAsync();
                 IEnumerable<string> freshFollowers = rootFollowerJson.Followers
-                    ?.Where(u => Convert.ToDateTime(u.CreatedAt).ToLocalTime() > DateTime.Now.AddSeconds(-60))
-                    .Select(u => u.User.Name);
+                    ?.Where(u => Convert.ToDateTime(u.FollowedAt).ToLocalTime() > DateTime.Now.AddSeconds(-60))
+                    .Select(u => u.FromName);
 
                 if (freshFollowers?.Count() > 0)
                 {
@@ -166,13 +168,15 @@ namespace TwitchBotShared.Threads
                         followerUsername = followerUsername.ReplaceLastOccurrence(", ", " & "); // replacing joining ","
                     }
 
+                    // TODO: Move hard-coded welcome message to database
                     _irc.SendPublicChatMessage($"Welcome {followerUsername} to the Salt Army! " 
                         + $"With @{_botConfig.Broadcaster} we will pillage the seven salty seas of Twitch together!");
                 }
+                #endregion
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error inside FollowerSubscriberListener.CheckNewFollowersSubscribers(): " + ex.Message);
+                Console.WriteLine("Error inside FollowerSubscriberListener.CheckNewFollowersSubscribersAsync(): " + ex.Message);
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
@@ -222,8 +226,8 @@ namespace TwitchBotShared.Threads
                     }
 
                     // get chatter info
-                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginNameAsync(chatter);
-                    string userTwitchId = rootUserJSON.Users.FirstOrDefault()?.Id;
+                    UserJSON userJSON = await _twitchInfo.GetUserByLoginNameAsync(chatter);
+                    string userTwitchId = userJSON?.Id;
 
                     // skip chatter if Twitch ID is missing
                     if (string.IsNullOrEmpty(userTwitchId))
@@ -238,7 +242,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error inside FollowerSubscriberListener.CheckChatterFollowersSubscribers(): {ex.Message}");
+                Console.WriteLine($"Error inside FollowerSubscriberListener.CheckChatterFollowersSubscribersAsync(): {ex.Message}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
@@ -246,6 +250,7 @@ namespace TwitchBotShared.Threads
             }
         }
 
+        #region Follower Methods
         private async Task CheckFollowerAsync(string chatter, string userTwitchId)
         {
             try
@@ -253,7 +258,9 @@ namespace TwitchBotShared.Threads
                 TwitchChatter follower = await GetTwitchFollowerInfoAsync(chatter, userTwitchId);
 
                 if (follower == null)
+                {
                     return;
+                }
 
                 /* Manage follower experience */
                 int currentExp = await _follower.CurrentExpAsync(chatter, _broadcasterId);
@@ -314,34 +321,31 @@ namespace TwitchBotShared.Threads
 
             try
             {
-                using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatusAsync(userTwitchId))
-                {
-                    // check if chatter is a follower
-                    if (!message.IsSuccessStatusCode)
-                    {
-                        // check if user was a follower but isn't anymore
-                        if (_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username == chatter))
-                        {
-                            _twitchChatterListInstance.TwitchFollowers.RemoveAll(c => c.Username == chatter);
-                            _twitchChatterListInstance.TwitchRegularFollowers.RemoveAll(c => c.Username == chatter);
-                        }
+                FollowerJSON response = await _twitchInfo.CheckFollowerStatusAsync(userTwitchId);
 
-                        return null;
+                // check if chatter is a follower
+                if (response == null)
+                {
+                    // check if user was a follower but isn't anymore
+                    if (_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username == chatter))
+                    {
+                        _twitchChatterListInstance.TwitchFollowers.RemoveAll(c => c.Username == chatter);
+                        _twitchChatterListInstance.TwitchRegularFollowers.RemoveAll(c => c.Username == chatter);
                     }
 
-                    string body = await message.Content.ReadAsStringAsync();
-                    FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
-                    DateTime startedFollowing = Convert.ToDateTime(response.CreatedAt);
-
-                    follower = new TwitchChatter { Username = chatter, CreatedAt = startedFollowing, TwitchId = userTwitchId };
-
-                    if (!_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username == chatter))
-                        _twitchChatterListInstance.TwitchFollowers.Add(follower);
+                    return null;
                 }
+
+                DateTime startedFollowing = Convert.ToDateTime(response.FollowedAt);
+
+                follower = new TwitchChatter { Username = chatter, CreatedAt = startedFollowing, TwitchId = userTwitchId };
+
+                if (!_twitchChatterListInstance.TwitchFollowers.Any(c => c.Username == chatter))
+                    _twitchChatterListInstance.TwitchFollowers.Add(follower);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error inside FollowerSubscriberListener.GetTwitchFollowerInfo(string, string): {ex.Message}");
+                Console.WriteLine($"Error inside FollowerSubscriberListener.GetTwitchFollowerInfoAsync(string, string): {ex.Message}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
@@ -350,7 +354,9 @@ namespace TwitchBotShared.Threads
 
             return follower;
         }
+        #endregion
 
+        #region Subscriber Methods
         private async Task CheckSubscriberAsync(string chatter, string userTwitchId)
         {
             try
@@ -359,7 +365,7 @@ namespace TwitchBotShared.Threads
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error inside FollowerSubscriberListener.CheckSubscriber(string, string): {ex.Message}");
+                Console.WriteLine($"Error inside FollowerSubscriberListener.CheckSubscriberAsync(string, string): {ex.Message}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
@@ -373,34 +379,34 @@ namespace TwitchBotShared.Threads
 
             try
             {
-                using (HttpResponseMessage message = await _twitchInfo.CheckSubscriberStatusAsync(userTwitchId))
+                SubscriptionJSON response = await _twitchInfo.CheckSubscriberStatusAsync(userTwitchId);
+
+                // check if chatter is a subscriber
+                if (response == null)
                 {
-                    // check if chatter is a subscriber
-                    if (!message.IsSuccessStatusCode)
-                    {
-                        // check if user was a subscriber but isn't anymore
-                        if (_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Username == chatter))
-                            _twitchChatterListInstance.TwitchSubscribers.RemoveAll(c => c.Username == chatter);
+                    // check if user was a subscriber but isn't anymore
+                    if (_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Username == chatter))
+                        _twitchChatterListInstance.TwitchSubscribers.RemoveAll(c => c.Username == chatter);
 
-                        return null;
-                    }
+                    return null;
+                }
 
-                    string body = await message.Content.ReadAsStringAsync();
-                    SubscriptionJSON response = JsonConvert.DeserializeObject<SubscriptionJSON>(body);
-                    DateTime startedSubscribing = Convert.ToDateTime(response.CreatedAt);
+                // NOTE: Twitch's Helix endpoint doesn't currently support subscription created date
+                // References: https://dev.twitch.tv/docs/api/reference#check-user-subscription
+                //             https://dev.twitch.tv/docs/api/reference#get-broadcaster-subscriptions
 
-                    subscriber = new TwitchChatter { Username = chatter, CreatedAt = startedSubscribing, TwitchId = userTwitchId };
+                //DateTime startedSubscribing = Convert.ToDateTime(response.CreatedAt);
+                subscriber = new TwitchChatter { Username = chatter, CreatedAt = null, TwitchId = userTwitchId };
 
-                    // add subscriber to global instance
-                    if (!_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Username == chatter))
-                    {
-                        _twitchChatterListInstance.TwitchSubscribers.Add(subscriber);
-                    }
+                // add subscriber to global instance
+                if (!_twitchChatterListInstance.TwitchSubscribers.Any(c => c.Username == chatter))
+                {
+                    _twitchChatterListInstance.TwitchSubscribers.Add(subscriber);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error inside FollowerSubscriberListener.GetTwitchSubscriberInfo(string, string): {ex.Message}");
+                Console.WriteLine($"Error inside FollowerSubscriberListener.GetTwitchSubscriberInfoAsync(string, string): {ex.Message}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
@@ -409,5 +415,6 @@ namespace TwitchBotShared.Threads
 
             return subscriber;
         }
+        #endregion
     }
 }

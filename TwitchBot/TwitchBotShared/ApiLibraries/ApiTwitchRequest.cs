@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 using RestSharp;
+using RestSharp.Serializers;
 
 namespace TwitchBotShared.ApiLibraries
 {
     public class ApiTwitchRequest
     {
-        public static async Task<T> GetExecuteAsync<T>(string basicUrl, string clientId)
+        public static async Task<T> GetExecuteAsync<T>(string basicUrl, string accessToken, string clientId)
         {
             try
             {
@@ -19,7 +20,7 @@ namespace TwitchBotShared.ApiLibraries
                 RestRequest request = new RestRequest();
                 request.AddHeader("Cache-Control", "no-cache");
                 request.AddHeader("Content-Type", "application/json");
-                request.AddHeader("Accept", "application/vnd.twitchtv.v5+json");
+                request.AddHeader("Authorization", $"Bearer {accessToken}");
                 request.AddHeader("Client-ID", clientId);
                 request.Method = Method.Get;
 
@@ -28,15 +29,23 @@ namespace TwitchBotShared.ApiLibraries
                 try
                 {
                     RestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
+                    string statResponse = response.StatusCode.ToString();
 
-                    return JsonConvert.DeserializeObject<T>(response.Content);
+                    if (statResponse.Contains("OK") || statResponse.Contains("NoContent"))
+                    {
+                        return JsonConvert.DeserializeObject<T>(response.Content);
+                    }
+                    else
+                    {
+                        Console.WriteLine(response.Content);
+                    }
                 }
                 catch (WebException ex)
                 {
                     Console.WriteLine(ex.Message);
                 }
             }
-            catch (WebException ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
@@ -44,7 +53,7 @@ namespace TwitchBotShared.ApiLibraries
             return default;
         }
 
-        public static async Task<T> GetWithOAuthExecuteAsync<T>(string basicUrl, string accessToken, string clientId)
+        public static async Task<T> PatchExecuteAsync<T>(string basicUrl, string accessToken, string clientId, T updateObject)
         {
             try
             {
@@ -52,27 +61,35 @@ namespace TwitchBotShared.ApiLibraries
                 RestRequest request = new RestRequest();
                 request.AddHeader("Cache-Control", "no-cache");
                 request.AddHeader("Content-Type", "application/json");
-                request.AddHeader("Authorization", "OAuth " + accessToken);
-                request.AddHeader("Accept", "application/vnd.twitchtv.v5+json");
+                request.AddHeader("Authorization", $"Bearer {accessToken}");
                 request.AddHeader("Client-ID", clientId);
-                request.Method = Method.Get;
+                request.AddStringBody(JsonConvert.SerializeObject(updateObject), ContentType.Json);
+                request.Method = Method.Patch;
 
                 var cancellationToken = new CancellationTokenSource();
 
                 try
                 {
                     RestResponse<T> response = await client.ExecuteAsync<T>(request, cancellationToken.Token);
+                    string statResponse = response.StatusCode.ToString();
 
-                    return JsonConvert.DeserializeObject<T>(response.Content);
+                    if (statResponse.Contains("OK") || statResponse.Contains("NoContent"))
+                    {
+                        return JsonConvert.DeserializeObject<T>(response.Content);
+                    }
+                    else
+                    {
+                        Console.WriteLine(response.Content);
+                    }
                 }
                 catch (WebException ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine($"Error: {ex.Message}");
                 }
             }
-            catch (WebException ex)
+            catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine($"Error: {ex.Message}");
             }
 
             return default;

@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using TwitchBotShared.Config;
@@ -8,7 +8,7 @@ namespace TwitchBotShared.ClientLibraries
 {
     public class TwitchInfoService
     {
-        private TwitchBotConfigurationSection _botConfig;
+        private readonly TwitchBotConfigurationSection _botConfig;
 
         public TwitchInfoService(TwitchBotConfigurationSection botConfig)
         {
@@ -17,27 +17,38 @@ namespace TwitchBotShared.ClientLibraries
 
         public async Task<ChannelJSON> GetBroadcasterChannelByIdAsync()
         {
-            return await TwitchApi.GetBroadcasterChannelByIdAsync(_botConfig.TwitchClientId);
+            RootChannelJSON result = await TwitchApi.GetBroadcasterChannelByIdAsync(_botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
+            return result.Channels.FirstOrDefault();
         }
 
         public async Task<ChannelJSON> GetUserChannelByIdAsync(string userId)
         {
-            return await TwitchApi.GetUserChannelByIdAsync(userId, _botConfig.TwitchClientId);
+            RootChannelJSON result = await TwitchApi.GetUserChannelByIdAsync(userId, _botConfig.TwitchAccessToken, _botConfig.TwitchClientId);
+            return result.Channels.FirstOrDefault();
         }
 
-        public async Task<RootStreamJSON> GetBroadcasterStreamAsync()
+        public async Task<UserJSON> GetBroadcasterUserByIdAsync()
         {
-            return await TwitchApi.GetBroadcasterStreamAsync(_botConfig.TwitchClientId);
+            RootUserJSON result = await TwitchApi.GetBroadcasterUserByIdAsync(_botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
+            return result.Users.FirstOrDefault();
         }
 
-        public async Task<RootStreamJSON> GetUserStreamAsync(string userId)
+        public async Task<UserJSON> GetUserByLoginNameAsync(string loginName)
         {
-            return await TwitchApi.GetUserStreamAsync(userId, _botConfig.TwitchClientId);
+            RootUserJSON result = await TwitchApi.GetUserByLoginNameAsync(loginName, _botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
+            return result.Users.FirstOrDefault();
         }
 
-        public async Task<RootUserJSON> GetUsersByLoginNameAsync(string loginName)
+        public async Task<StreamJSON> GetBroadcasterStreamAsync()
         {
-            return await TwitchApi.GetUsersByLoginNameAsync(loginName, _botConfig.TwitchClientId);
+            RootStreamJSON result = await TwitchApi.GetBroadcasterStreamAsync(_botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
+            return result.Stream.FirstOrDefault();
+        }
+
+        public async Task<StreamJSON> GetUserStreamAsync(string userId)
+        {
+            RootStreamJSON result = await TwitchApi.GetUserStreamAsync(userId, _botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
+            return result.Stream.FirstOrDefault();
         }
 
         public async Task<RootSubscriptionJSON> GetSubscribersByChannelAsync()
@@ -47,32 +58,46 @@ namespace TwitchBotShared.ClientLibraries
 
         public async Task<RootFollowerJSON> GetFollowersByChannelAsync()
         {
-            return await TwitchApi.GetFollowersByChannelAsync(_botConfig.TwitchClientId);
+            return await TwitchApi.GetFollowersByChannelAsync(_botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
         }
 
         public async Task<ClipJSON> GetClipAsync(string slug)
         {
-            return await TwitchApi.GetClipAsync(_botConfig.TwitchClientId, slug);
+            RootClipJSON result = await TwitchApi.GetClipAsync(_botConfig.TwitchClientId, _botConfig.TwitchAccessToken, slug);
+            return result.Clips.FirstOrDefault();
         }
 
         public async Task<VideoJSON> GetVideoAsync(string videoId)
         {
-            return await TwitchApi.GetVideoAsync(_botConfig.TwitchClientId, videoId);
+            RootVideoJSON result = await TwitchApi.GetVideoAsync(_botConfig.TwitchClientId, _botConfig.TwitchAccessToken, videoId);
+            return result.Videos.FirstOrDefault();
         }
 
-        public async Task<HttpResponseMessage> CheckFollowerStatusAsync(string chatterTwitchId)
+        public async Task<FollowerJSON> CheckFollowerStatusAsync(string chatterTwitchId)
         {
-            return await TwitchApi.GetFollowerStatusAsync(chatterTwitchId, _botConfig.TwitchClientId);
+            RootFollowerJSON result = await TwitchApi.GetFollowerStatusAsync(chatterTwitchId, _botConfig.TwitchAccessToken, _botConfig.TwitchClientId);
+            return result.Followers.FirstOrDefault();
         }
 
-        public async Task<HttpResponseMessage> GetChattersAsync()
+        public async Task<ChatterInfoJSON> GetChattersAsync()
         {
-            return await TwitchApi.GetChattersAsync(_botConfig.TwitchClientId);
+            return await TwitchApi.GetChattersAsync(_botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
         }
 
-        public async Task<HttpResponseMessage> CheckSubscriberStatusAsync(string userId)
+        public async Task<SubscriptionJSON> CheckSubscriberStatusAsync(string userId)
         {
-            return await TwitchApi.CheckSubscriberStatusAsync(userId, _botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
+            RootSubscriptionJSON result = await TwitchApi.CheckSubscriberStatusAsync(userId, _botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
+            return result.Subscriptions.FirstOrDefault();
+        }
+
+        public async Task<ChannelUpdateJSON> UpdateChannelInfoAsync(ChannelUpdateJSON updateObject)
+        {
+            return await TwitchApi.UpdateChannelInfoAsync(updateObject, _botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
+        }
+
+        public async Task<RootGameJSON> GetGameInfoAsync(string name)
+        {
+            return await TwitchApi.GetGameInfoAsync(name, _botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
         }
     }
 }

@@ -308,9 +308,9 @@ namespace TwitchBotConsoleApp
         {
             try
             {
-                RootUserJSON json = await _twitchInfo.GetUsersByLoginNameAsync(_botConfig.Broadcaster);
+                UserJSON json = await _twitchInfo.GetUserByLoginNameAsync(_botConfig.Broadcaster);
 
-                if (json?.Users.Count == 0)
+                if (json == null)
                 {
                     Console.WriteLine("Error: Couldn't find Twitch login name from Twitch. If this persists, please contact my creator");
                     Console.WriteLine("Shutting down now...");
@@ -318,14 +318,14 @@ namespace TwitchBotConsoleApp
                     Environment.Exit(0);
                 }
 
-                await _broadcasterInstance.FindBroadcaster(json.Users.First().Id, _botConfig.TwitchBotApiLink);
+                await _broadcasterInstance.FindBroadcaster(json.Id, _botConfig.TwitchBotApiLink);
 
                 // check if user exists, but changed their username
                 if (_broadcasterInstance.TwitchId != null)
                 {
-                    if (_broadcasterInstance.Username.ToLower() != json.Users.First().Name)
+                    if (_broadcasterInstance.Username.ToLower() != json.Login)
                     {
-                        _broadcasterInstance.Username = json.Users.First().Name;
+                        _broadcasterInstance.Username = json.Login;
 
                         await _broadcasterInstance.UpdateBroadcaster(_botConfig.TwitchBotApiLink);
                     }
@@ -334,8 +334,8 @@ namespace TwitchBotConsoleApp
                 }                
                 else // add new user
                 {
-                    _broadcasterInstance.Username = json.Users.First().Name;
-                    _broadcasterInstance.TwitchId = json.Users.First().Id;
+                    _broadcasterInstance.Username = json.Login;
+                    _broadcasterInstance.TwitchId = json.Id;
 
                     await _broadcasterInstance.AddBroadcaster(_botConfig.TwitchBotApiLink);
                 }
@@ -712,7 +712,7 @@ namespace TwitchBotConsoleApp
 
             ClipJSON clip = await _twitchInfo.GetClipAsync(slug);
 
-            if (clip.Broadcaster.Name == _botConfig.Broadcaster.ToLower())
+            if (clip.BroadcasterName.ToLower() == _botConfig.Broadcaster.ToLower())
             {
                 return true;
             }
@@ -738,7 +738,7 @@ namespace TwitchBotConsoleApp
 
             VideoJSON video = await _twitchInfo.GetVideoAsync(videoId);
 
-            if (video.Channel.Name == _botConfig.Broadcaster.ToLower())
+            if (video.UserLogin == _botConfig.Broadcaster.ToLower())
             {
                 return true;
             }
@@ -776,7 +776,7 @@ namespace TwitchBotConsoleApp
                 /* Else use the custom command from the database */
                 // Get current game name
                 ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-                string gameTitle = json.Game;
+                string gameTitle = json.GameName;
 
                 // Grab game id in order to find party member
                 TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);

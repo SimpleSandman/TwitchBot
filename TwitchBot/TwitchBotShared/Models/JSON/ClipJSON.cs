@@ -1,34 +1,63 @@
 ﻿using Newtonsoft.Json;
 
+using System.Collections.Generic;
+
 namespace TwitchBotShared.Models.JSON
 {
     public class ClipJSON
     {
-        //public string slug { get; set; }
-        //public string tracking_id { get; set; }
-        //public string url { get; set; }
-        //public string embed_url { get; set; }
-        //public string embed_html { get; set; }
-        [JsonProperty("broadcaster")]
-        public BroadcasterSnippetJSON Broadcaster { get; set; }
-        //public Curator curator { get; set; }
-        //public Vod vod { get; set; }
-        //public string game { get; set; }
-        //public string language { get; set; }
-        //public string title { get; set; }
-        //public int views { get; set; }
-        //public double duration { get; set; }
-        //public DateTime created_at { get; set; }
-        //public Thumbnails thumbnails { get; set; }
+        //[JsonProperty("id")]
+        //public string Id { get; set; }
+
+        //[JsonProperty("url")]
+        //public string Url { get; set; }
+
+        //[JsonProperty("embed_url")]
+        //public string EmbedUrl { get; set; }
+
+        //[JsonProperty("broadcaster_id")]
+        //public string BroadcasterId { get; set; }
+
+        [JsonProperty("broadcaster_name")]
+        public string BroadcasterName { get; set; }
+
+        //[JsonProperty("creator_id")]
+        //public string CreatorId { get; set; }
+
+        //[JsonProperty("creator_name")]
+        //public string CreatorName { get; set; }
+
+        //[JsonProperty("video_id")]
+        //public string VideoId { get; set; }
+
+        //[JsonProperty("game_id")]
+        //public string GameId { get; set; }
+
+        //[JsonProperty("language")]
+        //public string Language { get; set; }
+
+        //[JsonProperty("title")]
+        //public string Title { get; set; }
+
+        //[JsonProperty("view_count")]
+        //public int ViewCount { get; set; }
+
+        //[JsonProperty("created_at")]
+        //public string CreatedAt { get; set; }
+
+        //[JsonProperty("thumbnail_url")]
+        //public string ThumbnailUrl { get; set; }
+
+        //[JsonProperty("duration")]
+        //public double Duration { get; set; }
     }
 
-    public class BroadcasterSnippetJSON
+    public class RootClipJSON
     {
-        //public string id { get; set; }
-        [JsonProperty("name")]
-        public string Name { get; set; }
-        //public string display_name { get; set; }
-        //public string channel_url { get; set; }
-        //public string logo { get; set; }
+        [JsonProperty("data")]
+        public List<ClipJSON> Clips { get; set; }
+
+        [JsonProperty("pagination")]
+        public Pagination Pagination { get; set; }
     }
 }

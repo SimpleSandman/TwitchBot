@@ -92,17 +92,13 @@ namespace TwitchBotShared.Commands.Features
                 if (chatter.CreatedAt == null)
                 {
                     // get chatter info manually
-                    RootUserJSON rootUserJSON = await _twitchInfo.GetUsersByLoginNameAsync(chatter.Username);
+                    UserJSON userJSON = await _twitchInfo.GetUserByLoginNameAsync(chatter.Username);
 
-                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatusAsync(rootUserJSON.Users.First().Id))
+                    FollowerJSON response = await _twitchInfo.CheckFollowerStatusAsync(userJSON.Id);
+
+                    if (!string.IsNullOrEmpty(response?.FollowedAt))
                     {
-                        string body = await message.Content.ReadAsStringAsync();
-                        FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
-
-                        if (!string.IsNullOrEmpty(response.CreatedAt))
-                        {
-                            chatter.CreatedAt = Convert.ToDateTime(response.CreatedAt);
-                        }
+                        chatter.CreatedAt = Convert.ToDateTime(response.FollowedAt);
                     }
                 }
 
@@ -145,15 +141,11 @@ namespace TwitchBotShared.Commands.Features
 
                 if (createdAt == null)
                 {
-                    using (HttpResponseMessage message = await _twitchInfo.CheckFollowerStatusAsync(chatter.TwitchId))
-                    {
-                        string body = await message.Content.ReadAsStringAsync();
-                        FollowerJSON response = JsonConvert.DeserializeObject<FollowerJSON>(body);
+                    FollowerJSON response = await _twitchInfo.CheckFollowerStatusAsync(chatter.TwitchId);
 
-                        if (!string.IsNullOrEmpty(response.CreatedAt))
-                        {
-                            createdAt = Convert.ToDateTime(response.CreatedAt);
-                        }
+                    if (!string.IsNullOrEmpty(response?.FollowedAt))
+                    {
+                        createdAt = Convert.ToDateTime(response.FollowedAt);
                     }
                 }
 

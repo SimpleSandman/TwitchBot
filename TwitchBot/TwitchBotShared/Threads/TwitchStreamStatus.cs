@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
-using TwitchBotDb.Services;
 
 using TwitchBotShared.ClientLibraries.Singletons;
 using TwitchBotShared.ClientLibraries;
@@ -43,8 +42,8 @@ namespace TwitchBotShared.Threads
 
             if (channelJSON != null)
             {
-                CurrentCategory = channelJSON.Game;
-                CurrentTitle = channelJSON.Status;
+                CurrentCategory = channelJSON.GameName;
+                CurrentTitle = channelJSON.Title;
             }
         }
 
@@ -52,9 +51,9 @@ namespace TwitchBotShared.Threads
         {
             while (true)
             {
-                RootStreamJSON streamJSON = await _twitchInfo.GetBroadcasterStreamAsync();
+                StreamJSON streamJSON = await _twitchInfo.GetBroadcasterStreamAsync();
 
-                if (streamJSON.Stream == null)
+                if (streamJSON == null)
                 {
                     if (IsLive)
                     {
@@ -65,10 +64,10 @@ namespace TwitchBotShared.Threads
                 }
                 else
                 {
-                    CurrentCategory = streamJSON.Stream.Game;
-                    CurrentTitle = streamJSON.Stream.Channel.Status;
+                    CurrentCategory = streamJSON.GameName;
+                    CurrentTitle = streamJSON.Title;
 
-                    // tell the chat the stream is now live
+                    // Tell the chat the stream is now live
                     if (!IsLive)
                     {
                         // ToDo: Add setting if user wants preset reminder

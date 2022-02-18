@@ -1,32 +1,77 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace TwitchBotShared.Models.JSON
 {
-    public partial class VideoJSON
+    public class VideoJSON
     {
-        //public string _id { get; set; }
-        //public int broadcast_id { get; set; }
-        //public string broadcast_type { get; set; }
-        [JsonProperty("channel")]
-        public ChannelJSON Channel { get; set; }
-        //public DateTime created_at { get; set; }
-        //public string description { get; set; }
-        //public string description_html { get; set; }
-        //public Fps fps { get; set; }
-        //public string game { get; set; }
-        //public string language { get; set; }
-        //public int length { get; set; }
-        //public List<MutedSegment> muted_segments { get; set; }
-        //public Preview preview { get; set; }
-        //public DateTime published_at { get; set; }
-        //public Resolutions resolutions { get; set; }
-        //public string status { get; set; }
-        //public string tag_list { get; set; }
-        //public Thumbnails thumbnails { get; set; }
-        //public string title { get; set; }
-        //public string url { get; set; }
-        //public string viewable { get; set; }
-        //public object viewable_at { get; set; }
-        //public int views { get; set; }
+        //[JsonProperty("id")]
+        //public string Id { get; set; }
+
+        //[JsonProperty("stream_id")]
+        //public string StreamId { get; set; }
+
+        //[JsonProperty("user_id")]
+        //public string UserId { get; set; }
+
+        [JsonProperty("user_login")]
+        public string UserLogin { get; set; }
+
+        //[JsonProperty("user_name")]
+        //public string UserName { get; set; }
+
+        //[JsonProperty("title")]
+        //public string Title { get; set; }
+
+        //[JsonProperty("description")]
+        //public string Description { get; set; }
+
+        //[JsonProperty("created_at")]
+        //public string CreatedAt { get; set; }
+
+        //[JsonProperty("published_at")]
+        //public string PublishedAt { get; set; }
+
+        //[JsonProperty("url")]
+        //public string Url { get; set; }
+
+        //[JsonProperty("thumbnail_url")]
+        //public string ThumbnailUrl { get; set; }
+
+        //[JsonProperty("viewable")]
+        //public string Viewable { get; set; }
+
+        //[JsonProperty("view_count")]
+        //public int ViewCount { get; set; }
+
+        //[JsonProperty("language")]
+        //public string Language { get; set; }
+
+        //[JsonProperty("type")]
+        //public string Type { get; set; }
+
+        //[JsonProperty("duration")]
+        //public string Duration { get; set; }
+
+        //[JsonProperty("muted_segments")]
+        //public List<MutedSegment> MutedSegments { get; set; }
+    }
+
+    //public class MutedSegment
+    //{
+    //    [JsonProperty("duration")]
+    //    public int Duration { get; set; }
+
+    //    [JsonProperty("offset")]
+    //    public int Offset { get; set; }
+    //}
+
+    public class RootVideoJSON
+    {
+        [JsonProperty("data")]
+        public List<VideoJSON> Videos { get; set; }
+
+        [JsonProperty("pagination")]
+        public Pagination Pagination { get; set; }
     }
 }
