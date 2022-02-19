@@ -227,7 +227,7 @@ namespace TwitchBotShared.Commands.Features
             {
                 IEnumerable<RankFollower> highestRankedFollowers = await _follower.GetFollowersLeaderboardAsync(_broadcasterInstance.DatabaseId);
 
-                if (highestRankedFollowers.Count() == 0)
+                if (!highestRankedFollowers.Any())
                 {
                     _irc.SendPublicChatMessage($"There's no one in your ranks. Start recruiting today! @{chatter.DisplayName}");
                     return DateTime.Now;

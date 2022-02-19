@@ -55,7 +55,7 @@ namespace TwitchBotApi.Controllers
                 .Take(topNumber)
                 .ToListAsync();
 
-            if (topFollowers == null || topFollowers.Count() == 0)
+            if (topFollowers == null || !topFollowers.Any())
             {
                 return NotFound();
             }

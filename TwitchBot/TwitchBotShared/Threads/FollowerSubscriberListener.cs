@@ -201,7 +201,7 @@ namespace TwitchBotShared.Threads
                 }
 
                 IEnumerable<string> availableChatters = _twitchChatterListInstance.ChattersByName;
-                if (availableChatters == null || availableChatters.Count() == 0)
+                if (availableChatters == null || !availableChatters.Any())
                 {
                     return;
                 }
