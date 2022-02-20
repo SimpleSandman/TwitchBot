@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using TwitchBotDb.DTO;
@@ -43,7 +44,7 @@ namespace TwitchBotDb.Repositories
 
             if (response != null && response.Count > 0)
             {
-                return response.Find(m => m.Username == username).Wallet;
+                return response.Find(m => m.Username.Contains(username, StringComparison.CurrentCultureIgnoreCase)).Wallet;
             }
 
             return -1;

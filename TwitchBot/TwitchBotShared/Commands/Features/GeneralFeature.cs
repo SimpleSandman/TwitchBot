@@ -30,7 +30,7 @@ namespace TwitchBotShared.Commands.Features
             _rolePermissions.Add("!settings", new CommandPermission { General = ChatterType.Broadcaster });
             _rolePermissions.Add("!exit", new CommandPermission { General = ChatterType.Broadcaster });
             _rolePermissions.Add("!streamer", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!so", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add("!so", new CommandPermission { General = ChatterType.VIP });
             _rolePermissions.Add("!shoutout", new CommandPermission { General = ChatterType.Viewer });
             _rolePermissions.Add("!caster", new CommandPermission { General = ChatterType.Viewer });
             _rolePermissions.Add("!cmds", new CommandPermission { General = ChatterType.Viewer });
@@ -553,6 +553,11 @@ namespace TwitchBotShared.Commands.Features
             try
             {
                 string streamerUsername = ParseChatterMessageUsername(chatter);
+                if (string.IsNullOrEmpty(streamerUsername))
+                {
+                    _irc.SendPublicChatMessage($"You didn't suggest a streamer to promote @{chatter.DisplayName}");
+                    return DateTime.Now;
+                }
 
                 UserJSON userInfo = await _twitchInfo.GetUserByLoginNameAsync(streamerUsername);
                 if (userInfo == null)

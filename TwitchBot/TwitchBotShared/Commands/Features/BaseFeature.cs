@@ -140,7 +140,13 @@ namespace TwitchBotShared.Commands.Features
                 return chatter.Message.Substring(chatter.Message.IndexOf("@") + 1);
             }
 
-            return chatter.Message.Substring(chatter.Message.IndexOf(" ") + 1);
+            int spaceIndex = chatter.Message.IndexOf(" ");
+            if (spaceIndex < 0)
+            {
+                return "";
+            }
+
+            return chatter.Message.Substring(spaceIndex + 1);
         }
 
         /// <summary>
