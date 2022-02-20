@@ -117,10 +117,10 @@ namespace TwitchBotShared.ClientLibraries
         }
 
         // Old reference: https://dev.twitch.tv/docs/v5/reference/channels/#check-channel-subscription-by-user
-        // New reference: https://dev.twitch.tv/docs/api/reference#check-user-subscription
+        // New reference: https://dev.twitch.tv/docs/api/reference#get-broadcaster-subscriptions
         public static async Task<RootSubscriptionJSON> CheckSubscriberStatusAsync(string userTwitchId, string clientId, string accessToken)
         {
-            string apiUriCall = $"{BASE_API_LINK}/subscriptions/user?broadcaster_id={_broadcasterInstance.TwitchId}&user_id={userTwitchId}";
+            string apiUriCall = $"{BASE_API_LINK}/subscriptions?broadcaster_id={_broadcasterInstance.TwitchId}&user_id={userTwitchId}";
 
             return await ApiTwitchRequest.GetExecuteAsync<RootSubscriptionJSON>(apiUriCall, accessToken, clientId);
         }
