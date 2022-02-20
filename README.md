@@ -24,7 +24,6 @@ In order for the chat bot to run correctly, we need a few permissions:
 - `channel:read:subscriptions`
 - `moderation:read`
 - `user:read:email`
-- `user:read:subscriptions`
 
 For more information on the permissions above, please refer to the scope documentation [here](https://dev.twitch.tv/docs/authentication#scopes).
 
