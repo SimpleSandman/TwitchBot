@@ -23,7 +23,7 @@ namespace TwitchBotShared.ClientLibraries
 
         public async Task<ChannelJSON> GetUserChannelByIdAsync(string userId)
         {
-            RootChannelJSON result = await TwitchApi.GetUserChannelByIdAsync(userId, _botConfig.TwitchAccessToken, _botConfig.TwitchClientId);
+            RootChannelJSON result = await TwitchApi.GetUserChannelByIdAsync(userId, _botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
             return result.Channels.FirstOrDefault();
         }
 
@@ -63,19 +63,19 @@ namespace TwitchBotShared.ClientLibraries
 
         public async Task<ClipJSON> GetClipAsync(string slug)
         {
-            RootClipJSON result = await TwitchApi.GetClipAsync(_botConfig.TwitchClientId, _botConfig.TwitchAccessToken, slug);
+            RootClipJSON result = await TwitchApi.GetClipAsync(_botConfig.TwitchClientId, slug, _botConfig.TwitchAccessToken);
             return result.Clips.FirstOrDefault();
         }
 
         public async Task<VideoJSON> GetVideoAsync(string videoId)
         {
-            RootVideoJSON result = await TwitchApi.GetVideoAsync(_botConfig.TwitchClientId, _botConfig.TwitchAccessToken, videoId);
+            RootVideoJSON result = await TwitchApi.GetVideoAsync(_botConfig.TwitchClientId, videoId, _botConfig.TwitchAccessToken);
             return result.Videos.FirstOrDefault();
         }
 
         public async Task<FollowerJSON> CheckFollowerStatusAsync(string chatterTwitchId)
         {
-            RootFollowerJSON result = await TwitchApi.GetFollowerStatusAsync(chatterTwitchId, _botConfig.TwitchAccessToken, _botConfig.TwitchClientId);
+            RootFollowerJSON result = await TwitchApi.GetFollowerStatusAsync(chatterTwitchId, _botConfig.TwitchClientId, _botConfig.TwitchAccessToken);
             return result.Followers.FirstOrDefault();
         }
 
