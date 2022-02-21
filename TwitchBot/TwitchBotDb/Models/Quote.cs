@@ -2,7 +2,7 @@
 
 namespace TwitchBotDb.Models
 {
-    public partial class Quote
+    public class Quote
     {
         public int Id { get; set; }
         public string UserQuote { get; set; }

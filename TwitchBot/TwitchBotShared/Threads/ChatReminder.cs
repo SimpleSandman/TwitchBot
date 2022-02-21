@@ -43,12 +43,25 @@ namespace TwitchBotShared.Threads
             _chatReminderThread = new Thread (new ThreadStart (this.Run));
         }
 
+        #region Public Methods
         public void Start()
         {
             _chatReminderThread.IsBackground = true;
             _chatReminderThread.Start(); 
         }
 
+        /// <summary>
+        /// Manual refresh of reminders
+        /// </summary>
+        /// <returns></returns>
+        public static async Task RefreshRemindersAsync()
+        {
+            await LoadReminderContextAsync();
+            _refreshReminders = true;
+        }
+        #endregion
+
+        #region Private Methods
         private async void Run()
         {
             await LoadReminderContextAsync(); // initial load
@@ -90,16 +103,6 @@ namespace TwitchBotShared.Threads
                     Thread.Sleep(1000); // 1 second
                 }
             }
-        }
-
-        /// <summary>
-        /// Manual refresh of reminders
-        /// </summary>
-        /// <returns></returns>
-        public static async Task RefreshRemindersAsync()
-        {
-            await LoadReminderContextAsync();
-            _refreshReminders = true;
         }
 
         /// <summary>
@@ -326,5 +329,6 @@ namespace TwitchBotShared.Threads
 
             return true;
         }
+        #endregion
     }
 }

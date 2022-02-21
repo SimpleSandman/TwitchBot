@@ -2,7 +2,7 @@
 
 namespace TwitchBotDb.Models
 {
-    public partial class TwitchGameCategory
+    public class TwitchGameCategory
     {
         public TwitchGameCategory()
         {

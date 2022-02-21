@@ -2,7 +2,7 @@
 
 namespace TwitchBotDb.Models
 {
-    public partial class ErrorLog
+    public class ErrorLog
     {
         public int Id { get; set; }
         public DateTime ErrorTime { get; set; }

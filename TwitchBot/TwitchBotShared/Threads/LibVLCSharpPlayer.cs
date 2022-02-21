@@ -20,16 +20,16 @@ namespace TwitchBotShared.Threads
     public class LibVLCSharpPlayer
     {
         private Thread _vlcPlayerThread;
-        private TwitchBotConfigurationSection _botConfig;
-        private IrcClient _irc;
         private MediaPlayer _mediaPlayer;
         private List<PlaylistItem> _songRequestPlaylistVideoIds;
         private List<PlaylistItem> _personalYoutubePlaylistVideoIds;
         private bool _playerStatus;
         private bool _songSkipping;
         private bool _initialLoadYoutubePlaylist = false;
-        private YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
-        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+        private readonly IrcClient _irc;
+        private readonly TwitchBotConfigurationSection _botConfig;
+        private readonly YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
+        private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         // Reference (LibVLC YouTube playback): https://forum.videolan.org/viewtopic.php?t=148637#p488319
         // Reference (VLC command line): https://wiki.videolan.org/VLC_command-line_help
@@ -46,6 +46,12 @@ namespace TwitchBotShared.Threads
             "--compressor-makeup-gain=17.00"
         };
 
+        public PlaylistItem CurrentSongRequestPlaylistItem { get; private set; }
+
+        public PlaylistItem LastPlayedPlaylistItem { get; private set; }
+
+        public LibVLC LibVlc { get; private set; }
+
         public LibVLCSharpPlayer() { }
 
         public LibVLCSharpPlayer(TwitchBotConfigurationSection botConfig, IrcClient irc)
@@ -54,12 +60,7 @@ namespace TwitchBotShared.Threads
             _irc = irc;
         }
 
-        public PlaylistItem CurrentSongRequestPlaylistItem { get; private set; }
-
-        public PlaylistItem LastPlayedPlaylistItem { get; private set; }
-
-        public LibVLC LibVlc { get; private set; }
-
+        #region Public Methods
         public async Task StartAsync()
         {
             try
@@ -101,175 +102,6 @@ namespace TwitchBotShared.Threads
             catch (Exception ex)
             {
                 await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "Stop()", false);
-            }
-        }
-
-        private async void Run()
-        {
-            try
-            {
-                _songRequestPlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItemsAsync(_botConfig.YouTubeBroadcasterPlaylistId);
-
-                if (!string.IsNullOrEmpty(_botConfig.YouTubePersonalPlaylistId))
-                {
-                    if (_botConfig.EnablePersonalPlaylistShuffle)
-                    {
-                        List<PlaylistItem> shuffledList = await _youTubeClientInstance.GetPlaylistItemsAsync(_botConfig.YouTubePersonalPlaylistId);
-                        shuffledList.Shuffle();
-
-                        _personalYoutubePlaylistVideoIds = shuffledList;
-                    }
-                    else
-                    {
-                        _personalYoutubePlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItemsAsync(_botConfig.YouTubePersonalPlaylistId);
-                    }
-                }
-
-                _initialLoadYoutubePlaylist = false;
-
-                SetNextVideoId(); // set current song request playlist item
-
-                if (CurrentSongRequestPlaylistItem == null)
-                {
-                    _playerStatus = false;
-                    return; // don't try to start the VLC video player until there is something to play
-                }
-
-                while (true)
-                {
-                    if (CurrentSongRequestPlaylistItem != null)
-                    {
-                        await PlayMediaAsync();
-
-                        if (_mediaPlayer?.Media?.State != VLCState.Ended)
-                        {
-                            _songSkipping = false;
-                        }
-                    }
-
-                    while (_mediaPlayer?.Media?.State != VLCState.Ended && _playerStatus && !_songSkipping)
-                    {
-                        // wait
-                    }
-
-                    LastPlayedPlaylistItem = CurrentSongRequestPlaylistItem;
-
-                    if (_playerStatus)
-                        SetNextVideoId();
-                    else
-                        break;
-                }
-
-                // Clean up
-                _mediaPlayer.Stop();
-                _mediaPlayer.Dispose();
-                _mediaPlayer = null;
-                LibVlc.Dispose();
-                LibVlc = null;
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "Run()", false);
-            }
-        }
-
-        private async void SetNextVideoId()
-        {
-            try
-            {
-                if (_songRequestPlaylistVideoIds.Count > 0)
-                {
-                    CurrentSongRequestPlaylistItem = _songRequestPlaylistVideoIds.First();
-                    _songRequestPlaylistVideoIds.RemoveAt(0);
-                }
-                else if (_personalYoutubePlaylistVideoIds?.Count > 0)
-                {
-                    CurrentSongRequestPlaylistItem = _personalYoutubePlaylistVideoIds.First();
-                    _personalYoutubePlaylistVideoIds.RemoveAt(0);
-                }
-                else
-                {
-                    CurrentSongRequestPlaylistItem = null;
-                }
-
-                // Write to a text file to allow users to show the currently playing song as a song ticker
-                // ToDo: Add config variables
-                string filename = "Twitch Chat Bot Song Request.txt";
-                string startingText = "Currently Playing: ";
-                string separator = " - ";
-                string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                bool showChannelTitle = false;
-
-                using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, filename)))
-                {
-                    string songTitle = "";
-
-                    if (CurrentSongRequestPlaylistItem != null)
-                    {
-                        songTitle = $"{startingText}\"{CurrentSongRequestPlaylistItem.Snippet.Title}\"";
-
-                        if (showChannelTitle)
-                        {
-                            songTitle += $" by {CurrentSongRequestPlaylistItem.Snippet.ChannelTitle}";
-                        }
-
-                        songTitle += separator;
-                    }
-
-                    await outputFile.WriteAsync(songTitle);
-                }
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "SetNextVideoId()", false);
-            }
-        }
-
-        private async Task PlayMediaAsync(int recursiveCount = 0)
-        {
-            try
-            {
-                if (CurrentSongRequestPlaylistItem?.ContentDetails?.VideoId != null)
-                {
-                    if (_mediaPlayer.State == VLCState.Stopped || _mediaPlayer.State == VLCState.Paused)
-                    {
-                        _mediaPlayer.Play();
-                    }
-                    else
-                    {
-                        Media media = new Media(LibVlc, "https://youtu.be/" + CurrentSongRequestPlaylistItem.ContentDetails.VideoId, FromType.FromLocation);
-                        await media.Parse(MediaParseOptions.ParseNetwork);
-                        _mediaPlayer.Media = media.SubItems.First();
-                        _mediaPlayer.Play();
-
-                        await Task.Delay(2000);
-
-                        if (_mediaPlayer.State == VLCState.Ended)
-                        {
-                            Console.WriteLine($"\nError: The song \"{CurrentSongRequestPlaylistItem.Snippet.Title}\" was unable to load at this time\n");
-
-                            if (recursiveCount < 2)
-                            {
-                                await PlayMediaAsync(++recursiveCount);
-                            }
-                            else
-                            {
-                                _irc.SendPublicChatMessage($"I'm sorry @{CurrentSongRequestPlaylistItem.ContentDetails.Note} "
-                                    + $"I wasn't able to load your song \"{CurrentSongRequestPlaylistItem.Snippet.Title}\" even after 3 attempts. "
-                                    + "https://youtu.be/" + CurrentSongRequestPlaylistItem.ContentDetails.VideoId);
-                            }
-                        }
-
-                        if (media != null)
-                        {
-                            media.Dispose();
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "PlayMedia(int)", false);
             }
         }
 
@@ -547,6 +379,177 @@ namespace TwitchBotShared.Threads
 
             return false;
         }
+        #endregion
+
+        #region Private Methods
+        private async void Run()
+        {
+            try
+            {
+                _songRequestPlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItemsAsync(_botConfig.YouTubeBroadcasterPlaylistId);
+
+                if (!string.IsNullOrEmpty(_botConfig.YouTubePersonalPlaylistId))
+                {
+                    if (_botConfig.EnablePersonalPlaylistShuffle)
+                    {
+                        List<PlaylistItem> shuffledList = await _youTubeClientInstance.GetPlaylistItemsAsync(_botConfig.YouTubePersonalPlaylistId);
+                        shuffledList.Shuffle();
+
+                        _personalYoutubePlaylistVideoIds = shuffledList;
+                    }
+                    else
+                    {
+                        _personalYoutubePlaylistVideoIds = await _youTubeClientInstance.GetPlaylistItemsAsync(_botConfig.YouTubePersonalPlaylistId);
+                    }
+                }
+
+                _initialLoadYoutubePlaylist = false;
+
+                SetNextVideoId(); // set current song request playlist item
+
+                if (CurrentSongRequestPlaylistItem == null)
+                {
+                    _playerStatus = false;
+                    return; // don't try to start the VLC video player until there is something to play
+                }
+
+                while (true)
+                {
+                    if (CurrentSongRequestPlaylistItem != null)
+                    {
+                        await PlayMediaAsync();
+
+                        if (_mediaPlayer?.Media?.State != VLCState.Ended)
+                        {
+                            _songSkipping = false;
+                        }
+                    }
+
+                    while (_mediaPlayer?.Media?.State != VLCState.Ended && _playerStatus && !_songSkipping)
+                    {
+                        // wait
+                    }
+
+                    LastPlayedPlaylistItem = CurrentSongRequestPlaylistItem;
+
+                    if (_playerStatus)
+                        SetNextVideoId();
+                    else
+                        break;
+                }
+
+                // Clean up
+                _mediaPlayer.Stop();
+                _mediaPlayer.Dispose();
+                _mediaPlayer = null;
+                LibVlc.Dispose();
+                LibVlc = null;
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "Run()", false);
+            }
+        }
+
+        private async void SetNextVideoId()
+        {
+            try
+            {
+                if (_songRequestPlaylistVideoIds.Count > 0)
+                {
+                    CurrentSongRequestPlaylistItem = _songRequestPlaylistVideoIds.First();
+                    _songRequestPlaylistVideoIds.RemoveAt(0);
+                }
+                else if (_personalYoutubePlaylistVideoIds?.Count > 0)
+                {
+                    CurrentSongRequestPlaylistItem = _personalYoutubePlaylistVideoIds.First();
+                    _personalYoutubePlaylistVideoIds.RemoveAt(0);
+                }
+                else
+                {
+                    CurrentSongRequestPlaylistItem = null;
+                }
+
+                // Write to a text file to allow users to show the currently playing song as a song ticker
+                // ToDo: Add config variables
+                string filename = "Twitch Chat Bot Song Request.txt";
+                string startingText = "Currently Playing: ";
+                string separator = " - ";
+                string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                bool showChannelTitle = false;
+
+                using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, filename)))
+                {
+                    string songTitle = "";
+
+                    if (CurrentSongRequestPlaylistItem != null)
+                    {
+                        songTitle = $"{startingText}\"{CurrentSongRequestPlaylistItem.Snippet.Title}\"";
+
+                        if (showChannelTitle)
+                        {
+                            songTitle += $" by {CurrentSongRequestPlaylistItem.Snippet.ChannelTitle}";
+                        }
+
+                        songTitle += separator;
+                    }
+
+                    await outputFile.WriteAsync(songTitle);
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "SetNextVideoId()", false);
+            }
+        }
+
+        private async Task PlayMediaAsync(int recursiveCount = 0)
+        {
+            try
+            {
+                if (CurrentSongRequestPlaylistItem?.ContentDetails?.VideoId != null)
+                {
+                    if (_mediaPlayer.State == VLCState.Stopped || _mediaPlayer.State == VLCState.Paused)
+                    {
+                        _mediaPlayer.Play();
+                    }
+                    else
+                    {
+                        Media media = new Media(LibVlc, "https://youtu.be/" + CurrentSongRequestPlaylistItem.ContentDetails.VideoId, FromType.FromLocation);
+                        await media.Parse(MediaParseOptions.ParseNetwork);
+                        _mediaPlayer.Media = media.SubItems.First();
+                        _mediaPlayer.Play();
+
+                        await Task.Delay(2000);
+
+                        if (_mediaPlayer.State == VLCState.Ended)
+                        {
+                            Console.WriteLine($"\nError: The song \"{CurrentSongRequestPlaylistItem.Snippet.Title}\" was unable to load at this time\n");
+
+                            if (recursiveCount < 2)
+                            {
+                                await PlayMediaAsync(++recursiveCount);
+                            }
+                            else
+                            {
+                                _irc.SendPublicChatMessage($"I'm sorry @{CurrentSongRequestPlaylistItem.ContentDetails.Note} "
+                                    + $"I wasn't able to load your song \"{CurrentSongRequestPlaylistItem.Snippet.Title}\" even after 3 attempts. "
+                                    + "https://youtu.be/" + CurrentSongRequestPlaylistItem.ContentDetails.VideoId);
+                            }
+                        }
+
+                        if (media != null)
+                        {
+                            media.Dispose();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "LibVLCSharpPlayer", "PlayMedia(int)", false);
+            }
+        }
 
         private void SkipSongRequestPlaylistVideoIds(ref int songSkipCount)
         {
@@ -595,5 +598,6 @@ namespace TwitchBotShared.Threads
                 }
             }
         }
+        #endregion
     }
 }

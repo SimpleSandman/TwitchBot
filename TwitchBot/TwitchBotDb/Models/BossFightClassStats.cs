@@ -1,6 +1,6 @@
 ﻿namespace TwitchBotDb.Models
 {
-    public partial class BossFightClassStats
+    public class BossFightClassStats
     {
         public int Id { get; set; }
         public int SettingsId { get; set; }

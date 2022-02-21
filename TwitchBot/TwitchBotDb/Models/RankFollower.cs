@@ -1,6 +1,6 @@
 ﻿namespace TwitchBotDb.Models
 {
-    public partial class RankFollower
+    public class RankFollower
     {
         public int Id { get; set; }
         public string Username { get; set; }

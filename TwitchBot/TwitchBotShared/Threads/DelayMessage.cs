@@ -10,10 +10,10 @@ namespace TwitchBotShared.Threads
 {
     public class DelayMessage
     {
-        private Thread _msgSender;
-        private IrcClient _irc;
-        private DelayedMessageSingleton _delayedMessagesInstance = DelayedMessageSingleton.Instance;
-        private ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+        private readonly Thread _msgSender;
+        private readonly IrcClient _irc;
+        private readonly DelayedMessageSingleton _delayedMessagesInstance = DelayedMessageSingleton.Instance;
+        private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public DelayMessage(IrcClient irc)
         {

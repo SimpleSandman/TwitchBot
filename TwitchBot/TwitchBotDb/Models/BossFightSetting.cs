@@ -2,7 +2,7 @@
 
 namespace TwitchBotDb.Models
 {
-    public partial class BossFightSetting
+    public class BossFightSetting
     {
         public BossFightSetting()
         {

@@ -2,7 +2,7 @@
 
 namespace TwitchBotDb.Models
 {
-    public partial class PartyUpRequest
+    public class PartyUpRequest
     {
         public int Id { get; set; }
         public string Username { get; set; }

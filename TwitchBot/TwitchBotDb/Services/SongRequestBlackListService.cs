@@ -9,7 +9,7 @@ namespace TwitchBotDb.Services
 {
     public class SongRequestBlacklistService
     {
-        private SongRequestBlacklistRepository _songRequestDb;
+        private readonly SongRequestBlacklistRepository _songRequestDb;
 
         public SongRequestBlacklistService(SongRequestBlacklistRepository songRequestDb)
         {

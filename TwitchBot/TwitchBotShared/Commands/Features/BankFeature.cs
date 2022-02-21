@@ -26,18 +26,26 @@ namespace TwitchBotShared.Commands.Features
         private readonly TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        private const string DEPOSIT = "!deposit";
+        private const string CHARGE = "!charge";
+        private const string POINTS = "!points";
+        private const string POINTS_TOP_3 = "!pointstop3";
+        private const string BONUS_ALL = "!bonusall";
+        private const string GIVE = "!give";
+        private const string GAMBLE = "!gamble";
+
         public BankFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, BankService bank) : base(irc, botConfig)
         {
             _bank = bank;
-            _rolePermissions.Add("!deposit", new CommandPermission { General = ChatterType.Moderator});
-            _rolePermissions.Add("!charge", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermissions.Add("!points", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(DEPOSIT, new CommandPermission { General = ChatterType.Moderator});
+            _rolePermissions.Add(CHARGE, new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add(POINTS, new CommandPermission { General = ChatterType.Viewer });
             _rolePermissions.Add($"!{_botConfig.CurrencyType.ToLower()}", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!pointstop3", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(POINTS_TOP_3, new CommandPermission { General = ChatterType.Viewer });
             _rolePermissions.Add($"!{_botConfig.CurrencyType.ToLower()}top3", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!bonusall", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermissions.Add("!give", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!gamble", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(BONUS_ALL, new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add(GIVE, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(GAMBLE, new CommandPermission { General = ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
@@ -46,19 +54,19 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!deposit":
+                    case DEPOSIT:
                         return (true, await DepositAsync(chatter));
-                    case "!charge":
+                    case CHARGE:
                         return (true, await ChargeAsync(chatter));
-                    case "!bonusall":
+                    case BONUS_ALL:
                         return (true, await BonusAllAsync(chatter));
-                    case "!points":
+                    case POINTS:
                         return (true, await CheckFundsAsync(chatter));
-                    case "!pointstop3":
+                    case POINTS_TOP_3:
                         return (true, await LeaderboardCurrencyAsync(chatter));
-                    case "!give":
+                    case GIVE:
                         return (true, await GiveFundsAsync(chatter));
-                    case "!gamble":
+                    case GAMBLE:
                         return (true, await GambleAsync(chatter));
                     default:
                         if (requestedCommand == $"!{_botConfig.CurrencyType.ToLower()}")
@@ -76,12 +84,13 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "BankFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "BankFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
         }
 
+        #region Private Methods
         /// <summary>
         /// Gives a set amount of stream currency to user
         /// </summary>
@@ -546,5 +555,6 @@ namespace TwitchBotShared.Commands.Features
 
             return DateTime.Now;
         }
+        #endregion
     }
 }

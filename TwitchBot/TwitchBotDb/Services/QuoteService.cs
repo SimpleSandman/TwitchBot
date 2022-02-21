@@ -9,7 +9,7 @@ namespace TwitchBotDb.Services
 {
     public class QuoteService
     {
-        private QuoteRepository _quoteDb;
+        private readonly QuoteRepository _quoteDb;
 
         public QuoteService(QuoteRepository quote)
         {

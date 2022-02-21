@@ -4,29 +4,29 @@ using TwitchBotShared.ClientLibraries;
 
 namespace TwitchBotShared.Threads
 {
-    /*
-    * Class that sends PING to irc server every 5 minutes
-    */
+    /// <summary>
+    /// Class that sends PING to irc server every 5 minutes
+    /// </summary>
     public class PingSender
     {
         private readonly IrcClient _irc;
         private readonly Thread pingSender;
 
-        // Empty constructor makes instance of Thread
         public PingSender(IrcClient irc) 
         {
             _irc = irc;
             pingSender = new Thread (new ThreadStart(this.Run)); 
         }
 
-        // Starts the thread
         public void Start() 
         {
             pingSender.IsBackground = true;
             pingSender.Start(); 
         }
 
-        // Send PING to irc server every 5 minutes
+        /// <summary>
+        /// Send PING to irc server every 5 minutes
+        /// </summary>
         private void Run()
         {
             while (true)

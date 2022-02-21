@@ -2,7 +2,7 @@
 
 namespace TwitchBotDb.DTO
 {
-    public partial class PartyUpRequestResult
+    public class PartyUpRequestResult
     {
         public int PartyRequestId { get; set; }
         public string Username { get; set; }

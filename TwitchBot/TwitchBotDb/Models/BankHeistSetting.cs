@@ -1,6 +1,6 @@
 ﻿namespace TwitchBotDb.Models
 {
-    public partial class BankHeistSetting
+    public class BankHeistSetting
     {
         public int Id { get; set; }
         public int BroadcasterId { get; set; }

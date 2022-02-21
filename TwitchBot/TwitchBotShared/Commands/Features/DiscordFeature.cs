@@ -28,8 +28,8 @@ namespace TwitchBotShared.Commands.Features
         private const string DISCORD_ADD_ROLE = "!discordaddrole";
         private const string DISCORD_SELF_ROLE = "!discordselfrole";
 
-        public DiscordFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, DiscordNetClient discordClient, DiscordSelfAssignRoleService discordService)
-            : base(irc, botConfig)
+        public DiscordFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, DiscordNetClient discordClient, 
+            DiscordSelfAssignRoleService discordService) : base(irc, botConfig)
         {
             _discordClient = discordClient;
             _discordService = discordService;
@@ -62,11 +62,12 @@ namespace TwitchBotShared.Commands.Features
             return (false, DateTime.Now);
         }
 
+        #region Private Method
         /// <summary>
         /// Add a Discord role to the requested user within a guild (Discord server)
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> AddRoleAsync(TwitchChatter twitchChatter)
+        private async Task<DateTime> AddRoleAsync(TwitchChatter twitchChatter)
         {
             try
             {
@@ -98,7 +99,7 @@ namespace TwitchBotShared.Commands.Features
         /// Add a Discord role to the requested user within a guild (Discord server)
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> AddSelfRoleAsync(TwitchChatter twitchChatter)
+        private async Task<DateTime> AddSelfRoleAsync(TwitchChatter twitchChatter)
         {
             try
             {
@@ -163,9 +164,8 @@ namespace TwitchBotShared.Commands.Features
 
             return DateTime.Now;
         }
-
-        #region Private Method
-        private (string, string, string, string) ParseMessage(TwitchChatter twitchChatter)
+        
+        private static (string, string, string, string) ParseMessage(TwitchChatter twitchChatter)
         {
             int firstSpaceIndex = twitchChatter.Message.IndexOf(' ');
             int discriminatorIndex = twitchChatter.Message.IndexOf('#');

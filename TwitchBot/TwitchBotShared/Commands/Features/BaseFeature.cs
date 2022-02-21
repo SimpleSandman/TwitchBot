@@ -46,12 +46,13 @@ namespace TwitchBotShared.Commands.Features
             return false;
         }
 
+        #region Protected Methods
         /// <summary>
         /// Returns the chatter type needed to determine specific permissions (i.e. for ambiguous command names)
         /// </summary>
         /// <param name="chatter">The user in the chat</param>
         /// <returns></returns>
-        protected ChatterType DetermineChatterPermissions(TwitchChatter chatter)
+        protected static ChatterType DetermineChatterPermissions(TwitchChatter chatter)
         {
             if (chatter.Badges.Contains("broadcaster"))
             {
@@ -74,7 +75,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="message">Valid operations: {on, off, true, false}</param>
         /// <returns></returns>
-        protected bool SetBooleanFromMessage(string message)
+        protected static bool SetBooleanFromMessage(string message)
         {
             if (message == "on" || message == "true" || message == "yes")
             {
@@ -96,7 +97,7 @@ namespace TwitchBotShared.Commands.Features
         /// <param name="savedValue">The new value that is replacing the property's current value</param>
         /// <param name="propertyName">The name of the property that is being modified</param>
         /// <param name="appConfig"></param>
-        protected void SaveAppConfigSettings(string savedValue, string propertyName, Configuration appConfig)
+        protected static void SaveAppConfigSettings(string savedValue, string propertyName, Configuration appConfig)
         {
             appConfig.AppSettings.Settings.Remove(propertyName);
             appConfig.AppSettings.Settings.Add(propertyName, savedValue);
@@ -109,7 +110,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        protected string ParseChatterCommandName(TwitchChatter chatter)
+        protected static string ParseChatterCommandName(TwitchChatter chatter)
         {
             int spaceIndex = chatter.Message.IndexOf(" ") > 0
                 ? chatter.Message.IndexOf(" ")
@@ -123,7 +124,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        protected string ParseChatterCommandParameter(TwitchChatter chatter)
+        protected static string ParseChatterCommandParameter(TwitchChatter chatter)
         {
             return chatter?.Message?.Substring(chatter.Message.IndexOf(" ") + 1) ?? "";
         }
@@ -133,7 +134,7 @@ namespace TwitchBotShared.Commands.Features
         /// </summary>
         /// <param name="chatter"></param>
         /// <returns></returns>
-        protected string ParseChatterMessageUsername(TwitchChatter chatter)
+        protected static string ParseChatterMessageUsername(TwitchChatter chatter)
         {
             if (chatter.Message.IndexOf("@") > 0)
             {
@@ -157,7 +158,7 @@ namespace TwitchBotShared.Commands.Features
         /// <param name="rolePermissions"></param>
         /// <param name="isElevated"></param>
         /// <returns></returns>
-        protected bool HasPermission(string requestedCommand, ChatterType chatterPermission, Dictionary<string, CommandPermission> rolePermissions, bool isElevated = false)
+        protected static bool HasPermission(string requestedCommand, ChatterType chatterPermission, Dictionary<string, CommandPermission> rolePermissions, bool isElevated = false)
         {
             rolePermissions.TryGetValue(requestedCommand, out CommandPermission permissions);
 
@@ -167,7 +168,7 @@ namespace TwitchBotShared.Commands.Features
                 return chatterPermission >= permissions.General;
         }
 
-        protected bool ReactionCommand(IrcClient irc, string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
+        protected static bool ReactionCommand(IrcClient irc, string origUser, string recipient, string msgToSelf, string action, string addlMsg = "")
         {
             // check if user is trying to use a command on themselves
             if (origUser.ToLower() == recipient.ToLower())
@@ -180,7 +181,7 @@ namespace TwitchBotShared.Commands.Features
             return false;
         }
 
-        protected string Effectiveness()
+        protected static string Effectiveness()
         {
             Random rnd = new Random(DateTime.Now.Millisecond);
             int effectiveLvl = rnd.Next(3); // between 0 and 2
@@ -195,6 +196,7 @@ namespace TwitchBotShared.Commands.Features
                     return "It had no effect";
             }
         }
+        #endregion
 
         /// <summary>
         /// Execute a command from a feature

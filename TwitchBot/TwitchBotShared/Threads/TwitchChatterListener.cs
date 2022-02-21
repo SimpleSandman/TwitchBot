@@ -12,24 +12,23 @@ namespace TwitchBotShared.Threads
 {
     public class TwitchChatterListener
     {
-        private Thread _twitchChatterListener;
-        private TwitchInfoService _twitchInfo;
-        private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
+        private readonly Thread _twitchChatterListener;
+        private readonly TwitchInfoService _twitchInfo;
+        private readonly TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
-        // Empty constructor makes instance of Thread
         public TwitchChatterListener(TwitchInfoService twitchInfo)
         {
             _twitchChatterListener = new Thread(new ThreadStart(this.Run));
             _twitchInfo = twitchInfo;
         }
 
-        // Starts the thread
         public void Start()
         {
             _twitchChatterListener.IsBackground = true;
             _twitchChatterListener.Start();
         }
 
+        #region Private Methods
         /// <summary>
         /// Check if follower is watching. If so, give following viewer experience every iteration
         /// </summary>
@@ -213,5 +212,6 @@ namespace TwitchBotShared.Threads
 
             return listChattersByViewers;
         }
+        #endregion
     }
 }

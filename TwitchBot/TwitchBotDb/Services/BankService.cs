@@ -9,7 +9,7 @@ namespace TwitchBotDb.Services
 {
     public class BankService
     {
-        private BankRepository _bank;
+        private readonly BankRepository _bank;
 
         public BankService(BankRepository bank)
         {

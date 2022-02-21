@@ -10,7 +10,7 @@ namespace TwitchBotDb.Services
 {
     public class PartyUpService
     {
-        private PartyUpRepository _partyUpDb;
+        private readonly PartyUpRepository _partyUpDb;
 
         public PartyUpService(PartyUpRepository partyUpDb)
         {

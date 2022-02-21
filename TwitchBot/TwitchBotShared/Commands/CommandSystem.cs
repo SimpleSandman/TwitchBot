@@ -18,6 +18,7 @@ namespace TwitchBotShared.Commands
     /// </summary>
     public class CommandSystem
     {
+        #region Private Class Variables
         private readonly BankFeature _bank;
         private readonly TwitterFeature _twitter;
         private readonly SongRequestFeature _songRequestFeature;
@@ -35,7 +36,9 @@ namespace TwitchBotShared.Commands
         private readonly PartyUpFeature _partyUpFeature;
         private readonly DiscordFeature _discordFeature;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+        #endregion
 
+        #region Constructor
         public CommandSystem(IrcClient irc, TwitchBotConfigurationSection botConfig, Configuration appConfig, BankService bank, 
             SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting,
             SpotifyWebClient spotify, TwitchInfoService twitchInfo, FollowerService follower, GameDirectoryService gameDirectory, InGameUsernameService ign,
@@ -58,6 +61,7 @@ namespace TwitchBotShared.Commands
             _twitter = new TwitterFeature(irc, botConfig, appConfig);
             _discordFeature = new DiscordFeature(irc, botConfig, discordClient, discordService);
         }
+        #endregion
 
         public async Task ExecRequestAsync(TwitchChatter chatter)
         {
@@ -130,7 +134,7 @@ namespace TwitchBotShared.Commands
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "CommandSystem", "ExecRequest(TwitchChatter)", false, "N/A", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "CommandSystem", "ExecRequestAsync(TwitchChatter)", false, "N/A", chatter.Message);
             }
         }
     }

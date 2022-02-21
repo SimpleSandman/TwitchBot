@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
-
-using Newtonsoft.Json;
 
 using TwitchBotDb.Models;
 using TwitchBotDb.Services;
@@ -32,17 +29,23 @@ namespace TwitchBotShared.Commands.Features
         private readonly TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        private const string FOLLOW_SINCE = "!followsince";
+        private const string FOLLOW_AGE = "!followage";
+        private const string RANK = "!rank";
+        private const string RANK_TOP_3 = "!ranktop3";
+        private const string SET_REGULAR_HOURS = "!setregularhours";
+
         public FollowerFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo, FollowerService follower,
             Configuration appConfig) : base(irc, botConfig)
         {
             _follower = follower;
             _twitchInfo = twitchInfo;
             _appConfig = appConfig;
-            _rolePermissions.Add("!followsince", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!followage", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!rank", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!ranktop3", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!setregularhours", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(FOLLOW_SINCE, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(FOLLOW_AGE, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(RANK, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(RANK_TOP_3, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(SET_REGULAR_HOURS, new CommandPermission { General = ChatterType.Broadcaster });
         }
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
@@ -51,14 +54,14 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!followsince":
-                    case "!followage":
+                    case FOLLOW_SINCE:
+                    case FOLLOW_AGE:
                         return (true, await FollowSinceAsync(chatter));
-                    case "!rank":
+                    case RANK:
                         return (true, await ViewRankAsync(chatter));
-                    case "!setregularhours":
+                    case SET_REGULAR_HOURS:
                         return (true, await SetRegularFollowerHoursAsync(chatter));
-                    case "!ranktop3":
+                    case RANK_TOP_3:
                         return (true, await LeaderboardRankAsync(chatter));
                     default:
                         break;
@@ -66,12 +69,13 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "FollowerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "FollowerFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
         }
 
+        #region Private Methods
         /// <summary>
         /// Tell the user how long they have been following the broadcaster
         /// </summary>
@@ -264,5 +268,6 @@ namespace TwitchBotShared.Commands.Features
 
             return DateTime.Now;
         }
+        #endregion
     }
 }

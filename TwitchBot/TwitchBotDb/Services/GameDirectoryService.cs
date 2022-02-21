@@ -8,7 +8,7 @@ namespace TwitchBotDb.Services
 {
     public class GameDirectoryService
     {
-        private GameDirectoryRepository _gameDirectoryDb;
+        private readonly GameDirectoryRepository _gameDirectoryDb;
 
         public GameDirectoryService(GameDirectoryRepository gameDirectoryDb)
         {

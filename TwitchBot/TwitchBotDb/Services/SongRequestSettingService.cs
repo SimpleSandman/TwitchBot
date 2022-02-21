@@ -7,7 +7,7 @@ namespace TwitchBotDb.Services
 {
     public class SongRequestSettingService
     {
-        private SongRequestSettingRepository _songRequestSettingDb;
+        private readonly SongRequestSettingRepository _songRequestSettingDb;
 
         public SongRequestSettingService(SongRequestSettingRepository songRequestSettingDb)
         {

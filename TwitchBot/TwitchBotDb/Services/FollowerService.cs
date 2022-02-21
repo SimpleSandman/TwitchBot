@@ -11,7 +11,7 @@ namespace TwitchBotDb.Services
 {
     public class FollowerService
     {
-        private FollowerRepository _followerDb;
+        private readonly FollowerRepository _followerDb;
 
         public FollowerService(FollowerRepository followerDb)
         {

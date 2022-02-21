@@ -17,11 +17,11 @@ namespace TwitchBotShared.Threads
     {
         private IrcClient _irc;
         private int _broadcasterId;
-        private Thread _thread;
-        private BankService _bank;
-        private TwitchBotConfigurationSection _botConfig;
         private string _resultMessage;
-        private BankHeistSingleton _heistSettings = BankHeistSingleton.Instance;
+        private readonly Thread _thread;
+        private readonly BankService _bank;
+        private readonly TwitchBotConfigurationSection _botConfig;
+        private readonly BankHeistSingleton _heistSettings = BankHeistSingleton.Instance;
 
         public BankHeist() { }
 
@@ -32,6 +32,7 @@ namespace TwitchBotShared.Threads
             _botConfig = botConfig;
         }
 
+        #region Public Methods
         public void Start(IrcClient irc, int broadcasterId)
         {
             _irc = irc;
@@ -44,31 +45,6 @@ namespace TwitchBotShared.Threads
             _thread.Start();
         }
 
-        private async void Run()
-        {
-            while (true)
-            {
-                if (_heistSettings.IsHeistOnCooldown())
-                {
-                    double cooldownTime = (_heistSettings.CooldownTimePeriod.Subtract(DateTime.Now)).TotalMilliseconds;
-                    Thread.Sleep((int)cooldownTime);
-                    _irc.SendPublicChatMessage(_heistSettings.CooldownOver);
-                }
-                else if (_heistSettings.Robbers.Count > 0 && _heistSettings.IsEntryPeriodOver())
-                {
-                    _heistSettings.Robbers.CompleteAdding();
-                    await ConsumeAsync();
-
-                    // refresh the list and reset the cooldown time period
-                    _heistSettings.Robbers = new BlockingCollection<BankRobber>();
-                    _heistSettings.CooldownTimePeriod = DateTime.Now.AddMinutes(_heistSettings.CooldownTimePeriodMinutes);
-                    _resultMessage = _heistSettings.ResultsMessage;
-                }
-
-                Thread.Sleep(200);
-            }
-        }
-
         public void Produce(BankRobber robber)
         {
             _heistSettings.Robbers.Add(robber);
@@ -76,12 +52,12 @@ namespace TwitchBotShared.Threads
 
         public bool HasRobberAlreadyEntered(string username)
         {
-            return _heistSettings.Robbers.Any(u => u.Username == username) ? true : false;
+            return _heistSettings.Robbers.Any(u => u.Username == username);
         }
 
         public bool IsEntryPeriodOver()
         {
-            return _heistSettings.Robbers.IsAddingCompleted ? true : false;
+            return _heistSettings.Robbers.IsAddingCompleted;
         }
 
         public int HeistLevel()
@@ -118,6 +94,33 @@ namespace TwitchBotShared.Threads
                     .Replace("@nextbankname@", _heistSettings.Levels[5].LevelBankName);
 
             return "";
+        }
+        #endregion
+
+        #region Private Methods
+        private async void Run()
+        {
+            while (true)
+            {
+                if (_heistSettings.IsHeistOnCooldown())
+                {
+                    double cooldownTime = (_heistSettings.CooldownTimePeriod.Subtract(DateTime.Now)).TotalMilliseconds;
+                    Thread.Sleep((int)cooldownTime);
+                    _irc.SendPublicChatMessage(_heistSettings.CooldownOver);
+                }
+                else if (_heistSettings.Robbers.Count > 0 && _heistSettings.IsEntryPeriodOver())
+                {
+                    _heistSettings.Robbers.CompleteAdding();
+                    await ConsumeAsync();
+
+                    // refresh the list and reset the cooldown time period
+                    _heistSettings.Robbers = new BlockingCollection<BankRobber>();
+                    _heistSettings.CooldownTimePeriod = DateTime.Now.AddMinutes(_heistSettings.CooldownTimePeriodMinutes);
+                    _resultMessage = _heistSettings.ResultsMessage;
+                }
+
+                Thread.Sleep(200);
+            }
         }
 
         private async Task ConsumeAsync()
@@ -195,5 +198,6 @@ namespace TwitchBotShared.Threads
             // show in case Twitch deletes the message because of exceeding character length
             Console.WriteLine("\n" + _resultMessage + "\n");
         }
+        #endregion
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace TwitchBotDb.Models
 {
-    public partial class SongRequest
+    public class SongRequest
     {
         public int Id { get; set; }
         public string Name { get; set; }

@@ -8,7 +8,7 @@ namespace TwitchBotDb.Services
 {
     public class InGameUsernameService
     {
-        private InGameUsernameRepository _ignDb;
+        private readonly InGameUsernameRepository _ignDb;
 
         public InGameUsernameService(InGameUsernameRepository ignDb)
         {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TwitchBotDb.Models
 {
-    public partial class Whitelist
+    public class Whitelist
     {
         public int Id { get; set; }
         public int CustomCommandId { get; set; }

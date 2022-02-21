@@ -10,6 +10,7 @@ namespace TwitchBotDb.Context
 
         public SimpleBotContext(DbContextOptions<SimpleBotContext> options) : base(options) { }
 
+        #region Tables
         public virtual DbSet<Bank> Banks { get; set; }
         public virtual DbSet<BankHeistSetting> BankHeistSettings { get; set; }
         public virtual DbSet<BossFightBossStats> BossFightBossStats { get; set; }
@@ -31,9 +32,11 @@ namespace TwitchBotDb.Context
         public virtual DbSet<SongRequestSetting> SongRequestSettings { get; set; }
         public virtual DbSet<TwitchGameCategory> TwitchGameCategories { get; set; }
         public virtual DbSet<Whitelist> Whitelists { get; set; }
+        #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            #region Tables
             modelBuilder.Entity<Bank>(entity =>
             {
                 entity.ToTable("Bank");
@@ -858,6 +861,7 @@ namespace TwitchBotDb.Context
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Cmd_Whitelist_Cmd_CustomCommand");
             });
+            #endregion
 
             OnModelCreatingPartial(modelBuilder);
         }

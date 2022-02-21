@@ -18,16 +18,15 @@ namespace TwitchBotShared.Threads
     public class FollowerSubscriberListener
     {
         private IrcClient _irc;
-        private TwitchBotConfigurationSection _botConfig;
         private int _broadcasterId;
         private IEnumerable<Rank> _rankList;
-        private Thread _followerListener;
-        private TwitchInfoService _twitchInfo;
-        private FollowerService _follower;
-        private BankService _bank;
-        private TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
+        private readonly Thread _followerListener;
+        private readonly BankService _bank;
+        private readonly FollowerService _follower;
+        private readonly TwitchInfoService _twitchInfo;
+        private readonly TwitchBotConfigurationSection _botConfig;
+        private readonly TwitchChatterList _twitchChatterListInstance = TwitchChatterList.Instance;
 
-        // Empty constructor makes instance of Thread
         public FollowerSubscriberListener(TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo, 
             FollowerService follower, BankService bank)
         {
@@ -38,7 +37,6 @@ namespace TwitchBotShared.Threads
             _bank = bank;
         }
 
-        // Starts the thread
         public void Start(IrcClient irc, int broadcasterId)
         {
             _irc = irc;
@@ -48,6 +46,7 @@ namespace TwitchBotShared.Threads
             _followerListener.Start();
         }
 
+        #region Private Methods
         /// <summary>
         /// Check if follower is watching. If so, give following viewer experience every iteration
         /// </summary>
@@ -415,6 +414,8 @@ namespace TwitchBotShared.Threads
 
             return subscriber;
         }
+        #endregion
+
         #endregion
     }
 }

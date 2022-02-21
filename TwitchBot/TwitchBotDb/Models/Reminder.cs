@@ -2,7 +2,7 @@
 
 namespace TwitchBotDb.Models
 {
-    public partial class Reminder
+    public class Reminder
     {
         public int Id { get; set; }
         public bool Sunday { get; set; }

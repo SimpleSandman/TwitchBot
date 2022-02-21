@@ -4,6 +4,7 @@ namespace TwitchBotShared.Config
 {
     public sealed class TwitchBotConfigurationSection : ConfigurationSection
     {
+        #region Private Class Variables
         private static ConfigurationPropertyCollection _properties;
         private static bool _readOnly;
 
@@ -93,7 +94,9 @@ namespace TwitchBotShared.Config
 
         private static readonly ConfigurationProperty _discordServerName =
             new ConfigurationProperty("discordServerName", typeof(string), "", ConfigurationPropertyOptions.None);
+        #endregion
 
+        #region Constructor
         public TwitchBotConfigurationSection()
         {
             _properties = new ConfigurationPropertyCollection
@@ -129,15 +132,9 @@ namespace TwitchBotShared.Config
                 _discordServerName
             };
         }
+        #endregion
 
-        protected override ConfigurationPropertyCollection Properties
-        {
-            get
-            {
-                return _properties;
-            }
-        }
-
+        #region Private Properties
         private new bool IsReadOnly
         {
             get
@@ -151,13 +148,25 @@ namespace TwitchBotShared.Config
             if (IsReadOnly)
                 throw new ConfigurationErrorsException($"The property {propertyName} is read only.");
         }
+        #endregion
+
+        #region Protected Properties
+        protected override ConfigurationPropertyCollection Properties
+        {
+            get
+            {
+                return _properties;
+            }
+        }
 
         protected override object GetRuntimeObject()
         {
             _readOnly = false;
             return base.GetRuntimeObject();
         }
+        #endregion
 
+        #region Public Properties
         [StringValidator(InvalidCharacters = " ~!@#$%^&*()[]{}/;'\"|\\",
         MinLength = 1, MaxLength = 60)]
         public string BotName
@@ -459,5 +468,6 @@ namespace TwitchBotShared.Config
                 this["discordServerName"] = value;
             }
         }
+        #endregion
     }
 }

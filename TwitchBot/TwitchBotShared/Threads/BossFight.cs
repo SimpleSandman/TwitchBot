@@ -17,11 +17,11 @@ namespace TwitchBotShared.Threads
     {
         private IrcClient _irc;
         private int _broadcasterId;
-        private Thread _thread;
-        private BankService _bank;
-        private TwitchBotConfigurationSection _botConfig;
         private string _resultMessage;
-        private BossFightSingleton _bossSettings = BossFightSingleton.Instance;
+        private readonly Thread _thread;
+        private readonly BankService _bank;
+        private readonly TwitchBotConfigurationSection _botConfig;
+        private readonly BossFightSingleton _bossSettings = BossFightSingleton.Instance;
 
         public BossFight() { }
 
@@ -32,6 +32,7 @@ namespace TwitchBotShared.Threads
             _botConfig = botConfig;
         }
 
+        #region Public Methods
         public void Start(IrcClient irc, int broadcasterId)
         {
             _irc = irc;
@@ -44,32 +45,6 @@ namespace TwitchBotShared.Threads
             _thread.Start();
         }
 
-        private async void Run()
-        {
-            while (true)
-            {
-                if (_bossSettings.IsBossFightOnCooldown())
-                {
-                    double cooldownTime = (_bossSettings.CooldownTimePeriod.Subtract(DateTime.Now)).TotalMilliseconds;
-                    Thread.Sleep((int)cooldownTime);
-                    _irc.SendPublicChatMessage(_bossSettings.CooldownOver);
-                }
-                else if (_bossSettings.Fighters.Count > 0 && _bossSettings.IsEntryPeriodOver())
-                {
-                    //AddTestFighters(); // debugging only
-                    _bossSettings.Fighters.CompleteAdding();
-                    await ConsumeAsync();
-
-                    // refresh the list and reset the cooldown time period
-                    _bossSettings.Fighters = new BlockingCollection<BossFighter>();
-                    _bossSettings.CooldownTimePeriod = DateTime.Now.AddMinutes(_bossSettings.CooldownTimePeriodMinutes);
-                    _resultMessage = _bossSettings.ResultsMessage;
-                }
-
-                Thread.Sleep(200);
-            }
-        }
-
         public void Produce(BossFighter fighter)
         {
             _bossSettings.Fighters.Add(fighter);
@@ -77,12 +52,12 @@ namespace TwitchBotShared.Threads
 
         public bool HasFighterAlreadyEntered(string username)
         {
-            return _bossSettings.Fighters.Any(u => u.Username == username) ? true : false;
+            return _bossSettings.Fighters.Any(u => u.Username == username);
         }
 
         public bool IsEntryPeriodOver()
         {
-            return _bossSettings.Fighters.IsAddingCompleted ? true : false;
+            return _bossSettings.Fighters.IsAddingCompleted;
         }
 
         public int BossLevel()
@@ -119,6 +94,34 @@ namespace TwitchBotShared.Threads
                     .Replace("@nextbossname@", _bossSettings.Bosses[5].Name);
 
             return "";
+        }
+        #endregion
+
+        #region Private Methods
+        private async void Run()
+        {
+            while (true)
+            {
+                if (_bossSettings.IsBossFightOnCooldown())
+                {
+                    double cooldownTime = (_bossSettings.CooldownTimePeriod.Subtract(DateTime.Now)).TotalMilliseconds;
+                    Thread.Sleep((int)cooldownTime);
+                    _irc.SendPublicChatMessage(_bossSettings.CooldownOver);
+                }
+                else if (_bossSettings.Fighters.Count > 0 && _bossSettings.IsEntryPeriodOver())
+                {
+                    //AddTestFighters(); // debugging only
+                    _bossSettings.Fighters.CompleteAdding();
+                    await ConsumeAsync();
+
+                    // refresh the list and reset the cooldown time period
+                    _bossSettings.Fighters = new BlockingCollection<BossFighter>();
+                    _bossSettings.CooldownTimePeriod = DateTime.Now.AddMinutes(_bossSettings.CooldownTimePeriodMinutes);
+                    _resultMessage = _bossSettings.ResultsMessage;
+                }
+
+                Thread.Sleep(200);
+            }
         }
 
         private async Task ConsumeAsync()
@@ -248,5 +251,6 @@ namespace TwitchBotShared.Threads
             // show in case Twitch deletes the message because of exceeding character length
             Console.WriteLine("\n" + _resultMessage + "\n");
         }
+        #endregion
     }
 }

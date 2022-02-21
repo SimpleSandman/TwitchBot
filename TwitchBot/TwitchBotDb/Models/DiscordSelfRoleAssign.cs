@@ -1,6 +1,6 @@
 ﻿namespace TwitchBotDb.Models
 {
-    public partial class DiscordSelfRoleAssign
+    public class DiscordSelfRoleAssign
     {
         public int Id { get; set; }
         public string RoleName { get; set; }

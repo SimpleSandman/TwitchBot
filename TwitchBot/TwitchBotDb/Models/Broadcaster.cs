@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TwitchBotDb.Models
 {
-    public partial class Broadcaster
+    public class Broadcaster
     {
         public Broadcaster()
         {

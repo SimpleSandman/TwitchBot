@@ -2,7 +2,7 @@
 
 namespace TwitchBotDb.Models
 {
-    public partial class PartyUp
+    public class PartyUp
     {
         public PartyUp()
         {

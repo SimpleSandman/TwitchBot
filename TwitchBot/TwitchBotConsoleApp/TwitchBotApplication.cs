@@ -28,6 +28,7 @@ namespace TwitchBotConsoleApp
 {
     public class TwitchBotApplication
     {
+        #region Private Class Variables
         private CommandSystem _commandSystem;
         private SpotifyWebClient _spotify;
         private DiscordNetClient _discordClient;
@@ -60,7 +61,9 @@ namespace TwitchBotConsoleApp
         private readonly BankHeistSingleton _bankHeistInstance = BankHeistSingleton.Instance;
         private readonly BossFightSingleton _bossFightInstance = BossFightSingleton.Instance;
         private readonly CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
+        #endregion
 
+        #region Constructor
         public TwitchBotApplication(Configuration appConfig, TwitchInfoService twitchInfo, SongRequestBlacklistService songRequestBlacklist,
             FollowerService follower, BankService bank, FollowerSubscriberListener followerListener, ManualSongRequestService manualSongRequest, PartyUpService partyUp,
             GameDirectoryService gameDirectory, QuoteService quote, BankHeist bankHeist, TwitchChatterListener twitchChatterListener, IrcClient irc,
@@ -88,6 +91,7 @@ namespace TwitchBotConsoleApp
             _partyUp = partyUp;
             _discordService = discordService;
         }
+        #endregion
 
         public async Task RunAsync()
         {
@@ -212,8 +216,9 @@ namespace TwitchBotConsoleApp
             {
                 await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "RunAsync()", true);
             }
-        }        
+        }
 
+        #region Private Methods
         /// <summary>
         /// Monitor chat box for commands
         /// </summary>
@@ -279,7 +284,7 @@ namespace TwitchBotConsoleApp
                             }
                             catch (Exception ex)
                             {
-                                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetChatBox()", false, "N/A", chatter.Message);
+                                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetChatBoxAsync()", false, "N/A", chatter.Message);
                             }
                         }
                         else if (rawMessage.Contains("NOTICE"))
@@ -300,7 +305,7 @@ namespace TwitchBotConsoleApp
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetChatBox()", true);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetChatBoxAsync()", true);
             }
         }
 
@@ -838,5 +843,6 @@ namespace TwitchBotConsoleApp
                 await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "FindCustomCommand(TwitchChatter)", false, "N/A", chatter.Message);
             }
         }
+        #endregion
     }
 }

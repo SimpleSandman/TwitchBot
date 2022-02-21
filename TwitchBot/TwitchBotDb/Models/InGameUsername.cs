@@ -1,6 +1,6 @@
 ﻿namespace TwitchBotDb.Models
 {
-    public partial class InGameUsername
+    public class InGameUsername
     {
         public int Id { get; set; }
         public string Message { get; set; }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,6 +29,7 @@ namespace TwitchBotShared.Threads
             _checkStreamStatus = new Thread(new ThreadStart(this.Run));
         }
 
+        #region Public Methods
         public void Start()
         {
             _checkStreamStatus.IsBackground = true;
@@ -46,6 +46,7 @@ namespace TwitchBotShared.Threads
                 CurrentTitle = channelJSON.Title;
             }
         }
+        #endregion
 
         private async void Run()
         {

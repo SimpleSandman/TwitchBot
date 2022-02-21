@@ -2,7 +2,7 @@
 
 namespace TwitchBotDb.Models
 {
-    public partial class CustomCommand
+    public class CustomCommand
     {
         public CustomCommand()
         {
