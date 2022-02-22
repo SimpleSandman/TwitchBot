@@ -44,7 +44,7 @@ namespace TwitchBotDb.Repositories
 
             if (response != null && response.Count > 0)
             {
-                return response.Find(m => m.Username.Contains(username, StringComparison.CurrentCultureIgnoreCase)).Wallet;
+                return response.Find(m => m.Username.ToLower() == username.ToLower()).Wallet;
             }
 
             return -1;
