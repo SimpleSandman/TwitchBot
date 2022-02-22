@@ -41,6 +41,33 @@ namespace TwitchBotShared.Commands.Features
         private readonly YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        #region Private Constant Variables
+        private const string RESET_SRBL = "!resetsrbl";
+        private const string SHOW_SRBL = "!showsrbl";
+        private const string RESET_YTSR = "!resetytsr";
+        private const string MSR_MODE = "!msrmode";
+        private const string YTSR_MODE = "!ytsrmode";
+        private const string DISPLAY_SONGS = "!displaysongs";
+        private const string DJ_MODE = "!djmode";
+        private const string SRBL = "!srbl";
+        private const string DEL_SRBL = "!delsrbl";
+        private const string SET_PERSONAL_PLAYLIST_ID = "!setpersonalplaylistid";
+        private const string RESET_MSR = "!resetmsr";
+        private const string SR = "!sr";
+        private const string YTSR = "!ytsr";
+        private const string SONG_REQUEST = "!songrequest";
+        private const string SL = "!sl";
+        private const string YTSL = "!ytsl";
+        private const string SONG_LIST = "!songlist";
+        private const string RSL = "!rsl";
+        private const string RSR = "!rsr";
+        private const string SONG = "!song";
+        private const string WRONG_SONG = "!wrongsong";
+        private const string LAST_SONG = "!lastsong";
+        private const string POP_RSR = "!poprsr";
+        #endregion
+
+        #region Constructor
         public SongRequestFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, Configuration appConfig,
             SongRequestBlacklistService songRequestBlacklist, LibVLCSharpPlayer libVLCSharpPlayer, SongRequestSettingService songRequestSetting,
             ManualSongRequestService manualSongRequest, BankService bank, SpotifyWebClient spotify) : base(irc, botConfig)
@@ -76,6 +103,7 @@ namespace TwitchBotShared.Commands.Features
             _rolePermissions.Add("!lastsong", new CommandPermission { General = ChatterType.Viewer });
             _rolePermissions.Add("!poprsr", new CommandPermission { General = ChatterType.VIP });
         }
+        #endregion
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
@@ -83,47 +111,47 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!resetsrbl":
+                    case RESET_SRBL:
                         return (true, await ResetSongRequestBlacklistAsync());
-                    case "!showsrbl":
+                    case SHOW_SRBL:
                         return (true, await ListSongRequestBlacklistAsync());
-                    case "!resetytsr":
+                    case RESET_YTSR:
                         return (true, await ResetYoutubeSongRequestListAsync());
-                    case "!msrmode":
+                    case MSR_MODE:
                         return (true, await SetManualSongRequestModeAsync(chatter));
-                    case "!ytsrmode":
+                    case YTSR_MODE:
                         return (true, await SetYouTubeSongRequestModeAsync(chatter));
-                    case "!displaysongs":
+                    case DISPLAY_SONGS:
                         return (true, await SetAutoDisplaySongsAsync(chatter));
-                    case "!djmode":
+                    case DJ_MODE:
                         return (true, await SetDjModeAsync(chatter));
-                    case "!srbl":
+                    case SRBL:
                         return (true, await AddSongRequestBlacklistAsync(chatter));
-                    case "!delsrbl":
+                    case DEL_SRBL:
                         return (true, await RemoveSongRequestBlacklistAsync(chatter));
-                    case "!setpersonalplaylistid":
+                    case SET_PERSONAL_PLAYLIST_ID:
                         return (true, await SetPersonalYoutubePlaylistByIdAsync(chatter));
-                    case "!resetmsr":
+                    case RESET_MSR:
                         return (true, await ResetManualSongRequestAsync());
-                    case "!sr":
-                    case "!ytsr":
-                    case "!songrequest":
+                    case SR:
+                    case YTSR:
+                    case SONG_REQUEST:
                         return (true, await YouTubeSongRequestAsync(chatter));
-                    case "!sl":
-                    case "!ytsl":
-                    case "!songlist":
+                    case SL:
+                    case YTSL:
+                    case SONG_LIST:
                         return (true, await YouTubeSongRequestListAsync());
-                    case "!rsl":
+                    case RSL:
                         return (true, await ManuallyRequestedSongRequestListAsync(chatter));
-                    case "!rsr":
+                    case RSR:
                         return (true, await ManuallyRequestedSongRequestAsync(chatter));
-                    case "!song":
+                    case SONG:
                         return (true, await YouTubeCurrentSongAsync(chatter));
-                    case "!wrongsong":
+                    case WRONG_SONG:
                         return (true, await YoutubeRemoveWrongSongAsync(chatter));
-                    case "!lastsong":
+                    case LAST_SONG:
                         return (true, await YouTubeLastSongAsync(chatter));
-                    case "!poprsr":
+                    case POP_RSR:
                         return (true, await PopManuallyRequestedSongRequestAsync());
                     default:
                         break;
@@ -131,12 +159,13 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
         }
 
+        #region Private Methods
         private async Task<DateTime> AddSongRequestBlacklistAsync(TwitchChatter chatter)
         {
             try
@@ -226,7 +255,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "AddSongRequestBlacklist(TwitchChatter)", false, "!srbl", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "AddSongRequestBlacklistAsync(TwitchChatter)", false, SRBL, chatter.Message);
             }
 
             return DateTime.Now;
@@ -294,7 +323,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "RemoveSongRequestBlacklist(string)", false, "!delsrbl");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "RemoveSongRequestBlacklist(TwitchChatter)", false, DEL_SRBL);
             }
 
             return DateTime.Now;
@@ -313,7 +342,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "ResetSongRequestBlacklist()", false, "!resetsrbl");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "ResetSongRequestBlacklistAsync()", false, RESET_SRBL);
             }
 
             return DateTime.Now;
@@ -349,7 +378,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "ListSongRequestBlacklist()", false, "!showsrbl");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "ListSongRequestBlacklistAsync()", false, SHOW_SRBL);
             }
 
             return DateTime.Now;
@@ -414,7 +443,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "ResetYoutubeSongRequestList()", false, "!resetytsr");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "ResetYoutubeSongRequestListAsync()", false, RESET_YTSR);
             }
 
             return DateTime.Now;
@@ -467,7 +496,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "SetPersonalYoutubePlaylistById(TwitchChatter)", false, "!setpersonalplaylistid");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "SetPersonalYoutubePlaylistByIdAsync(TwitchChatter)", false, SET_PERSONAL_PLAYLIST_ID);
             }
 
             return DateTime.Now;
@@ -497,7 +526,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "SetDjMode(TwitchChatter)", false, "!djmode");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "SetDjModeAsync(TwitchChatter)", false, DJ_MODE);
             }
 
             return DateTime.Now;
@@ -523,7 +552,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "SetManualSrMode(TwitchChatter)", false, "!msrmode");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "SetManualSongRequestModeAsync(TwitchChatter)", false, MSR_MODE);
             }
 
             return DateTime.Now;
@@ -549,7 +578,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "SetYouTubeSrMode(TwitchChatter)", false, "!ytsrmode");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "SetYouTubeSongRequestModeAsync(TwitchChatter)", false, YTSR_MODE);
             }
 
             return DateTime.Now;
@@ -575,7 +604,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "SetAutoDisplaySongs(TwitchChatter)", false, "!displaysongs");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "SetAutoDisplaySongsAsync(TwitchChatter)", false, DISPLAY_SONGS);
             }
 
             return DateTime.Now;
@@ -597,7 +626,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "ResetManualSr()", false, "!resetrsr");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "ResetManualSongRequestAsync()", false, RESET_MSR);
             }
 
             return DateTime.Now;
@@ -813,7 +842,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "YouTubeSongRequest(TwitchChatter, bool, bool)", false, "!ytsr");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "YouTubeSongRequestAsync(TwitchChatter)", false, YTSR);
             }
 
             return DateTime.Now;
@@ -838,7 +867,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "YouTubeSongRequestList(bool)", false, "!ytsl");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "YouTubeSongRequestListAsync()", false, YTSL);
             }
 
             return DateTime.Now;
@@ -859,7 +888,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "ManualSrList(TwitchChatter)", false, "!rsl");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "ManuallyRequestedSongRequestListAsync(TwitchChatter)", false, RSL);
             }
 
             return DateTime.Now;
@@ -899,7 +928,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "ManualSr(bool, TwitchChatter)", false, "!rsr", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "ManuallyRequestedSongRequestAsync(TwitchChatter)", false, RSR, chatter.Message);
             }
 
             return DateTime.Now;
@@ -931,7 +960,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "YouTubeCurrentSong(TwitchChatter)", false, "!song");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "YouTubeCurrentSongAsync(TwitchChatter)", false, SONG);
             }
 
             return DateTime.Now;
@@ -956,7 +985,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "YoutubeRemoveWrongSong(TwitchChatter)", false, "!wrongsong");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "YoutubeRemoveWrongSongAsync(TwitchChatter)", false, WRONG_SONG);
             }
 
             return DateTime.Now;
@@ -994,7 +1023,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "YouTubeLastSong(TwitchChatter)", false, "!lastsong");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "YouTubeLastSongAsync(TwitchChatter)", false, LAST_SONG);
             }
 
             return DateTime.Now;
@@ -1016,7 +1045,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "Vip", "PopManualSr()", false, "!poprsr");
+                await _errHndlrInstance.LogErrorAsync(ex, "SongRequestFeature", "PopManuallyRequestedSongRequestAsync()", false, POP_RSR);
             }
 
             return DateTime.Now;
@@ -1048,5 +1077,6 @@ namespace TwitchBotShared.Commands.Features
 
             return "";
         }
+        #endregion
     }
 }

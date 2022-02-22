@@ -23,15 +23,20 @@ namespace TwitchBotShared.Commands.Features
         private readonly JoinStreamerSingleton _joinStreamerInstance = JoinStreamerSingleton.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        private const string RESET_JOIN = "!resetjoin";
+        private const string LIST_JOIN = "!listjoin";
+        private const string INVITE = "!invite";
+        private const string POP_JOIN = "!popjoin";
+
         public JoinStreamerFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo, 
             GameDirectoryService gameDirectory) : base(irc, botConfig)
         {
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
-            _rolePermissions.Add("!resetjoin", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermissions.Add("!listjoin", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!invite", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!popjoin", new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add(RESET_JOIN, new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add(LIST_JOIN, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(INVITE, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(POP_JOIN, new CommandPermission { General = ChatterType.VIP });
         }
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
@@ -40,13 +45,13 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!resetjoin":
+                    case RESET_JOIN:
                         return (true, await ResetJoinAsync(chatter));
-                    case "!listjoin":
+                    case LIST_JOIN:
                         return (true, await ListJoinAsync(chatter));
-                    case "!invite":
+                    case INVITE:
                         return (true, await InviteAsync(chatter));
-                    case "!popjoin":
+                    case POP_JOIN:
                         return (true, await PopJoinAsync(chatter));
                     default:
                         break;
@@ -54,12 +59,13 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (true, DateTime.Now);
         }
 
+        #region Private Methods
         private async Task<DateTime> ResetJoinAsync(TwitchChatter chatter)
         {
             try
@@ -69,7 +75,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "ResetJoin(TwitchChatter)", false, "!resetjoin");
+                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "ResetJoinAsync(TwitchChatter)", false, RESET_JOIN);
             }
 
             return DateTime.Now;
@@ -95,7 +101,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "ListJoin(TwitchChatter)", false, "!listjoin");
+                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "ListJoinAsync(TwitchChatter)", false, LIST_JOIN);
             }
 
             return DateTime.Now;
@@ -116,7 +122,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "Invite(TwitchChatter)", false, "!join");
+                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "InviteAsync(TwitchChatter)", false, INVITE);
             }
 
             return DateTime.Now;
@@ -130,46 +136,52 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "PopJoin(TwitchChatter)", false, "!popjoin");
+                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "PopJoinAsync(TwitchChatter)", false, POP_JOIN);
             }
 
             return DateTime.Now;
         }
 
-        #region Private Methods
         private async Task<bool> IsMultiplayerGameAsync(string username)
         {
-            // Get current game name
-            ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
-            string gameTitle = json.GameName;
-
-            // Grab game id in order to find party member
-            TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
-
-            if (string.IsNullOrEmpty(gameTitle))
+            try
             {
-                _irc.SendPublicChatMessage("I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
-                    + "Please have the chat verify that the game has been set for this stream. "
-                    + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
-                    + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
-                return false;
+                // Get current game name
+                ChannelJSON json = await _twitchInfo.GetBroadcasterChannelByIdAsync();
+                string gameTitle = json.GameName;
+
+                // Grab game id in order to find party member
+                TwitchGameCategory game = await _gameDirectory.GetGameIdAsync(gameTitle);
+
+                if (string.IsNullOrEmpty(gameTitle))
+                {
+                    _irc.SendPublicChatMessage("I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
+                        + "Please have the chat verify that the game has been set for this stream or if this is intentional. "
+                        + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
+                        + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
+                    return false;
+                }
+                else if (game == null || game.Id == 0)
+                {
+                    _irc.SendPublicChatMessage($"I cannot find the game, \"{gameTitle.TrimEnd()}\", in the database. "
+                        + $"Have my master resolve this issue by typing !support in this chat @{username}");
+                    return false;
+                }
+
+                if (!game.Multiplayer)
+                {
+                    _irc.SendPublicChatMessage("This game is set to single-player only. "
+                        + $"Contact my master with !support in this chat if this isn't correct @{username}");
+                    return false;
+                }
             }
-            else if (game == null || game.Id == 0)
+            catch (Exception ex)
             {
-                _irc.SendPublicChatMessage($"I cannot find the game, \"{gameTitle.TrimEnd()}\", in the database. "
-                    + $"Have my master resolve this issue by typing !support in this chat @{username}");
-                return false;
-            }
-
-            if (!game.Multiplayer)
-            {
-                _irc.SendPublicChatMessage("This game is set to single-player only. "
-                    + $"Contact my master with !support in this chat if this isn't correct @{username}");
-                return false;
+                await _errHndlrInstance.LogErrorAsync(ex, "JoinStreamerFeature", "IsMultiplayerGameAsync(string)", false);
             }
 
             return true;
         }
-        #endregion Private Methods
+        #endregion
     }
 }

@@ -24,11 +24,14 @@ namespace TwitchBotShared.Commands.Features
         private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        private const string QUOTE = "!quote";
+        private const string ADD_QUOTE = "!addquote";
+
         public QuoteFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, QuoteService quote) : base(irc, botConfig)
         {
             _quote = quote;
-            _rolePermissions.Add("!quote", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!addquote", new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add(QUOTE, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(ADD_QUOTE, new CommandPermission { General = ChatterType.VIP });
         }
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
@@ -37,20 +40,21 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!quote":
+                    case QUOTE:
                         return (true, await QuoteAsync());
-                    case "!addquote":
+                    case ADD_QUOTE:
                         return (true, await AddQuoteAsync(chatter));
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "QuoteFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "QuoteFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
         }
 
+        #region Private Methods
         /// <summary>
         /// Display random broadcaster quote
         /// </summary>
@@ -80,7 +84,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "QuoteFeature", "Quote()", false, "!quote");
+                await _errHndlrInstance.LogErrorAsync(ex, "QuoteFeature", "QuoteAsync()", false, QUOTE);
             }
 
             return DateTime.Now.AddSeconds(20);
@@ -102,10 +106,11 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "QuoteFeature", "AddQuote(TwitchChatter)", false, "!addquote");
+                await _errHndlrInstance.LogErrorAsync(ex, "QuoteFeature", "AddQuoteAsync(TwitchChatter)", false, ADD_QUOTE);
             }
 
             return DateTime.Now;
         }
+        #endregion
     }
 }

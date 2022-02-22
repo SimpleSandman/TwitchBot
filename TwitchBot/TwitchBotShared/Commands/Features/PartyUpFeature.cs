@@ -24,17 +24,23 @@ namespace TwitchBotShared.Commands.Features
         private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        private const string PARTY_UP = "!partyup";
+        private const string PARTY_UP_REQUEST_LIST = "!partyuprequestlist";
+        private const string PARTY_UP_LIST = "!partyuplist";
+        private const string POP_PARTY_UP = "!poppartyup";
+        private const string POP_PARTY_UP_REQUEST = "!poppartyuprequest";
+
         public PartyUpFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo,
             GameDirectoryService gameDirectory, PartyUpService partyUp) : base(irc, botConfig)
         {
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
             _partyUp = partyUp;
-            _rolePermissions.Add("!partyup", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!partyuprequestlist", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!partyuplist", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!poppartyup", new CommandPermission { General = ChatterType.VIP });
-            _rolePermissions.Add("!poppartyuprequest", new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add(PARTY_UP, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(PARTY_UP_REQUEST_LIST, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(PARTY_UP_LIST, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(POP_PARTY_UP, new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add(POP_PARTY_UP_REQUEST, new CommandPermission { General = ChatterType.VIP });
         }
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
@@ -43,14 +49,14 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!partyup":
+                    case PARTY_UP:
                         return (true, await PartyUpAsync(chatter));
-                    case "!partyuprequestlist":
+                    case PARTY_UP_REQUEST_LIST:
                         return (true, await PartyUpRequestListAsync());
-                    case "!partyuplist":
+                    case PARTY_UP_LIST:
                         return (true, await PartyUpListAsync());
-                    case "!poppartyup":
-                    case "!poppartyuprequest":
+                    case POP_PARTY_UP:
+                    case POP_PARTY_UP_REQUEST:
                         return (true, await PopPartyUpRequestAsync());
                     default:
                         break;
@@ -58,12 +64,13 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
         }
 
+        #region Private Methods
         /// <summary>
         /// Request party member if game and character exists in party up system
         /// </summary>
@@ -91,7 +98,7 @@ namespace TwitchBotShared.Commands.Features
                 if (string.IsNullOrEmpty(gameTitle))
                 {
                     _irc.SendPublicChatMessage("I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
-                        + "Please have the chat verify that the game has been set for this stream. "
+                        + "Please have the chat verify that the game has been set for this stream or if this is intentional. "
                         + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
                         + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
                     return DateTime.Now;
@@ -125,7 +132,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "PartyUp(TwitchChatter)", false, "!partyup", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "PartyUpAsync(TwitchChatter)", false, PARTY_UP, chatter.Message);
             }
 
             return DateTime.Now;
@@ -146,7 +153,7 @@ namespace TwitchBotShared.Commands.Features
                 if (string.IsNullOrEmpty(gameTitle))
                 {
                     _irc.SendPublicChatMessage("I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
-                        + "Please have the chat verify that the game has been set for this stream. "
+                        + "Please have the chat verify that the game has been set for this stream or if this is intentional. "
                         + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
                         + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
                 }
@@ -157,7 +164,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "PartyUpRequestList()", false, "!partyuprequestlist");
+                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "PartyUpRequestListAsync()", false, PARTY_UP_REQUEST_LIST);
             }
 
             return DateTime.Now;
@@ -178,7 +185,7 @@ namespace TwitchBotShared.Commands.Features
                 if (string.IsNullOrEmpty(gameTitle))
                 {
                     _irc.SendPublicChatMessage("I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
-                        + "Please have the chat verify that the game has been set for this stream. "
+                        + "Please have the chat verify that the game has been set for this stream or if this is intentional. "
                         + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
                         + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
                     return DateTime.Now;
@@ -190,7 +197,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "PartyUpList()", false, "!partyuplist");
+                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "PartyUpListAsync()", false, PARTY_UP_LIST);
             }
 
             return DateTime.Now;
@@ -211,7 +218,7 @@ namespace TwitchBotShared.Commands.Features
                 if (string.IsNullOrEmpty(gameTitle))
                 {
                     _irc.SendPublicChatMessage("I cannot see the name of the game. It's currently set to either NULL or EMPTY. "
-                        + "Please have the chat verify that the game has been set for this stream. "
+                        + "Please have the chat verify that the game has been set for this stream or if this is intentional. "
                         + $"If the error persists, please have @{_botConfig.Broadcaster.ToLower()} retype the game in their Twitch Live Dashboard. "
                         + "If this error shows up again and your chat can see the game set for the stream, please contact my master with !support in this chat");
                 }
@@ -222,10 +229,11 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "PopPartyUpRequest()", false, "!poppartyuprequest");
+                await _errHndlrInstance.LogErrorAsync(ex, "PartyUpFeature", "PopPartyUpRequestAsync()", false, POP_PARTY_UP_REQUEST);
             }
 
             return DateTime.Now;
         }
+        #endregion
     }
 }

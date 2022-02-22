@@ -15,7 +15,7 @@ using TwitchBotShared.Models.JSON;
 namespace TwitchBotShared.Commands.Features
 {
     /// <summary>
-    /// The "Command Subsystem" for the "Reminder" feature
+    /// The "Command Subsystem" for the "Refresh" feature
     /// </summary>
     public sealed class RefreshFeature : BaseFeature
     {
@@ -26,14 +26,18 @@ namespace TwitchBotShared.Commands.Features
         private readonly CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        private const string REFRESH_REMINDERS = "!refreshreminders";
+        private const string REFRESH_BOSS_FIGHT = "!refreshbossfight";
+        private const string REFRESH_COMMANDS = "!refreshcommands";
+
         public RefreshFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo, GameDirectoryService gameDirectory) 
             : base(irc, botConfig)
         {
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
-            _rolePermissions.Add("!refreshreminders", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!refreshbossfight", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!refreshcommands", new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(REFRESH_REMINDERS, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(REFRESH_BOSS_FIGHT, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(REFRESH_COMMANDS, new CommandPermission { General = ChatterType.Broadcaster });
         }
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
@@ -42,11 +46,11 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!refreshreminders":
+                    case REFRESH_REMINDERS:
                         return (true, await RefreshRemindersAsync());
-                    case "!refreshbossfight":
+                    case REFRESH_BOSS_FIGHT:
                         return (true, await RefreshBossFightAsync());
-                    case "!refreshcommands":
+                    case REFRESH_COMMANDS:
                         return (true, await RefreshCommandsAsync());
                     default:
                         break;
@@ -54,12 +58,13 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "ReminderFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "RefreshFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
         }
 
+        #region Private Methods
         private async Task<DateTime> RefreshRemindersAsync()
         {
             try
@@ -68,7 +73,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "ReminderFeature", "RefreshReminders()", false, "!refreshreminders");
+                await _errHndlrInstance.LogErrorAsync(ex, "RefreshFeature", "RefreshRemindersAsync()", false, REFRESH_REMINDERS);
             }
 
             return DateTime.Now;
@@ -101,7 +106,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "ReminderFeature", "RefreshBossFight()", false, "!refreshbossfight");
+                await _errHndlrInstance.LogErrorAsync(ex, "RefreshFeature", "RefreshBossFightAsync()", false, REFRESH_BOSS_FIGHT);
             }
 
             return DateTime.Now;
@@ -117,10 +122,11 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "ReminderFeature", "RefreshCommands()", false, "!refreshcommands");
+                await _errHndlrInstance.LogErrorAsync(ex, "RefreshFeature", "RefreshCommandsAsync()", false, REFRESH_COMMANDS);
             }
 
             return DateTime.Now;
         }
+        #endregion
     }
 }

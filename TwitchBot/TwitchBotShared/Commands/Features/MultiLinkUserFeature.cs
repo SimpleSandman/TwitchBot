@@ -17,11 +17,15 @@ namespace TwitchBotShared.Commands.Features
         private readonly MultiLinkUserSingleton _multiLinkUser = MultiLinkUserSingleton.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        private const string MSL = "!msl";
+        private const string ADD_MSL = "!addmsl";
+        private const string RESET_MSL = "!resetmsl";
+
         public MultiLinkUserFeature(IrcClient irc, TwitchBotConfigurationSection botConfig) : base(irc, botConfig)
         {
-            _rolePermissions.Add("!msl", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!addmsl", new CommandPermission { General = ChatterType.VIP });
-            _rolePermissions.Add("!resetmsl", new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add(MSL, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(ADD_MSL, new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add(RESET_MSL, new CommandPermission { General = ChatterType.VIP });
         }
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
@@ -30,19 +34,19 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!msl":
-                    case "!addmsl":
-                        if ((chatter.Message.StartsWith("!msl ") || chatter.Message.StartsWith("!addmsl "))
-                            && HasPermission("!addmsl", DetermineChatterPermissions(chatter), _rolePermissions))
+                    case MSL:
+                    case ADD_MSL:
+                        if ((chatter.Message.StartsWith($"{MSL} ") || chatter.Message.StartsWith($"{ADD_MSL} "))
+                            && HasPermission(ADD_MSL, DetermineChatterPermissions(chatter), _rolePermissions))
                         {
                             return (true, await AddUsersAsync(chatter));
                         }
-                        else if (chatter.Message == "!msl")
+                        else if (chatter.Message == MSL)
                         {
                             return (true, await ShowLinkAsync(chatter));
                         }
                         break;
-                    case "!resetmsl":
+                    case RESET_MSL:
                         return (true, await ResetLinkAsync(chatter));
                     default:
                         break;
@@ -50,12 +54,13 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "MultiLinkUserFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "MultiLinkUserFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
         }
 
+        #region Private Methods
         /// <summary>
         /// Displays MultiStream link so multiple streamers can be watched at once
         /// </summary>
@@ -68,7 +73,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "MultiLinkUserFeature", "ShowLink(TwitchChatter)", false, "!msl");
+                await _errHndlrInstance.LogErrorAsync(ex, "MultiLinkUserFeature", "ShowLinkAsync(TwitchChatter)", false, MSL);
             }
 
             return DateTime.Now;
@@ -86,7 +91,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "MultiLinkUserFeature", "AddUser(TwitchChatter)", false, "!addmsl", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "MultiLinkUserFeature", "AddUsersAsync(TwitchChatter)", false, ADD_MSL, chatter.Message);
             }
 
             return DateTime.Now;
@@ -107,10 +112,11 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "MultiLinkUserFeature", "ResetLink(TwitchChatter)", false, "!resetmsl");
+                await _errHndlrInstance.LogErrorAsync(ex, "MultiLinkUserFeature", "ResetLinkAsync(TwitchChatter)", false, RESET_MSL);
             }
 
             return DateTime.Now;
         }
+        #endregion
     }
 }

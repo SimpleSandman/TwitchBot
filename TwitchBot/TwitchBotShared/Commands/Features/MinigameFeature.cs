@@ -22,7 +22,6 @@ namespace TwitchBotShared.Commands.Features
         private readonly BankService _bank;
         private readonly FollowerService _follower;
         private readonly TwitchInfoService _twitchInfo;
-        
         private readonly BankHeistSingleton _heistSettingsInstance = BankHeistSingleton.Instance;
         private readonly BossFightSingleton _bossSettingsInstance = BossFightSingleton.Instance;
         private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
@@ -30,17 +29,23 @@ namespace TwitchBotShared.Commands.Features
         private readonly RouletteSingleton _rouletteSingleton = RouletteSingleton.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        private const string ROULETTE = "!roulette";
+        private const string BANK_HEIST = "!bankheist";
+        private const string HEIST = "!heist";
+        private const string RAID = "!raid";
+        private const string BOSS_FIGHT = "!bossfight";
+
         public MinigameFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, BankService bank, FollowerService follower, 
             TwitchInfoService twitchInfo) : base(irc, botConfig)
         {
             _bank = bank;
             _follower = follower;
             _twitchInfo = twitchInfo;
-            _rolePermissions.Add("!roulette", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!bankheist", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!heist", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!raid", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!bossfight", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(ROULETTE, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(BANK_HEIST, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(HEIST, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(RAID, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(BOSS_FIGHT, new CommandPermission { General = ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
@@ -49,31 +54,32 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!roulette":
+                    case ROULETTE:
                         return (true, await RussianRoulette(chatter));
-                    case "!bankheist":
-                    case "!heist":
-                        return (true, await BankHeist(chatter));
-                    case "!raid":
-                    case "!bossfight":
-                        return (true, await BossFight(chatter));
+                    case BANK_HEIST:
+                    case HEIST:
+                        return (true, await BankHeistAsync(chatter));
+                    case RAID:
+                    case BOSS_FIGHT:
+                        return (true, await BossFightAsync(chatter));
                     default:
                         break;
                 }
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "MinigameFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "MinigameFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
         }
 
+        #region Private Methods
         /// <summary>
         /// Play a friendly game of Russian Roulette and risk chat privileges for stream currency
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> RussianRoulette(TwitchChatter chatter)
+        private async Task<DateTime> RussianRoulette(TwitchChatter chatter)
         {
             try
             {
@@ -145,7 +151,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "MinigameFeature", "RussianRoulette(TwitchChatter)", false, "!roulette");
+                await _errHndlrInstance.LogErrorAsync(ex, "MinigameFeature", "RussianRoulette(TwitchChatter)", false, ROULETTE);
             }
 
             return DateTime.Now;
@@ -155,7 +161,7 @@ namespace TwitchBotShared.Commands.Features
         /// Engage in the bank heist minigame
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> BankHeist(TwitchChatter chatter)
+        private async Task<DateTime> BankHeistAsync(TwitchChatter chatter)
         {
             try
             {
@@ -202,7 +208,7 @@ namespace TwitchBotShared.Commands.Features
                     _irc.SendPublicChatMessage($"Please gamble with a positive amount of {_botConfig.CurrencyType} @{chatter.DisplayName}");
                     return DateTime.Now;
                 }
-                else if (funds > 0 && gamble == 0 && (chatter.Message.ToLower() == "!bankheist" || chatter.Message.ToLower() == "!heist"))
+                else if (funds > 0 && gamble == 0 && (chatter.Message.ToLower() == BANK_HEIST || chatter.Message.ToLower() == HEIST))
                 {
                     // make sure the user can gamble something if an amount wasn't specified
                     if (funds > _heistSettingsInstance.MaxGamble)
@@ -265,7 +271,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "MinigameFeature", "BankHeist(TwitchChatter)", false, "!bankheist", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "MinigameFeature", "BankHeistAsync(TwitchChatter)", false, BANK_HEIST, chatter.Message);
             }
 
             return DateTime.Now;
@@ -275,7 +281,7 @@ namespace TwitchBotShared.Commands.Features
         /// Engage in the boss fight minigame
         /// </summary>
         /// <param name="chatter">User that sent the message</param>
-        public async Task<DateTime> BossFight(TwitchChatter chatter)
+        private async Task<DateTime> BossFightAsync(TwitchChatter chatter)
         {
             try
             {
@@ -389,10 +395,11 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "MinigameFeature", "BossFight(TwitchChatter)", false, "!raid");
+                await _errHndlrInstance.LogErrorAsync(ex, "MinigameFeature", "BossFightAsync(TwitchChatter)", false, RAID);
             }
 
             return DateTime.Now;
         }
+        #endregion
     }
 }
