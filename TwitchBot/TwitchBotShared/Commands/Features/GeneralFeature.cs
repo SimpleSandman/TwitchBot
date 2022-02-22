@@ -21,39 +21,71 @@ namespace TwitchBotShared.Commands.Features
         private readonly Configuration _appConfig;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        #region Private Constant Variables
+        private const string SETTINGS = "!settings";
+        private const string EXIT = "!exit";
+        private const string STREAMER = "!streamer";
+        private const string SO = "!so";
+        private const string SHOUTOUT = "!shoutout";
+        private const string CASTER = "!caster";
+        private const string CMDS = "!cmds";
+        private const string HELP = "!help";
+        private const string COMMANDS = "!commands";
+        private const string HELLO = "!hello";
+        private const string HI = "!hi";
+        private const string UTC_TIME = "!utctime";
+        private const string HOST_TIME = "!hosttime";
+        private const string UPTIME = "!uptime";
+        private const string SET_LATENCY = "!setlatency";
+        private const string LATENCY = "!latency";
+        private const string SUPPORT = "!support";
+        private const string BOT = "!bot";
+        private const string LURK = "!lurk";
+        private const string UNLURK = "!unlurk";
+        private const string SUB = "!sub";
+        private const string SUBSCRIBE = "!subscribe";
+        private const string EIGHT_BALL = "!8ball";
+        private const string SLAP = "!slap";
+        private const string STAB = "!stab";
+        private const string SHOOT = "!shoot";
+        private const string THROW = "!throw";
+        #endregion
+
+        #region Constructor
         public GeneralFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo,
             Configuration appConfig) : base(irc, botConfig)
         {
             _twitchInfo = twitchInfo;
             _appConfig = appConfig;
-            _rolePermissions.Add("!settings", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!exit", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!streamer", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!so", new CommandPermission { General = ChatterType.VIP });
-            _rolePermissions.Add("!shoutout", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!caster", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!cmds", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!help", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!commands", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!hello", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!hi", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!utctime", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!hosttime", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!uptime", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!setlatency", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermissions.Add("!latency", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermissions.Add("!support", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!bot", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!lurk", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!unlurk", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!sub", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!subscribe", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!8ball", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!slap", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!stab", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!shoot", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!throw", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(SETTINGS, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(EXIT, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(STREAMER, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(SO, new CommandPermission { General = ChatterType.VIP });
+            _rolePermissions.Add(SHOUTOUT, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(CASTER, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(CMDS, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(HELP, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(COMMANDS, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(HELLO, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(HI, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(UTC_TIME, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(HOST_TIME, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(UPTIME, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(SET_LATENCY, new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add(LATENCY, new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add(SUPPORT, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(BOT, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(LURK, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(UNLURK, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(SUB, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(SUBSCRIBE, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(EIGHT_BALL, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(SLAP, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(STAB, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(SHOOT, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(THROW, new CommandPermission { General = ChatterType.Viewer });
         }
+        #endregion
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
@@ -61,50 +93,50 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!settings":
+                    case SETTINGS:
                         return (true, await BotSettingsAsync());
-                    case "!exit":
+                    case EXIT:
                         return (true, await ExitBotAsync());
-                    case "!streamer":
-                    case "!shoutout":
-                    case "!caster":
-                    case "!so":
+                    case STREAMER:
+                    case SHOUTOUT:
+                    case CASTER:
+                    case SO:
                         return (true, await PromoteStreamerAsync(chatter));
-                    case "!cmds":
-                    case "!help":
-                    case "!commands":
+                    case CMDS:
+                    case HELP:
+                    case COMMANDS:
                         return (true, await DisplayCommandsAsync());
-                    case "!hello":
-                    case "!hi":
+                    case HELLO:
+                    case HI:
                         return (true, await HelloAsync(chatter));
-                    case "!utctime":
+                    case UTC_TIME:
                         return (true, await UtcTimeAsync());
-                    case "!hosttime":
+                    case HOST_TIME:
                         return (true, await HostTimeAsync());
-                    case "!uptime":
+                    case UPTIME:
                         return (true, await UptimeAsync());
-                    case "!setlatency":
-                    case "!latency":
+                    case SET_LATENCY:
+                    case LATENCY:
                         return (true, await SetLatencyAsync(chatter));
-                    case "!support":
-                    case "!bot":
+                    case SUPPORT:
+                    case BOT:
                         return (true, await SupportAsync());
-                    case "!lurk":
+                    case LURK:
                         return (true, await LurkAsync(chatter));
-                    case "!unlurk":
+                    case UNLURK:
                         return (true, await UnlurkAsync(chatter));
-                    case "!sub":
-                    case "!subscribe":
+                    case SUB:
+                    case SUBSCRIBE:
                         return (true, await SubscribeAsync());
-                    case "!8ball":
+                    case EIGHT_BALL:
                         return (true, await Magic8BallAsync(chatter));
-                    case "!slap":
+                    case SLAP:
                         return (true, await SlapAsync(chatter));
-                    case "!stab":
+                    case STAB:
                         return (true, await StabAsync(chatter));
-                    case "!shoot":
+                    case SHOOT:
                         return (true, await ShootAsync(chatter));
-                    case "!throw":
+                    case THROW:
                         return (true, await ThrowAsync(chatter));
                     default:
                         break;
@@ -134,7 +166,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "BotSettingsAsync()", false, "!settings");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "BotSettingsAsync()", false, SETTINGS);
             }
 
             return DateTime.Now;
@@ -152,7 +184,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "ExitBotAsync()", false, "!exit");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "ExitBotAsync()", false, EXIT);
             }
 
             return DateTime.Now;
@@ -162,14 +194,14 @@ namespace TwitchBotShared.Commands.Features
         {
             try
             {
-                _irc.SendPublicChatMessage("---> !hello, !slap @[username], !stab @[username], !throw [item] @[username], !shoot @[username], "
+                _irc.SendPublicChatMessage($"---> {HELLO}, {SLAP} @[username], {STAB} @[username], {THROW} [item] @[username], {SHOOT} @[username], "
                     + "!sr [youtube link/search], !ytsl, !partyup [party member name], !gamble [money], !join, "
-                    + $"!quote, !8ball [question], !{_botConfig.CurrencyType.ToLower()} (check stream currency) <---"
+                    + $"!quote, {EIGHT_BALL} [question], !{_botConfig.CurrencyType.ToLower()} (check stream currency) <---"
                     + " Link to full list of commands: http://bit.ly/2bXLlEe");
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "DisplayCommandsAsync()", false, "!cmds");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "DisplayCommandsAsync()", false, CMDS);
             }
 
             return DateTime.Now;
@@ -184,7 +216,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "HelloAsync(TwitchChatter)", false, "!hello");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "HelloAsync(TwitchChatter)", false, HELLO);
             }
 
             return DateTime.Now;
@@ -198,7 +230,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "UtcTimeAsync()", false, "!utctime");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "UtcTimeAsync()", false, UTC_TIME);
             }
 
             return DateTime.Now;
@@ -219,7 +251,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "HostTimeAsync()", false, "!hosttime");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "HostTimeAsync()", false, HOST_TIME);
             }
 
             return DateTime.Now;
@@ -244,7 +276,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "UptimeAsync()", false, "!uptime");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "UptimeAsync()", false, UPTIME);
             }
 
             return DateTime.Now;
@@ -273,7 +305,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "SetLatencyAsync(TwitchChatter)", false, "!setlatency");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "SetLatencyAsync(TwitchChatter)", false, SET_LATENCY);
             }
 
             return DateTime.Now;
@@ -290,7 +322,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "SupportAsync()", false, "!support");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "SupportAsync()", false, SUPPORT);
             }
 
             return DateTime.Now;
@@ -310,7 +342,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "LurkAsync(TwitchChatter)", false, "!lurk");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "LurkAsync(TwitchChatter)", false, LURK);
             }
 
             return DateTime.Now;
@@ -330,7 +362,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "UnlurkAsync(TwitchChatter)", false, "!unlurk");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "UnlurkAsync(TwitchChatter)", false, UNLURK);
             }
 
             return DateTime.Now;
@@ -360,7 +392,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "SubscribeAsync()", false, "!sub");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "SubscribeAsync()", false, SUB);
             }
 
             return DateTime.Now;
@@ -406,7 +438,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "Magic8BallAsync(TwitchChatter)", false, "!8ball");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "Magic8BallAsync(TwitchChatter)", false, EIGHT_BALL);
             }
 
             return DateTime.Now;
@@ -426,7 +458,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "SlapAsync(TwitchChatter)", false, "!slap", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "SlapAsync(TwitchChatter)", false, SLAP, chatter.Message);
             }
 
             return DateTime.Now;
@@ -446,7 +478,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "StabAsync(TwitchChatter)", false, "!stab", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "StabAsync(TwitchChatter)", false, STAB, chatter.Message);
             }
 
             return DateTime.Now;
@@ -513,7 +545,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "ShootAsync(TwitchChatter)", false, "!shoot", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "ShootAsync(TwitchChatter)", false, SHOOT, chatter.Message);
             }
 
             return DateTime.Now;
@@ -542,7 +574,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "ThrowAsync(TwitchChatter)", false, "!throw", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "ThrowAsync(TwitchChatter)", false, THROW, chatter.Message);
             }
 
             return DateTime.Now;
@@ -591,7 +623,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "PromoteStreamerAsync(TwitchChatter)", false, "!streamer");
+                await _errHndlrInstance.LogErrorAsync(ex, "GeneralFeature", "PromoteStreamerAsync(TwitchChatter)", false, STREAMER);
             }
 
             return DateTime.Now;

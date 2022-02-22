@@ -24,28 +24,48 @@ namespace TwitchBotShared.Commands.Features
         private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        #region Private Constant Variables
+        private const string SET_GAME_IGN = "!setgameign";
+        private const string SET_GAME_ID = "!setgameid";
+        private const string SET_GAME_FC = "!setgamefc";
+        private const string SET_GENERIC_IGN = "!setgenericign";
+        private const string SET_GENERIC_ID = "!setgenericid";
+        private const string SET_GENERIC_FC = "!setgenericfc";
+        private const string DELETE_IGN = "!deleteign";
+        private const string DELETE_ID = "!deleteid";
+        private const string DELETE_FC = "!deletefc";
+        private const string IGN = "!ign";
+        private const string FC = "!fc";
+        private const string GT = "!gt";
+        private const string ALL_IGN = "!allign";
+        private const string ALL_FC = "!allfc";
+        private const string ALL_GT = "!allgt";
+        #endregion
+
+        #region Constructor
         public InGameNameFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, TwitchInfoService twitchInfo, 
             GameDirectoryService gameDirectory, InGameUsernameService ign) : base(irc, botConfig)
         {
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
             _ign = ign;
-            _rolePermissions.Add("!setgameign", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!setgameid", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!setgamefc", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!setgenericign", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!setgenericid", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!setgenericfc", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!deleteign", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!deleteid", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!deletefc", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!ign", new CommandPermission { General = ChatterType.Viewer }); // Display the broadcaster's in-game (user) name based on what they're streaming
-            _rolePermissions.Add("!fc", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!gt", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!allign", new CommandPermission { General = ChatterType.Viewer }); // Display all of the broadcaster's in-game (user) names
-            _rolePermissions.Add("!allfc", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!allgt", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(SET_GAME_IGN, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(SET_GAME_ID, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(SET_GAME_FC, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(SET_GENERIC_IGN, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(SET_GENERIC_ID, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(SET_GENERIC_FC, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(DELETE_IGN, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(DELETE_ID, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(DELETE_FC, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(IGN, new CommandPermission { General = ChatterType.Viewer }); // Display the broadcaster's in-game (user) name based on what they're streaming
+            _rolePermissions.Add(FC, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(GT, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(ALL_IGN, new CommandPermission { General = ChatterType.Viewer }); // Display all of the broadcaster's in-game (user) names
+            _rolePermissions.Add(ALL_FC, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(ALL_GT, new CommandPermission { General = ChatterType.Viewer });
         }
+        #endregion
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
         {
@@ -53,24 +73,24 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!setgameign":
-                    case "!setgameid":
-                    case "!setgamefc":
+                    case SET_GAME_IGN:
+                    case SET_GAME_ID:
+                    case SET_GAME_FC:
                         return (true, await SetGameIgnAsync(chatter));
-                    case "!setgenericign":
-                    case "!setgenericid":
-                    case "!setgenericfc":
+                    case SET_GENERIC_IGN:
+                    case SET_GENERIC_ID:
+                    case SET_GENERIC_FC:
                         return (true, await SetGenericIgnAsync(chatter));
-                    case "!deleteign":
-                    case "!deleteid":
-                    case "!deletefc":
+                    case DELETE_IGN:
+                    case DELETE_ID:
+                    case DELETE_FC:
                         return (true, await DeleteIgnAsync(chatter));
-                    case "!ign":
-                    case "!fc":
-                    case "!gt":
-                    case "!allign":
-                    case "!allfc":
-                    case "!allgt":
+                    case IGN:
+                    case FC:
+                    case GT:
+                    case ALL_IGN:
+                    case ALL_FC:
+                    case ALL_GT:
                         return (true, await InGameUsernameAsync(chatter));
                     default:
                         break;
@@ -78,12 +98,13 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
         }
 
+        #region Private Methods
         private async Task<DateTime> SetGameIgnAsync(TwitchChatter chatter)
         {
             try
@@ -121,7 +142,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "SetGameIgn(TwitchChatter)", false, "!setgameign", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "SetGameIgnAsync(TwitchChatter)", false, SET_GAME_IGN, chatter.Message);
             }
 
             return DateTime.Now;
@@ -156,7 +177,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "SetGenericIgn(TwitchChatter)", false, "!setgenericign", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "SetGenericIgnAsync(TwitchChatter)", false, SET_GENERIC_IGN, chatter.Message);
             }
 
             return DateTime.Now;
@@ -192,7 +213,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "DeleteIgn(TwitchChatter)", false, "!deleteign", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "DeleteIgnAsync(TwitchChatter)", false, DELETE_IGN, chatter.Message);
             }
 
             return DateTime.Now;
@@ -221,10 +242,11 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "InGameUsername(TwitchChatter)", false, "!ign");
+                await _errHndlrInstance.LogErrorAsync(ex, "InGameNameFeature", "InGameUsernameAsync(TwitchChatter)", false, IGN);
             }
 
             return DateTime.Now;
         }
+        #endregion
     }
 }
