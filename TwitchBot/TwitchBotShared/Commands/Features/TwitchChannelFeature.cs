@@ -3,8 +3,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-using RestSharp;
-
 using TwitchBotDb.Models;
 using TwitchBotDb.Services;
 
@@ -25,21 +23,25 @@ namespace TwitchBotShared.Commands.Features
     {
         private readonly GameDirectoryService _gameDirectory;
         private readonly TwitchInfoService _twitchInfo;
-
         private readonly BossFightSingleton _bossFightSettingsInstance = BossFightSingleton.Instance;
         private readonly BroadcasterSingleton _broadcasterInstance = BroadcasterSingleton.Instance;
         private readonly CustomCommandSingleton _customCommandInstance = CustomCommandSingleton.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
+
+        private const string GAME = "!game";
+        private const string TITLE = "!title";
+        private const string UPDATE_GAME = "!updategame";
+        private const string UPDATE_TITLE = "!updatetitle";
 
         public TwitchChannelFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, GameDirectoryService gameDirectory,
             TwitchInfoService twitchInfo) : base(irc, botConfig)
         {
             _twitchInfo = twitchInfo;
             _gameDirectory = gameDirectory;
-            _rolePermissions.Add("!game", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!title", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!updategame", new CommandPermission { General = ChatterType.Moderator });
-            _rolePermissions.Add("!updatetitle", new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add(GAME, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(TITLE, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(UPDATE_GAME, new CommandPermission { General = ChatterType.Moderator });
+            _rolePermissions.Add(UPDATE_TITLE, new CommandPermission { General = ChatterType.Moderator });
         }
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
@@ -48,26 +50,26 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!updategame":
-                    case "!game":
-                        if ((chatter.Message.StartsWith("!game ") || chatter.Message.StartsWith("!updategame ")) 
-                            && HasPermission("!updategame", DetermineChatterPermissions(chatter), _rolePermissions))
+                    case UPDATE_GAME:
+                    case GAME:
+                        if ((chatter.Message.StartsWith($"{GAME} ") || chatter.Message.StartsWith($"{UPDATE_GAME} ")) 
+                            && HasPermission(UPDATE_GAME, DetermineChatterPermissions(chatter), _rolePermissions))
                         {
                             return (true, await UpdateGameAsync(chatter));
                         }
-                        else if (chatter.Message == "!game")
+                        else if (chatter.Message == GAME)
                         {
                             return (true, await ShowCurrentTwitchGameAsync(chatter));
                         }
                         break;
-                    case "!updatetitle":
-                    case "!title":
-                        if ((chatter.Message.StartsWith("!title ") || chatter.Message.StartsWith("!updatetitle ")) 
-                            && HasPermission("!updatetitle", DetermineChatterPermissions(chatter), _rolePermissions))
+                    case UPDATE_TITLE:
+                    case TITLE:
+                        if ((chatter.Message.StartsWith($"{TITLE} ") || chatter.Message.StartsWith($"{UPDATE_TITLE} ")) 
+                            && HasPermission(UPDATE_TITLE, DetermineChatterPermissions(chatter), _rolePermissions))
                         {
                             return (true, await UpdateTitleAsync(chatter));
                         }
-                        else if (chatter.Message == "!title")
+                        else if (chatter.Message == TITLE)
                         {
                             return (true, await ShowCurrentTwitchTitleAsync(chatter));
                         }
@@ -84,6 +86,7 @@ namespace TwitchBotShared.Commands.Features
             return (false, DateTime.Now);
         }
 
+        #region Private Methods
         /// <summary>
         /// Display the current game/category for the Twitch channel
         /// </summary>
@@ -97,7 +100,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "ShowCurrentTwitchGameAsync(TwitchChatter)", false, "!game");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "ShowCurrentTwitchGameAsync(TwitchChatter)", false, GAME);
             }
 
             return DateTime.Now;
@@ -116,7 +119,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "ShowCurrentTwitchTitleAsync(TwitchChatter)", false, "!title");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "ShowCurrentTwitchTitleAsync(TwitchChatter)", false, TITLE);
             }
 
             return DateTime.Now;
@@ -139,7 +142,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "UpdateTitleAsync(TwitchChatter)", false, "!updatetitle");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "UpdateTitleAsync(TwitchChatter)", false, UPDATE_TITLE);
             }
 
             return DateTime.Now;
@@ -187,10 +190,11 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "UpdateGameAsync(TwitchChatter)", false, "!updategame");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChannelFeature", "UpdateGameAsync(TwitchChatter)", false, UPDATE_GAME);
             }
 
             return DateTime.Now;
         }
+        #endregion
     }
 }

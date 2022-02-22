@@ -17,18 +17,28 @@ namespace TwitchBotShared.Commands.Features
         private readonly SpotifyWebClient _spotify;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
+        private const string SPOTIFY_CONNECT = "!spotifyconnect";
+        private const string SPOTIFY_PLAY = "!spotifyplay";
+        private const string SPOTIFY_PAUSE = "!spotifypause";
+        private const string SPOTIFY_PREV = "!spotifyprev";
+        private const string SPOTIFY_BACK = "!spotifyback";
+        private const string SPOTIFY_NEXT = "!spotifynext";
+        private const string SPOTIFY_SKIP = "!spotifyskip";
+        private const string SPOTIFY_SONG = "!spotifysong";
+        private const string SPOTIFY_LAST_SONG = "!spotifylastsong";
+
         public SpotifyFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, SpotifyWebClient spotify) : base(irc, botConfig)
         {
             _spotify = spotify;
-            _rolePermissions.Add("!spotifyconnect", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!spotifyplay", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!spotifypause", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!spotifyprev", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!spotifyback", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!spotifynext", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!spotifyskip", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!spotifysong", new CommandPermission { General = ChatterType.Viewer });
-            _rolePermissions.Add("!spotifylastsong", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(SPOTIFY_CONNECT, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(SPOTIFY_PLAY, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(SPOTIFY_PAUSE, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(SPOTIFY_PREV, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(SPOTIFY_BACK, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(SPOTIFY_NEXT, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(SPOTIFY_SKIP, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(SPOTIFY_SONG, new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(SPOTIFY_LAST_SONG, new CommandPermission { General = ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
@@ -37,21 +47,21 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!spotifyconnect": // Manually connect to Spotify
+                    case SPOTIFY_CONNECT: // Manually connect to Spotify
                         return (true, await _spotify.ConnectAsync());
-                    case "!spotifyplay": // Press local Spotify play button [>]
+                    case SPOTIFY_PLAY: // Press local Spotify play button [>]
                         return (true, await _spotify.PlayAsync());
-                    case "!spotifypause": // Press local Spotify pause button [||]
+                    case SPOTIFY_PAUSE: // Press local Spotify pause button [||]
                         return (true, await _spotify.PauseAsync());
-                    case "!spotifyprev": // Press local Spotify previous button [|<]
-                    case "!spotifyback":
+                    case SPOTIFY_PREV: // Press local Spotify previous button [|<]
+                    case SPOTIFY_BACK:
                         return (true, await _spotify.SkipToPreviousPlaybackAsync());
-                    case "!spotifynext": // Press local Spotify next (skip) button [>|]
-                    case "!spotifyskip":
+                    case SPOTIFY_NEXT: // Press local Spotify next (skip) button [>|]
+                    case SPOTIFY_SKIP:
                         return (true, await _spotify.SkipToNextPlaybackAsync());
-                    case "!spotifysong":
+                    case SPOTIFY_SONG:
                         return (true, await SpotifyCurrentSongAsync(chatter));
-                    case "!spotifylastsong":
+                    case SPOTIFY_LAST_SONG:
                         return (true, await SpotifyLastLongAsync(chatter));
                     default:
                         break;
@@ -59,12 +69,13 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
         }
 
+        #region Private Methods
         /// <summary>
         /// Displays the current song being played from Spotify
         /// </summary>
@@ -77,7 +88,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyFeature", "SpotifyCurrentSong(TwitchChatter)", false, "!spotifysong");
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyFeature", "SpotifyCurrentSongAsync(TwitchChatter)", false, SPOTIFY_SONG);
             }
 
             return DateTime.Now;
@@ -91,10 +102,11 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyFeature", "SpotifyLastLong(TwitchChatter)", false, "!spotifylastsong");
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyFeature", "SpotifyLastLongAsync(TwitchChatter)", false, SPOTIFY_LAST_SONG);
             }
 
             return DateTime.Now;
         }
+        #endregion
     }
 }

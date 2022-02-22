@@ -16,18 +16,23 @@ namespace TwitchBotShared.Commands.Features
     /// </summary>
     public sealed class TwitterFeature : BaseFeature
     {
+        private readonly Configuration _appConfig;
         private readonly DelayedMessageSingleton _delayedMessagesInstance = DelayedMessageSingleton.Instance;
         private readonly TwitterClient _twitterInstance = TwitterClient.Instance;
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
-        private readonly Configuration _appConfig;
+
+        private const string AUTO_TWEET = "!autotweet";
+        private const string TWEET = "!tweet";
+        private const string LIVE = "!live";
+        private const string TWITTER = "!twitter";
 
         public TwitterFeature(IrcClient irc, TwitchBotConfigurationSection botConfig, Configuration appConfig) : base(irc, botConfig)
         {
             _appConfig = appConfig;
-            _rolePermissions.Add("!autotweet", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!tweet", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!live", new CommandPermission { General = ChatterType.Broadcaster });
-            _rolePermissions.Add("!twitter", new CommandPermission { General = ChatterType.Viewer });
+            _rolePermissions.Add(AUTO_TWEET, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(TWEET, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(LIVE, new CommandPermission { General = ChatterType.Broadcaster });
+            _rolePermissions.Add(TWITTER, new CommandPermission { General = ChatterType.Viewer });
         }
 
         public override async Task<(bool, DateTime)> ExecCommandAsync(TwitchChatter chatter, string requestedCommand)
@@ -36,13 +41,13 @@ namespace TwitchBotShared.Commands.Features
             {
                 switch (requestedCommand)
                 {
-                    case "!autotweet":
+                    case AUTO_TWEET:
                         return (true, await SetAutoTweetAsync(chatter));
-                    case "!tweet":
+                    case TWEET:
                         return (true, await TweetAsync(chatter));
-                    case "!live":
+                    case LIVE:
                         return (true, await LiveAsync());
-                    case "!twitter":
+                    case TWITTER:
                         return (true, await TwitterLinkAsync());
                     default:
                         break;
@@ -50,7 +55,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "ExecCommand(TwitchChatter, string)", false, requestedCommand, chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "ExecCommandAsync(TwitchChatter, string)", false, requestedCommand, chatter.Message);
             }
 
             return (false, DateTime.Now);
@@ -59,6 +64,7 @@ namespace TwitchBotShared.Commands.Features
         /// <summary>
         /// Enables tweets to be sent out from this bot (both auto publish tweets and manual tweets)
         /// </summary>
+        /// <param name="chatter"></param>
         private async Task<DateTime> SetAutoTweetAsync(TwitchChatter chatter)
         {
             try
@@ -81,7 +87,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "EnableTweet()", false, "!sendtweet on");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "SetAutoTweetAsync(TwitchChatter)", false, AUTO_TWEET);
             }
 
             return DateTime.Now;
@@ -90,7 +96,7 @@ namespace TwitchBotShared.Commands.Features
         /// <summary>
         /// Manually send a tweet
         /// </summary>
-        /// <param name="message">Chat message from the user</param>
+        /// <param name="chatter"></param>
         private async Task<DateTime> TweetAsync(TwitchChatter chatter)
         {
             try
@@ -102,7 +108,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "Tweet(TwitchChatter)", false, "!tweet");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "TweetAsync(TwitchChatter)", false, TWEET);
             }
 
             return DateTime.Now;
@@ -135,7 +141,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "Live()", false, "!live");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "LiveAsync()", false, LIVE);
             }
 
             return DateTime.Now;
@@ -158,7 +164,7 @@ namespace TwitchBotShared.Commands.Features
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "Gen", "TwitterLink(bool, string)", false, "!twitter");
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitterFeature", "TwitterLinkAsync()", false, TWITTER);
             }
 
             return DateTime.Now;
