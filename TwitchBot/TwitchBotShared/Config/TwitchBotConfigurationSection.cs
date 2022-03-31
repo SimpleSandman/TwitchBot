@@ -94,6 +94,9 @@ namespace TwitchBotShared.Config
 
         private static readonly ConfigurationProperty _discordServerName =
             new ConfigurationProperty("discordServerName", typeof(string), "", ConfigurationPropertyOptions.None);
+
+        private static readonly ConfigurationProperty _showUserConsoleLog =
+            new ConfigurationProperty("showUserConsoleLog", typeof(bool), false, ConfigurationPropertyOptions.None);
         #endregion
 
         #region Constructor
@@ -129,7 +132,8 @@ namespace TwitchBotShared.Config
                 _isManualSongRequestAvail,
                 _isYouTubeSongRequestAvail,
                 _discordToken,
-                _discordServerName
+                _discordServerName,
+                _showUserConsoleLog
             };
         }
         #endregion
@@ -466,6 +470,16 @@ namespace TwitchBotShared.Config
             {
                 ThrowIfReadOnly("DiscordServerName");
                 this["discordServerName"] = value;
+            }
+        }
+
+        public bool ShowUserConsoleLog
+        {
+            get { return (bool)this["showUserConsoleLog"]; }
+            set
+            {
+                ThrowIfReadOnly("ShowUserConsoleLog");
+                this["showUserConsoleLog"] = value;
             }
         }
         #endregion

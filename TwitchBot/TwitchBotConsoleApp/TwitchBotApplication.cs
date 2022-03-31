@@ -29,6 +29,8 @@ namespace TwitchBotConsoleApp
     public class TwitchBotApplication
     {
         #region Private Class Variables
+        private const string TMI_SERVER_NAME = "tmi.twitch.tv";
+
         private CommandSystem _commandSystem;
         private SpotifyWebClient _spotify;
         private DiscordNetClient _discordClient;
@@ -53,6 +55,7 @@ namespace TwitchBotConsoleApp
         private readonly TwitchChatterListener _twitchChatterListener;
         private readonly PartyUpService _partyUp;
         private readonly DiscordSelfAssignRoleService _discordService;
+
         private readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
         private readonly TwitterClient _twitterInstance = TwitterClient.Instance;
         private readonly YoutubeClient _youTubeClientInstance = YoutubeClient.Instance;
@@ -204,7 +207,7 @@ namespace TwitchBotConsoleApp
                 await _customCommandInstance.LoadCustomCommands(_botConfig.TwitchBotApiLink, _broadcasterInstance.DatabaseId);
 
                 /* Authenticate to Twitter if possible */
-                GetTwitterAuth();
+                GetTwitterAuthAsync();
 
                 Console.WriteLine("===== Time to get to work! =====");
                 Console.WriteLine();
@@ -231,74 +234,88 @@ namespace TwitchBotConsoleApp
                 {
                     // Read any message inside the chat room
                     string rawMessage = await _irc.ReadMessageAsync();
-                    Console.WriteLine(rawMessage); // Print raw irc message
 
-                    if (!string.IsNullOrEmpty(rawMessage))
+                    if (string.IsNullOrEmpty(rawMessage))
                     {
-                        /* 
-                        * Get user name and message from chat 
-                        * and check if user has access to certain functions
-                        */
-                        if (rawMessage.Contains("PRIVMSG"))
+                        continue;
+                    }
+
+                    if (!_botConfig.ShowUserConsoleLog && 
+                        (rawMessage.Contains($"{TMI_SERVER_NAME} PRIVMSG #") 
+                            || rawMessage.Contains($"{TMI_SERVER_NAME} JOIN #")
+                            || rawMessage.Contains($"{TMI_SERVER_NAME} PART #")
+                            || rawMessage.Contains($"{TMI_SERVER_NAME} USERSTATE #")))
+                    {
+                        // do not show any chatter info or messages
+                    }
+                    else
+                    {
+                        Console.WriteLine(rawMessage); // print raw irc message
+                    }
+
+                    /* 
+                    * Get user name and message from chat 
+                    * and check if user has access to certain functions
+                    */
+                    if (rawMessage.Contains($"{TMI_SERVER_NAME} PRIVMSG #"))
+                    {
+                        // Modify message to only show user and message
+                        // Reference: https://dev.twitch.tv/docs/irc/tags/#privmsg-twitch-tags
+                        int indexParseSign = rawMessage.IndexOf(" :");
+                        string modifiedMessage = rawMessage.Remove(0, indexParseSign + 2);
+
+                        indexParseSign = modifiedMessage.IndexOf('!');
+                        string username = modifiedMessage.Substring(0, indexParseSign);
+
+                        indexParseSign = modifiedMessage.IndexOf(" :");
+                        string message = modifiedMessage.Substring(indexParseSign + 2);
+
+                        TwitchChatter chatter = new TwitchChatter
                         {
-                            // Modify message to only show user and message
-                            // Reference: https://dev.twitch.tv/docs/irc/tags/#privmsg-twitch-tags
-                            int indexParseSign = rawMessage.IndexOf(" :");
-                            string modifiedMessage = rawMessage.Remove(0, indexParseSign + 2);
+                            Username = username,
+                            Message = message,
+                            DisplayName = PrivMsgParameterValue(rawMessage, "display-name"),
+                            Badges = PrivMsgParameterValue(rawMessage, "badges"),
+                            TwitchId = PrivMsgParameterValue(rawMessage, "user-id"),
+                            MessageId = PrivMsgParameterValue(rawMessage, "id")
+                        };
 
-                            indexParseSign = modifiedMessage.IndexOf('!');
-                            string username = modifiedMessage.Substring(0, indexParseSign);
+                        message = message.ToLower(); // make commands case-insensitive
 
-                            indexParseSign = modifiedMessage.IndexOf(" :");
-                            string message = modifiedMessage.Substring(indexParseSign + 2);
-
-                            TwitchChatter chatter = new TwitchChatter
+                        try
+                        {
+                            // Purge any clips that aren't from the broadcaster that a viewer posts
+                            if (_botConfig.Broadcaster.ToLower() != chatter.Username
+                                && !chatter.Badges.Contains("moderator") 
+                                && !await IsAllowedChatMessageAsync(chatter))
                             {
-                                Username = username,
-                                Message = message,
-                                DisplayName = PrivMsgParameterValue(rawMessage, "display-name"),
-                                Badges = PrivMsgParameterValue(rawMessage, "badges"),
-                                TwitchId = PrivMsgParameterValue(rawMessage, "user-id"),
-                                MessageId = PrivMsgParameterValue(rawMessage, "id")
-                            };
-
-                            message = message.ToLower(); // make commands case-insensitive
-
-                            try
-                            {
-                                // Purge any clips that aren't from the broadcaster that a viewer posts
-                                if (_botConfig.Broadcaster.ToLower() != chatter.Username
-                                    && !chatter.Badges.Contains("moderator") 
-                                    && !await IsAllowedChatMessageAsync(chatter))
-                                {
-                                    _irc.ClearMessage(chatter);
-                                    _irc.SendPublicChatMessage($"Please refrain from posting a message that isn't for this channel @{chatter.DisplayName}");
-                                    continue;
-                                }
-
-                                await GreetUserAsync(chatter);
-
-                                await _commandSystem.ExecRequestAsync(chatter);
-
-                                FindCustomCommand(chatter);
+                                _irc.ClearMessage(chatter);
+                                _irc.SendPublicChatMessage($"Please refrain from posting a message that isn't for this channel @{chatter.DisplayName}");
+                                continue;
                             }
-                            catch (Exception ex)
-                            {
-                                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetChatBoxAsync()", false, "N/A", chatter.Message);
-                            }
+
+                            await GreetUserAsync(chatter);
+
+                            await _commandSystem.ExecRequestAsync(chatter);
+
+                            FindCustomCommandAsync(chatter);
                         }
-                        else if (rawMessage.Contains("NOTICE"))
+                        catch (Exception ex)
                         {
-                            if (rawMessage.Contains("Error logging in"))
-                            {
-                                Console.WriteLine("\n------------> URGENT <------------");
-                                Console.WriteLine("Please check your credentials and try again.");
-                                Console.WriteLine("If this error persists, please check if you can access your channel's chat.");
-                                Console.WriteLine("If not, then contact Twitch support.");
-                                Console.WriteLine("Exiting bot application now...");
-                                Thread.Sleep(7500);
-                                Environment.Exit(0);
-                            }
+                            await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetChatBoxAsync()", false, "N/A", chatter.Message);
+                        }
+                    }
+                    else if (rawMessage.Contains("NOTICE"))
+                    {
+                        if (rawMessage.Contains("Error logging in"))
+                        {
+                            Console.WriteLine("\n------------> URGENT <------------");
+                            Console.WriteLine("Please check your credentials and try again.");
+                            Console.WriteLine("If this error persists, please check if you can access your channel's chat.");
+                            Console.WriteLine("If not, then contact Twitch support.");
+                            Console.WriteLine("Exiting bot application now...");
+                            Thread.Sleep(7500);
+                            Environment.Exit(0);
                         }
                     }
                 } // end master while loop
@@ -350,7 +367,7 @@ namespace TwitchBotConsoleApp
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "SetBroadcasterIds()", true);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "SetBroadcasterIdsAsync()", true);
             }
         }
 
@@ -402,14 +419,14 @@ namespace TwitchBotConsoleApp
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GreetUser(TwitchChatter)", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GreetUserAsync(TwitchChatter)", false);
             }
         }
 
         /// <summary>
         /// Get access to user's Twitter credentials via PIN-based authentication
         /// </summary>
-        private async void GetTwitterAuth()
+        private async void GetTwitterAuthAsync()
         {
             try
             { 
@@ -494,7 +511,7 @@ namespace TwitchBotConsoleApp
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetTwitterAuth()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetTwitterAuthAsync()", false);
             }
         }
 
@@ -653,7 +670,7 @@ namespace TwitchBotConsoleApp
             catch (Exception ex)
             {
                 _youTubeClientInstance.HasCredentials = false; // do not allow any YouTube features for this bot until error has been resolved
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetYouTubeAuth()", false);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "GetYouTubeAuthAsync()", false);
             }
         }
 
@@ -755,7 +772,7 @@ namespace TwitchBotConsoleApp
         /// Load a custom command made by the broadcaster
         /// </summary>
         /// <param name="chatter"></param>
-        private async void FindCustomCommand(TwitchChatter chatter)
+        private async void FindCustomCommandAsync(TwitchChatter chatter)
         {
             try
             {
@@ -840,7 +857,7 @@ namespace TwitchBotConsoleApp
             }
             catch (Exception ex)
             {
-                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "FindCustomCommand(TwitchChatter)", false, "N/A", chatter.Message);
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "FindCustomCommandAsync(TwitchChatter)", false, "N/A", chatter.Message);
             }
         }
         #endregion
