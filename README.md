@@ -56,6 +56,7 @@ For further documentation on "OAuth Implicit Code Flow", please refer to [this l
     enableTweets="false" 
     libVLCAudioOutputDevice=""
     regularFollowerHours="30"
+    showUserConsoleLog="false"
     spotifyClientId=""
     spotifyRedirectUri=""
     streamLatency="10" 
