@@ -25,7 +25,7 @@ In order for the chat bot to run correctly, we need a few permissions:
 - `moderation:read`
 - `user:read:email`
 
-For more information on the permissions above, please refer to the scope documentation [here](https://dev.twitch.tv/docs/authentication#scopes).
+For more information on the permissions above, please refer to the scope documentation [here](https://dev.twitch.tv/docs/authentication/scopes).
 
 NOTE: You'll need to add your own Client-ID since this will be based on a proxy/alternate Twitch account for the chat bot. Also, we will be utilizing `http://localhost` for development purposes.
 
