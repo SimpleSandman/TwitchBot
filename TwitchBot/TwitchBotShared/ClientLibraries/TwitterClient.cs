@@ -36,16 +36,23 @@ namespace TwitchBotShared.ClientLibraries
 
         public string SendTweet(string message)
         {
-            if (message.Length <= 280)
+            try
             {
-                Tokens.Statuses.Update(new { status = message });
-                return "Tweet successfully published!";
+                if (message.Length <= 280)
+                {
+                    Tokens.Statuses.Update(new { status = message });
+                    return "Tweet successfully published!";
+                }
+                else
+                {
+                    int overCharLimit = message.Length - 280;
+                    return $"The message you attempted to tweet had {overCharLimit}" +
+                        " characters more than the 280 character limit. Please shorten your message and try again";
+                }
             }
-            else
+            catch
             {
-                int overCharLimit = message.Length - 280;
-                return $"The message you attempted to tweet had {overCharLimit}" +
-                    " characters more than the 280 character limit. Please shorten your message and try again";
+                return "Unknown error has occurred for your proposed tweet.";
             }
         }
     }

@@ -123,7 +123,7 @@ namespace TwitchBotShared.Commands.Features
                     {
                         foreach (string user in userList)
                         {
-                            if (_twitchChatterListInstance.GetUserChatterType(user) == ChatterType.Moderator)
+                            if (await _twitchChatterListInstance.GetUserChatterTypeAsync(user) == ChatterType.Moderator)
                             {
                                 _irc.SendPublicChatMessage($"Entire deposit voided. You cannot add {_botConfig.CurrencyType} to another moderator's account @{chatter.DisplayName}");
                                 return DateTime.Now;
@@ -214,7 +214,7 @@ namespace TwitchBotShared.Commands.Features
                             + $" or use the !deposit command to add {_botConfig.CurrencyType} to a user's account");
                     else if (!isValidFee)
                         _irc.SendPublicChatMessage($"The fee wasn't accepted. Please try again with negative whole amount (no decimals) @{chatter.DisplayName}");
-                    else if (chatter.Username != _botConfig.Broadcaster.ToLower() && _twitchChatterListInstance.GetUserChatterType(recipient) == ChatterType.Moderator)
+                    else if (chatter.Username != _botConfig.Broadcaster.ToLower() && await _twitchChatterListInstance.GetUserChatterTypeAsync(recipient) == ChatterType.Moderator)
                         _irc.SendPublicChatMessage($"Entire deposit voided. You cannot remove {_botConfig.CurrencyType} from another moderator's account @{chatter.DisplayName}");
                     else /* Deduct funds from wallet */
                     {
@@ -293,7 +293,7 @@ namespace TwitchBotShared.Commands.Features
                     else
                     {
                         // Wait until chatter lists are available
-                        // ToDo: Create timeout in case if list never becomes available
+                        // TODO: Create timeout in case if list never becomes available
                         while (!_twitchChatterListInstance.AreListsAvailable)
                         {
 
@@ -308,8 +308,9 @@ namespace TwitchBotShared.Commands.Features
                         }
                         else // moderators gives stream currency to all but other moderators (including broadcaster)
                         {
+                            // TODO: Look into replacement for ".Result" with proper await/async
                             chatterList = chatterList
-                                .Where(t => _twitchChatterListInstance.GetUserChatterType(t) != ChatterType.Moderator
+                                .Where(t => _twitchChatterListInstance.GetUserChatterTypeAsync(t).Result != ChatterType.Moderator
                                     && t != _botConfig.BotName.ToLower()).ToList();
                         }
 

@@ -349,7 +349,7 @@ namespace TwitchBotShared.Commands.Features
                     //}
                     else
                     {
-                        chatterType = _twitchChatterListInstance.GetUserChatterType(chatter.Username);
+                        chatterType = await _twitchChatterListInstance.GetUserChatterTypeAsync(chatter.Username);
                         if (chatterType == ChatterType.DoesNotExist)
                         {
                             FollowerJSON response = await _twitchInfo.CheckFollowerStatusAsync(chatter.TwitchId);

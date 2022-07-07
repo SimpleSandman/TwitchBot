@@ -29,7 +29,7 @@ namespace TwitchBotShared.ClientLibraries
         {
             try
             {
-                if (!HasInitialConfig())
+                if (!await HasInitialConfig())
                 {
                     return DateTime.Now;
                 }
@@ -267,29 +267,52 @@ namespace TwitchBotShared.ClientLibraries
 
         private async Task OnErrorReceived(object sender, string error, string state)
         {
-            Console.WriteLine($"Aborting authorization, error received: {error}");
-            await _server.Stop();
-        }
-
-        private void RetryAccess()
-        {
-            // Renew access token with retry
-            _spotifyConfig = _spotifyConfig
-                .WithRetryHandler(new SimpleRetryHandler() { RetryAfter = TimeSpan.FromSeconds(1) });
-
-            _spotify = new SpotifyClient(_spotifyConfig);
-        }
-
-        private bool HasInitialConfig()
-        {
-            if (string.IsNullOrEmpty(_botConfig.SpotifyClientId) || string.IsNullOrEmpty(_botConfig.SpotifyRedirectUri))
+            try
             {
-                Console.WriteLine("Warning: Spotify hasn't been set up for this bot.");
-                Console.WriteLine("Please insert a Spotify client Id and redirect URI in the bot config\n");
-                return false;
+                Console.WriteLine($"Aborting authorization, error received: {error}");
+                await _server.Stop();
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyWebClient", "OnErrorReceived(object, string, string)", false);
+            }
+        }
+
+        private async void RetryAccess()
+        {
+            try
+            {
+                // Renew access token with retry
+                _spotifyConfig = _spotifyConfig
+                    .WithRetryHandler(new SimpleRetryHandler() { RetryAfter = TimeSpan.FromSeconds(1) });
+
+                _spotify = new SpotifyClient(_spotifyConfig);
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyWebClient", "RetryAccess()", false);
+            }
+        }
+
+        private async Task<bool> HasInitialConfig()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_botConfig.SpotifyClientId) || string.IsNullOrEmpty(_botConfig.SpotifyRedirectUri))
+                {
+                    Console.WriteLine("Warning: Spotify hasn't been set up for this bot.");
+                    Console.WriteLine("Please insert a Spotify client Id and redirect URI in the bot config\n");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "SpotifyWebClient", "HasInitialConfig()", false);
             }
 
-            return true;
+            return false;
         }
         #endregion
     }

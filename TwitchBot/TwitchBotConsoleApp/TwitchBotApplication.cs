@@ -274,10 +274,10 @@ namespace TwitchBotConsoleApp
                         {
                             Username = username,
                             Message = message,
-                            DisplayName = PrivMsgParameterValue(rawMessage, "display-name"),
-                            Badges = PrivMsgParameterValue(rawMessage, "badges"),
-                            TwitchId = PrivMsgParameterValue(rawMessage, "user-id"),
-                            MessageId = PrivMsgParameterValue(rawMessage, "id")
+                            DisplayName = await PrivMsgParameterValue(rawMessage, "display-name"),
+                            Badges = await PrivMsgParameterValue(rawMessage, "badges"),
+                            TwitchId = await PrivMsgParameterValue(rawMessage, "user-id"),
+                            MessageId = await PrivMsgParameterValue(rawMessage, "id")
                         };
 
                         message = message.ToLower(); // make commands case-insensitive
@@ -517,24 +517,29 @@ namespace TwitchBotConsoleApp
 
         private async Task<bool> VerifyTwitterCredentialsAsync(Tokens tokens)
         {
-            // Verify creds
-            UserResponse response = await tokens.Account.VerifyCredentialsAsync();
-
-            if (response.Id != null)
+            try
             {
-                // Allow Twitter-based commands to use user's credentials provided by the bot user
-                _twitterInstance.ScreenName = response.ScreenName;
-                _twitterInstance.HasCredentials = true;
-                _twitterInstance.Tokens = tokens;
+                UserResponse response = await tokens.Account.VerifyCredentialsAsync();
 
-                return true;
+                if (response.Id != null)
+                {
+                    // Allow Twitter-based commands to use user's credentials provided by the bot user
+                    _twitterInstance.ScreenName = response.ScreenName;
+                    _twitterInstance.HasCredentials = true;
+                    _twitterInstance.Tokens = tokens;
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "VerifyTwitterCredentialsAsync(Tokens)", false);
             }
 
-            Console.WriteLine();
-            Console.WriteLine("Warning: Couldn't validate Twitter credentials.");
+            Console.WriteLine("\nWarning: Couldn't validate Twitter credentials.");
             Console.WriteLine("Either the PIN code wasn't entered correctly or unknown authentication error occurred");
-            Console.WriteLine("Continuing without Twitter features...");
-            Console.WriteLine();
+            Console.WriteLine("Continuing without Twitter features...\n");
+
             return false;
         }
 
@@ -543,16 +548,23 @@ namespace TwitchBotConsoleApp
         /// </summary>
         /// <param name="accessToken"></param>
         /// <param name="accessSecret"></param>
-        private void SaveTwitterAccessInfo(string accessToken, string accessSecret)
+        private async void SaveTwitterAccessInfo(string accessToken, string accessSecret)
         {
-            _botConfig.TwitterAccessToken = accessToken;
-            _botConfig.TwitterAccessSecret = accessSecret;
-            _appConfig.AppSettings.Settings.Remove("twitterAccessToken");
-            _appConfig.AppSettings.Settings.Add("twitterAccessToken", accessToken);
-            _appConfig.AppSettings.Settings.Remove("twitterAccessSecret");
-            _appConfig.AppSettings.Settings.Add("twitterAccessSecret", accessSecret);
-            _appConfig.Save(ConfigurationSaveMode.Modified);
-            ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+            try
+            {
+                _botConfig.TwitterAccessToken = accessToken;
+                _botConfig.TwitterAccessSecret = accessSecret;
+                _appConfig.AppSettings.Settings.Remove("twitterAccessToken");
+                _appConfig.AppSettings.Settings.Add("twitterAccessToken", accessToken);
+                _appConfig.AppSettings.Settings.Remove("twitterAccessSecret");
+                _appConfig.AppSettings.Settings.Add("twitterAccessSecret", accessSecret);
+                _appConfig.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("TwitchBotConfiguration");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "SaveTwitterAccessInfo(string, string)", false);
+            }
         }
 
         private async Task GetYouTubeAuthAsync()
@@ -680,11 +692,20 @@ namespace TwitchBotConsoleApp
         /// <param name="rawMessage"></param>
         /// <param name="parameterName"></param>
         /// <returns></returns>
-        private string PrivMsgParameterValue(string rawMessage, string parameterName)
+        private async Task<string> PrivMsgParameterValue(string rawMessage, string parameterName)
         {
-            int parameterParseIndex = rawMessage.IndexOf($"{parameterName}=") + parameterName.Length + 1;
-            int indexParseSign = rawMessage.IndexOf(";", parameterParseIndex);
-            return rawMessage.Substring(parameterParseIndex, indexParseSign - parameterParseIndex);
+            try
+            {
+                int parameterParseIndex = rawMessage.IndexOf($"{parameterName}=") + parameterName.Length + 1;
+                int indexParseSign = rawMessage.IndexOf(";", parameterParseIndex);
+                return rawMessage.Substring(parameterParseIndex, indexParseSign - parameterParseIndex);
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "PrivMsgParameterValue(string, string)", true);
+            }
+
+            return "";
         }
 
         /// <summary>
@@ -694,23 +715,30 @@ namespace TwitchBotConsoleApp
         /// <returns></returns>
         private async Task<bool> IsAllowedChatMessageAsync(TwitchChatter chatter)
         {
-            if (chatter.Message.Contains("clips.twitch.tv/"))
+            try
             {
-                return await IsBroadcasterClipAsync(chatter);
+                if (chatter.Message.Contains("clips.twitch.tv/"))
+                {
+                    return await IsBroadcasterClipAsync(chatter);
+                }
+                else if (chatter.Message.Contains("twitch.tv/videos/"))
+                {
+                    return await IsBroadcasterVideoAsync(chatter);
+                }
+                else if ((chatter.Message.Contains("twitch.tv/") // find username in clip link
+                    && chatter.Message.Contains("/clip/")
+                    && !chatter.Message.ToLower().Contains(_botConfig.Broadcaster.ToLower()))
+                    ||
+                    (chatter.Message.Contains("twitch.tv/") // find username in video link
+                    && chatter.Message.Contains("/v/")
+                    && !chatter.Message.ToLower().Contains(_botConfig.Broadcaster.ToLower())))
+                {
+                    return false;
+                }
             }
-            else if (chatter.Message.Contains("twitch.tv/videos/"))
+            catch (Exception ex)
             {
-                return await IsBroadcasterVideoAsync(chatter);
-            }
-            else if ((chatter.Message.Contains("twitch.tv/") // find username in clip link
-                && chatter.Message.Contains("/clip/")
-                && !chatter.Message.ToLower().Contains(_botConfig.Broadcaster.ToLower()))
-                ||
-                (chatter.Message.Contains("twitch.tv/") // find username in video link
-                && chatter.Message.Contains("/v/")
-                && !chatter.Message.ToLower().Contains(_botConfig.Broadcaster.ToLower())))
-            {
-                return false;
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "IsAllowedChatMessageAsync(TwitchChatter)", false, "N/A", chatter.Message);
             }
 
             return true;
@@ -723,20 +751,27 @@ namespace TwitchBotConsoleApp
         /// <returns></returns>
         private async Task<bool> IsBroadcasterClipAsync(TwitchChatter chatter)
         {
-            string clipUrl = "clips.twitch.tv/";
-
-            int slugIndex = chatter.Message.IndexOf(clipUrl) + clipUrl.Length;
-            int endSlugIndex = chatter.Message.IndexOf(" ", slugIndex);
-
-            string slug = endSlugIndex > 0 
-                ? chatter.Message.Substring(slugIndex, endSlugIndex - slugIndex) 
-                : chatter.Message.Substring(slugIndex);
-
-            ClipJSON clip = await _twitchInfo.GetClipAsync(slug);
-
-            if (clip.BroadcasterName.ToLower() == _botConfig.Broadcaster.ToLower())
+            try
             {
-                return true;
+                string clipUrl = "clips.twitch.tv/";
+
+                int slugIndex = chatter.Message.IndexOf(clipUrl) + clipUrl.Length;
+                int endSlugIndex = chatter.Message.IndexOf(" ", slugIndex);
+
+                string slug = endSlugIndex > 0
+                    ? chatter.Message.Substring(slugIndex, endSlugIndex - slugIndex)
+                    : chatter.Message.Substring(slugIndex);
+
+                ClipJSON clip = await _twitchInfo.GetClipAsync(slug);
+
+                if (clip.BroadcasterName.ToLower() == _botConfig.Broadcaster.ToLower())
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "IsBroadcasterClipAsync(TwitchChatter)", false, "N/A", chatter.Message);
             }
 
             return false;
@@ -749,20 +784,27 @@ namespace TwitchBotConsoleApp
         /// <returns></returns>
         private async Task<bool> IsBroadcasterVideoAsync(TwitchChatter chatter)
         {
-            string videoUrl = "twitch.tv/videos/";
-
-            int videoIndex = chatter.Message.IndexOf(videoUrl) + videoUrl.Length;
-            int endVideoIndex = chatter.Message.IndexOf(" ", videoIndex);
-
-            string videoId = endVideoIndex > 0
-                ? chatter.Message.Substring(videoIndex, endVideoIndex - videoIndex)
-                : chatter.Message.Substring(videoIndex);
-
-            VideoJSON video = await _twitchInfo.GetVideoAsync(videoId);
-
-            if (video.UserLogin == _botConfig.Broadcaster.ToLower())
+            try
             {
-                return true;
+                string videoUrl = "twitch.tv/videos/";
+
+                int videoIndex = chatter.Message.IndexOf(videoUrl) + videoUrl.Length;
+                int endVideoIndex = chatter.Message.IndexOf(" ", videoIndex);
+
+                string videoId = endVideoIndex > 0
+                    ? chatter.Message.Substring(videoIndex, endVideoIndex - videoIndex)
+                    : chatter.Message.Substring(videoIndex);
+
+                VideoJSON video = await _twitchInfo.GetVideoAsync(videoId);
+
+                if (video.UserLogin == _botConfig.Broadcaster.ToLower())
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchBotApplication", "IsBroadcasterVideoAsync(TwitchChatter)", false, "N/A", chatter.Message);
             }
 
             return false;

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
+using TwitchBotShared.ClientLibraries.Singletons;
 using TwitchBotShared.Enums;
 using TwitchBotShared.Models;
 
@@ -10,7 +12,8 @@ namespace TwitchBotShared.ClientLibraries
     public class TwitchChatterList
     {
         private static volatile TwitchChatterList _instance;
-        private static object _syncRoot = new Object();
+        private static object _syncRoot = new object();
+        private static readonly ErrorHandler _errHndlrInstance = ErrorHandler.Instance;
 
         public bool AreListsAvailable { get; set; } = false;
 
@@ -45,20 +48,27 @@ namespace TwitchBotShared.ClientLibraries
             }
         }
 
-        public ChatterType GetUserChatterType(string username)
+        public async Task<ChatterType> GetUserChatterTypeAsync(string username)
         {
-            DateTime timeToGetOut = DateTime.Now.AddSeconds(3);
-
-            // wait until lists are available
-            while (!AreListsAvailable && DateTime.Now < timeToGetOut)
+            try
             {
+                DateTime timeToGetOut = DateTime.Now.AddSeconds(3);
 
+                // wait until lists are available
+                while (!AreListsAvailable && DateTime.Now < timeToGetOut)
+                {
+
+                }
+
+                foreach (TwitchChatterType chatterType in ChattersByType.OrderByDescending(t => t.ChatterType))
+                {
+                    if (chatterType.TwitchChatters.Any(u => u.Username == username))
+                        return chatterType.ChatterType;
+                }
             }
-
-            foreach (TwitchChatterType chatterType in ChattersByType.OrderByDescending(t => t.ChatterType))
+            catch (Exception ex)
             {
-                if (chatterType.TwitchChatters.Any(u => u.Username == username))
-                    return chatterType.ChatterType;
+                await _errHndlrInstance.LogErrorAsync(ex, "TwitchChatterList", "GetUserChatterTypeAsync(string)", false);
             }
 
             return ChatterType.DoesNotExist;

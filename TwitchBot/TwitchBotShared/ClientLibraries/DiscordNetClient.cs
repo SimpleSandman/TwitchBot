@@ -146,24 +146,48 @@ namespace TwitchBotShared.ClientLibraries
 
         private async Task<Task> LoggedOut()
         {
-            if (_restClient != null)
+            try
             {
-                await _restClient.DisposeAsync().ConfigureAwait(false);
+                if (_restClient != null)
+                {
+                    await _restClient.DisposeAsync().ConfigureAwait(false);
+                }
+
+                Console.WriteLine($"{_restClient.CurrentUser.Username}#{_restClient.CurrentUser.Discriminator} has logged out of Discord");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "DiscordNetClient", "LoggedOut()", false);
             }
 
-            Console.WriteLine($"{_restClient.CurrentUser.Username}#{_restClient.CurrentUser.Discriminator} has logged out of Discord");
             return Task.CompletedTask;
         }
 
-        private Task LoggedIn()
+        private async Task<Task> LoggedIn()
         {
-            Console.WriteLine($"Success! Your Discord bot, \"{_restClient.CurrentUser.Username}#{_restClient.CurrentUser.Discriminator}\", is available!");
+            try
+            {
+                Console.WriteLine($"Success! Your Discord bot, \"{_restClient.CurrentUser.Username}#{_restClient.CurrentUser.Discriminator}\", is available!");
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "DiscordNetClient", "LoggedIn()", false);
+            }
+
             return Task.CompletedTask;
         }
         
-        private Task LogAsync(LogMessage log)
+        private async Task<Task> LogAsync(LogMessage log)
         {
-            Console.WriteLine(log.ToString());
+            try
+            {
+                Console.WriteLine(log.ToString());
+            }
+            catch (Exception ex)
+            {
+                await _errHndlrInstance.LogErrorAsync(ex, "DiscordNetClient", "LogAsync(LogMessage)", false);
+            }
+            
             return Task.CompletedTask;
         }
         #endregion
