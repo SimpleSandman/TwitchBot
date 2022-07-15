@@ -7,7 +7,7 @@ using TwitchBotDb.Models;
 
 namespace TwitchBot.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class BankHeistSettingsController : ControllerBase
     {
@@ -18,9 +18,9 @@ namespace TwitchBot.Api.Controllers
             _context = context;
         }
 
-        // GET: api/bankheistsettings/2
-        [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int broadcasterId)
+        // GET: api/bankheistsettings/get/2
+        [HttpGet("{broadcasterId}")]
+        public async Task<IActionResult> Get(int broadcasterId)
         {
             if (!ModelState.IsValid)
             {
@@ -38,9 +38,9 @@ namespace TwitchBot.Api.Controllers
             return Ok(bankHeistSetting);
         }
 
-        // PUT: api/bankheistsettings/2
-        [HttpPut("{broadcasterId:int}")]
-        public async Task<IActionResult> Update([FromRoute] int broadcasterId, [FromBody] BankHeistSetting bankHeistSetting)
+        // PUT: api/bankheistsettings/update/2
+        [HttpPut("{broadcasterId}")]
+        public async Task<IActionResult> Update(int broadcasterId, [FromBody] BankHeistSetting bankHeistSetting)
         {
             if (!ModelState.IsValid)
             {
@@ -73,7 +73,7 @@ namespace TwitchBot.Api.Controllers
             return NoContent();
         }
 
-        // POST: api/bankheistsettings
+        // POST: api/bankheistsettings/create
         // Body (JSON): { "broadcaster": 2 }
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] BankHeistSetting bankHeistSetting)
