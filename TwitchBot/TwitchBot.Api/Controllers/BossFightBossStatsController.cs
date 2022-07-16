@@ -1,16 +1,13 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
+using TwitchBot.Api.Helpers;
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class BossFightBossStatsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -22,25 +19,27 @@ namespace TwitchBotApi.Controllers
 
         // GET: api/bossfightbossstats/get/1
         // GET: api/bossfightbossstats/get/1?gameId=1
-        [HttpGet("{settingsId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int settingsId, [FromQuery] int? gameId = null)
+        [HttpGet("{settingsId}")]
+        public async Task<IActionResult> Get(int settingsId, [FromQuery] int? gameId = null)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            BossFightBossStats bossFightBossStats = await _context.BossFightBossStats.SingleOrDefaultAsync(m => m.SettingsId == settingsId && m.GameId == gameId);
+            BossFightBossStats? bossFightBossStats = await _context.BossFightBossStats
+                .SingleOrDefaultAsync(m => m.SettingsId == settingsId && m.GameId == gameId);
 
             if (bossFightBossStats == null)
             {
                 // User hasn't set the boss stats for a particular game that is in the game list
                 // Try to get their general settings as a fallback
-                bossFightBossStats = await _context.BossFightBossStats.SingleOrDefaultAsync(m => m.SettingsId == settingsId && m.GameId == null);
+                bossFightBossStats = await _context.BossFightBossStats
+                    .SingleOrDefaultAsync(m => m.SettingsId == settingsId && m.GameId == null);
 
                 if (bossFightBossStats == null)
                 {
-                    return NotFound();
+                    throw new KeyNotFoundException("Cannot find boss fight boss stats");
                 }
             }
 
@@ -48,8 +47,8 @@ namespace TwitchBotApi.Controllers
         }
 
         // PUT: api/bossfightbossstats/update/1?id=1
-        [HttpPut("{settingsId:int}")]
-        public async Task<IActionResult> Update([FromRoute] int settingsId, [FromQuery] int id, [FromBody] BossFightBossStats bossFightBossStats)
+        [HttpPut("{settingsId}")]
+        public async Task<IActionResult> Update(int settingsId, [FromQuery] int id, [FromBody] BossFightBossStats bossFightBossStats)
         {
             if (!ModelState.IsValid)
             {
@@ -58,7 +57,7 @@ namespace TwitchBotApi.Controllers
 
             if (id != bossFightBossStats.Id && settingsId != bossFightBossStats.SettingsId)
             {
-                return BadRequest();
+                throw new ApiException("Settings ID does not match with boss fight boss stats's settings ID");
             }
 
             _context.Entry(bossFightBossStats).State = EntityState.Modified;
@@ -71,7 +70,7 @@ namespace TwitchBotApi.Controllers
             {
                 if (!BossFightBossStatsExists(id))
                 {
-                    return NotFound();
+                    throw new KeyNotFoundException("Cannot find boss fight boss stats");
                 }
                 else
                 {

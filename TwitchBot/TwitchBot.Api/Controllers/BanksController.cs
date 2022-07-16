@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Snickler.EFCore;
 
 using TwitchBot.Api.DTO;
-
+using TwitchBot.Api.Helpers;
 using TwitchBotDb.Context;
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
@@ -51,7 +51,7 @@ namespace TwitchBot.Api.Controllers
 
             if (bank == null || bank.Count == 0)
             {
-                return NotFound();
+                throw new KeyNotFoundException("Bank not found");
             }
 
             return Ok(bank);
@@ -76,7 +76,7 @@ namespace TwitchBot.Api.Controllers
 
             if (bank == null || bank.Count == 0)
             {
-                return NotFound();
+                throw new KeyNotFoundException("Bank leaderboard not found");
             }
 
             return Ok(bank);
@@ -96,7 +96,7 @@ namespace TwitchBot.Api.Controllers
 
             if (bankAccount == null)
             {
-                return NotFound();
+                throw new ApiException("Bank account cannot be updated");
             }
 
             bankAccount.Wallet = updatedWallet;
@@ -144,7 +144,7 @@ namespace TwitchBot.Api.Controllers
 
             if (BankExists(bank.Username, bank.Broadcaster))
             {
-                return BadRequest();
+                throw new ApiException("Bank account already exists");
             }
 
             _context.Banks.Add(bank);
