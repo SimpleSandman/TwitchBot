@@ -39,7 +39,7 @@ namespace TwitchBot.Api.Controllers
 
                 if (bossFightBossStats == null)
                 {
-                    throw new KeyNotFoundException("Cannot find boss fight boss stats");
+                    throw new NotFoundException("Cannot find boss fight boss stats");
                 }
             }
 
@@ -70,7 +70,7 @@ namespace TwitchBot.Api.Controllers
             {
                 if (!BossFightBossStatsExists(id))
                 {
-                    throw new KeyNotFoundException("Cannot find boss fight boss stats");
+                    throw new NotFoundException("Cannot find boss fight boss stats");
                 }
                 else
                 {

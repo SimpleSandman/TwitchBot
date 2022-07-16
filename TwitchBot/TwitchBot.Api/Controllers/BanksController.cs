@@ -51,7 +51,7 @@ namespace TwitchBot.Api.Controllers
 
             if (bank == null || bank.Count == 0)
             {
-                throw new KeyNotFoundException("Bank not found");
+                throw new NotFoundException("Bank not found");
             }
 
             return Ok(bank);
@@ -76,7 +76,7 @@ namespace TwitchBot.Api.Controllers
 
             if (bank == null || bank.Count == 0)
             {
-                throw new KeyNotFoundException("Bank leaderboard not found");
+                throw new NotFoundException("Bank leaderboard not found");
             }
 
             return Ok(bank);

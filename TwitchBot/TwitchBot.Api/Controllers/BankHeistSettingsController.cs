@@ -32,7 +32,7 @@ namespace TwitchBot.Api.Controllers
 
             if (bankHeistSetting == null)
             {
-                throw new KeyNotFoundException("Bank heist setting not found");
+                throw new NotFoundException("Bank heist setting not found");
             }
 
             return Ok(bankHeistSetting);
@@ -62,7 +62,7 @@ namespace TwitchBot.Api.Controllers
             {
                 if (!BankHeistSettingExists(broadcasterId))
                 {
-                    throw new KeyNotFoundException("Bank heist setting not found");
+                    throw new NotFoundException("Bank heist setting not found");
                 }
                 else
                 {

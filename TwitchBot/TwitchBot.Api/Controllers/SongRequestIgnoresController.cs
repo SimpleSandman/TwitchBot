@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class SongRequestIgnoresController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -24,24 +21,31 @@ namespace TwitchBotApi.Controllers
 
         // GET: api/songrequestblacklists/get/2
         // GET: api/songrequestblacklists/get/2?id=1
-        [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] int id = 0)
+        [HttpGet("{broadcasterId}")]
+        public async Task<IActionResult> Get(int broadcasterId, [FromQuery] int id = 0)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var songRequestIgnore = new object();
+            object? songRequestIgnore = new object();
 
             if (id > 0)
-                songRequestIgnore = await _context.SongRequestIgnores.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Id == id);
+            {
+                songRequestIgnore = await _context.SongRequestIgnores
+                    .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Id == id);
+            }
             else
-                songRequestIgnore = await _context.SongRequestIgnores.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+            {
+                songRequestIgnore = await _context.SongRequestIgnores
+                    .Where(m => m.BroadcasterId == broadcasterId)
+                    .ToListAsync();
+            }
 
             if (songRequestIgnore == null)
             {
-                return NotFound();
+                throw new NotFoundException("Ignored song request cannot be found");
             }
 
             return Ok(songRequestIgnore);
@@ -50,8 +54,8 @@ namespace TwitchBotApi.Controllers
         // PUT: api/songrequestblacklists/update/2?id=1
         // Body (JSON): { "id": 1, "artist": "some stupid artist", "broadcaster": 2 }
         // Body (JSON): { "id": 1, "artist": "some stupid artist", "title": "some stupid title", "broadcaster": 2 }
-        [HttpPut("{broadcasterId:int}")]
-        public async Task<IActionResult> Update([FromRoute] int broadcasterId, [FromQuery] int id, [FromBody] SongRequestIgnore songRequestIgnore)
+        [HttpPut("{broadcasterId}")]
+        public async Task<IActionResult> Update(int broadcasterId, [FromQuery] int id, [FromBody] SongRequestIgnore songRequestIgnore)
         {
             if (!ModelState.IsValid)
             {
@@ -60,7 +64,7 @@ namespace TwitchBotApi.Controllers
 
             if (id != songRequestIgnore.Id && broadcasterId != songRequestIgnore.BroadcasterId)
             {
-                return BadRequest();
+                throw new ApiException("ID or broadcaster ID does not match ignored song request's ID or broadcaster ID");
             }
 
             _context.Entry(songRequestIgnore).State = EntityState.Modified;
@@ -73,7 +77,7 @@ namespace TwitchBotApi.Controllers
             {
                 if (!SongRequestBlacklistExists(id))
                 {
-                    return NotFound();
+                    throw new NotFoundException("Ignored song request cannot be found");
                 }
                 else
                 {
@@ -98,14 +102,20 @@ namespace TwitchBotApi.Controllers
             _context.SongRequestIgnores.Add(songRequestIgnore);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { broadcasterId = songRequestIgnore.BroadcasterId, id = songRequestIgnore.Id }, songRequestIgnore);
+            return CreatedAtAction("Get", 
+                new 
+                { 
+                    broadcasterId = songRequestIgnore.BroadcasterId, 
+                    id = songRequestIgnore.Id 
+                }, 
+                songRequestIgnore);
         }
 
         // DELETE: api/songrequestblacklists/delete/2
         // DELETE: api/songrequestblacklists/delete/2?artist=someone
         // DELETE: api/songrequestblacklists/delete/2?artist=someone&title=something
-        [HttpDelete("{broadcasterId:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int broadcasterId, [FromQuery] string artist = "", [FromQuery] string title = "")
+        [HttpDelete("{broadcasterId}")]
+        public async Task<IActionResult> Delete(int broadcasterId, [FromQuery] string artist = "", [FromQuery] string title = "")
         {
             // don't accept an invalid model state or a request with just the title
             if (!ModelState.IsValid)
@@ -114,20 +124,22 @@ namespace TwitchBotApi.Controllers
             }
             else if (string.IsNullOrEmpty(artist) && !string.IsNullOrEmpty(title))
             {
-                return BadRequest();
+                throw new ApiException("Artist or title are null or empty");
             }
 
-            var songRequestIgnore = new object();
+            object songRequestIgnore = new object();
 
             if (!string.IsNullOrEmpty(artist) && !string.IsNullOrEmpty(title))
             {
-                SongRequestIgnore songRequestIgnoredItem = await _context.SongRequestIgnores
-                    .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId 
-                        && m.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase) 
+                SongRequestIgnore? songRequestIgnoredItem = await _context.SongRequestIgnores
+                    .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId
+                        && m.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase)
                         && m.Title.Equals(title, StringComparison.CurrentCultureIgnoreCase));
 
                 if (songRequestIgnoredItem == null)
-                    return NotFound();
+                {
+                    throw new NotFoundException("Ignored song request cannot be found");
+                }
 
                 _context.SongRequestIgnores.Remove(songRequestIgnoredItem);
 
@@ -140,7 +152,7 @@ namespace TwitchBotApi.Controllers
                 if (!string.IsNullOrEmpty(artist))
                 {
                     songRequestBlacklistItems = await _context.SongRequestIgnores
-                        .Where(m => m.BroadcasterId == broadcasterId 
+                        .Where(m => m.BroadcasterId == broadcasterId
                             && m.Artist.Equals(artist, StringComparison.CurrentCultureIgnoreCase))
                         .ToListAsync();
                 }
@@ -152,7 +164,9 @@ namespace TwitchBotApi.Controllers
                 }
 
                 if (songRequestBlacklistItems == null || songRequestBlacklistItems.Count == 0)
-                    return NotFound();
+                {
+                    throw new NotFoundException("Ignored song request(s) cannot be found");
+                }
 
                 _context.SongRequestIgnores.RemoveRange(songRequestBlacklistItems);
 

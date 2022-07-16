@@ -1,16 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class WhitelistsController : ControllerBase
     {
@@ -32,11 +30,11 @@ namespace TwitchBotApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Whitelist>> GetWhitelist(int id)
         {
-            var whitelist = await _context.Whitelists.FindAsync(id);
+            Whitelist? whitelist = await _context.Whitelists.FindAsync(id);
 
             if (whitelist == null)
             {
-                return NotFound();
+                throw new NotFoundException("Whitelist cannot be found");
             }
 
             return whitelist;
@@ -48,7 +46,7 @@ namespace TwitchBotApi.Controllers
         {
             if (id != whitelist.Id)
             {
-                return BadRequest();
+                throw new ApiException("ID does not match whitelist's ID");
             }
 
             _context.Entry(whitelist).State = EntityState.Modified;
@@ -61,7 +59,7 @@ namespace TwitchBotApi.Controllers
             {
                 if (!WhitelistExists(id))
                 {
-                    return NotFound();
+                    throw new NotFoundException("Whitelist cannot be found");
                 }
                 else
                 {
@@ -86,10 +84,10 @@ namespace TwitchBotApi.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Whitelist>> DeleteWhitelist(int id)
         {
-            var whitelist = await _context.Whitelists.FindAsync(id);
+            Whitelist? whitelist = await _context.Whitelists.FindAsync(id);
             if (whitelist == null)
             {
-                return NotFound();
+                throw new NotFoundException("Whitelist cannot be found");
             }
 
             _context.Whitelists.Remove(whitelist);

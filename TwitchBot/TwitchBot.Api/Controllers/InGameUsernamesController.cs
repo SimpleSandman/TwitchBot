@@ -1,16 +1,15 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class InGameUsernamesController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -22,31 +21,41 @@ namespace TwitchBotApi.Controllers
 
         // GET: api/ingameusernames/get/5
         // GET: api/ingameusernames/get/5?gameId=1
-        [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] int? gameId = 0)
+        [HttpGet("{broadcasterId}")]
+        public async Task<IActionResult> Get(int broadcasterId, [FromQuery] int? gameId = 0)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var inGameUsername = new object();
+            object? inGameUsername = new object();
 
             if (gameId == 0)
-                inGameUsername = await _context.InGameUsernames.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+            {
+                inGameUsername = await _context.InGameUsernames
+                    .Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+            }
             else if (gameId != null)
-                inGameUsername = await _context.InGameUsernames.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == gameId);
+            {
+                inGameUsername = await _context.InGameUsernames
+                    .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == gameId);
+            }
             else if (gameId == null)
-                inGameUsername = await _context.InGameUsernames.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == null);
+            {
+                inGameUsername = await _context.InGameUsernames
+                    .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == null);
+            }
 
             if (inGameUsername == null && gameId != null)
             {
                 // try getting the generic username message
-                inGameUsername = await _context.InGameUsernames.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == null);
+                inGameUsername = await _context.InGameUsernames
+                    .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.GameId == null);
 
                 if (inGameUsername == null)
                 {
-                    return NotFound();
+                    throw new NotFoundException("In game name not found");
                 }
             }
 
@@ -56,8 +65,8 @@ namespace TwitchBotApi.Controllers
         // PUT: api/ingameusernames/update/2?id=1
         // Body (JSON): { "id": 1, "message": "GenericUsername123", "broadcasterid": 2, "gameid": null }
         // Body (JSON): { "id": 1, "message": "UniqueUsername456", "broadcasterid": 2, "gameid": 2 }
-        [HttpPut("{broadcasterId:int}")]
-        public async Task<IActionResult> Update([FromRoute] int broadcasterId, [FromQuery] int id, [FromBody] InGameUsername inGameUsername)
+        [HttpPut("{broadcasterId}")]
+        public async Task<IActionResult> Update(int broadcasterId, [FromQuery] int id, [FromBody] InGameUsername inGameUsername)
         {
             if (!ModelState.IsValid)
             {
@@ -66,7 +75,7 @@ namespace TwitchBotApi.Controllers
 
             if (id != inGameUsername.Id && broadcasterId != inGameUsername.BroadcasterId)
             {
-                return BadRequest();
+                throw new ApiException("ID or broadcaster ID does not match with in game name's ID or broadcaster ID");
             }
 
             _context.Entry(inGameUsername).State = EntityState.Modified;
@@ -79,7 +88,7 @@ namespace TwitchBotApi.Controllers
             {
                 if (!InGameUsernameExists(id))
                 {
-                    return NotFound();
+                    throw new NotFoundException("In game name not found");
                 }
                 else
                 {
@@ -108,18 +117,20 @@ namespace TwitchBotApi.Controllers
         }
 
         // DELETE: api/ingameusernames/delete/5?id=2
-        [HttpDelete("{broadcasterId:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int broadcasterId, [FromQuery] int id)
+        [HttpDelete("{broadcasterId}")]
+        public async Task<IActionResult> Delete(int broadcasterId, [FromQuery] int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            InGameUsername inGameUsername = await _context.InGameUsernames.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
+            InGameUsername? inGameUsername = await _context.InGameUsernames
+                .SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
+
             if (inGameUsername == null)
             {
-                return NotFound();
+                throw new NotFoundException("In game name not found");
             }
 
             _context.InGameUsernames.Remove(inGameUsername);

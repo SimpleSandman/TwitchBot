@@ -1,20 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using Snickler.EFCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class PartyUpRequestsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -24,28 +22,29 @@ namespace TwitchBotApi.Controllers
             _context = context;
         }
 
-        // GET: api/partyuprequests/get/2?username=simple_sandman
-        [HttpGet("{partyMemberId:int}")]
-        public async Task<IActionResult> GetUserRequest([FromRoute] int partyMemberId, [FromQuery] string username)
+        // GET: api/partyuprequests/getuserrequest/2?username=simple_sandman
+        [HttpGet("{partyMemberId}")]
+        public async Task<IActionResult> GetUserRequest(int partyMemberId, [FromQuery] string username)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            PartyUpRequest partyUpRequests = await _context.PartyUpRequests.SingleOrDefaultAsync(m => m.PartyMemberId == partyMemberId && m.Username == username);
+            PartyUpRequest? partyUpRequests = await _context.PartyUpRequests
+                .SingleOrDefaultAsync(m => m.PartyMemberId == partyMemberId && m.Username == username);
 
             if (partyUpRequests == null)
             {
-                return NotFound();
+                throw new NotFoundException("Party up request cannot be found");
             }
 
             return Ok(partyUpRequests);
         }
 
         // GET: api/partyuprequests/getlist/2?gameid=2
-        [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> GetList([FromRoute] int broadcasterId, [FromQuery] int gameId)
+        [HttpGet("{broadcasterId}")]
+        public async Task<IActionResult> GetList(int broadcasterId, [FromQuery] int gameId)
         {
             if (!ModelState.IsValid)
             {
@@ -77,7 +76,7 @@ namespace TwitchBotApi.Controllers
 
             if (PartyUpRequestExists(partyUpRequest.Username, partyUpRequest.PartyMemberId))
             {
-                return BadRequest();
+                throw new ApiException("Party up request already created");
             }
 
             _context.PartyUpRequests.Add(partyUpRequest);
@@ -87,15 +86,15 @@ namespace TwitchBotApi.Controllers
         }
 
         // DELETE: api/partyuprequests/deletefirst/2?gameid=2
-        [HttpDelete("{broadcasterId:int}")]
-        public async Task<IActionResult> DeleteFirst([FromRoute] int broadcasterId, [FromQuery] int gameId)
+        [HttpDelete("{broadcasterId}")]
+        public async Task<IActionResult> DeleteFirst(int broadcasterId, [FromQuery] int gameId)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            PartyUpRequestResult result = new PartyUpRequestResult();
+            PartyUpRequestResult? result = new PartyUpRequestResult();
 
             await _context.LoadStoredProc("dbo.GetPartyUpRequestList")
                 .WithSqlParam("GameId", gameId)
@@ -107,7 +106,7 @@ namespace TwitchBotApi.Controllers
 
             if (result == null)
             {
-                return NotFound();
+                throw new NotFoundException("Party up request cannot be found for deletion");
             }
 
             PartyUpRequest requestToBeDeleted = new PartyUpRequest
@@ -120,7 +119,7 @@ namespace TwitchBotApi.Controllers
 
             if (requestToBeDeleted == null)
             {
-                return NotFound();
+                throw new NotFoundException("Party up request cannot be found for deletion");
             }
 
             _context.PartyUpRequests.Remove(requestToBeDeleted);

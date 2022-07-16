@@ -1,17 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class SongRequestsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -34,7 +32,7 @@ namespace TwitchBotApi.Controllers
 
             if (songRequests == null)
             {
-                return NotFound();
+                throw new NotFoundException("Song requests cannot be found");
             }
 
             return Ok(songRequests);
@@ -66,18 +64,20 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var songRequests = new object();
+            object songRequests = new object();
 
             if (popOne)
             {
-                SongRequest songRequest = await _context.SongRequests
+                SongRequest? songRequest = await _context.SongRequests
                     .Where(m => m.BroadcasterId == broadcasterId)
                     .OrderBy(m => m.Id)
                     .Take(1)
                     .SingleOrDefaultAsync();
 
                 if (songRequest == null)
-                    return NotFound();
+                {
+                    throw new NotFoundException("Song request cannot be found");
+                }
 
                 _context.SongRequests.Remove(songRequest);
 
@@ -85,10 +85,14 @@ namespace TwitchBotApi.Controllers
             }
             else
             {
-                List<SongRequest> removedSong = await _context.SongRequests.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+                List<SongRequest> removedSong = await _context.SongRequests
+                    .Where(m => m.BroadcasterId == broadcasterId)
+                    .ToListAsync();
 
                 if (removedSong == null || removedSong.Count == 0)
-                    return NotFound();
+                {
+                    throw new NotFoundException("Song requests cannot be found");
+                }
 
                 _context.SongRequests.RemoveRange(removedSong);
 

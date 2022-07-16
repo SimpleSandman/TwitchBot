@@ -1,16 +1,15 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class BossFightClassStatsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -21,27 +20,28 @@ namespace TwitchBotApi.Controllers
         }
 
         // GET: api/bossfightclassstats/get/1
-        [HttpGet("{settingsId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int settingsId)
+        [HttpGet("{settingsId}")]
+        public async Task<IActionResult> Get(int settingsId)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            BossFightClassStats bossFightClassStats = await _context.BossFightClassStats.SingleOrDefaultAsync(m => m.SettingsId == settingsId);
+            BossFightClassStats? bossFightClassStats = await _context.BossFightClassStats
+                .SingleOrDefaultAsync(m => m.SettingsId == settingsId);
 
             if (bossFightClassStats == null)
             {
-                return NotFound();
+                throw new NotFoundException("Boss fight class stats not found");
             }
 
             return Ok(bossFightClassStats);
         }
 
         // PUT: api/bossfightclassstats/update/1?id=1
-        [HttpPut("{settingsId:int}")]
-        public async Task<IActionResult> Update([FromRoute] int settingsId, [FromQuery] int id, [FromBody] BossFightClassStats bossFightClassStats)
+        [HttpPut("{settingsId}")]
+        public async Task<IActionResult> Update(int settingsId, [FromQuery] int id, [FromBody] BossFightClassStats bossFightClassStats)
         {
             if (!ModelState.IsValid)
             {
@@ -50,7 +50,7 @@ namespace TwitchBotApi.Controllers
 
             if (id != bossFightClassStats.Id || settingsId != bossFightClassStats.SettingsId)
             {
-                return BadRequest();
+                throw new ApiException("Settings ID does not match with boss fight class stats's settings ID");
             }
 
             _context.Entry(bossFightClassStats).State = EntityState.Modified;
@@ -63,7 +63,7 @@ namespace TwitchBotApi.Controllers
             {
                 if (!BossFightClassStatsExists(id))
                 {
-                    return NotFound();
+                    throw new NotFoundException("Boss fight class stats not found");
                 }
                 else
                 {

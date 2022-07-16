@@ -1,16 +1,15 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class BroadcastersController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -22,24 +21,30 @@ namespace TwitchBotApi.Controllers
 
         // GET: api/broadcasters/get/12345678
         // GET: api/broadcasters/get/12345678?username=simple_sandman
-        [HttpGet("{twitchId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int twitchId, [FromQuery] string username = "")
+        [HttpGet("{twitchId}")]
+        public async Task<IActionResult> Get(int twitchId, [FromQuery] string username = "")
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            Broadcaster broadcaster = new Broadcaster();
+            Broadcaster? broadcaster = new Broadcaster();
 
             if (!string.IsNullOrEmpty(username))
-                broadcaster = await _context.Broadcasters.SingleOrDefaultAsync(m => m.Username == username && m.TwitchId == twitchId);
+            {
+                broadcaster = await _context.Broadcasters
+                    .SingleOrDefaultAsync(m => m.Username == username && m.TwitchId == twitchId);
+            }
             else
-                broadcaster = await _context.Broadcasters.SingleOrDefaultAsync(m => m.TwitchId == twitchId);
+            {
+                broadcaster = await _context.Broadcasters
+                    .SingleOrDefaultAsync(m => m.TwitchId == twitchId);
+            }
 
             if (broadcaster == null)
             {
-                return NotFound();
+                throw new NotFoundException("Broadcaster not found");
             }
 
             return Ok(broadcaster);
@@ -47,8 +52,8 @@ namespace TwitchBotApi.Controllers
 
         // PUT: api/broadcasters/update/12345678
         // Body (JSON): { "username": "simple_sandman", "twitchId": 12345678 }
-        [HttpPut("{twitchId:int}")]
-        public async Task<IActionResult> Update([FromRoute] int twitchId, [FromBody] Broadcaster broadcaster)
+        [HttpPut("{twitchId}")]
+        public async Task<IActionResult> Update(int twitchId, [FromBody] Broadcaster broadcaster)
         {
             if (!ModelState.IsValid)
             {
@@ -57,13 +62,15 @@ namespace TwitchBotApi.Controllers
 
             if (twitchId != broadcaster.TwitchId)
             {
-                return BadRequest();
+                throw new ApiException("Twitch ID does not match with the broadcaster's Twitch ID");
             }
 
-            Broadcaster updatedbroadcaster = await _context.Broadcasters.FirstOrDefaultAsync(m => m.TwitchId == twitchId);
+            Broadcaster? updatedbroadcaster = await _context.Broadcasters
+                .FirstOrDefaultAsync(m => m.TwitchId == twitchId);
+
             if (updatedbroadcaster == null)
             {
-                return NotFound();
+                throw new NotFoundException("Broadcaster not found");
             }
 
             updatedbroadcaster.Username = broadcaster.Username;
@@ -77,7 +84,7 @@ namespace TwitchBotApi.Controllers
             {
                 if (!BroadcasterExists(twitchId))
                 {
-                    return NotFound();
+                    throw new NotFoundException("Broadcaster not found");
                 }
                 else
                 {

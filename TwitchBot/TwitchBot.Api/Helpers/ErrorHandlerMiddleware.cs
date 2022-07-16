@@ -29,15 +29,15 @@ namespace TwitchBot.Api.Helpers
                 switch (error)
                 {
                     case ApiException:
-                        // custom application error
+                        // api exception (400)
                         response.StatusCode = (int)HttpStatusCode.BadRequest;
                         break;
-                    case KeyNotFoundException:
-                        // not found error
+                    case NotFoundException:
+                        // cannot find (404)
                         response.StatusCode = (int)HttpStatusCode.NotFound;
                         break;
                     default:
-                        // unhandled error
+                        // unhandled error (500)
                         _logger.LogError(error, error.Message);
                         response.StatusCode = (int)HttpStatusCode.InternalServerError;
                         break;

@@ -1,16 +1,15 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class CustomCommandsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -22,32 +21,39 @@ namespace TwitchBotApi.Controllers
 
         // GET: api/customcommands/get/2
         // GET: api/customcommands/get/2?name=!custom
-        [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] string name = "")
+        [HttpGet("{broadcasterId}")]
+        public async Task<IActionResult> Get(int broadcasterId, [FromQuery] string name = "")
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var customCommands = new object();
+            object? customCommands = new object();
 
             if (string.IsNullOrEmpty(name))
-                customCommands = await _context.CustomCommands.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
+            {
+                customCommands = await _context.CustomCommands
+                    .Where(m => m.BroadcasterId == broadcasterId)
+                    .ToListAsync();
+            }
             else
-                customCommands = await _context.CustomCommands.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Name == name);
+            {
+                customCommands = await _context.CustomCommands
+                    .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Name == name);
+            }
 
             if (customCommands == null)
             {
-                return NotFound();
+                throw new NotFoundException("Custom commands not found");
             }
 
             return Ok(customCommands);
         }
 
         // PUT: api/customcommands/5?broadcasterId=2
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromQuery] int broadcasterId, [FromBody] CustomCommand customCommand)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromQuery] int broadcasterId, [FromBody] CustomCommand customCommand)
         {
             if (!ModelState.IsValid)
             {
@@ -56,7 +62,7 @@ namespace TwitchBotApi.Controllers
 
             if (id != customCommand.Id || broadcasterId != customCommand.BroadcasterId)
             {
-                return BadRequest();
+                throw new ApiException("ID or broadcaster ID does not match custom command ID or broadcaster ID");
             }
 
             _context.Entry(customCommand).State = EntityState.Modified;
@@ -69,7 +75,7 @@ namespace TwitchBotApi.Controllers
             {
                 if (!CustomCommandExists(id))
                 {
-                    return NotFound();
+                    throw new NotFoundException("Custom commands not found");
                 }
                 else
                 {
@@ -96,18 +102,20 @@ namespace TwitchBotApi.Controllers
         }
 
         // DELETE: api/customcommands/5?name=!custom
-        [HttpDelete("{broadcasterId:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int broadcasterId, [FromQuery] string name)
+        [HttpDelete("{broadcasterId}")]
+        public async Task<IActionResult> Delete(int broadcasterId, [FromQuery] string name)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var customCommand = await _context.CustomCommands.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Name == name);
+            CustomCommand? customCommand = await _context.CustomCommands
+                .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Name == name);
+
             if (customCommand == null)
             {
-                return NotFound();
+                throw new NotFoundException("Custom commands not found");
             }
 
             _context.CustomCommands.Remove(customCommand);

@@ -1,18 +1,17 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.JsonPatch;
+﻿using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Adapters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class QuotesController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -23,8 +22,8 @@ namespace TwitchBotApi.Controllers
         }
 
         // GET: api/quotes/get/5
-        [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int broadcasterId)
+        [HttpGet("{broadcasterId}")]
+        public async Task<IActionResult> Get(int broadcasterId)
         {
             if (!ModelState.IsValid)
             {
@@ -35,7 +34,7 @@ namespace TwitchBotApi.Controllers
 
             if (quote == null || quote.Count == 0)
             {
-                return NotFound();
+                throw new NotFoundException("Quote not found");
             }
 
             return Ok(quote);
@@ -43,17 +42,17 @@ namespace TwitchBotApi.Controllers
 
         // PATCH: api/quotes/patch/5?broadcasterId=2
         // Body (JSON): [{ "op": "replace", "path": "/userquote", "value": "repalce old quote with this" }]
-        [HttpPatch("{id:int}")]
-        public async Task<IActionResult> Patch([FromRoute] int id, [FromQuery] int broadcasterId, [FromBody]JsonPatchDocument<Quote> quotePatch)
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> Patch(int id, [FromQuery] int broadcasterId, [FromBody] JsonPatchDocument<Quote> quotePatch)
         {
-            Quote quote = _context.Quotes.SingleOrDefault(m => m.Id == id && m.BroadcasterId == broadcasterId);
+            Quote? quote = await _context.Quotes.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
 
             if (quote == null)
             {
-                return BadRequest();
+                throw new NotFoundException("Quote not found");
             }
 
-            quotePatch.ApplyTo(quote, (Microsoft.AspNetCore.JsonPatch.Adapters.IObjectAdapter)ModelState);
+            quotePatch.ApplyTo(quote, (IObjectAdapter)ModelState);
 
             if (!ModelState.IsValid)
             {
@@ -70,7 +69,7 @@ namespace TwitchBotApi.Controllers
             {
                 if (!QuoteExists(id))
                 {
-                    return NotFound();
+                    throw new NotFoundException("Quote not found");
                 }
                 else
                 {
@@ -98,18 +97,18 @@ namespace TwitchBotApi.Controllers
         }
 
         // DELETE: api/quotes/delete/5?broadcasterId=2
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int id, [FromQuery] int broadcasterId)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id, [FromQuery] int broadcasterId)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            Quote quote = await _context.Quotes.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
+            Quote? quote = await _context.Quotes.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
             if (quote == null)
             {
-                return NotFound();
+                throw new NotFoundException("Quote not found");
             }
 
             _context.Quotes.Remove(quote);

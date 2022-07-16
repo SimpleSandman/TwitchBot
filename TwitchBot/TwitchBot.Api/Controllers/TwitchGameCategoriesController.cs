@@ -1,16 +1,15 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class TwitchGameCategoriesController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -35,11 +34,12 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            TwitchGameCategory gameList = await _context.TwitchGameCategories.FirstOrDefaultAsync(m => m.Title == title);
+            TwitchGameCategory? gameList = await _context.TwitchGameCategories
+                .FirstOrDefaultAsync(m => m.Title == title);
 
             if (gameList == null)
             {
-                return NotFound();
+                throw new NotFoundException("Game list cannot be found");
             }
 
             return Ok(gameList);

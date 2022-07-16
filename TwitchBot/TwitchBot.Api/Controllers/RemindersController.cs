@@ -1,16 +1,15 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class RemindersController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -22,15 +21,15 @@ namespace TwitchBotApi.Controllers
 
         // GET: api/reminders/get/5
         // GET: api/reminders/get/5?id=1
-        [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] int id = 0)
+        [HttpGet("{broadcasterId}")]
+        public async Task<IActionResult> Get(int broadcasterId, [FromQuery] int id = 0)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var reminders = new object();
+            object? reminders = new object();
 
             if (id == 0)
                 reminders = await _context.Reminders.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
@@ -39,15 +38,15 @@ namespace TwitchBotApi.Controllers
 
             if (reminders == null)
             {
-                return NotFound();
+                throw new NotFoundException("Reminder cannot be found");
             }
 
             return Ok(reminders);
         }
 
         // PUT: api/reminders/update/5?broadcasterId=2
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromQuery] int broadcasterId, [FromBody] Reminder reminder)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromQuery] int broadcasterId, [FromBody] Reminder reminder)
         {
             if (!ModelState.IsValid)
             {
@@ -56,7 +55,7 @@ namespace TwitchBotApi.Controllers
 
             if (id != reminder.Id && broadcasterId != reminder.BroadcasterId)
             {
-                return BadRequest();
+                throw new ApiException("ID or broadcaster id does not match reminder's ID or broadcaster ID");
             }
 
             _context.Entry(reminder).State = EntityState.Modified;
@@ -69,7 +68,7 @@ namespace TwitchBotApi.Controllers
             {
                 if (!RemindersExists(id))
                 {
-                    return NotFound();
+                    throw new NotFoundException("Reminder cannot be found");
                 }
                 else
                 {
@@ -96,18 +95,20 @@ namespace TwitchBotApi.Controllers
         }
 
         // DELETE: api/reminders/delete/5?broadcasterId=2
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int id, [FromQuery] int broadcasterId)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id, [FromQuery] int broadcasterId)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            Reminder reminder = await _context.Reminders.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
+            Reminder? reminder = await _context.Reminders
+                .SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
+
             if (reminder == null)
             {
-                return NotFound();
+                throw new NotFoundException("Reminder cannot be found");
             }
 
             _context.Reminders.Remove(reminder);

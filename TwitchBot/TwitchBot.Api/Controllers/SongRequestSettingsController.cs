@@ -1,16 +1,15 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class SongRequestSettingsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -29,11 +28,12 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            SongRequestSetting songRequestSetting = await _context.SongRequestSettings.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
+            SongRequestSetting? songRequestSetting = await _context.SongRequestSettings
+                .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
 
             if (songRequestSetting == null)
             {
-                return NotFound();
+                throw new ApiException("Song request setting cannot be found");
             }
 
             return Ok(songRequestSetting);
@@ -50,13 +50,15 @@ namespace TwitchBotApi.Controllers
 
             if (broadcasterId != songRequestSetting.BroadcasterId)
             {
-                return BadRequest();
+                throw new ApiException("Broadcaster ID does not match song request setting's broadcaster ID");
             }
 
-            SongRequestSetting updatedSongRequestSetting = await _context.SongRequestSettings.FirstOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
+            SongRequestSetting? updatedSongRequestSetting = await _context.SongRequestSettings
+                .FirstOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
+
             if (updatedSongRequestSetting == null)
             {
-                return NotFound();
+                throw new ApiException("Song request setting cannot be found");
             }
 
             updatedSongRequestSetting.PersonalPlaylistId = songRequestSetting.PersonalPlaylistId;
@@ -72,7 +74,7 @@ namespace TwitchBotApi.Controllers
             {
                 if (!SongRequestSettingExists(broadcasterId))
                 {
-                    return NotFound();
+                    throw new ApiException("Song request setting cannot be found");
                 }
                 else
                 {

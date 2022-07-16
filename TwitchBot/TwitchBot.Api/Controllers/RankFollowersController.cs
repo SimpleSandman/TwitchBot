@@ -1,17 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class RankFollowersController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -22,15 +20,16 @@ namespace TwitchBotApi.Controllers
         }
 
         // GET: api/rankfollowers/get/2?username=simple_sandman
-        [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] string username)
+        [HttpGet("{broadcasterId}")]
+        public async Task<IActionResult> Get(int broadcasterId, [FromQuery] string username)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            RankFollower rankFollower = await _context.RankFollowers.SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Username == username);
+            RankFollower? rankFollower = await _context.RankFollowers
+                .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Username == username);
 
             if (rankFollower == null)
             {
@@ -41,8 +40,8 @@ namespace TwitchBotApi.Controllers
         }
 
         // GET: api/rankfollowers/getleaderboard/2?topnumber=5
-        [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> GetLeaderboard([FromRoute] int broadcasterId, [FromQuery] int topNumber = 3)
+        [HttpGet("{broadcasterId}")]
+        public async Task<IActionResult> GetLeaderboard(int broadcasterId, [FromQuery] int topNumber = 3)
         {
             if (!ModelState.IsValid)
             {
@@ -57,25 +56,27 @@ namespace TwitchBotApi.Controllers
 
             if (topFollowers == null || !topFollowers.Any())
             {
-                return NotFound();
+                throw new NotFoundException("Top followers cannot be found");
             }
 
             return Ok(topFollowers);
         }
 
         // PUT: api/rankfollowers/updateexp/2?username=simple_sandman&exp=9001
-        [HttpPut("{broadcasterId:int}")]
-        public async Task<IActionResult> UpdateExp([FromRoute] int broadcasterId, [FromQuery] string username, [FromQuery] int exp)
+        [HttpPut("{broadcasterId}")]
+        public async Task<IActionResult> UpdateExp(int broadcasterId, [FromQuery] string username, [FromQuery] int exp)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            RankFollower follower = _context.RankFollowers.FirstOrDefault(t => t.BroadcasterId == broadcasterId && t.Username == username);
+            RankFollower? follower = await _context.RankFollowers
+                .FirstOrDefaultAsync(t => t.BroadcasterId == broadcasterId && t.Username == username);
+
             if (follower == null)
             {
-                return NotFound();
+                throw new NotFoundException("Follower cannot be found");
             }
 
             follower.Experience = exp;
@@ -89,7 +90,7 @@ namespace TwitchBotApi.Controllers
             {
                 if (!RankFollowersExists(broadcasterId, username))
                 {
-                    return NotFound();
+                    throw new NotFoundException("Follower cannot be found");
                 }
                 else
                 {

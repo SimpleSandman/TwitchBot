@@ -1,16 +1,14 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using TwitchBot.Api.Helpers;
 
 using TwitchBotDb.Context;
 
-namespace TwitchBotApi.Controllers
+namespace TwitchBot.Api.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class PartyUpsController : ControllerBase
     {
         private readonly SimpleBotContext _context;
@@ -31,7 +29,7 @@ namespace TwitchBotApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var partyUp = new object();
+            object? partyUp = new object();
 
             if (gameId > 0 && !string.IsNullOrEmpty(partyMember))
             {
@@ -54,7 +52,7 @@ namespace TwitchBotApi.Controllers
 
             if (partyUp == null)
             {
-                return NotFound();
+                throw new NotFoundException("Party cannot be found");
             }
 
             return Ok(partyUp);

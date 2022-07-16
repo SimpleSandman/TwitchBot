@@ -3,15 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchBotApi", "TwitchBotApi\TwitchBotApi.csproj", "{B42D2C50-5D28-43C9-BAB2-7EC1DF6096ED}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchBotDb", "TwitchBotDb\TwitchBotDb.csproj", "{069BC4AA-B2EA-4400-BCDE-8A6AC793DA33}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchBotShared", "TwitchBotShared\TwitchBotShared.csproj", "{7633DB4D-C143-46A8-9B3E-6D4063D08831}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchBotConsoleApp", "TwitchBotConsoleApp\TwitchBotConsoleApp.csproj", "{17A76B96-ED27-4653-9AA9-8639A2B8A24F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchBot.Api", "TwitchBot.Api\TwitchBot.Api.csproj", "{A88BEC11-658A-4F15-941E-5E383492F7F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchBot.Api", "TwitchBot.Api\TwitchBot.Api.csproj", "{A88BEC11-658A-4F15-941E-5E383492F7F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,10 +17,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B42D2C50-5D28-43C9-BAB2-7EC1DF6096ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B42D2C50-5D28-43C9-BAB2-7EC1DF6096ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B42D2C50-5D28-43C9-BAB2-7EC1DF6096ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B42D2C50-5D28-43C9-BAB2-7EC1DF6096ED}.Release|Any CPU.Build.0 = Release|Any CPU
 		{069BC4AA-B2EA-4400-BCDE-8A6AC793DA33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{069BC4AA-B2EA-4400-BCDE-8A6AC793DA33}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{069BC4AA-B2EA-4400-BCDE-8A6AC793DA33}.Release|Any CPU.ActiveCfg = Release|Any CPU
