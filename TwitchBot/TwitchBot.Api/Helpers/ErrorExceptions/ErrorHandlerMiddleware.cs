@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 
-namespace TwitchBot.Api.Helpers
+namespace TwitchBot.Api.Helpers.ErrorExceptions
 {
     // Reference: https://jasonwatmore.com/post/2022/03/15/net-6-crud-api-example-and-tutorial
     public class ErrorHandlerMiddleware

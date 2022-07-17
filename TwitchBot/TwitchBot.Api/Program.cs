@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-
-using TwitchBot.Api.Helpers;
+using TwitchBot.Api.Helpers.ErrorExceptions;
 using TwitchBotDb.Context;
 
 #region Builder
@@ -12,7 +11,6 @@ builder.Services.AddControllers();
 builder.Services.AddDistributedMemoryCache();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<SimpleBotContext>(options =>
@@ -45,6 +43,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 else
 {
@@ -52,14 +51,18 @@ else
     app.UseHsts();
 }
 
-// global error handler
-app.UseMiddleware<ErrorHandlerMiddleware>();
+app.UseMiddleware<ErrorHandlerMiddleware>(); // global error handler
+//app.UseRouting();
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+//app.UseEndpoints(endpoints =>
+//{
+//    endpoints.MapControllers();
+//});
 
 app.Run();
 #endregion

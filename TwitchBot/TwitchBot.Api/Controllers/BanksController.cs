@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Snickler.EFCore;
 
 using TwitchBot.Api.DTO;
-using TwitchBot.Api.Helpers;
+using TwitchBot.Api.Helpers.ErrorExceptions;
 using TwitchBotDb.Context;
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
