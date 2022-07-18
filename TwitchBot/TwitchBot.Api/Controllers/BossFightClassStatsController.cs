@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
@@ -10,7 +10,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class BossFightClassStatsController : ControllerBase
+    public class BossFightClassStatsController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -23,10 +23,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{settingsId}")]
         public async Task<IActionResult> Get(int settingsId)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             BossFightClassStats? bossFightClassStats = await _context.BossFightClassStats
                 .SingleOrDefaultAsync(m => m.SettingsId == settingsId);
@@ -43,10 +40,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPut("{settingsId}")]
         public async Task<IActionResult> Update(int settingsId, [FromQuery] int id, [FromBody] BossFightClassStats bossFightClassStats)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             if (id != bossFightClassStats.Id || settingsId != bossFightClassStats.SettingsId)
             {
@@ -78,10 +72,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] BossFightClassStats bossFightClassStats)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             _context.BossFightClassStats.Add(bossFightClassStats);
             await _context.SaveChangesAsync();

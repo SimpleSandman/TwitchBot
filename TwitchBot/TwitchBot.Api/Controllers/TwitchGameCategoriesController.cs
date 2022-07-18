@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
@@ -10,7 +10,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class TwitchGameCategoriesController : ControllerBase
+    public class TwitchGameCategoriesController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -24,14 +24,11 @@ namespace TwitchBot.Api.Controllers
         [HttpGet()]
         public async Task<IActionResult> Get([FromQuery] string title)
         {
+            IsModelStateValid();
+
             if (string.IsNullOrEmpty(title))
             {
                 return Ok(_context.TwitchGameCategories);
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
             }
 
             TwitchGameCategory? gameList = await _context.TwitchGameCategories

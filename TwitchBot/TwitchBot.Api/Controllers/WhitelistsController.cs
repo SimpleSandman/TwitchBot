@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
@@ -10,7 +10,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class WhitelistsController : ControllerBase
+    public class WhitelistsController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -30,6 +30,8 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Whitelist>> GetWhitelist(int id)
         {
+            IsModelStateValid();
+
             Whitelist? whitelist = await _context.Whitelists.FindAsync(id);
 
             if (whitelist == null)
@@ -44,6 +46,8 @@ namespace TwitchBot.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutWhitelist(int id, Whitelist whitelist)
         {
+            IsModelStateValid();
+
             if (id != whitelist.Id)
             {
                 throw new ApiException("ID does not match whitelist's ID");
@@ -74,6 +78,8 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Whitelist>> PostWhitelist(Whitelist whitelist)
         {
+            IsModelStateValid();
+
             _context.Whitelists.Add(whitelist);
             await _context.SaveChangesAsync();
 
@@ -84,6 +90,8 @@ namespace TwitchBot.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Whitelist>> DeleteWhitelist(int id)
         {
+            IsModelStateValid();
+
             Whitelist? whitelist = await _context.Whitelists.FindAsync(id);
             if (whitelist == null)
             {

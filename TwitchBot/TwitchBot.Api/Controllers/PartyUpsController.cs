@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 
 namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class PartyUpsController : ControllerBase
+    public class PartyUpsController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -24,10 +24,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId:int}")]
         public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] int gameId = 0, [FromQuery] string partyMember = "")
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             object? partyUp = new object();
 

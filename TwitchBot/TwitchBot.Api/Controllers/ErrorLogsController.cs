@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
+using TwitchBot.Api.Helpers;
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
@@ -7,7 +8,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class ErrorLogsController : ControllerBase
+    public class ErrorLogsController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -32,10 +33,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ErrorLog errorLog)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             _context.ErrorLogs.Add(errorLog);
             await _context.SaveChangesAsync();

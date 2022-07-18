@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.JsonPatch.Adapters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
@@ -12,7 +12,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class QuotesController : ControllerBase
+    public class QuotesController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -25,10 +25,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId}")]
         public async Task<IActionResult> Get(int broadcasterId)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             List<Quote> quote = await _context.Quotes.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
 
@@ -45,6 +42,8 @@ namespace TwitchBot.Api.Controllers
         [HttpPatch("{id}")]
         public async Task<IActionResult> Patch(int id, [FromQuery] int broadcasterId, [FromBody] JsonPatchDocument<Quote> quotePatch)
         {
+            IsModelStateValid();
+
             Quote? quote = await _context.Quotes.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
 
             if (quote == null)
@@ -85,10 +84,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Quote quote)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             _context.Quotes.Add(quote);
             await _context.SaveChangesAsync();
@@ -100,10 +96,7 @@ namespace TwitchBot.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] int broadcasterId)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             Quote? quote = await _context.Quotes.SingleOrDefaultAsync(m => m.Id == id && m.BroadcasterId == broadcasterId);
             if (quote == null)

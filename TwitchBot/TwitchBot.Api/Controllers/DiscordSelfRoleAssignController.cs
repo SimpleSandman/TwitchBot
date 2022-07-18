@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
@@ -10,7 +10,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [Produces("application/json")]
-    public class DiscordSelfRoleAssignController : ControllerBase
+    public class DiscordSelfRoleAssignController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -23,10 +23,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId}")]
         public async Task<IActionResult> Get(int broadcasterId, [FromQuery] string serverName, [FromQuery] string roleName)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             DiscordSelfRoleAssign? role = await _context.DiscordSelfRoleAssigns
                 .FirstOrDefaultAsync(m => m.BroadcasterId == broadcasterId 

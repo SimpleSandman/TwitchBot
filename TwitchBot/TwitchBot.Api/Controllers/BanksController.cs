@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Snickler.EFCore;
 
 using TwitchBot.Api.DTO;
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
 using TwitchBotDb.Context;
 using TwitchBotDb.DTO;
@@ -15,7 +16,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class BanksController : ControllerBase
+    public class BanksController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -29,10 +30,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId}")]
         public async Task<IActionResult> Get(int broadcasterId, [FromQuery] string username = "")
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             List<Bank> bank = new List<Bank>();
 
@@ -61,10 +59,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId}")]
         public async Task<IActionResult> GetLeaderboard(int broadcasterId, [FromQuery] BroadcasterConfig broadcasterConfig, [FromQuery] int topNumber = 3)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             List<Bank> bank = await _context.Banks
                 .Where(m => m.Broadcaster == broadcasterId
@@ -86,10 +81,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPut("{broadcasterId}")]
         public async Task<IActionResult> UpdateAccount(int broadcasterId, [FromQuery] int updatedWallet, [FromQuery] string username)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             Bank? bankAccount = await _context.Banks
                 .FirstOrDefaultAsync(t => t.Broadcaster == broadcasterId && t.Username == username);
@@ -112,10 +104,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPut("{broadcasterId}")]
         public async Task<IActionResult> UpdateCreateAccount(int broadcasterId, [FromQuery] int deposit, [FromQuery] bool showOutput, [FromBody] List<string> usernames)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             List<BalanceResult> results = new List<BalanceResult>();
 
@@ -137,10 +126,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAccount([FromBody] Bank bank)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             if (BankExists(bank.Username, bank.Broadcaster))
             {

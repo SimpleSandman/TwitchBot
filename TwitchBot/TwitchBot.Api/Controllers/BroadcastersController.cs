@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
@@ -10,7 +10,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class BroadcastersController : ControllerBase
+    public class BroadcastersController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -24,10 +24,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{twitchId}")]
         public async Task<IActionResult> Get(int twitchId, [FromQuery] string username = "")
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             Broadcaster? broadcaster = new Broadcaster();
 
@@ -55,10 +52,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPut("{twitchId}")]
         public async Task<IActionResult> Update(int twitchId, [FromBody] Broadcaster broadcaster)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             if (twitchId != broadcaster.TwitchId)
             {
@@ -100,10 +94,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Broadcaster broadcaster)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             _context.Broadcasters.Add(broadcaster);
             await _context.SaveChangesAsync();

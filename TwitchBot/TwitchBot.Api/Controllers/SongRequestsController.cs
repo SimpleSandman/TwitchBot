@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
@@ -10,7 +10,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class SongRequestsController : ControllerBase
+    public class SongRequestsController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -23,10 +23,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId:int}")]
         public async Task<IActionResult> Get([FromRoute] int broadcasterId)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             List<SongRequest> songRequests = await _context.SongRequests.Where(m => m.BroadcasterId == broadcasterId).ToListAsync();
 
@@ -43,10 +40,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] SongRequest songRequests)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             _context.SongRequests.Add(songRequests);
             await _context.SaveChangesAsync();
@@ -59,10 +53,7 @@ namespace TwitchBot.Api.Controllers
         [HttpDelete("{broadcasterId:int}")]
         public async Task<IActionResult> Delete([FromRoute] int broadcasterId, [FromQuery] bool popOne = false)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             object songRequests = new object();
 

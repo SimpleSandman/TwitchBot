@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
@@ -10,7 +10,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class RankFollowersController : ControllerBase
+    public class RankFollowersController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -23,10 +23,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId}")]
         public async Task<IActionResult> Get(int broadcasterId, [FromQuery] string username)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             RankFollower? rankFollower = await _context.RankFollowers
                 .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Username == username);
@@ -43,10 +40,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId}")]
         public async Task<IActionResult> GetLeaderboard(int broadcasterId, [FromQuery] int topNumber = 3)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             IEnumerable<RankFollower> topFollowers = await _context.RankFollowers
                 .Where(m => m.BroadcasterId == broadcasterId)
@@ -66,10 +60,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPut("{broadcasterId}")]
         public async Task<IActionResult> UpdateExp(int broadcasterId, [FromQuery] string username, [FromQuery] int exp)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             RankFollower? follower = await _context.RankFollowers
                 .FirstOrDefaultAsync(t => t.BroadcasterId == broadcasterId && t.Username == username);
@@ -106,10 +97,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] RankFollower rankFollowers)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             _context.RankFollowers.Add(rankFollowers);
             await _context.SaveChangesAsync();

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
@@ -9,7 +10,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class BankHeistSettingsController : ControllerBase
+    public class BankHeistSettingsController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -22,10 +23,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId}")]
         public async Task<IActionResult> Get(int broadcasterId)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             BankHeistSetting? bankHeistSetting = await _context.BankHeistSettings
                 .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
@@ -42,10 +40,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPut("{broadcasterId}")]
         public async Task<IActionResult> Update(int broadcasterId, [FromBody] BankHeistSetting bankHeistSetting)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             if (broadcasterId != bankHeistSetting.BroadcasterId)
             {
@@ -78,10 +73,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] BankHeistSetting bankHeistSetting)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             _context.BankHeistSettings.Add(bankHeistSetting);
             await _context.SaveChangesAsync();

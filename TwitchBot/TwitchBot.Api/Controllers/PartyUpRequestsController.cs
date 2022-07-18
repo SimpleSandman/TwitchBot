@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 using Snickler.EFCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 using TwitchBotDb.DTO;
 using TwitchBotDb.Models;
@@ -13,7 +13,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class PartyUpRequestsController : ControllerBase
+    public class PartyUpRequestsController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -26,10 +26,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{partyMemberId}")]
         public async Task<IActionResult> GetUserRequest(int partyMemberId, [FromQuery] string username)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             PartyUpRequest? partyUpRequests = await _context.PartyUpRequests
                 .SingleOrDefaultAsync(m => m.PartyMemberId == partyMemberId && m.Username == username);
@@ -46,10 +43,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId}")]
         public async Task<IActionResult> GetList(int broadcasterId, [FromQuery] int gameId)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             List<PartyUpRequestResult> results = new List<PartyUpRequestResult>();
 
@@ -69,10 +63,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PartyUpRequest partyUpRequest)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             if (PartyUpRequestExists(partyUpRequest.Username, partyUpRequest.PartyMemberId))
             {
@@ -89,10 +80,7 @@ namespace TwitchBot.Api.Controllers
         [HttpDelete("{broadcasterId}")]
         public async Task<IActionResult> DeleteFirst(int broadcasterId, [FromQuery] int gameId)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             PartyUpRequestResult? result = new PartyUpRequestResult();
 

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
@@ -10,7 +10,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class SongRequestSettingsController : ControllerBase
+    public class SongRequestSettingsController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -23,10 +23,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId:int}")]
         public async Task<IActionResult> Get([FromRoute] int broadcasterId)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             SongRequestSetting? songRequestSetting = await _context.SongRequestSettings
                 .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId);
@@ -43,10 +40,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPut("{broadcasterId:int}")]
         public async Task<IActionResult> Update([FromRoute] int broadcasterId, [FromBody] SongRequestSetting songRequestSetting)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             if (broadcasterId != songRequestSetting.BroadcasterId)
             {
@@ -90,10 +84,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] SongRequestSetting songRequestSetting)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             _context.SongRequestSettings.Add(songRequestSetting);
             await _context.SaveChangesAsync();

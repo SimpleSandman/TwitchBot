@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
@@ -10,7 +10,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class SongRequestIgnoresController : ControllerBase
+    public class SongRequestIgnoresController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -24,10 +24,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId}")]
         public async Task<IActionResult> Get(int broadcasterId, [FromQuery] int id = 0)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             object? songRequestIgnore = new object();
 
@@ -57,10 +54,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPut("{broadcasterId}")]
         public async Task<IActionResult> Update(int broadcasterId, [FromQuery] int id, [FromBody] SongRequestIgnore songRequestIgnore)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             if (id != songRequestIgnore.Id && broadcasterId != songRequestIgnore.BroadcasterId)
             {
@@ -94,10 +88,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] SongRequestIgnore songRequestIgnore)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             _context.SongRequestIgnores.Add(songRequestIgnore);
             await _context.SaveChangesAsync();
@@ -117,12 +108,9 @@ namespace TwitchBot.Api.Controllers
         [HttpDelete("{broadcasterId}")]
         public async Task<IActionResult> Delete(int broadcasterId, [FromQuery] string artist = "", [FromQuery] string title = "")
         {
-            // don't accept an invalid model state or a request with just the title
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            else if (string.IsNullOrEmpty(artist) && !string.IsNullOrEmpty(title))
+            IsModelStateValid();
+
+            if (string.IsNullOrEmpty(artist) && !string.IsNullOrEmpty(title))
             {
                 throw new ApiException("Artist or title are null or empty");
             }

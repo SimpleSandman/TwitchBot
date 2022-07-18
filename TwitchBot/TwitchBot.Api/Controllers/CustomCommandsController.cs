@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TwitchBot.Api.Helpers;
 using TwitchBot.Api.Helpers.ErrorExceptions;
-
 using TwitchBotDb.Context;
 using TwitchBotDb.Models;
 
@@ -10,7 +10,7 @@ namespace TwitchBot.Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class CustomCommandsController : ControllerBase
+    public class CustomCommandsController : ExtendedControllerBase
     {
         private readonly SimpleBotContext _context;
 
@@ -24,10 +24,7 @@ namespace TwitchBot.Api.Controllers
         [HttpGet("{broadcasterId}")]
         public async Task<IActionResult> Get(int broadcasterId, [FromQuery] string name = "")
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             object? customCommands = new object();
 
@@ -55,10 +52,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromQuery] int broadcasterId, [FromBody] CustomCommand customCommand)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             if (id != customCommand.Id || broadcasterId != customCommand.BroadcasterId)
             {
@@ -90,10 +84,7 @@ namespace TwitchBot.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CustomCommand customCommand)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             _context.CustomCommands.Add(customCommand);
             await _context.SaveChangesAsync();
@@ -105,10 +96,7 @@ namespace TwitchBot.Api.Controllers
         [HttpDelete("{broadcasterId}")]
         public async Task<IActionResult> Delete(int broadcasterId, [FromQuery] string name)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            IsModelStateValid();
 
             CustomCommand? customCommand = await _context.CustomCommands
                 .SingleOrDefaultAsync(m => m.BroadcasterId == broadcasterId && m.Name == name);
