@@ -23,7 +23,7 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Twitch Bot API",
-        Version = "v2022.07.16",
+        Version = "v2022.07.26",
         Description = "Back-end of chat bot specific calls",
         Contact = new OpenApiContact
         {
