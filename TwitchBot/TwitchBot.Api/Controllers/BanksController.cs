@@ -28,7 +28,7 @@ namespace TwitchBot.Api.Controllers
         // GET: api/banks/get/2
         // GET: api/banks/get/2?username=simple_sandman
         [HttpGet("{broadcasterId}")]
-        public async Task<IActionResult> Get(int broadcasterId, [FromQuery] string username = "")
+        public async Task<IActionResult> Get(int broadcasterId, [FromQuery] string? username = null)
         {
             IsModelStateValid();
 

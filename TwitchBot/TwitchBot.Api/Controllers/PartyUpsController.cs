@@ -22,7 +22,7 @@ namespace TwitchBot.Api.Controllers
         // GET: api/partyups/get/2?gameid=2
         // GET: api/partyups/get/2?gameid=2?partymember=Sinon
         [HttpGet("{broadcasterId:int}")]
-        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] int gameId = 0, [FromQuery] string partyMember = "")
+        public async Task<IActionResult> Get([FromRoute] int broadcasterId, [FromQuery] int gameId = 0, [FromQuery] string? partyMember = null)
         {
             IsModelStateValid();
 

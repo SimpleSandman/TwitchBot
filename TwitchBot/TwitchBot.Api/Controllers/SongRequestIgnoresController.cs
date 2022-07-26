@@ -106,7 +106,7 @@ namespace TwitchBot.Api.Controllers
         // DELETE: api/songrequestblacklists/delete/2?artist=someone
         // DELETE: api/songrequestblacklists/delete/2?artist=someone&title=something
         [HttpDelete("{broadcasterId}")]
-        public async Task<IActionResult> Delete(int broadcasterId, [FromQuery] string artist = "", [FromQuery] string title = "")
+        public async Task<IActionResult> Delete(int broadcasterId, [FromQuery] string? artist = null, [FromQuery] string? title = null)
         {
             IsModelStateValid();
 

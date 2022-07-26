@@ -22,7 +22,7 @@ namespace TwitchBot.Api.Controllers
         // GET: api/twitchgamecategories/get
         // GET: api/twitchgamecategories/get?title=IRL
         [HttpGet()]
-        public async Task<IActionResult> Get([FromQuery] string title)
+        public async Task<IActionResult> Get([FromQuery] string? title = null)
         {
             IsModelStateValid();
 

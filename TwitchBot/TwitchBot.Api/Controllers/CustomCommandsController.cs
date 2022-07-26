@@ -22,7 +22,7 @@ namespace TwitchBot.Api.Controllers
         // GET: api/customcommands/get/2
         // GET: api/customcommands/get/2?name=!custom
         [HttpGet("{broadcasterId}")]
-        public async Task<IActionResult> Get(int broadcasterId, [FromQuery] string name = "")
+        public async Task<IActionResult> Get(int broadcasterId, [FromQuery] string? name = null)
         {
             IsModelStateValid();
 
