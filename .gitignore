@@ -219,3 +219,4 @@ FakesAssemblies/
 _Pvt_Extensions
 /TwitchBot/TwitchBotApi/appsettings*.json
 /TwitchBot/TwitchBotConsoleApp/AppConfigSecrets.config
+/TwitchBot/TwitchBot.Api/appsettings*.json
