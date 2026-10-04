@@ -871,9 +871,16 @@ namespace TwitchBotConsoleApp
                 // Send either a sound command or a normal text command
                 if (customCommand.IsSound)
                 {
-                    using (SoundPlayer player = new SoundPlayer(customCommand.Message))
+                    if (OperatingSystem.IsWindows())
                     {
-                        player.Play();
+                        using (SoundPlayer player = new SoundPlayer(customCommand.Message))
+                        {
+                            player.Play();
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Sound command {customCommand.Name} skipped: sound playback is only supported on Windows");
                     }
                 }
                 else if (!customCommand.IsSound)

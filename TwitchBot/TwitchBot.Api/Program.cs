@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using TwitchBot.Api.Helpers.ErrorExceptions;
 using TwitchBotDb.Context;
 
